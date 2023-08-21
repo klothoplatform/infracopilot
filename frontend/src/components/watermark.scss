@@ -1,0 +1,17 @@
+.infracopilot_gradient {
+  background-image: linear-gradient(to right, #4ade80, #3b82f6, #a855f7);
+  filter: drop-shadow(0 20px 30px #28d8ff33);
+  -webkit-text-fill-color: transparent;
+  -webkit-background-clip: text; // needs to be added via JS for use with html-to-image
+  -webkit-box-decoration-break: clone;
+  color: rebeccapurple;
+}
+
+#infracopilot_watermark {
+  z-index:  10000 ;
+  position: absolute;
+}
+
+.watermark_container {
+  position: relative;
+}
