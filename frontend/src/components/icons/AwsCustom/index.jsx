@@ -1,2 +1,2 @@
-export * as PrivateSubnet from './PrivateSubnet';
-export * as PublicSubnet from './PublicSubnet';
+export * as PrivateSubnet from "./PrivateSubnet";
+export * as PublicSubnet from "./PublicSubnet";

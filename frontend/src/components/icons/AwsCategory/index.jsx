@@ -1,1 +1,1 @@
-export * as ArchCategory from './ArchCategory';
+export * as ArchCategory from "./ArchCategory";
