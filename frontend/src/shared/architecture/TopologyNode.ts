@@ -1,13 +1,14 @@
 const UNKNOWN_PROVIDER = "UNKNOWN";
 
-export interface NodeData {
+export interface TopologyNodeData {
   parent?: NodeId;
+  isNew?: boolean;
 }
 
-export class Node {
+export class TopologyNode {
   constructor(
     public resourceId: NodeId,
-    public data: Partial<NodeData> = {},
+    public vizMetadata: Partial<TopologyNodeData> = {}
   ) {}
 
   public get id(): string {
@@ -20,7 +21,7 @@ export class NodeId {
     public type: string,
     public namespace: string,
     public name: string,
-    public provider: string = UNKNOWN_PROVIDER,
+    public provider: string = UNKNOWN_PROVIDER
   ) {}
 
   public toString(): string {
@@ -45,7 +46,7 @@ export class NodeId {
       nodeType,
       namespace ?? "",
       nodeId,
-      provider ?? defaultProvider ?? UNKNOWN_PROVIDER,
+      provider ?? defaultProvider ?? UNKNOWN_PROVIDER
     );
   }
 }

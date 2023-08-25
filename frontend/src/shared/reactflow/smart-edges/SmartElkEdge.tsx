@@ -75,7 +75,7 @@ export const getSmartEdge = <NodeDataType = unknown,>({
     if (
       sourceParentNodes?.slice(-1).length &&
       [...targetParentNodes?.slice(-1), targetNode].find(
-        (n) => n === sourceParentNodes?.slice(-1)[0],
+        (n) => n === sourceParentNodes?.slice(-1)[0]
       )
     ) {
       // if source and destination have the same parent or the destination is the parent of the source, use the parent offset
@@ -156,7 +156,7 @@ function findParents(node?: Node, nodes?: Node[]): Node[] {
     const parent = findParent(node, nodes);
     if (!parent) {
       throw new Error(
-        `parent node [${node.parentNode}] not found for child [${node.id}]`,
+        `parent node [${node.parentNode}] not found for child [${node.id}]`
       );
     }
     pNodes.push(parent);

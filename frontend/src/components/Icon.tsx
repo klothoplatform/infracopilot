@@ -48,10 +48,11 @@ export const NoIcon = (props: IconProps | undefined) => {
 export const Helm = (props: IconProps) => {
   return (
     <img
-      src="other_icons/helm-icon-color.svg"
       height="100px"
       width="100px"
       alt="helm"
+      {...props}
+      src="other_icons/helm-icon-color.svg"
     />
   );
 };
@@ -59,10 +60,23 @@ export const Helm = (props: IconProps) => {
 export const Docker = (props: IconProps) => {
   return (
     <img
-      src="other_icons/docker-icon.svg"
       height="100px"
       width="100px"
       alt="docker"
+      {...props}
+      src="other_icons/docker-icon.svg"
+    />
+  );
+};
+
+export const AwsLogo = (props: IconProps) => {
+  return (
+    <img
+      height="100px"
+      width="100px"
+      alt="aws"
+      {...props}
+      src="other_icons/aws-logo.svg"
     />
   );
 };

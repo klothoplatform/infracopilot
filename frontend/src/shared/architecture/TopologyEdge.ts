@@ -1,10 +1,10 @@
-import { NodeId } from "./Node";
+import { NodeId } from "./TopologyNode";
 
-class Edge {
+class TopologyEdge {
   constructor(
     public sourceId: NodeId,
     public targetId: NodeId,
-    public data?: object
+    public vizMetadata?: object
   ) {}
 
   public get source(): string {
@@ -20,4 +20,4 @@ class Edge {
   }
 }
 
-export default Edge;
+export default TopologyEdge;

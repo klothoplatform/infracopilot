@@ -1,29 +1,62 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import "./index.scss";
-import WebUI from "./views/WebUI";
 import reportWebVitals from "./reportWebVitals";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import AutomationUI from "./views/AutomationUI";
+import ArchitectureEditor from "./views/ArchitectureEditor/ArchitectureEditor";
+import { createTheme, ThemeProvider } from "@mui/material";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
 );
 
+declare module "@mui/material/styles" {
+  interface TypographyVariants {
+    resourceLabel: React.CSSProperties;
+  }
+
+  // allow configuration using `createTheme`
+  interface TypographyVariantsOptions {
+    resourceLabel?: React.CSSProperties;
+  }
+}
+
+// Update the Typography's variant prop options
+declare module "@mui/material/Typography" {
+  interface TypographyPropsVariantOverrides {
+    resourceLabel: true;
+  }
+}
+
+const theme = createTheme({
+  typography: {
+    resourceLabel: {
+      fontSize: "10px",
+    },
+  },
+  components: {
+    MuiTypography: {
+      defaultProps: {
+        variantMapping: {
+          resourceLabel: "span",
+        },
+      },
+    },
+  },
+});
+
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <WebUI />,
-  },
-  {
-    path: "/viz",
-    element: <AutomationUI />,
+    element: <ArchitectureEditor />,
   },
 ]);
 
 root.render(
   <React.StrictMode>
-    <RouterProvider router={router} />
+    <ThemeProvider theme={theme}>
+      <RouterProvider router={router} />
+    </ThemeProvider>
   </React.StrictMode>
 );
 

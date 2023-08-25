@@ -1,12 +1,13 @@
-import Edge from "./Edge";
-import { Node, NodeId } from "./Node";
+import TopologyEdge from "./TopologyEdge";
+import { TopologyNode, NodeId } from "./TopologyNode";
 import yaml from "yaml";
 import { createContext } from "react";
+import { Architecture } from "./Architecture";
 
-export class ResourceGraph {
+export class TopologyGraph {
   Provider: string;
-  Nodes: Node[];
-  Edges: Edge[];
+  Nodes: TopologyNode[];
+  Edges: TopologyEdge[];
 
   constructor() {
     this.Nodes = [];
@@ -15,23 +16,23 @@ export class ResourceGraph {
   }
 }
 
-export const ResourceGraphContext = createContext({
-  graph: new ResourceGraph(),
-  setGraph: (graph: ResourceGraph) => {},
+export const ArchitectureContext = createContext({
+  architecture: {} as Architecture,
+  setArchitecture: (architecture: Architecture) => {},
 });
 
-export const parse = (content: string): Map<string, ResourceGraph> => {
-  const apps = new Map<string, ResourceGraph>();
+export const parse = (content: string): Map<string, TopologyGraph> => {
+  const apps = new Map<string, TopologyGraph>();
   const parsed_yaml = yaml.parse(content) as object;
   if (!parsed_yaml) {
     return apps;
   }
 
   Object.keys(parsed_yaml).forEach((k: string) =>
-    apps.set(k, new ResourceGraph())
+    apps.set(k, new TopologyGraph())
   );
 
-  apps.forEach((graph: ResourceGraph, appName: string) => {
+  apps.forEach((graph: TopologyGraph, appName: string) => {
     const app = parsed_yaml[appName as keyof object];
     if (!app) {
       console.log(`no nodes found for app: ${appName}`);
@@ -50,11 +51,11 @@ export const parse = (content: string): Map<string, ResourceGraph> => {
         }
         const sourceId = NodeId.fromString(source, graph.Provider);
         const targetId = NodeId.fromString(target, graph.Provider);
-        graph.Edges.push(new Edge(sourceId, targetId, {}));
+        graph.Edges.push(new TopologyEdge(sourceId, targetId, {}));
         edgeDefinedNodes.push(sourceId, targetId);
       } else {
         graph.Nodes.push(
-          new Node(NodeId.fromString(k, graph.Provider), {
+          new TopologyNode(NodeId.fromString(k, graph.Provider), {
             ...resources[k],
             parent: resources[k]?.parent
               ? NodeId.fromString(resources[k]?.parent, graph.Provider)
@@ -64,8 +65,10 @@ export const parse = (content: string): Map<string, ResourceGraph> => {
       }
     });
     edgeDefinedNodes.forEach((r) => {
-      if (!graph.Nodes.find((n: Node) => n.id.toString() === r.toString())) {
-        graph.Nodes.push(new Node(r, {}));
+      if (
+        !graph.Nodes.find((n: TopologyNode) => n.id.toString() === r.toString())
+      ) {
+        graph.Nodes.push(new TopologyNode(r, {}));
       }
     });
   });

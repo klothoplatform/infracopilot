@@ -1,7 +1,7 @@
 import React, { memo, useContext, useMemo } from "react";
 import { getGroupIcon, getIconMapping } from "./ResourceMappings";
 import { Handle, useUpdateNodeInternals } from "reactflow";
-import { ResourceGraphContext } from "../resource-graph/ResourceGraph";
+import { ArchitectureContext } from "../architecture/TopologyGraph";
 
 interface GroupNodeProps {
   id: string;
@@ -11,12 +11,12 @@ interface GroupNodeProps {
 }
 
 export default memo(({ id, data, isConnectable }: GroupNodeProps) => {
-  const { graph } = useContext(ResourceGraphContext);
+  const { architecture } = useContext(ArchitectureContext);
 
   const iconMapping = getIconMapping(
     data.resourceId.provider,
     data.resourceId.type,
-    data,
+    data
   );
   const updateNodeInternals = useUpdateNodeInternals();
   const handles = useMemo(() => {
@@ -74,7 +74,7 @@ export default memo(({ id, data, isConnectable }: GroupNodeProps) => {
                 ...iconMapping?.groupIconStyle,
               },
             },
-            data,
+            data
           )}
         </span>
         <span
@@ -87,7 +87,7 @@ export default memo(({ id, data, isConnectable }: GroupNodeProps) => {
             paddingLeft: "6px",
           }}
         >
-          {data.resourceId.provider === graph.Provider
+          {data.resourceId.provider === architecture.provider
             ? `${data.resourceId.type}/${data.resourceId.name}`
             : data.resourceId.toString()}
         </span>

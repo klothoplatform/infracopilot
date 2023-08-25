@@ -98,8 +98,8 @@ import {
 import React from "react";
 import { PublicSubnet } from "../../components/icons/AwsCustom/PublicSubnet";
 import { PrivateSubnet } from "../../components/icons/AwsCustom/PrivateSubnet";
-import { NodeData } from "../resource-graph/Node";
-import { RdsInstanceData, SubnetData } from "../resource-graph/NodeMetadata";
+import { TopologyNodeData } from "../architecture/TopologyNode";
+import { RdsInstanceData, SubnetData } from "../architecture/TopologyMetadata";
 import { LogoWithBorder } from "../../components/icons/K8SLogo/Unlabeled";
 import {
   Deploy,
@@ -113,7 +113,7 @@ import {
 } from "../../components/icons/K8SResources/Unlabeled";
 import { AmazonSimpleEmailService } from "../../components/icons/AwsArchitectureService/BusinessApplications";
 
-type Discriminator = <T extends NodeData>(n: T) => string;
+type Discriminator = <T extends TopologyNodeData>(n: T) => string;
 
 export interface IconMapping {
   marginLeft?: string;
@@ -143,7 +143,7 @@ const kubernetesDefaults: Partial<IconMapping> = {
   },
 };
 
-const typeMappings = new Map<
+export const typeMappings = new Map<
   string,
   Map<string, CallableFunction | IconMapping>
 >([
@@ -409,18 +409,11 @@ const typeMappings = new Map<
   ],
 ]);
 
-// adds normalized mappings
-typeMappings.forEach((mappings, provider) =>
-  mappings.forEach((mapping, name) =>
-    mappings.set(name.replace(/[_-]+/, "").toLowerCase(), mapping),
-  ),
-);
-
 export const getIconMapping = (
   provider: string,
   type: string,
-  data?: NodeData,
-  variant?: string,
+  data?: TopologyNodeData,
+  variant?: string
 ): IconMapping | undefined => {
   let mapping = typeMappings.get(provider)?.get(type) as any;
   if (!variant) {
@@ -433,8 +426,8 @@ export const getIcon = (
   provider: string,
   type: string,
   props?: IconProps,
-  data?: NodeData,
-  variant?: string,
+  data?: TopologyNodeData,
+  variant?: string
 ): React.JSX.Element => {
   let mapping = typeMappings.get(provider)?.get(type) as any;
   if (!variant) {
@@ -448,8 +441,8 @@ export const getGroupIcon = (
   provider: string,
   type: string,
   props?: IconProps,
-  data?: NodeData,
-  variant?: string,
+  data?: TopologyNodeData,
+  variant?: string
 ): React.JSX.Element => {
   let mapping = typeMappings.get(provider)?.get(type) as any;
   if (!variant) {

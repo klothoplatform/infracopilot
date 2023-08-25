@@ -1,9 +1,9 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
-import WebUI from "./WebUI";
+import ArchitectureEditor from "./ArchitectureEditor";
 
 test("renders learn react link", () => {
-  render(<WebUI />);
+  render(<ArchitectureEditor />);
   const linkElement = screen.getByText(/learn react/i);
   expect(linkElement).toBeInTheDocument();
 });

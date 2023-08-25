@@ -156,6 +156,7 @@ export async function autoLayout(
   edges?: Edge[],
   layoutOptions = DefaultLayoutOptions
 ): Promise<AutoLayoutResult> {
+  console.log("autoLayout called");
   if (!nodes) {
     return { nodes: [], edges: [] };
   }
