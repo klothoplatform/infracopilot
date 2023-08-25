@@ -2,7 +2,7 @@ import "./ArchitectureEditor.scss";
 
 import React, { useEffect } from "react";
 import { ReactFlowProvider } from "reactflow";
-import { Typography } from "@mui/material";
+import { Divider, Typography } from "@mui/material";
 import "reactflow/dist/style.css";
 
 import { useSearchParams } from "react-router-dom";
@@ -10,6 +10,7 @@ import EditorPane from "./EditorPane";
 import Grid2 from "@mui/material/Unstable_Grid2";
 import LeftSidebar from "./LeftSidebar";
 import useEditorStore from "../store/store";
+import RightSidebar from "./RightSidebar";
 
 function ArchitectureEditor() {
   const [searchParams] = useSearchParams();
@@ -32,11 +33,14 @@ function ArchitectureEditor() {
         <Typography variant={"h5"}>InfraCopilot</Typography>
       </div>
       <Grid2 container height={"100%"} width={"100%"} rowSpacing={0}>
-        <Grid2 xs={2}>
+        <Grid2 xs={2} style={{ borderRight: "1px solid #e0e0e0" }}>
           <LeftSidebar />
         </Grid2>
-        <Grid2 xs={10}>
+        <Grid2 xs={8}>
           <EditorPane />
+        </Grid2>
+        <Grid2 xs={2} style={{ borderLeft: "1px solid #e0e0e0" }}>
+          <RightSidebar />
         </Grid2>
       </Grid2>
     </div>
