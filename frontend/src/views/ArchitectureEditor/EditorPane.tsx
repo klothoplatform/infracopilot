@@ -6,7 +6,9 @@ import ReactFlow, {
   Node,
 } from "reactflow";
 import NodesTypes, { NodeType } from "../../shared/reactflow/NodesTypes";
-import EdgeTypes from "../../shared/reactflow/EdgeTypes";
+import EdgeTypes, {
+  defaultEdgeOptions,
+} from "../../shared/reactflow/EdgeTypes";
 import React, {
   MouseEvent as ReactMouseEvent,
   useCallback,
@@ -20,6 +22,7 @@ import {
   toReactFlowElements,
 } from "../../shared/architecture/Architecture";
 import useEditorStore from "../store/store";
+import StraightConnectionLine from "../../shared/reactflow/StraightConnectionLine";
 
 let id = 0;
 
@@ -114,6 +117,13 @@ export default function EditorPane() {
         onInit={setReactFlowInstance}
         nodeTypes={NodesTypes}
         edgeTypes={EdgeTypes}
+        defaultEdgeOptions={defaultEdgeOptions}
+        connectionLineComponent={StraightConnectionLine}
+        connectionLineStyle={{
+          stroke: "blue",
+          strokeWidth: 2,
+          strokeLinecap: "round",
+        }}
         elevateNodesOnSelect={false}
         fitView
         proOptions={{

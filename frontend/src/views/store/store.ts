@@ -69,6 +69,7 @@ export type EditorState = {
   unappliedConstraints: Constraint[];
   applyConstraints: () => Promise<void>;
   canApplyConstraints: boolean;
+  connectionSourceId?: string;
 };
 
 // this is our useStore hook that we can use in our components to get parts of the store and call actions
@@ -85,9 +86,41 @@ const useEditorStoreBase = createWithEqualityFn<EditorState>(
       });
     },
     onEdgesChange: (changes: EdgeChange[]) => {
+      console.log("edges changed", changes);
+      const edges = applyEdgeChanges(changes, get().edges);
+      const nodes = get().nodes;
+      const constraints = changes
+        .map((change: any) => {
+          const sourceNode = nodes.find(
+            (node) => node.id === change?.item.source
+          );
+          const targetNode = nodes.find(
+            (node) => node.id === change?.item.target
+          );
+          switch (change.type) {
+            case "add":
+              return new EdgeConstraint(
+                ConstraintOperator.MustExist,
+                sourceNode?.data.resourceId,
+                targetNode?.data.resourceId,
+                change.item.data
+              );
+            case "remove":
+              return new EdgeConstraint(
+                ConstraintOperator.MustNotExist,
+                sourceNode?.data.resourceId,
+                targetNode?.data.resourceId,
+                change.item.data
+              );
+          }
+        })
+        .filter((constraint) => constraint !== undefined) as EdgeConstraint[];
       set({
-        edges: applyEdgeChanges(changes, get().edges),
+        edges,
+        unappliedConstraints: [...get().unappliedConstraints, ...constraints],
       });
+      get().refreshLayout();
+      console.log("edges changed", constraints);
     },
     onConnect: (connection: Connection) => {
       set({
@@ -226,6 +259,7 @@ const useEditorStoreBase = createWithEqualityFn<EditorState>(
         canApplyConstraints: true,
       });
     },
+    connectionSourceId: undefined,
   }),
   shallow
 );

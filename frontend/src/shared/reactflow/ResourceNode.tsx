@@ -1,7 +1,9 @@
-import React, { memo, useContext, useMemo } from "react";
-import { Handle, useUpdateNodeInternals } from "reactflow";
+import React, { memo, useMemo } from "react";
+import { Handle, Position, useStore, useUpdateNodeInternals } from "reactflow";
 import { getIcon } from "./ResourceMappings";
-import { ArchitectureContext } from "../architecture/TopologyGraph";
+import useEditorStore from "../../views/store/store";
+
+import "./NodeStyles.scss";
 
 interface ResourceNodeProps {
   id: string;
@@ -10,9 +12,14 @@ interface ResourceNodeProps {
   isSelected?: boolean;
 }
 
+const connectionNodeIdSelector = (state: any) => state.connectionNodeId;
+
 export default memo(
   ({ id, data, isConnectable, isSelected }: ResourceNodeProps) => {
-    const { architecture } = useContext(ArchitectureContext);
+    const { architecture } = useEditorStore();
+    const connectionNodeId = useStore(connectionNodeIdSelector);
+    const isConnecting = !!connectionNodeId;
+    const isTarget = connectionNodeId && connectionNodeId !== id;
     const updateNodeInternals = useUpdateNodeInternals();
     const handles = useMemo(() => {
       updateNodeInternals(id);
@@ -38,6 +45,27 @@ export default memo(
     return (
       <>
         {handles}
+        {!isConnecting && (
+          <Handle
+            id={`${id}-dnd-source`}
+            position={Position.Right}
+            type="source"
+            style={{
+              width: "15px",
+              height: "15px",
+            }}
+          />
+        )}
+
+        {isConnecting && (
+          <Handle
+            className="customHandle"
+            id={`${id}-dnd-target`}
+            position={Position.Left}
+            type="target"
+          />
+        )}
+
         <div
           style={{
             textAlign: "center",
@@ -53,7 +81,7 @@ export default memo(
               width: "100%",
               style: {
                 // displays a green border around new nodes
-                boxShadow: data.isSelected
+                boxShadow: isSelected
                   ? "rgb(44 183 27 / 82%) 0px 0px 4px 4px"
                   : undefined,
               },
