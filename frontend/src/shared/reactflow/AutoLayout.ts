@@ -370,6 +370,7 @@ export async function autoLayout(
                     s.outgoingShape === edge.target
                 ),
             },
+            hidden: false, // we're currently hiding all edges until after they're all laid out with elk
             type: layoutOptions.flowEdgeType,
             style: { stroke: "#545B64", strokeWidth: "2" },
             sourceHandle: `${edge.id}:${source?.id ?? ""}:s`,

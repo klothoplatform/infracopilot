@@ -1,7 +1,7 @@
 import React, { memo, useMemo } from "react";
 import { Handle, Position, useStore, useUpdateNodeInternals } from "reactflow";
 import { getIcon } from "./ResourceMappings";
-import useEditorStore from "../../views/store/store";
+import useApplicationStore from "../../views/store/store";
 
 import "./NodeStyles.scss";
 
@@ -16,7 +16,7 @@ const connectionNodeIdSelector = (state: any) => state.connectionNodeId;
 
 export default memo(
   ({ id, data, isConnectable, isSelected }: ResourceNodeProps) => {
-    const { architecture } = useEditorStore();
+    const { architecture } = useApplicationStore();
     const connectionNodeId = useStore(connectionNodeIdSelector);
     const isConnecting = !!connectionNodeId;
     const isTarget = connectionNodeId && connectionNodeId !== id;
@@ -47,13 +47,10 @@ export default memo(
         {handles}
         {!isConnecting && (
           <Handle
+            className="customHandle"
             id={`${id}-dnd-source`}
             position={Position.Right}
             type="source"
-            style={{
-              width: "15px",
-              height: "15px",
-            }}
           />
         )}
 

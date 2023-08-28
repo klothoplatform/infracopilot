@@ -1,4 +1,10 @@
-import { StoreApi, UseBoundStore } from "zustand";
+import {
+  State,
+  StateCreator,
+  StoreApi,
+  StoreMutatorIdentifier,
+  UseBoundStore,
+} from "zustand";
 import {
   addEdge,
   applyEdgeChanges,
@@ -10,7 +16,9 @@ import {
   NodeChange,
   OnConnect,
   OnEdgesChange,
+  OnEdgesDelete,
   OnNodesChange,
+  OnNodesDelete,
 } from "reactflow";
 import {
   Architecture,
@@ -31,6 +39,9 @@ import {
   EdgeConstraint,
 } from "../../shared/architecture/Constraints";
 import { applyConstraints } from "../../api/ApplyConstraints";
+import TopologyEdge from "../../shared/architecture/TopologyEdge";
+import { NodeId } from "../../shared/architecture/TopologyNode";
+import zukeeper from "zukeeper";
 
 type WithSelectors<S> = S extends { getState: () => infer T }
   ? S & { use: { [K in keyof T]: () => T[K] } }
@@ -48,14 +59,34 @@ const createSelectors = <S extends UseBoundStore<StoreApi<object>>>(
   return store;
 };
 
+type ZukeeperTS = <
+  T extends State,
+  Mps extends [StoreMutatorIdentifier, unknown][] = [],
+  Mcs extends [StoreMutatorIdentifier, unknown][] = []
+>(
+  f: StateCreator<T, Mps, Mcs>
+) => StateCreator<T, Mps, Mcs>;
+
+type ZukeeperTSImplType = <T extends State>(
+  f: StateCreator<T, [], []>
+) => StateCreator<T, [], []>;
+
+const zukeeperTs: ZukeeperTSImplType = (...a) => {
+  return zukeeper(...a);
+};
+
+export const zukeeperTsLogger = zukeeperTs as unknown as ZukeeperTS;
+
 export type EditorState = {
   layoutOptions: LayoutOptions;
   nodes: Node[];
   edges: Edge[];
   onNodesChange: OnNodesChange;
   onEdgesChange: OnEdgesChange;
+  deletingNodes: boolean; // used for skipping layout refresh on a node's dependent edges
   onConnect: OnConnect;
   selectedNode?: string;
+  selectedEdge?: string;
   selectNode: (nodeId: string) => void;
   deselectNode: (nodeId: string) => void;
   architecture: Architecture;
@@ -70,16 +101,61 @@ export type EditorState = {
   applyConstraints: () => Promise<void>;
   canApplyConstraints: boolean;
   connectionSourceId?: string;
+  selectEdge: (edgeId: string) => void;
+  deselectEdge: (edgeId: string) => void;
+  deleteElements: (elements: Partial<ReactFlowElements>) => Promise<void>;
 };
 
-// this is our useStore hook that we can use in our components to get parts of the store and call actions
-const useEditorStoreBase = createWithEqualityFn<EditorState>(
-  (set, get) => ({
-    nodes: [] as Node[],
-    edges: [] as Edge[],
+const useApplicationStoreBase = createWithEqualityFn<EditorState>(
+  zukeeperTsLogger((set, get) => ({
+    nodes: [],
+    edges: [],
     selectedNode: undefined,
+    selectedEdge: undefined,
     layoutRefreshing: false,
+    deletingNodes: false,
     layoutOptions: DefaultLayoutOptions,
+    deleteElements: async (elements) => {
+      const nodes = get().nodes;
+      const nodeConstraints =
+        elements.nodes?.map(
+          (node) =>
+            new ApplicationConstraint(
+              ConstraintOperator.Remove,
+              node.data.resourceId
+            )
+        ) ?? [];
+      const edgeConstraints =
+        elements.edges?.map((edge) => {
+          const sourceNode = nodes.find((node) => node.id === edge.source);
+          const targetNode = nodes.find((node) => node.id === edge.target);
+          if (!sourceNode || !targetNode) {
+            throw new Error("edge source or target not found");
+          }
+          return new EdgeConstraint(
+            ConstraintOperator.MustNotExist,
+            sourceNode.data.resourceId,
+            targetNode.data.resourceId
+          );
+        }) ?? [];
+      set({
+        nodes: nodes.filter(
+          (n) => elements.nodes?.every((e) => e.id !== n.id) ?? true
+        ),
+        edges: get().edges.filter(
+          (edge) => elements.edges?.find((e) => e.id === edge.id) ?? true
+        ),
+
+        unappliedConstraints: [
+          ...get().unappliedConstraints,
+          ...nodeConstraints,
+          ...edgeConstraints,
+        ],
+      });
+      console.log("constraints", get().unappliedConstraints);
+      get().applyConstraints();
+      get().refreshLayout();
+    },
     onNodesChange: (changes: NodeChange[]) => {
       set({
         nodes: applyNodeChanges(changes, get().nodes),
@@ -87,45 +163,34 @@ const useEditorStoreBase = createWithEqualityFn<EditorState>(
     },
     onEdgesChange: (changes: EdgeChange[]) => {
       console.log("edges changed", changes);
-      const edges = applyEdgeChanges(changes, get().edges);
-      const nodes = get().nodes;
-      const constraints = changes
-        .map((change: any) => {
-          const sourceNode = nodes.find(
-            (node) => node.id === change?.item.source
-          );
-          const targetNode = nodes.find(
-            (node) => node.id === change?.item.target
-          );
-          switch (change.type) {
-            case "add":
-              return new EdgeConstraint(
-                ConstraintOperator.MustExist,
-                sourceNode?.data.resourceId,
-                targetNode?.data.resourceId,
-                change.item.data
-              );
-            case "remove":
-              return new EdgeConstraint(
-                ConstraintOperator.MustNotExist,
-                sourceNode?.data.resourceId,
-                targetNode?.data.resourceId,
-                change.item.data
-              );
-          }
-        })
-        .filter((constraint) => constraint !== undefined) as EdgeConstraint[];
-      set({
-        edges,
-        unappliedConstraints: [...get().unappliedConstraints, ...constraints],
-      });
-      get().refreshLayout();
-      console.log("edges changed", constraints);
+      applyEdgeChanges(changes, get().edges);
     },
-    onConnect: (connection: Connection) => {
+    onConnect: async (connection: Connection) => {
+      if (connection.source === connection.target) {
+        return;
+      }
+      const newConstraints =
+        connection.source && connection.target
+          ? [
+              new EdgeConstraint(
+                ConstraintOperator.MustExist,
+                new TopologyEdge(
+                  NodeId.fromString(connection.source),
+                  NodeId.fromString(connection.target)
+                )
+              ),
+            ]
+          : [];
       set({
         edges: addEdge(connection, get().edges),
+        unappliedConstraints: [
+          ...get().unappliedConstraints,
+          ...newConstraints,
+        ],
       });
+      await get().applyConstraints();
+      await get().refreshLayout();
+      console.log("connected", connection);
     },
     selectNode: (nodeId: string) => {
       get().deselectNode(get().selectedNode ?? "");
@@ -164,29 +229,37 @@ const useEditorStoreBase = createWithEqualityFn<EditorState>(
       console.log("architecture loaded");
     },
     refreshLayout: async () => {
-      console.log("refreshing layout");
-      const start = performance.now();
+      try {
+        console.log("refreshing layout");
+        const start = performance.now();
 
-      if (get().layoutRefreshing) {
-        console.log("layout already refreshing, aborting");
-        return;
+        if (get().layoutRefreshing) {
+          console.log("layout already refreshing, aborting");
+          return;
+        }
+        set({
+          layoutRefreshing: true,
+        });
+        const { nodes, edges } = await autoLayout(
+          get().nodes,
+          get().edges,
+          get().layoutOptions
+        );
+        edges.forEach((edge) => (edge.hidden = false));
+
+        set({
+          nodes,
+          edges,
+          layoutRefreshing: false,
+        });
+        const end = performance.now();
+        console.log(`layout took ${end - start}ms`);
+      } catch (e) {
+        set({
+          layoutRefreshing: false,
+        });
+        throw e;
       }
-      set({
-        layoutRefreshing: true,
-      });
-      const { nodes, edges } = await autoLayout(
-        get().nodes,
-        get().edges,
-        get().layoutOptions
-      );
-
-      set({
-        nodes,
-        edges,
-        layoutRefreshing: false,
-      });
-      const end = performance.now();
-      console.log(`layout took ${end - start}ms`);
     },
     addGraphElements: async (
       elements: Partial<ReactFlowElements>,
@@ -260,10 +333,37 @@ const useEditorStoreBase = createWithEqualityFn<EditorState>(
       });
     },
     connectionSourceId: undefined,
-  }),
+    deselectEdge: (edgeId: string) => {
+      if (!edgeId) {
+        return;
+      }
+      set({
+        edges: get().edges.map((edge) => {
+          if (edge.id === edgeId) {
+            edge.data = { ...edge.data, isSelected: false };
+          }
+          return edge;
+        }),
+        selectedEdge: undefined,
+      });
+    },
+    selectEdge: (edgeId: string) => {
+      get().deselectEdge(get().selectedEdge ?? "");
+      set({
+        edges: get().edges.map((edge) => {
+          if (edge.id === edgeId) {
+            edge.data = { ...edge.data, isSelected: true };
+          }
+          return edge;
+        }),
+      });
+    },
+  })),
   shallow
 );
 
-const useEditorStore = createSelectors(useEditorStoreBase);
+// wraps the store with selectors for all state properties
+const useApplicationStore = createSelectors(useApplicationStoreBase);
+(window as any).store = useApplicationStore;
 
-export default useEditorStore;
+export default useApplicationStore;

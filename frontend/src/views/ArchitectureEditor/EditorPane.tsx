@@ -2,6 +2,7 @@ import ReactFlow, {
   Background,
   BackgroundVariant,
   Controls,
+  Edge,
   MiniMap,
   Node,
 } from "reactflow";
@@ -21,8 +22,9 @@ import {
   ArchitectureView,
   toReactFlowElements,
 } from "../../shared/architecture/Architecture";
-import useEditorStore from "../store/store";
+import useApplicationStore from "../store/store";
 import StraightConnectionLine from "../../shared/reactflow/StraightConnectionLine";
+import ContextMenu from "./ContextMenu";
 
 let id = 0;
 
@@ -40,7 +42,8 @@ export default function EditorPane() {
     refreshLayout,
     applyConstraints,
     selectNode,
-  } = useEditorStore();
+    selectEdge,
+  } = useApplicationStore();
 
   useLayoutEffect(() => {
     (async () => {
@@ -84,6 +87,7 @@ export default function EditorPane() {
       const newNode: Node = {
         id: id.toString(),
         type: NodeType.Resource,
+        draggable: false,
         data: {
           label: `${id.type}_${id.name}`,
           resourceId: id,
@@ -102,7 +106,66 @@ export default function EditorPane() {
 
   const onNodeClick = (event: ReactMouseEvent, node: Node) => {
     selectNode(node.id);
+    menu && setMenu(null);
   };
+
+  const onEdgeClick = (event: ReactMouseEvent, edge: Edge) => {
+    selectEdge(edge.id);
+    menu && setMenu(null);
+  };
+
+  const [menu, setMenu] = useState<any>(null);
+
+  const onNodeContextMenu = useCallback(
+    (event: ReactMouseEvent, node: Node) => {
+      // Prevent native context menu from showing
+      event.preventDefault();
+
+      // Calculate position of the context menu. We want to make sure it
+      // doesn't get positioned off-screen.
+      // TODO: consider an alternate positioning strategy (maybe based on node position?)
+      const pane = reactFlowWrapper.current.getBoundingClientRect();
+      setMenu({
+        node,
+        top: event.clientY < pane.height - 200 && event.clientY,
+        left: event.clientX < pane.width - 200 && event.clientX - pane.left,
+        right: event.clientX >= pane.width - 200 && pane.width - event.clientX,
+        bottom:
+          event.clientY >= pane.height - 200 && pane.height - event.clientY,
+        onAction: () => {
+          setMenu(null);
+        },
+      });
+    },
+    [setMenu]
+  );
+
+  const onEdgeContextMenu = useCallback(
+    (event: ReactMouseEvent, edge: Edge) => {
+      // Prevent native context menu from showing
+      event.preventDefault();
+
+      // Calculate position of the context menu. We want to make sure it
+      // doesn't get positioned off-screen.
+      // TODO: consider an alternate positioning strategy (maybe based on node position?)
+      const pane = reactFlowWrapper.current.getBoundingClientRect();
+      setMenu({
+        edge,
+        top: event.clientY < pane.height - 200 && event.clientY,
+        left: event.clientX < pane.width - 200 && event.clientX - pane.left,
+        right: event.clientX >= pane.width - 200 && pane.width - event.clientX,
+        bottom:
+          event.clientY >= pane.height - 200 && pane.height - event.clientY,
+        onAction: () => {
+          setMenu(null);
+        },
+      });
+    },
+    [setMenu]
+  );
+
+  // Close the context menu if it's open whenever the window is clicked.
+  const onPaneClick = useCallback(() => setMenu(null), [setMenu]);
 
   return (
     <div style={{ height: "90%", width: "100%" }} ref={reactFlowWrapper}>
@@ -111,6 +174,8 @@ export default function EditorPane() {
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
+        onNodeContextMenu={onNodeContextMenu}
+        onEdgeContextMenu={onEdgeContextMenu}
         onConnect={onConnect}
         onDrop={onDrop}
         onDragOver={onDragOver}
@@ -123,6 +188,7 @@ export default function EditorPane() {
           stroke: "blue",
           strokeWidth: 2,
           strokeLinecap: "round",
+          zIndex: 1000,
         }}
         elevateNodesOnSelect={false}
         fitView
@@ -130,11 +196,12 @@ export default function EditorPane() {
           hideAttribution: true,
         }}
         onNodeClick={onNodeClick}
+        onEdgeClick={onEdgeClick}
+        onPaneClick={onPaneClick}
       >
-        <Controls />
         <MiniMap />
         <Background variant={BackgroundVariant.Dots} gap={25} size={1} />
-        <Background />
+        {menu && <ContextMenu {...menu} />}
         <Controls />
       </ReactFlow>
     </div>

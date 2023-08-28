@@ -12,6 +12,8 @@ const EdgeTypes = {
 
 export const defaultEdgeOptions = {
   type: "floating",
+  style: { zIndex: 10000 },
+  hidden: true,
 };
 
 export default EdgeTypes;

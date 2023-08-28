@@ -39,6 +39,7 @@ function getNodesFromGraph(
     return {
       id: node.id,
       position: { x: 0, y: 0 },
+      draggable: false,
       data: {
         ...node.vizMetadata,
         label: node.resourceId.namespace
@@ -97,7 +98,7 @@ function getNodesFromGraph(
   });
 }
 
-function getEdgesFromGraph(graph: TopologyGraph) {
+function getEdgesFromGraph(graph: TopologyGraph): Edge[] {
   return graph?.Edges.map((edge: TopologyEdge) => {
     return {
       id: `${edge.source}-${edge.target}`,

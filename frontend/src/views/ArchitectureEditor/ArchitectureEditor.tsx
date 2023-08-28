@@ -9,12 +9,12 @@ import { useSearchParams } from "react-router-dom";
 import EditorPane from "./EditorPane";
 import Grid2 from "@mui/material/Unstable_Grid2";
 import LeftSidebar from "./LeftSidebar";
-import useEditorStore from "../store/store";
+import useApplicationStore from "../store/store";
 import RightSidebar from "./RightSidebar";
 
 function ArchitectureEditor() {
   const [searchParams] = useSearchParams();
-  const { loadArchitecture } = useEditorStore();
+  const { loadArchitecture } = useApplicationStore();
 
   useEffect(() => {
     loadArchitecture?.(searchParams.get("architectureId") ?? "default");
