@@ -48,7 +48,7 @@ class CreateArchitectureRequest(BaseModel):
     owner: str
     engine_version: float | None
 
-@app.post("/copilot/new_architecture")
+@app.post("/architecture")
 async def copilot_new_architecture(body: CreateArchitectureRequest):
     id = str(uuid.uuid4())
     architecture = Architecture(
@@ -64,7 +64,7 @@ async def copilot_new_architecture(body: CreateArchitectureRequest):
     await add_architecture(architecture)
     return JSONResponse(content={"id": id})
 
-@app.get("/copilot/{id}")
+@app.get("/architecture/{id}")
 async def copilot_get_state(id):
     try:
         arch = await get_architecture_latest(id)
@@ -91,7 +91,7 @@ class ArchitecutreStateNotLatestError(Exception):
 class CopilotRunRequest(BaseModel):
     constraints: List[dict]
 
-@app.post("/copilot/{id}/run")
+@app.post("/architecture/{id}/run")
 async def copilot_run(id: str, state: int, body: CopilotRunRequest):
     try:
         architecture = await get_architecture_latest(id)
@@ -136,7 +136,7 @@ class ResourceTypeResponse(BaseModel):
     resources: List[str]
 
 
-@app.get("/copilot/{id}/resource_types")
+@app.get("/architecture/{id}/resource_types")
 async def copilot_get_resource_types(id):
     try:
         architecture = await get_architecture_latest(request.architecture_id)
