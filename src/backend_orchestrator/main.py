@@ -71,13 +71,18 @@ async def copilot_get_state(id):
         if arch is None:
             raise ArchitectureStateDoesNotExistError(f'No architecture exists for id {id}')
         state = await get_state_from_fs(arch)
-        return JSONResponse(content=jsons.dumps(
+        return Response(content=jsons.dumps(
             {
+                "id": arch.id,
+                "name": arch.name,
+                "owner": arch.owner,
+                "engineVersion": arch.engine_version,
+                "version": arch.state if arch.state is not None else 0,
                 "state": yaml.dump(state)
                 if state is not None
                 else None,
-            })
-        )
+            }
+        ))
     except ArchitectureStateDoesNotExistError as e:
         raise HTTPException(status_code=404, detail="Architecture state not found")
     except Exception as e:
@@ -123,7 +128,19 @@ async def copilot_run(id: str, state: int, body: CopilotRunRequest):
         )
         await add_architecture(arch)
         await write_state_to_fs(arch, result.resources_yaml)
-        return JSONResponse(content=jsons.dumps(result))
+        return Response(jsons.dumps(
+            {
+                "id": arch.id,
+                "name": arch.name,
+                "owner": arch.owner,
+                "engineVersion": arch.engine_version,
+                "version": arch.state if arch.state is not None else 0,
+                "state": {
+                    "resources_yaml": result.resources_yaml,
+                    "topology_yaml": result.topology_yaml
+                }
+            }
+        ))
     except ArchitecutreStateNotLatestError as e:
         raise HTTPException(status_code=400, detail="Architecture state is not the latest")
     except ArchitectureStateDoesNotExistError as e:
