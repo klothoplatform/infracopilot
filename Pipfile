@@ -1,0 +1,22 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+fastapi = "*"
+uvicorn = "*"
+aiofiles = "*"
+pytest = "*"
+pytest-xdist = "*"
+pytest-asyncio = "*"
+pytest-check = "*"
+pytest-repeat = "*"
+aiounittest = "*"
+
+[dev-packages]
+black = "*"
+pre-commit = "*"
+
+[requires]
+python_version = "3.11"
