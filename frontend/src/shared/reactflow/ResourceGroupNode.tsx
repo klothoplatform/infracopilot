@@ -89,7 +89,7 @@ export default memo(({ id, data, isConnectable }: GroupNodeProps) => {
         >
           {data.resourceId.provider === architecture.provider
             ? `${data.resourceId.type}/${data.resourceId.name}`
-            : data.resourceId.toString()}
+            : data.resourceId.toKlothoIdString()}
         </span>
       </div>
     </>

@@ -12,7 +12,7 @@ export class TopologyNode {
   ) {}
 
   public get id(): string {
-    return this.resourceId.toString();
+    return this.resourceId.toTopologyString();
   }
 }
 
@@ -24,8 +24,16 @@ export class NodeId {
     public provider: string = UNKNOWN_PROVIDER
   ) {}
 
-  public toString(): string {
-    return `${this.provider}:${this.type}:${this.namespace}/${this.name}`;
+  public toTopologyString(): string {
+    return `${this.provider}:${this.type}${
+      this.namespace || this.name.includes(":") ? ":" + this.namespace : ""
+    }/${this.name}`;
+  }
+
+  public toKlothoIdString(): string {
+    return `${this.provider}:${this.type}${
+      this.namespace || this.name.includes(":") ? ":" + this.namespace : ""
+    }:${this.name}`;
   }
 
   public static fromString(input: string, defaultProvider?: string): NodeId {

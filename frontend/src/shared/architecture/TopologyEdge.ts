@@ -8,7 +8,7 @@ class TopologyEdge {
   ) {}
 
   public get source(): string {
-    return this.sourceId.toString();
+    return this.sourceId.toTopologyString();
   }
 
   public get id(): string {
@@ -16,7 +16,7 @@ class TopologyEdge {
   }
 
   public get target(): string {
-    return this.targetId.toString();
+    return this.targetId.toTopologyString();
   }
 }
 

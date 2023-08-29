@@ -16,13 +16,13 @@ import {
   NodeChange,
   OnConnect,
   OnEdgesChange,
-  OnEdgesDelete,
   OnNodesChange,
-  OnNodesDelete,
 } from "reactflow";
 import {
   Architecture,
+  ArchitectureView,
   ReactFlowElements,
+  toReactFlowElements,
 } from "../../shared/architecture/Architecture";
 import { getArchitecture } from "../../api/GetArchitecture";
 import {
@@ -134,8 +134,10 @@ const useApplicationStoreBase = createWithEqualityFn<EditorState>(
           }
           return new EdgeConstraint(
             ConstraintOperator.MustNotExist,
-            sourceNode.data.resourceId,
-            targetNode.data.resourceId
+            new TopologyEdge(
+              sourceNode.data.resourceId,
+              targetNode.data.resourceId
+            )
           );
         }) ?? [];
       set({
@@ -223,8 +225,15 @@ const useApplicationStoreBase = createWithEqualityFn<EditorState>(
 
     architecture: {} as Architecture,
     loadArchitecture: async (id: string, version?: number) => {
+      const architecture = await getArchitecture(id, version);
+      const elements = toReactFlowElements(
+        architecture,
+        ArchitectureView.DataFlow
+      );
       set({
-        architecture: await getArchitecture(id, version),
+        architecture: architecture,
+        nodes: elements.nodes,
+        edges: elements.edges,
       });
       console.log("architecture loaded");
     },
@@ -307,6 +316,7 @@ const useApplicationStoreBase = createWithEqualityFn<EditorState>(
         unappliedConstraints: [...get().unappliedConstraints, ...constraints],
       });
       console.log("constraints", get().unappliedConstraints);
+      await get().applyConstraints();
     },
     unappliedConstraints: [],
     canApplyConstraints: true,
@@ -319,18 +329,42 @@ const useApplicationStoreBase = createWithEqualityFn<EditorState>(
         throw new Error("cannot apply constraints, no architecture in context");
       }
 
-      set({
-        canApplyConstraints: false,
-      });
-      await applyConstraints(
-        architecture.id,
-        architecture.latestVersion,
-        get().unappliedConstraints
-      );
-      set({
-        unappliedConstraints: [],
-        canApplyConstraints: true,
-      });
+      try {
+        set({
+          canApplyConstraints: false,
+        });
+        console.log("applying constraints", get().unappliedConstraints);
+        console.log("architecture", architecture);
+        const newArchitecture = await applyConstraints(
+          architecture.id,
+          architecture.version,
+          get().unappliedConstraints
+        );
+        console.log("new architecture", newArchitecture);
+        const elements = toReactFlowElements(
+          newArchitecture,
+          ArchitectureView.DataFlow
+        );
+        const result = await autoLayout(
+          elements.nodes,
+          elements.edges,
+          get().layoutOptions
+        );
+        set({
+          nodes: result.nodes,
+          edges: result.edges,
+          unappliedConstraints: [],
+          canApplyConstraints: true,
+          architecture: newArchitecture,
+        });
+        console.log("new nodes", result.nodes);
+      } catch (e) {
+        set({
+          unappliedConstraints: [],
+          canApplyConstraints: true,
+        });
+        throw e;
+      }
     },
     connectionSourceId: undefined,
     deselectEdge: (edgeId: string) => {

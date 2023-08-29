@@ -19,12 +19,12 @@ export interface Architecture {
   provider: string;
   id: string;
   engineVersion: string;
-  latestVersion: number;
+  version: number;
   name: string;
   creator: string;
   owner: string;
   views: Map<ArchitectureView, TopologyGraph>;
-  resourceMetadata: Map<string, object>;
+  resourceMetadata: object;
 }
 
 /**
@@ -33,9 +33,9 @@ export interface Architecture {
  */
 function getNodesFromGraph(
   topology: TopologyGraph,
-  resourceMetadata: Map<string, object>
+  resourceMetadata: {}
 ): Node[] {
-  return topology?.Nodes.map((node: TopologyNode) => {
+  return topology?.Nodes?.map((node: TopologyNode) => {
     return {
       id: node.id,
       position: { x: 0, y: 0 },
@@ -46,7 +46,8 @@ function getNodesFromGraph(
           ? `${node.resourceId.namespace}:${node.resourceId.name}`
           : node.resourceId.name,
         resourceId: node.resourceId,
-        resourceMetadata: resourceMetadata.get(node.resourceId.toString()),
+        resourceMetadata:
+          (resourceMetadata as any)?.[node.resourceId.toKlothoIdString()] ?? {},
         vizMetadata: node.vizMetadata,
       },
       type:
@@ -54,12 +55,15 @@ function getNodesFromGraph(
           ? NodeType.Indicator
           : topology.Nodes.find(
               (n) =>
-                n.vizMetadata?.parent?.toString() === node.resourceId.toString()
+                n.vizMetadata?.parent?.toTopologyString() ===
+                node.resourceId.toTopologyString()
             )
           ? NodeType.ResourceGroup
           : NodeType.Resource,
       parentNode: topology.Nodes.find(
-        (n) => n.resourceId.toString() === node.vizMetadata?.parent?.toString()
+        (n) =>
+          n.resourceId.toTopologyString() ===
+          node.vizMetadata?.parent?.toTopologyString()
       )?.id,
       extent: node.vizMetadata?.parent ? "parent" : undefined,
     } as Node;
@@ -99,7 +103,7 @@ function getNodesFromGraph(
 }
 
 function getEdgesFromGraph(graph: TopologyGraph): Edge[] {
-  return graph?.Edges.map((edge: TopologyEdge) => {
+  return graph?.Edges?.map((edge: TopologyEdge) => {
     return {
       id: `${edge.source}-${edge.target}`,
       source: edge.source,
@@ -116,7 +120,7 @@ export function toReactFlowElements(
   architecture: Architecture,
   view: ArchitectureView
 ): ReactFlowElements {
-  const topology = architecture.views.get(view);
+  const topology = architecture.views?.get(view);
   if (!topology) {
     return { nodes: [], edges: [] };
   }
@@ -130,12 +134,12 @@ export const defaultArchitecture: Architecture = {
   provider: "aws",
   id: "1",
   engineVersion: "1",
-  latestVersion: 0,
+  version: 0,
   name: "A new diagram",
   creator: "John Doe",
   owner: "John Doe",
   views: new Map<ArchitectureView, TopologyGraph>([
     [ArchitectureView.DataFlow, parse(sampleGraphYaml).values().next().value],
   ]),
-  resourceMetadata: new Map<string, object>(),
+  resourceMetadata: {},
 };

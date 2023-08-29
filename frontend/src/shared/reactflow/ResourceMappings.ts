@@ -42,7 +42,6 @@ import {
   AmazonVpcInternetGateway,
   AmazonVpcNatGateway,
   AmazonVpcVirtualPrivateCloudVpc,
-  ElasticLoadBalancingApplicationLoadBalancer,
   ElasticLoadBalancingNetworkLoadBalancer,
 } from "../../components/icons/AwsResource/NetworkingContentDelivery";
 import {
@@ -75,7 +74,6 @@ import {
   AwsFargate,
 } from "../../components/icons/AwsArchitectureService/Containers";
 import {
-  AmazonDynamoDb,
   AmazonElastiCache,
   AmazonRds,
 } from "../../components/icons/AwsArchitectureService/Database";
@@ -161,19 +159,13 @@ export const typeMappings = new Map<
       ["ami", AmazonEc2Ami],
       ["api_deployment", AmazonApiGateway],
       ["api_integration", AmazonApiGatewayEndpoint],
-      ["api_gateway", AmazonApiGateway],
       ["api_method", AmazonApiGatewayEndpoint],
       ["api_resource", AmazonApiGatewayEndpoint],
       ["api_stage", AmazonApiGateway],
-      [
-        "application_load_balancer",
-        ElasticLoadBalancingApplicationLoadBalancer,
-      ],
       ["app_runner_service", AwsAppRunner],
       ["availability_zones", AmazonEc2],
       ["cloudfront_distribution", AmazonCloudFrontDownloadDistribution],
       ["cloudfront_origin_access_identity", AmazonCloudFront],
-      ["dynamodb", AmazonDynamoDb],
       ["dynamodb_table", AmazonDynamoDbTable],
       ["ecr_image", AmazonElasticContainerRegistryImage],
       ["ecr_repo", AmazonElasticContainerRegistryRegistry],
@@ -207,7 +199,6 @@ export const typeMappings = new Map<
       ],
       ["efs_mount_target", AmazonEfs],
       ["efs_access_point", AmazonEfs],
-      ["eks", AmazonElasticKubernetesService],
       ["eks_addon", AmazonElasticKubernetesService],
       [
         "eks_cluster",
@@ -233,10 +224,8 @@ export const typeMappings = new Map<
       ],
       ["eks_node_group", AmazonElasticKubernetesService],
       ["elastic_ip", AmazonEc2ElasticIpAddress],
-      ["elasticache", AmazonElastiCacheElastiCacheForRedis], // we should probably change this if we add support for memcached
       ["elasticache_cluster", AmazonElastiCacheElastiCacheForRedis], // we should probably change this if we add support for memcached
       ["elasticache_subnet_group", AmazonElastiCache],
-      ["fargate", AwsFargate],
       ["iam_oidc_provider", AwsIdentityAndAccessManagement],
       ["iam_policy", AwsIdentityAccessManagementPermissions],
       ["iam_role", AwsIdentityAccessManagementRole],
@@ -247,15 +236,12 @@ export const typeMappings = new Map<
       ["kms_replica_key", AwsKeyManagementService],
       ["kubeconfig", AmazonElasticKubernetesService],
       ["kustomize_directory", AmazonElasticKubernetesService],
-      ["kubernetes", AmazonElasticKubernetesService],
-      ["lambda", AwsLambdaLambdaFunction],
       ["lambda_function", AwsLambdaLambdaFunction],
       ["lambda_permission", AwsLambdaLambdaFunction],
-      ["load_balancer", ElasticLoadBalancingNetworkLoadBalancer],
+      ["load_balancer", ElasticLoadBalancingNetworkLoadBalancer], // TODO: add differentiation for ALB and NLB
       ["load_balancer_listener", ElasticLoadBalancing],
       ["log_group", AmazonCloudWatchLogs],
       ["nat_gateway", AmazonVpcNatGateway],
-      ["network_load_balancer", ElasticLoadBalancingNetworkLoadBalancer],
       ["private_dns_namespace", AmazonElasticContainerService],
       ["rds", AmazonRds],
       [
@@ -303,7 +289,6 @@ export const typeMappings = new Map<
       ["route53_hosted_zone", AmazonRoute_53HostedZone],
       ["route53_record", AmazonRoute_53],
       ["route53_health_check", AmazonRoute_53ReadinessChecks],
-      ["s3", AmazonSimpleStorageServiceBucket],
       ["s3_bucket", AmazonSimpleStorageServiceBucket],
       ["s3_bucket_policy", AmazonSimpleStorageService],
       ["s3_object", AmazonSimpleStorageServiceObject],

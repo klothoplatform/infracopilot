@@ -2,7 +2,7 @@ import "./ArchitectureEditor.scss";
 
 import React, { useEffect } from "react";
 import { ReactFlowProvider } from "reactflow";
-import { Divider, Typography } from "@mui/material";
+import { Typography } from "@mui/material";
 import "reactflow/dist/style.css";
 
 import { useSearchParams } from "react-router-dom";
@@ -11,13 +11,26 @@ import Grid2 from "@mui/material/Unstable_Grid2";
 import LeftSidebar from "./LeftSidebar";
 import useApplicationStore from "../store/store";
 import RightSidebar from "./RightSidebar";
+import createArchitecture from "../../api/CreateArchitecture";
 
 function ArchitectureEditor() {
   const [searchParams] = useSearchParams();
   const { loadArchitecture } = useApplicationStore();
 
   useEffect(() => {
-    loadArchitecture?.(searchParams.get("architectureId") ?? "default");
+    (async function initArchitecture() {
+      let architectureId = searchParams.get("architectureId");
+      if (!architectureId) {
+        architectureId = (
+          await createArchitecture({
+            name: "New Architecture",
+            owner: "test",
+            engineVersion: "1.0",
+          })
+        ).id;
+      }
+      loadArchitecture?.(architectureId);
+    })();
   }, [loadArchitecture, searchParams]);
 
   return (

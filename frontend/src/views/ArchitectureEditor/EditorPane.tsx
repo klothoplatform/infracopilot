@@ -3,8 +3,11 @@ import ReactFlow, {
   BackgroundVariant,
   Controls,
   Edge,
+  getRectOfNodes,
+  getTransformForBounds,
   MiniMap,
   Node,
+  useReactFlow,
 } from "reactflow";
 import NodesTypes, { NodeType } from "../../shared/reactflow/NodesTypes";
 import EdgeTypes, {
@@ -13,7 +16,7 @@ import EdgeTypes, {
 import React, {
   MouseEvent as ReactMouseEvent,
   useCallback,
-  useLayoutEffect,
+  useEffect,
   useRef,
   useState,
 } from "react";
@@ -25,6 +28,7 @@ import {
 import useApplicationStore from "../store/store";
 import StraightConnectionLine from "../../shared/reactflow/StraightConnectionLine";
 import ContextMenu from "./ContextMenu";
+import { Backdrop, CircularProgress } from "@mui/material";
 
 let id = 0;
 
@@ -41,22 +45,11 @@ export default function EditorPane() {
     architecture,
     refreshLayout,
     applyConstraints,
+    canApplyConstraints,
     selectNode,
     selectEdge,
+    unappliedConstraints,
   } = useApplicationStore();
-
-  useLayoutEffect(() => {
-    (async () => {
-      if (!architecture?.views) {
-        return;
-      }
-      console.log("loading architecture", architecture);
-      await addGraphElements(
-        toReactFlowElements(architecture, ArchitectureView.DataFlow),
-        false
-      );
-    })();
-  }, [addGraphElements, refreshLayout, architecture]);
 
   const getId = () => `${id++}`;
 
@@ -71,6 +64,7 @@ export default function EditorPane() {
 
       const reactFlowBounds = reactFlowWrapper.current?.getBoundingClientRect();
       const type = event.dataTransfer.getData("application/reactflow");
+      console.log("dropped", type);
 
       // check if the dropped element is valid
       if (typeof type === "undefined" || !type) {
@@ -85,11 +79,11 @@ export default function EditorPane() {
       const id = NodeId.fromString(`${type}/${getId()}`);
       id.name = `${id.type}_${id.name}`;
       const newNode: Node = {
-        id: id.toString(),
+        id: id.toTopologyString(),
         type: NodeType.Resource,
         draggable: false,
         data: {
-          label: `${id.type}_${id.name}`,
+          label: id.name,
           resourceId: id,
         },
         position,
@@ -98,10 +92,18 @@ export default function EditorPane() {
       await addGraphElements({
         nodes: [newNode],
       });
-      await applyConstraints();
+      console.log("added node");
+      console.log("applying constraints", unappliedConstraints);
+      // await applyConstraints();
       selectNode(newNode.id);
     },
-    [selectNode, applyConstraints, addGraphElements, reactFlowInstance]
+    [
+      unappliedConstraints,
+      selectNode,
+      applyConstraints,
+      addGraphElements,
+      reactFlowInstance,
+    ]
   );
 
   const onNodeClick = (event: ReactMouseEvent, node: Node) => {
@@ -167,6 +169,12 @@ export default function EditorPane() {
   // Close the context menu if it's open whenever the window is clicked.
   const onPaneClick = useCallback(() => setMenu(null), [setMenu]);
 
+  const { fitView } = useReactFlow();
+
+  useEffect(() => {
+    fitView({ padding: 0.1, nodes: nodes, maxZoom: 1 });
+  }, [nodes, edges]);
+
   return (
     <div style={{ height: "90%", width: "100%" }} ref={reactFlowWrapper}>
       <ReactFlow
@@ -204,6 +212,15 @@ export default function EditorPane() {
         {menu && <ContextMenu {...menu} />}
         <Controls />
       </ReactFlow>
+      <Backdrop
+        sx={{
+          color: "purple",
+          zIndex: (theme) => theme.zIndex.drawer + 10000,
+        }}
+        open={!canApplyConstraints}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
     </div>
   );
 }

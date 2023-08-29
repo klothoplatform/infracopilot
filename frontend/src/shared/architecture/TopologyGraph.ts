@@ -66,7 +66,9 @@ export const parse = (content: string): Map<string, TopologyGraph> => {
     });
     edgeDefinedNodes.forEach((r) => {
       if (
-        !graph.Nodes.find((n: TopologyNode) => n.id.toString() === r.toString())
+        !graph.Nodes.find(
+          (n: TopologyNode) => n.id.toString() === r.toTopologyString()
+        )
       ) {
         graph.Nodes.push(new TopologyNode(r, {}));
       }

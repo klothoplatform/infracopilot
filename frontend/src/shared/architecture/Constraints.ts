@@ -90,16 +90,46 @@ export class EdgeConstraint implements Constraint {
 
 export function formatConstraints(constraints: Constraint[]): string {
   return JSON.stringify(
-    constraints.map((constraint) =>
-      constraint.scope === ConstraintScope.Edge
-        ? {
+    constraints.map((constraint) => {
+      switch (constraint.scope) {
+        case ConstraintScope.Application:
+          return {
             ...constraint,
+            node: (
+              constraint as ApplicationConstraint
+            ).node?.toKlothoIdString(),
+            replacementNode: (
+              constraint as ApplicationConstraint
+            ).replacementNode?.toKlothoIdString(),
+          };
+        case ConstraintScope.Construct:
+          return {
+            ...constraint,
+            target: (
+              constraint as ConstructConstraint
+            ).target?.toKlothoIdString(),
+          };
+        case ConstraintScope.Resource:
+          return {
+            ...constraint,
+            target: (
+              constraint as ResourceConstraint
+            ).target?.toKlothoIdString(),
+          };
+        case ConstraintScope.Edge:
+          return {
+            ...constraint,
+            node: (constraint as EdgeConstraint).node?.toKlothoIdString(),
             target: {
-              source: (constraint as EdgeConstraint).target.sourceId.toString(),
-              target: (constraint as EdgeConstraint).target.targetId.toString(),
+              source: (
+                constraint as EdgeConstraint
+              ).target.sourceId.toKlothoIdString(),
+              target: (
+                constraint as EdgeConstraint
+              ).target.targetId.toKlothoIdString(),
             },
-          }
-        : constraint
-    )
+          };
+      }
+    })
   );
 }
