@@ -1,6 +1,5 @@
 import { Architecture } from "../shared/architecture/Architecture";
 import axios from "axios";
-import pako from "pako";
 
 export async function getArchitecture(
   id: string,
