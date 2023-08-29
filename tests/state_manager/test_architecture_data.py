@@ -8,6 +8,7 @@ from src.state_manager.architecture_data import (
 )
 import aiounittest
 
+
 class TestArchitectureData(aiounittest.AsyncTestCase):
     @classmethod
     def setUpClass(self):
@@ -19,7 +20,6 @@ class TestArchitectureData(aiounittest.AsyncTestCase):
         self.session.rollback()
         self.session.close()
         Base.metadata.drop_all(engine)
-
 
     def setUp(self):
         self.session.add(

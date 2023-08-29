@@ -9,12 +9,12 @@ from typing import List, NamedTuple
 
 import yaml
 
-from src.engine_service.engine_commands.util import IacRunner, IacException
+from src.engine_service.engine_commands.util import run_iac_command, IacException
 from src.util.compress import zip_directory_recurse
 
 
 class ExportIacRequest(NamedTuple):
-    input_graph: str 
+    input_graph: str
     name: str
     provider: str = "pulumi"
 
@@ -23,7 +23,7 @@ class ExportIacResult(NamedTuple):
     iac_bytes: BytesIO
 
 
-async def export_iac(request: ExportIacRequest, runner: IacRunner) -> ExportIacResult:
+async def export_iac(request: ExportIacRequest) -> ExportIacResult:
     out_logs = None
     err_logs = None
     try:
@@ -34,28 +34,29 @@ async def export_iac(request: ExportIacRequest, runner: IacRunner) -> ExportIacR
 
             with open(dir / "graph.yaml", "w") as file:
                 file.write(request.input_graph)
-                print(request.input_graph)
             args.append("--input-graph")
-            args.append(f'{tmp_dir}/graph.yaml')
-        
-            args.extend([
-                "--provider",
-                "pulumi",
-                "--output-dir",
-                tmp_dir,
-                "--app-name",
-                request.name,
-            ])
+            args.append(f"{tmp_dir}/graph.yaml")
 
-            out_logs, err_logs = await runner.run_iac_command(
+            args.extend(
+                [
+                    "--provider",
+                    "pulumi",
+                    "--output-dir",
+                    tmp_dir,
+                    "--app-name",
+                    request.name,
+                ]
+            )
+
+            out_logs, err_logs = await run_iac_command(
                 "Generate",
                 *args,
                 cwd=dir,
             )
 
             iac_bytes = BytesIO()
-            zip_directory_recurse(iac_bytes, str(dir ))
-                
+            zip_directory_recurse(iac_bytes, str(dir))
+
             return ExportIacResult(
                 iac_bytes=iac_bytes,
             )

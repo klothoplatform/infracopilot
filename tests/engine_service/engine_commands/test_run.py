@@ -1,33 +1,68 @@
-
+from pathlib import Path, PosixPath
 import aiounittest
+import tempfile
+import shutil
 import os
 from unittest import mock
 
-from src.engine_service.engine_commands.run import run_engine, RunEngineRequest, RunEngineResult
+from src.engine_service.engine_commands.run import (
+    run_engine,
+    RunEngineRequest,
+    RunEngineResult,
+)
+
 
 class TestRunEngine(aiounittest.AsyncTestCase):
+    def setUp(self):
+        # Create a real temporary directory for testing
+        self.temp_dir = tempfile.TemporaryDirectory()
 
-    
-    async def test_run_engine(self):
-        with mock.patch("src.engine_service.engine_commands.util.run_engine_command") as eng_cmd:
-            request = RunEngineRequest(
-                id="test",
-                templates=[],
-                constraints=[],
-                guardrails=None,
-                input_graph="test",
-                engine_version=0.0,
-            )
-            eng_cmd.return_value = (
-                "resources_yaml",
-                "topology_yaml",
-                "iac_topology",
-                None,
-            )
-            result = await run_engine(request)
-            assert result == RunEngineResult(
-                resources_yaml="resources_yaml",
-                topology_yaml="topology_yaml",
-                iac_topology="iac_topology",
-                iac_bytes=None,
-            )
+    def tearDown(self):
+        self.temp_dir.cleanup()
+
+    def run_engine_side_effect(self, tmp_dir: str):
+        dir = Path(tmp_dir)
+        with open(dir / "dataflow-topology.yaml", "w") as file:
+            file.write("topology_yaml")
+
+        with open(dir / "iac-topology.yaml", "w") as file:
+            file.write("iac_topology")
+
+        with open(dir / "resources.yaml", "w") as file:
+            file.write("resources_yaml")
+
+    @mock.patch(
+        "src.engine_service.engine_commands.run.run_engine_command",
+        new_callable=mock.AsyncMock,
+    )
+    @mock.patch("tempfile.TemporaryDirectory")
+    async def test_run_engine(self, mock_temp_dir: mock.Mock, mock_eng_cmd: mock.Mock):
+        request = RunEngineRequest(
+            id="test",
+            templates=[],
+            constraints=[],
+            guardrails=None,
+            input_graph="test",
+            engine_version=0.0,
+        )
+        mock_temp_dir.return_value.__enter__.return_value = self.temp_dir.name
+
+        mock_eng_cmd.return_value = (
+            "",
+            "",
+        )
+        mock_eng_cmd.side_effect = self.run_engine_side_effect(self.temp_dir.name)
+        await run_engine(request)
+        mock_temp_dir.assert_called_once()
+        mock_eng_cmd.assert_called_once_with(
+            "Run",
+            "--input-graph",
+            f"{self.temp_dir.name}/graph.yaml",
+            "--constraints",
+            f"{self.temp_dir.name}/constraints.yaml",
+            "--provider",
+            "aws",
+            "--output-dir",
+            self.temp_dir.name,
+            cwd=PosixPath(self.temp_dir.name),
+        )

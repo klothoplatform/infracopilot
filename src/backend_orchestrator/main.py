@@ -17,12 +17,34 @@ from pydantic import BaseModel
 from src.engine_service.engine_commands.util import EngineRunner, IacRunner
 from src.guardrails_manager.guardrails_store import get_guardrails
 
-from src.state_manager.architecture_storage import ArchitectureStateDoesNotExistError, get_iac_from_fs, get_state_from_fs, write_iac_to_fs, write_state_to_fs
-from src.state_manager.architecture_data import get_architecture_latest, Architecture, add_architecture, get_architecture_history
+from src.state_manager.architecture_storage import (
+    ArchitectureStateDoesNotExistError,
+    get_iac_from_fs,
+    get_state_from_fs,
+    write_iac_to_fs,
+    write_state_to_fs,
+)
+from src.state_manager.architecture_data import (
+    get_architecture_latest,
+    Architecture,
+    add_architecture,
+    get_architecture_history,
+)
 from src.template_manager.template_data import ResourceTemplateData, EdgeTemplateData
-from src.engine_service.engine_commands.run import run_engine, RunEngineRequest, RunEngineResult
-from src.engine_service.engine_commands.export_iac import export_iac, ExportIacRequest, ExportIacResult
-from src.engine_service.engine_commands.get_resource_types import get_resource_types, GetResourceTypesRequest
+from src.engine_service.engine_commands.run import (
+    run_engine,
+    RunEngineRequest,
+    RunEngineResult,
+)
+from src.engine_service.engine_commands.export_iac import (
+    export_iac,
+    ExportIacRequest,
+    ExportIacResult,
+)
+from src.engine_service.engine_commands.get_resource_types import (
+    get_resource_types,
+    GetResourceTypesRequest,
+)
 from src.util.orm import Base, engine
 import logging
 
@@ -49,6 +71,7 @@ class CreateArchitectureRequest(BaseModel):
     owner: str
     engine_version: float | None
 
+
 @app.post("/architecture")
 async def copilot_new_architecture(body: CreateArchitectureRequest):
     try:
@@ -58,7 +81,7 @@ async def copilot_new_architecture(body: CreateArchitectureRequest):
             name=body.name,
             state=0,
             constraints={},
-            owner= body.owner,
+            owner=body.owner,
             created_at=int(time.time()),
             updated_by=body.owner,
             engine_version=body.engine_version,
@@ -69,28 +92,33 @@ async def copilot_new_architecture(body: CreateArchitectureRequest):
         log.error("Error creating new architecture", exc_info=True)
         raise HTTPException(status_code=500, detail="internal server error")
 
+
 @app.get("/architecture/{id}")
 async def copilot_get_state(id):
     try:
         arch = await get_architecture_latest(id)
         if arch is None:
-            raise ArchitectureStateDoesNotExistError(f'No architecture exists for id {id}')
+            raise ArchitectureStateDoesNotExistError(
+                f"No architecture exists for id {id}"
+            )
         state = await get_state_from_fs(arch)
-        return Response(content=jsons.dumps(
-            {
-                "id": arch.id,
-                "name": arch.name,
-                "owner": arch.owner,
-                "engineVersion": arch.engine_version,
-                "version": arch.state if arch.state is not None else 0,
-                "state": {
-                    "resources_yaml": state.resources_yaml,
-                    "topology_yaml": state.topology_yaml
+        return Response(
+            content=jsons.dumps(
+                {
+                    "id": arch.id,
+                    "name": arch.name,
+                    "owner": arch.owner,
+                    "engineVersion": arch.engine_version,
+                    "version": arch.state if arch.state is not None else 0,
+                    "state": {
+                        "resources_yaml": state.resources_yaml,
+                        "topology_yaml": state.topology_yaml,
+                    }
+                    if state is not None
+                    else None,
                 }
-                if state is not None
-                else None,
-            }
-        ))
+            )
+        )
     except ArchitectureStateDoesNotExistError:
         raise HTTPException(status_code=404, detail="Architecture state not found")
     except Exception:
@@ -101,17 +129,23 @@ async def copilot_get_state(id):
 class ArchitecutreStateNotLatestError(Exception):
     pass
 
+
 class CopilotRunRequest(BaseModel):
     constraints: List[dict]
+
 
 @app.post("/architecture/{id}/run")
 async def copilot_run(id: str, state: int, body: CopilotRunRequest):
     try:
         architecture = await get_architecture_latest(id)
         if architecture is None:
-            raise ArchitectureStateDoesNotExistError("Architecture with id, {request.architecture_id}, does not exist")
+            raise ArchitectureStateDoesNotExistError(
+                "Architecture with id, {request.architecture_id}, does not exist"
+            )
         elif architecture.state != state:
-            raise ArchitecutreStateNotLatestError(f'Architecture state is not the latest. Expected {architecture.state}, got {state}')
+            raise ArchitecutreStateNotLatestError(
+                f"Architecture state is not the latest. Expected {architecture.state}, got {state}"
+            )
 
         guardrails = await get_guardrails(architecture.owner)
         input_graph = await get_state_from_fs(architecture)
@@ -123,7 +157,7 @@ async def copilot_run(id: str, state: int, body: CopilotRunRequest):
             constraints=body.constraints,
             guardrails=guardrails,
         )
-        result = await run_engine(request, EngineRunner())
+        result = await run_engine(request)
         arch = Architecture(
             id=id,
             name=architecture.name,
@@ -138,26 +172,33 @@ async def copilot_run(id: str, state: int, body: CopilotRunRequest):
         state_location = await write_state_to_fs(arch, result)
         arch.state_location = state_location
         await add_architecture(arch)
-        return Response(jsons.dumps(
-            {
-                "id": arch.id,
-                "name": arch.name,
-                "owner": arch.owner,
-                "engineVersion": arch.engine_version,
-                "version": arch.state if arch.state is not None else 0,
-                "state": {
-                    "resources_yaml": result.resources_yaml,
-                    "topology_yaml": result.topology_yaml
+        return Response(
+            jsons.dumps(
+                {
+                    "id": arch.id,
+                    "name": arch.name,
+                    "owner": arch.owner,
+                    "engineVersion": arch.engine_version,
+                    "version": arch.state if arch.state is not None else 0,
+                    "state": {
+                        "resources_yaml": result.resources_yaml,
+                        "topology_yaml": result.topology_yaml,
+                    },
                 }
-            }
-        ))
+            )
+        )
     except ArchitecutreStateNotLatestError:
-        raise HTTPException(status_code=400, detail="Architecture state is not the latest")
+        raise HTTPException(
+            status_code=400, detail="Architecture state is not the latest"
+        )
     except ArchitectureStateDoesNotExistError:
-        raise HTTPException(status_code=404, detail=f'No architecture exists for id {id}')
+        raise HTTPException(
+            status_code=404, detail=f"No architecture exists for id {id}"
+        )
     except Exception:
         log.error("Error running engine", exc_info=True)
         raise HTTPException(status_code=500, detail="internal server error")
+
 
 class ResourceTypeResponse(BaseModel):
     resources: List[str]
@@ -168,16 +209,21 @@ async def copilot_get_resource_types(id):
     try:
         architecture = await get_architecture_latest(request.architecture_id)
         if architecture is None:
-            raise ArchitectureStateDoesNotExistError("Architecture with id, {request.architecture_id}, does not exist")
+            raise ArchitectureStateDoesNotExistError(
+                "Architecture with id, {request.architecture_id}, does not exist"
+            )
         guardrails = await get_guardrails(architecture.owner)
         request = GetResourceTypesRequest(guardrails=guardrails)
-        response = await get_resource_types(request, EngineRunner())
+        response = await get_resource_types(request)
         return JSONResponse(content=response, status_code=200)
     except ArchitectureStateDoesNotExistError as e:
-        raise HTTPException(status_code=404, detail=f'No architecture exists for id {id}')
+        raise HTTPException(
+            status_code=404, detail=f"No architecture exists for id {id}"
+        )
     except Exception:
         log.error("Error getting resource types", exc_info=True)
         raise HTTPException(status_code=500, detail="internal server error")
+
 
 @app.get("/architecture/{id}/iac")
 async def copilot_get_iac(id, state: int):
@@ -185,15 +231,21 @@ async def copilot_get_iac(id, state: int):
         arch = await get_architecture_latest(id)
 
         if arch is None:
-            raise ArchitectureStateDoesNotExistError("Architecture with id, {request.architecture_id}, does not exist")
+            raise ArchitectureStateDoesNotExistError(
+                "Architecture with id, {request.architecture_id}, does not exist"
+            )
         elif arch.state != state:
-            raise ArchitecutreStateNotLatestError(f'Architecture state is not the latest. Expected {arch.state}, got {state}')
+            raise ArchitecutreStateNotLatestError(
+                f"Architecture state is not the latest. Expected {arch.state}, got {state}"
+            )
 
         iac = await get_iac_from_fs(arch)
         if iac is None:
             arch_state = await get_state_from_fs(arch)
             if arch_state is None:
-                raise ArchitectureStateDoesNotExistError(f'No architecture exists for id {id}')
+                raise ArchitectureStateDoesNotExistError(
+                    f"No architecture exists for id {id}"
+                )
             request = ExportIacRequest(
                 input_graph=arch_state.resources_yaml,
                 name=arch.name if arch.name is not None else arch.id,
@@ -209,12 +261,16 @@ async def copilot_get_iac(id, state: int):
                 iter([iac.getvalue()]),
                 media_type="application/x-zip-compressed",
                 headers={"Content-Disposition": f"attachment; filename=images.zip"},
-            )  
+            )
         return Response(content=iac)
     except ArchitecutreStateNotLatestError as e:
-        raise HTTPException(status_code=400, detail="Architecture state is not the latest")
+        raise HTTPException(
+            status_code=400, detail="Architecture state is not the latest"
+        )
     except ArchitectureStateDoesNotExistError as e:
-        raise HTTPException(status_code=404, detail=f'No architecture exists for id {id}')
+        raise HTTPException(
+            status_code=404, detail=f"No architecture exists for id {id}"
+        )
     except Exception:
         log.error("Error getting iac", exc_info=True)
         raise HTTPException(status_code=500, detail="internal server error")

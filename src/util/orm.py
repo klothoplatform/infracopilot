@@ -10,5 +10,3 @@ session = Session(engine)
 
 class Base(DeclarativeBase):
     pass
-
-

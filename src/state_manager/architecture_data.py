@@ -6,6 +6,7 @@ from sqlalchemy import select, JSON
 from src.util.orm import Base, session
 from typing import Any, List
 
+
 class Architecture(Base):
     __tablename__ = "architectures"
 
@@ -53,16 +54,17 @@ async def get_architecture_history(id: str) -> List[Architecture]:
 
 async def get_architectures_by_owner(owner: str) -> List[str]:
     stmt = (
-        select(Architecture)
-        .where(Architecture.owner == owner)
+        select(Architecture).where(Architecture.owner == owner)
         # distinct only works with postgress, so it breaks the local story. Instead finding distinct entries in code
     )
     results = session.execute(statement=stmt).fetchall()
-    
+
     return {result[0].id for result in results}
+
 
 class ArchitectureAlreadyExistsError(Exception):
     pass
+
 
 async def add_architecture(architecture: Architecture):
     try:
@@ -71,5 +73,7 @@ async def add_architecture(architecture: Architecture):
     except Exception as e:
         if isinstance(e, IntegrityError):
             session.rollback()
-            raise ArchitectureAlreadyExistsError(f"Architecture with id, {architecture.id}, already exists")
+            raise ArchitectureAlreadyExistsError(
+                f"Architecture with id, {architecture.id}, already exists"
+            )
         raise e

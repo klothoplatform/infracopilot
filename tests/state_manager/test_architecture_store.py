@@ -1,4 +1,11 @@
-from src.state_manager.architecture_storage import get_state_from_fs, write_state_to_fs, get_path_for_architecture, root_path
+import jsons
+from src.engine_service.engine_commands.run import RunEngineResult
+from src.state_manager.architecture_storage import (
+    get_state_from_fs,
+    write_state_to_fs,
+    get_path_for_architecture,
+    root_path,
+)
 from src.state_manager.architecture_data import Architecture
 import aiounittest
 import os
@@ -15,14 +22,19 @@ class TestTemplateStore(aiounittest.AsyncTestCase):
         created_at=1,
         updated_by="bob",
     )
-    test_content = "this is our test content"
+    test_content = RunEngineResult(
+        resources_yaml="resources_yaml",
+        topology_yaml="topology_yaml",
+        iac_topology="iac_topology",
+    )
 
     @classmethod
     def setUpClass(self):
-        path = get_path_for_architecture(self.test_architecture)
+        path = f"{get_path_for_architecture(self.test_architecture)}/state.json"
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "w") as file:
-            file.write(self.test_content)
+            file.write(jsons.dumps(self.test_content))
+        self.test_architecture.state_location = path
 
     @classmethod
     def tearDownClass(self):
@@ -34,21 +46,21 @@ class TestTemplateStore(aiounittest.AsyncTestCase):
 
     async def test_can_get_architecture_does_not_exist(self):
         bad_test_data = Architecture(
-        id="not-test",
-        state=1,
-        owner="bob",
-        engine_version=1.0,
-        constraints={},
-        created_at=1,
-        updated_by="bob",
+            id="not-test",
+            state=1,
+            owner="bob",
+            engine_version=1.0,
+            constraints={},
+            created_at=1,
+            updated_by="bob",
         )
         with self.assertRaises(Exception) as context:
             await get_state_from_fs(bad_test_data)
-        assert "No architecture exists at location: state/not-test/1.zip" == str(
-            context.exception
+        self.assertEqual(
+            "No architecture exists for id not-test and state 1", str(context.exception)
         )
 
-    async def test_can_write_template(self):
+    async def test_can_write_architecture_state(self):
         new_arch = Architecture(
             id="new-test",
             state=1,
@@ -58,7 +70,12 @@ class TestTemplateStore(aiounittest.AsyncTestCase):
             created_at=1,
             updated_by="bob",
         )
-        template_string = "this is the template that we are writing"
-        await write_state_to_fs(new_arch, template_string)
-        with open(get_path_for_architecture(new_arch), "r") as file:
-            assert file.read() == template_string
+
+        result = RunEngineResult(
+            resources_yaml="resources_yaml",
+            topology_yaml="topology_yaml",
+            iac_topology="iac_topology",
+        )
+        await write_state_to_fs(new_arch, result)
+        with open(f"{get_path_for_architecture(new_arch)}/state.json", "r") as file:
+            assert file.read() == jsons.dumps(result)

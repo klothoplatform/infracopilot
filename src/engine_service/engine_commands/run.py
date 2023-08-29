@@ -9,7 +9,7 @@ from typing import List, NamedTuple
 
 import yaml
 
-from src.engine_service.engine_commands.util import EngineRunner, EngineException
+from src.engine_service.engine_commands.util import run_engine_command, EngineException
 
 
 class RunEngineRequest(NamedTuple):
@@ -27,7 +27,7 @@ class RunEngineResult(NamedTuple):
     iac_topology: str
 
 
-async def run_engine(request: RunEngineRequest, runner: EngineRunner) -> RunEngineResult:
+async def run_engine(request: RunEngineRequest) -> RunEngineResult:
     out_logs = None
     err_logs = None
     try:
@@ -40,43 +40,44 @@ async def run_engine(request: RunEngineRequest, runner: EngineRunner) -> RunEngi
                 with open(dir / "graph.yaml", "w") as file:
                     file.write(request.input_graph)
                 args.append("--input-graph")
-                args.append(f'{tmp_dir}/graph.yaml')
-        
+                args.append(f"{tmp_dir}/graph.yaml")
 
             if request.guardrails is not None:
                 with open(dir / "guardrails.yaml", "w") as file:
                     file.write(request.guardrails)
                 args.append("--guardrails")
-                args.append(f'{tmp_dir}/guardrails.yaml')
+                args.append(f"{tmp_dir}/guardrails.yaml")
 
             if request.constraints is not None:
                 with open(dir / "constraints.yaml", "w") as file:
                     file.write(yaml.dump({"constraints": request.constraints}))
                 args.append("--constraints")
-                args.append(f'{tmp_dir}/constraints.yaml')
+                args.append(f"{tmp_dir}/constraints.yaml")
 
-            args.extend([
-                "--provider",
-                "aws",
-                "--output-dir",
-                tmp_dir,
-            ])
+            args.extend(
+                [
+                    "--provider",
+                    "aws",
+                    "--output-dir",
+                    tmp_dir,
+                ]
+            )
 
-            out_logs, err_logs = await runner.run_engine_command(
+            out_logs, err_logs = await run_engine_command(
                 "Run",
                 *args,
                 cwd=dir,
             )
 
-            with open(dir  / "dataflow-topology.yaml") as file:
+            with open(dir / "dataflow-topology.yaml") as file:
                 topology_yaml = file.read()
 
-            with open(dir  / "iac-topology.yaml") as file:
+            with open(dir / "iac-topology.yaml") as file:
                 iac_topology = file.read()
 
-            with open(dir  / "resources.yaml") as file:
+            with open(dir / "resources.yaml") as file:
                 resources_yaml = file.read()
-                
+
             return RunEngineResult(
                 resources_yaml=resources_yaml,
                 topology_yaml=topology_yaml,

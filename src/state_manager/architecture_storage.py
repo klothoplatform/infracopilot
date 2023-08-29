@@ -23,28 +23,39 @@ from src.state_manager.architecture_data import Architecture
 
 root_path = Path("state")
 
+
 class ArchitectureStateDoesNotExistError(Exception):
     pass
 
 
 async def get_state_from_fs(arch: Architecture) -> Optional[RunEngineResult]:
-    if arch.state_location == None:
+    if arch.state_location == None and arch.state == 0:
         return None
+    elif arch.state_location == None:
+        raise ArchitectureStateDoesNotExistError(
+            f"No architecture exists for id {arch.id} and state {arch.state}"
+        )
     try:
         async with aiofiles.open(arch.state_location, mode="r") as f:
             state_raw = await f.read()
             if state_raw is None:
-                raise ArchitectureStateDoesNotExistError(f'No architecture exists at location: {get_path_for_architecture(arch)}')
-            print("state_raw", state_raw)
+                raise ArchitectureStateDoesNotExistError(
+                    f"No architecture exists at location: {get_path_for_architecture(arch)}"
+                )
             return jsons.loads(state_raw, RunEngineResult)
     except FileNotFoundError:
-        raise ArchitectureStateDoesNotExistError(f'No architecture exists at location: {get_path_for_architecture(arch)}')
+        raise ArchitectureStateDoesNotExistError(
+            f"No architecture exists at location: {get_path_for_architecture(arch)}"
+        )
     except ClientError as err:
         # This is only necessary because Klotho's fs implementation
         # doesn't convert this to FileNotFoundError
         if err.response["Error"]["Code"] == "NoSuchKey":
-            raise ArchitectureStateDoesNotExistError(f'No architecture exists at location: {get_path_for_architecture(arch)}')
+            raise ArchitectureStateDoesNotExistError(
+                f"No architecture exists at location: {get_path_for_architecture(arch)}"
+            )
         raise
+
 
 async def get_iac_from_fs(arch: Architecture) -> Optional[str]:
     if arch.iac_location == None:
@@ -53,22 +64,28 @@ async def get_iac_from_fs(arch: Architecture) -> Optional[str]:
         async with aiofiles.open(arch.iac_location, mode="r") as f:
             state_raw = await f.read()
             if state_raw is None:
-                raise ArchitectureStateDoesNotExistError(f'No architecture exists at location: {get_path_for_architecture(arch)}')
+                raise ArchitectureStateDoesNotExistError(
+                    f"No architecture exists at location: {get_path_for_architecture(arch)}"
+                )
             return state_raw
     except FileNotFoundError:
-        raise ArchitectureStateDoesNotExistError(f'No architecture exists at location: {get_path_for_architecture(arch)}')
+        raise ArchitectureStateDoesNotExistError(
+            f"No architecture exists at location: {get_path_for_architecture(arch)}"
+        )
     except ClientError as err:
         # This is only necessary because Klotho's fs implementation
         # doesn't convert this to FileNotFoundError
         if err.response["Error"]["Code"] == "NoSuchKey":
-            raise ArchitectureStateDoesNotExistError(f'No architecture exists at location: {get_path_for_architecture(arch)}')
+            raise ArchitectureStateDoesNotExistError(
+                f"No architecture exists at location: {get_path_for_architecture(arch)}"
+            )
         raise
 
 
 async def write_state_to_fs(arch: Architecture, content: RunEngineResult) -> str:
     if not isinstance(content, RunEngineResult):
         raise TypeError(f"content must be of type RunEngineResult, not {type(content)}")
-    path = f'{get_path_for_architecture(arch)}/state.json'
+    path = f"{get_path_for_architecture(arch)}/state.json"
     if os.getenv("EXECUNIT_NAME") is None:
         # When running in local dev, we need to create the directory.
         # When running in the cloud, the path is just the S3 object's id - no parent creation necessary.
@@ -77,8 +94,9 @@ async def write_state_to_fs(arch: Architecture, content: RunEngineResult) -> str
         await f.write(jsons.dumps(content))
     return path
 
+
 async def write_iac_to_fs(arch: Architecture, content: BytesIO) -> str:
-    path = f'{get_path_for_architecture(arch)}/iac.zip'
+    path = f"{get_path_for_architecture(arch)}/iac.zip"
     if os.getenv("EXECUNIT_NAME") is None:
         # When running in local dev, we need to create the directory.
         # When running in the cloud, the path is just the S3 object's id - no parent creation necessary.
@@ -89,4 +107,4 @@ async def write_iac_to_fs(arch: Architecture, content: BytesIO) -> str:
 
 
 def get_path_for_architecture(arch: Architecture) -> Path:
-    return root_path / arch.id 
+    return root_path / arch.id
