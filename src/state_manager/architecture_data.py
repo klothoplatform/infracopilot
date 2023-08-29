@@ -17,6 +17,8 @@ class Architecture(Base):
     created_at: Mapped[int]
     updated_by: Mapped[str]
     engine_version: Mapped[float]
+    state_location: Mapped[str] = mapped_column(nullable=True)
+    iac_location: Mapped[str] = mapped_column(nullable=True)
 
     def __eq__(self, __value: object) -> bool:
         if not isinstance(__value, Architecture):

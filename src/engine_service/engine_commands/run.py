@@ -51,7 +51,6 @@ async def run_engine(request: RunEngineRequest, runner: EngineRunner) -> RunEngi
 
             if request.constraints is not None:
                 with open(dir / "constraints.yaml", "w") as file:
-                    print(yaml.dump({"constraints": request.constraints}))
                     file.write(yaml.dump({"constraints": request.constraints}))
                 args.append("--constraints")
                 args.append(f'{tmp_dir}/constraints.yaml')
