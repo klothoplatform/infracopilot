@@ -1,7 +1,8 @@
 import React from "react";
 import type { EdgeProps } from "reactflow";
 import { SmoothStepEdge, StepEdge, useNodes } from "reactflow";
-import { SmartElkEdge, SmartEdgeOptions } from "./SmartElkEdge";
+import type { SmartEdgeOptions } from "./SmartElkEdge";
+import { SmartElkEdge } from "./SmartElkEdge";
 import { svgDrawSmoothLinePath, svgDrawStraightLinePath } from "./drawSvgPath";
 
 const StepConfiguration: SmartEdgeOptions = {
@@ -15,7 +16,7 @@ const SmoothStepConfiguration: SmartEdgeOptions = {
 };
 
 export function SmartStepEdge<EdgeDataType = unknown, NodeDataType = unknown>(
-  props: EdgeProps<EdgeDataType>
+  props: EdgeProps<EdgeDataType>,
 ) {
   const nodes = useNodes<NodeDataType>();
 
@@ -30,7 +31,7 @@ export function SmartStepEdge<EdgeDataType = unknown, NodeDataType = unknown>(
 
 export function SmartSmoothStepEdge<
   EdgeDataType = unknown,
-  NodeDataType = unknown
+  NodeDataType = unknown,
 >(props: EdgeProps<EdgeDataType>) {
   const nodes = useNodes<NodeDataType>();
 

@@ -1,23 +1,22 @@
-import ResourceAccordian from "../../components/ResourceAccordian";
-import { Box } from "@mui/material";
+import ResourceAccordion from "../../components/ResourceAccordion";
 import { Logo } from "../../components/icons/K8SLogo/Unlabeled";
 import { AwsLogo, Docker } from "../../components/Icon";
 
 export default function LeftSidebar() {
   return (
-    <Box style={{ height: "100%", overflow: "hidden" }}>
-      <ResourceAccordian
+    <div className={"w-max"}>
+      <ResourceAccordion
         name={"AWS"}
         icon={<AwsLogo width={"20px"} height={"20px"} />}
       />
-      <ResourceAccordian
+      <ResourceAccordion
         name={"Kubernetes"}
         icon={<Logo width={"20px"} height={"20px"} />}
       />
-      <ResourceAccordian
+      <ResourceAccordion
         name={"Docker"}
         icon={<Docker width={"20px"} height={"20px"} />}
       />
-    </Box>
+    </div>
   );
 }

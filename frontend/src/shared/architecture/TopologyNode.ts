@@ -8,7 +8,7 @@ export interface TopologyNodeData {
 export class TopologyNode {
   constructor(
     public resourceId: NodeId,
-    public vizMetadata: Partial<TopologyNodeData> = {}
+    public vizMetadata: Partial<TopologyNodeData> = {},
   ) {}
 
   public get id(): string {
@@ -21,7 +21,7 @@ export class NodeId {
     public type: string,
     public namespace: string,
     public name: string,
-    public provider: string = UNKNOWN_PROVIDER
+    public provider: string = UNKNOWN_PROVIDER,
   ) {}
 
   public toTopologyString(): string {
@@ -54,7 +54,7 @@ export class NodeId {
       nodeType,
       namespace ?? "",
       nodeId,
-      provider ?? defaultProvider ?? UNKNOWN_PROVIDER
+      provider ?? defaultProvider ?? UNKNOWN_PROVIDER,
     );
   }
 }

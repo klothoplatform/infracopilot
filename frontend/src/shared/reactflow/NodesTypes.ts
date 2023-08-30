@@ -17,8 +17,8 @@ export enum NodeType {
   Indicator = "indicatorNode",
 }
 
-export const allGroupTypes: Set<string> = new Set([NodeType.ResourceGroup]);
-export const allNodeTypes: Set<string> = new Set([
+export const allGroupTypes = new Set<string>([NodeType.ResourceGroup]);
+export const allNodeTypes = new Set<string>([
   NodeType.Resource,
   NodeType.Indicator,
 ]);

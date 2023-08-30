@@ -1,4 +1,4 @@
-import { TopologyNodeData } from "./TopologyNode";
+import type { TopologyNodeData } from "./TopologyNode";
 
 export interface SubnetData extends TopologyNodeData {
   public?: boolean;

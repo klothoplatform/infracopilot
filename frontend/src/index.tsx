@@ -1,14 +1,9 @@
-import React from "react";
-import ReactDOM from "react-dom/client";
-import "./index.scss";
+import React, { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import "./index.css";
 import reportWebVitals from "./reportWebVitals";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import ArchitectureEditor from "./views/ArchitectureEditor/ArchitectureEditor";
-import { createTheme, ThemeProvider } from "@mui/material";
-
-const root = ReactDOM.createRoot(
-  document.getElementById("root") as HTMLElement
-);
+import { createTheme } from "@mui/material";
+import App from "./App";
 
 declare module "@mui/material/styles" {
   interface TypographyVariants {
@@ -45,19 +40,18 @@ const theme = createTheme({
   },
 });
 
-const router = createBrowserRouter([
-  {
-    path: "/",
-    element: <ArchitectureEditor />,
-  },
-]);
+const container = document.getElementById("root");
+
+if (!container) {
+  throw new Error("React root element doesn't exist!");
+}
+
+const root = createRoot(container);
 
 root.render(
-  <React.StrictMode>
-    <ThemeProvider theme={theme}>
-      <RouterProvider router={router} />
-    </ThemeProvider>
-  </React.StrictMode>
+  <StrictMode>
+    <App />
+  </StrictMode>,
 );
 
 // If you want to start measuring performance in your app, pass a function

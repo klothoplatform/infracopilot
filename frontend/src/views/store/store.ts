@@ -1,8 +1,6 @@
-import { create, StateCreator, StoreApi, UseBoundStore } from "zustand";
-import {
-  addEdge,
-  applyEdgeChanges,
-  applyNodeChanges,
+import type { StateCreator, StoreApi, UseBoundStore } from "zustand";
+import { create } from "zustand";
+import type {
   Connection,
   Edge,
   EdgeChange,
@@ -12,21 +10,24 @@ import {
   OnEdgesChange,
   OnNodesChange,
 } from "reactflow";
-import {
+import { addEdge, applyEdgeChanges, applyNodeChanges } from "reactflow";
+import type {
   Architecture,
-  ArchitectureView,
   ReactFlowElements,
+} from "../../shared/architecture/Architecture";
+import {
+  ArchitectureView,
   toReactFlowElements,
 } from "../../shared/architecture/Architecture";
 import { getArchitecture } from "../../api/GetArchitecture";
+import type { LayoutOptions } from "../../shared/reactflow/AutoLayout";
 import {
   autoLayout,
   DefaultLayoutOptions,
-  LayoutOptions,
 } from "../../shared/reactflow/AutoLayout";
+import type { Constraint } from "../../shared/architecture/Constraints";
 import {
   ApplicationConstraint,
-  Constraint,
   ConstraintOperator,
   EdgeConstraint,
 } from "../../shared/architecture/Constraints";
@@ -47,11 +48,11 @@ type WithSelectors<S> = S extends {
   : never;
 
 const createSelectors = <S extends UseBoundStore<StoreApi<object>>>(
-  _store: S
+  _store: S,
 ) => {
-  let store = _store as WithSelectors<typeof _store>;
+  const store = _store as WithSelectors<typeof _store>;
   store.use = {};
-  for (let k of Object.keys(store.getState())) {
+  for (const k of Object.keys(store.getState())) {
     (store.use as any)[k] = () => store((s) => s[k as keyof typeof s]);
   }
 
@@ -78,7 +79,7 @@ export interface EditorState {
   layoutRefreshing: boolean;
   addGraphElements: (
     elements: Partial<ReactFlowElements>,
-    generateConstraints?: boolean
+    generateConstraints?: boolean,
   ) => Promise<void>;
   unappliedConstraints: Constraint[];
   applyConstraints: () => Promise<void>;
@@ -109,16 +110,16 @@ const useApplicationStoreBase = create<EditorState>()(
                   (node) =>
                     new ApplicationConstraint(
                       ConstraintOperator.Remove,
-                      node.data.resourceId
-                    )
+                      node.data.resourceId,
+                    ),
                 ) ?? [];
               const edgeConstraints =
                 elements.edges?.map((edge) => {
                   const sourceNode = nodes.find(
-                    (node) => node.id === edge.source
+                    (node) => node.id === edge.source,
                   );
                   const targetNode = nodes.find(
-                    (node) => node.id === edge.target
+                    (node) => node.id === edge.target,
                   );
                   if (!sourceNode || !targetNode) {
                     throw new Error("edge source or target not found");
@@ -127,17 +128,17 @@ const useApplicationStoreBase = create<EditorState>()(
                     ConstraintOperator.MustNotExist,
                     new TopologyEdge(
                       sourceNode.data.resourceId,
-                      targetNode.data.resourceId
-                    )
+                      targetNode.data.resourceId,
+                    ),
                   );
                 }) ?? [];
               set({
                 nodes: nodes.filter(
-                  (n) => elements.nodes?.every((e) => e.id !== n.id) ?? true
+                  (n) => elements.nodes?.every((e) => e.id !== n.id) ?? true,
                 ),
                 edges: get().edges.filter(
                   (edge) =>
-                    elements.edges?.find((e) => e.id === edge.id) ?? true
+                    elements.edges?.find((e) => e.id === edge.id) ?? true,
                 ),
 
                 unappliedConstraints: [
@@ -170,8 +171,8 @@ const useApplicationStoreBase = create<EditorState>()(
                         ConstraintOperator.MustExist,
                         new TopologyEdge(
                           NodeId.fromString(connection.source),
-                          NodeId.fromString(connection.target)
-                        )
+                          NodeId.fromString(connection.target),
+                        ),
                       ),
                     ]
                   : [];
@@ -220,7 +221,7 @@ const useApplicationStoreBase = create<EditorState>()(
               const architecture = await getArchitecture(id, version);
               const elements = toReactFlowElements(
                 architecture,
-                ArchitectureView.DataFlow
+                ArchitectureView.DataFlow,
               );
               set(
                 {
@@ -229,7 +230,7 @@ const useApplicationStoreBase = create<EditorState>()(
                   edges: elements.edges,
                 },
                 false,
-                "editor/loadArchitecture"
+                "editor/loadArchitecture",
               );
               console.log("architecture loaded");
             },
@@ -248,7 +249,7 @@ const useApplicationStoreBase = create<EditorState>()(
                 const { nodes, edges } = await autoLayout(
                   get().nodes,
                   get().edges,
-                  get().layoutOptions
+                  get().layoutOptions,
                 );
                 edges.forEach((edge) => (edge.hidden = false));
 
@@ -268,14 +269,14 @@ const useApplicationStoreBase = create<EditorState>()(
             },
             addGraphElements: async (
               elements: Partial<ReactFlowElements>,
-              generateConstraints = true
+              generateConstraints = true,
             ) => {
               const nodes = [...get().nodes, ...(elements.nodes ?? [])];
               const edges = [...get().edges, ...(elements.edges ?? [])];
               const result = await autoLayout(
                 nodes,
                 edges,
-                get().layoutOptions
+                get().layoutOptions,
               );
               set({
                 nodes: result.nodes,
@@ -291,19 +292,19 @@ const useApplicationStoreBase = create<EditorState>()(
                   (node) =>
                     new ApplicationConstraint(
                       ConstraintOperator.Add,
-                      node.data.resourceId
-                    )
+                      node.data.resourceId,
+                    ),
                 ) ?? [];
               let edgeConstraints: EdgeConstraint[] = [];
               if (elements.edges?.length) {
                 const nodes = get().nodes;
                 edgeConstraints =
-                  elements.edges?.map((edge) => {
+                  elements.edges.map((edge) => {
                     const sourceNode = nodes.find(
-                      (node) => node.id === edge.source
+                      (node) => node.id === edge.source,
                     );
                     const targetNode = nodes.find(
-                      (node) => node.id === edge.target
+                      (node) => node.id === edge.target,
                     );
                     if (!sourceNode || !targetNode) {
                       throw new Error("edge source or target not found");
@@ -311,7 +312,7 @@ const useApplicationStoreBase = create<EditorState>()(
                     return new EdgeConstraint(
                       ConstraintOperator.MustExist,
                       sourceNode.data.resourceId,
-                      targetNode.data.resourceId
+                      targetNode.data.resourceId,
                     );
                   }) ?? [];
               }
@@ -334,7 +335,7 @@ const useApplicationStoreBase = create<EditorState>()(
               const architecture = get().architecture;
               if (!architecture) {
                 throw new Error(
-                  "cannot apply constraints, no architecture in context"
+                  "cannot apply constraints, no architecture in context",
                 );
               }
 
@@ -347,17 +348,17 @@ const useApplicationStoreBase = create<EditorState>()(
                 const newArchitecture = await applyConstraints(
                   architecture.id,
                   architecture.version,
-                  get().unappliedConstraints
+                  get().unappliedConstraints,
                 );
                 console.log("new architecture", newArchitecture);
                 const elements = toReactFlowElements(
                   newArchitecture,
-                  ArchitectureView.DataFlow
+                  ArchitectureView.DataFlow,
                 );
                 const result = await autoLayout(
                   elements.nodes,
                   elements.edges,
-                  get().layoutOptions
+                  get().layoutOptions,
                 );
                 set({
                   nodes: result.nodes,
@@ -401,11 +402,11 @@ const useApplicationStoreBase = create<EditorState>()(
                 }),
               });
             },
-          } as EditorState),
-        { name: "editorStore" }
-      )
-    )
-  )
+          }) as EditorState,
+        { name: "editorStore" },
+      ),
+    ),
+  ),
 );
 
 // wraps the store with selectors for all state properties

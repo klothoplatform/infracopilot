@@ -1,9 +1,10 @@
-import { parse, TopologyGraph } from "./TopologyGraph";
+import type { TopologyGraph } from "./TopologyGraph";
+import { parse } from "./TopologyGraph";
 import { sampleGraphYaml } from "./Samples";
-import { Edge, Node } from "reactflow";
-import { TopologyNode } from "./TopologyNode";
+import type { Edge, Node } from "reactflow";
+import type { TopologyNode } from "./TopologyNode";
 import { NodeType } from "../reactflow/NodesTypes";
-import TopologyEdge from "./TopologyEdge";
+import type TopologyEdge from "./TopologyEdge";
 
 export enum ArchitectureView {
   DataFlow = "DataFlow",
@@ -33,9 +34,9 @@ export interface Architecture {
  */
 function getNodesFromGraph(
   topology: TopologyGraph,
-  resourceMetadata: {}
+  resourceMetadata: {},
 ): Node[] {
-  return topology?.Nodes?.map((node: TopologyNode) => {
+  return topology.Nodes.map((node: TopologyNode) => {
     return {
       id: node.id,
       position: { x: 0, y: 0 },
@@ -55,17 +56,17 @@ function getNodesFromGraph(
           ? NodeType.Indicator
           : topology.Nodes.find(
               (n) =>
-                n.vizMetadata?.parent?.toTopologyString() ===
-                node.resourceId.toTopologyString()
+                n.vizMetadata.parent?.toTopologyString() ===
+                node.resourceId.toTopologyString(),
             )
           ? NodeType.ResourceGroup
           : NodeType.Resource,
       parentNode: topology.Nodes.find(
         (n) =>
           n.resourceId.toTopologyString() ===
-          node.vizMetadata?.parent?.toTopologyString()
+          node.vizMetadata.parent?.toTopologyString(),
       )?.id,
-      extent: node.vizMetadata?.parent ? "parent" : undefined,
+      extent: node.vizMetadata.parent ? "parent" : undefined,
     } as Node;
   }).sort((a: Node, b: Node) => {
     // groups first
@@ -103,7 +104,7 @@ function getNodesFromGraph(
 }
 
 function getEdgesFromGraph(graph: TopologyGraph): Edge[] {
-  return graph?.Edges?.map((edge: TopologyEdge) => {
+  return graph.Edges.map((edge: TopologyEdge) => {
     return {
       id: `${edge.source}-${edge.target}`,
       source: edge.source,
@@ -118,7 +119,7 @@ function getEdgesFromGraph(graph: TopologyGraph): Edge[] {
 
 export function toReactFlowElements(
   architecture: Architecture,
-  view: ArchitectureView
+  view: ArchitectureView,
 ): ReactFlowElements {
   const topology = architecture.views?.get(view);
   if (!topology) {

@@ -2,7 +2,7 @@ import TopologyEdge from "./TopologyEdge";
 import { TopologyNode, NodeId } from "./TopologyNode";
 import yaml from "yaml";
 import { createContext } from "react";
-import { Architecture } from "./Architecture";
+import type { Architecture } from "./Architecture";
 
 export class TopologyGraph {
   Provider: string;
@@ -29,7 +29,7 @@ export const parse = (content: string): Map<string, TopologyGraph> => {
   }
 
   Object.keys(parsed_yaml).forEach((k: string) =>
-    apps.set(k, new TopologyGraph())
+    apps.set(k, new TopologyGraph()),
   );
 
   apps.forEach((graph: TopologyGraph, appName: string) => {
@@ -38,8 +38,8 @@ export const parse = (content: string): Map<string, TopologyGraph> => {
       console.log(`no nodes found for app: ${appName}`);
       return apps;
     }
-    const resources = app["resources"] as any;
-    graph.Provider = app["provider"] as string;
+    const resources = (app as any).resources as any;
+    graph.Provider = (app as any).provider as string;
     const edgeDefinedNodes: NodeId[] = [];
     Object.keys(resources).forEach((k: string) => {
       let source, target;
@@ -60,14 +60,14 @@ export const parse = (content: string): Map<string, TopologyGraph> => {
             parent: resources[k]?.parent
               ? NodeId.fromString(resources[k]?.parent, graph.Provider)
               : undefined,
-          })
+          }),
         );
       }
     });
     edgeDefinedNodes.forEach((r) => {
       if (
         !graph.Nodes.find(
-          (n: TopologyNode) => n.id.toString() === r.toTopologyString()
+          (n: TopologyNode) => n.id.toString() === r.toTopologyString(),
         )
       ) {
         graph.Nodes.push(new TopologyNode(r, {}));

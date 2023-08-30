@@ -1,5 +1,7 @@
-import { Edge, MarkerType, Node, Position } from "reactflow";
-import ELK, { ElkExtendedEdge, ElkLabel, ElkNode } from "elkjs/lib/elk.bundled";
+import type { Edge, Node } from "reactflow";
+import { MarkerType, Position } from "reactflow";
+import type { ElkExtendedEdge, ElkLabel, ElkNode } from "elkjs/lib/elk.bundled";
+import ELK from "elkjs/lib/elk.bundled";
 
 export enum NodePlacementStrategy {
   NETWORK_SIMPLEX = "Network Simplex",
@@ -104,24 +106,24 @@ function sizedLabel(
   minHeight = 32,
   maxWidth = 600,
   maxHeight = 140,
-  lineChars = 12
+  lineChars = 12,
 ): ElkLabel {
   label.width = Math.min(
     ((label.text?.length ?? lineChars) * fontSize) /
       ((label.text?.length ?? lineChars) / lineChars),
-    maxWidth
+    maxWidth,
   );
 
   const height = Math.max(
     ((label.text?.length ?? lineChars) / lineChars) * fontSize,
-    minHeight
+    minHeight,
   );
   label.height = Math.min(height, maxHeight);
   return label;
 }
 
 export function getKeyByValue(obj: object, key: string) {
-  let keys = Object.keys(obj).filter((x) => obj[x as keyof object] === key);
+  const keys = Object.keys(obj).filter((x) => obj[x as keyof object] === key);
   return keys.length > 0 ? keys[0] : "";
 }
 
@@ -135,7 +137,7 @@ function handlePosition(
   y: number,
   offsetX = 0,
   offsetY = 0,
-  node?: ElkNode
+  node?: ElkNode,
 ): Position {
   if (!node) {
     return Position.Left;
@@ -154,7 +156,7 @@ function handlePosition(
 export async function autoLayout(
   nodes?: Node[],
   edges?: Edge[],
-  layoutOptions = DefaultLayoutOptions
+  layoutOptions = DefaultLayoutOptions,
 ): Promise<AutoLayoutResult> {
   console.log("autoLayout called");
   if (!nodes) {
@@ -166,7 +168,7 @@ export async function autoLayout(
         ...elkConfig.defaultLayout,
         "elk.edgeRouting": getKeyByValue(
           ConnectorType,
-          layoutOptions.elkConnectorType
+          layoutOptions.elkConnectorType,
         ),
         "elk.layered.mergeEdges": layoutOptions.mergeEdges ? "true" : "false",
       },
@@ -194,13 +196,13 @@ export async function autoLayout(
             },
           } as ElkNode,
         ];
-      })
+      }),
     );
     for (const n of nodes) {
       const parentNode = elkNodesById.get(n.parentNode ?? "");
       if (parentNode) {
         parentNode.children = parentNode.children ? parentNode.children : [];
-        parentNode.children?.push(elkNodesById.get(n.id) as any);
+        parentNode.children.push(elkNodesById.get(n.id) as any);
 
         parentNode.labels = [
           sizedLabel(
@@ -212,13 +214,13 @@ export async function autoLayout(
             32,
             600,
             140,
-            30
+            30,
           ),
         ];
         parentNode.layoutOptions = {
           ...elkConfig.groupLayout,
           "elk.padding": ElkMap({
-            top: 28 + (parentNode.labels?.[0].height ?? 0),
+            top: 28 + (parentNode.labels[0].height ?? 0),
             left: 20,
             bottom: 0,
             right: 20,
@@ -227,7 +229,7 @@ export async function autoLayout(
       }
     }
     const nodeHierarchyForElk = [...elkNodesById.values()].filter(
-      (n) => !nonRoots.has(n.id)
+      (n) => !nonRoots.has(n.id),
     );
 
     const edgesForElk = edges?.map((e): ElkExtendedEdge => {
@@ -243,11 +245,11 @@ export async function autoLayout(
         ...elkConfig.rootLayout,
         "nodePlacement.strategy": getKeyByValue(
           NodePlacementStrategy,
-          layoutOptions.elkPlacementStrategy
+          layoutOptions.elkPlacementStrategy,
         ),
         "org.eclipse.elk.layered.layering.strategy": getKeyByValue(
           NodeLayeringStrategy,
-          layoutOptions.elkNodeLayeringStrategy
+          layoutOptions.elkNodeLayeringStrategy,
         ),
       },
       children: nodeHierarchyForElk,
@@ -259,7 +261,7 @@ export async function autoLayout(
       const q = [n];
       const output: ElkNode[] = [];
       while (q.length) {
-        const currentNode = q.pop() as ElkNode;
+        const currentNode = q.pop()!;
         output.push(currentNode);
         q.push(...(currentNode.children ?? []));
       }
@@ -274,11 +276,11 @@ export async function autoLayout(
 
         const sourceId = s.incomingShape ?? "";
         const targetId = s.outgoingShape ?? "";
-        const sourceNode = elkNodesById?.get(sourceId);
-        const targetNode = elkNodesById?.get(targetId);
+        const sourceNode = elkNodesById.get(sourceId);
+        const targetNode = elkNodesById.get(targetId);
 
-        const sourceParent = elkNodes.find((n) =>
-          n.children?.find((c) => c.id === sourceId)
+        const sourceParent = elkNodes.find(
+          (n) => n.children?.find((c) => c.id === sourceId),
         );
         // const targetParent = elkNodes.find((n) =>
         //   n.children?.find((c) => c.id === targetId)
@@ -305,7 +307,7 @@ export async function autoLayout(
               s.startPoint.y,
               offsetX,
               offsetY,
-              sourceNode
+              sourceNode,
             ),
           },
         ]);
@@ -322,7 +324,7 @@ export async function autoLayout(
               s.endPoint.y,
               offsetX,
               offsetY,
-              targetNode
+              targetNode,
             ),
           },
         ]);
@@ -334,9 +336,8 @@ export async function autoLayout(
       nodes: nodes.map((node) => {
         // find the node in the hierarchy with the same id and get its coordinates
 
-        let { x, y, width, height } = elkNodes.find(
-          (d) => d.id === node.id
-        ) as ElkNode;
+        // eslint-disable-next-line prefer-const
+        let { x, y, width, height } = elkNodes.find((d) => d.id === node.id)!;
         x = x ?? node.position.x;
         y = y ?? node.position.y;
         return {
@@ -367,7 +368,7 @@ export async function autoLayout(
                 ?.sections?.find(
                   (s) =>
                     s.incomingShape === edge.source &&
-                    s.outgoingShape === edge.target
+                    s.outgoingShape === edge.target,
                 ),
             },
             hidden: false, // we're currently hiding all edges until after they're all laid out with elk

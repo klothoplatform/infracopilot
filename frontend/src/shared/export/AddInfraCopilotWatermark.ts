@@ -1,12 +1,13 @@
-import { Options } from "html-to-image/src/types";
-import { Rect } from "reactflow";
-import { BoundingElements, isGroup } from "./ExportImage";
+import type { Options } from "html-to-image/src/types";
+import type { Rect } from "reactflow";
+import type { BoundingElements } from "./ExportImage";
+import { isGroup } from "./ExportImage";
 
 export function addInfraCopilotWatermark(
   exportSettings: Options,
   boundingElements: BoundingElements,
   nodeBounds: Rect,
-  viewPort: HTMLElement
+  viewPort: HTMLElement,
 ) {
   const layoutSmall = nodeBounds.width < 400;
   const watermarkContainer = document.createElement("div");
@@ -35,11 +36,11 @@ export function addInfraCopilotWatermark(
 
   const { serializeToString } = XMLSerializer.prototype;
   const clearTextBackgroundClip = (element: HTMLElement) => {
-    if (element.style?.webkitBackgroundClip === "text") {
+    if (element.style.webkitBackgroundClip === "text") {
       element.style.setProperty("-webkit-background-clip", "unset");
       element.style.setProperty("--webkit-background-clip-replace", "text");
     }
-    if (element.style?.backgroundClip === "text") {
+    if (element.style.backgroundClip === "text") {
       element.style.setProperty("-background-clip", "unset");
       element.style.setProperty("--background-clip-replace", "text");
     }
@@ -55,7 +56,7 @@ export function addInfraCopilotWatermark(
       .replaceAll("--background-clip-replace", "background-clip")
       .replaceAll(
         "--webkit-background-clip-replace",
-        "-webkit-background-clip"
+        "-webkit-background-clip",
       );
   };
 

@@ -31,7 +31,7 @@ export default memo(() => {
     const vizState = getVizState();
     const watermark = !vizState
       ? Watermark.InfraCopilot
-      : vizState?.input?.watermark;
+      : vizState.input?.watermark;
     const image = await exportImage(nodes, edges, format, watermark);
     await downloadImage(image, format);
   };

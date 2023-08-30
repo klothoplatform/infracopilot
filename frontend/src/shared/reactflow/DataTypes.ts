@@ -1,4 +1,4 @@
-import { NodeId } from "../architecture/TopologyNode";
+import type { NodeId } from "../architecture/TopologyNode";
 
 export interface NodeData {
   label: string;

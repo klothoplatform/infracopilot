@@ -2,8 +2,9 @@ import React from "react";
 import type { EdgeProps, Node } from "reactflow";
 import { BaseEdge, BezierEdge } from "reactflow";
 
-import { ElkEdgeSection } from "elkjs/lib/elk.bundled";
-import { SVGDrawFunction, svgDrawSmoothLinePath } from "./drawSvgPath";
+import type { ElkEdgeSection } from "elkjs/lib/elk.bundled";
+import type { SVGDrawFunction } from "./drawSvgPath";
+import { svgDrawSmoothLinePath } from "./drawSvgPath";
 
 export interface SmartEdgeSection extends ElkEdgeSection {
   minX: number;
@@ -22,15 +23,15 @@ export type EdgeParams = Pick<
   | "targetPosition"
 >;
 
-export type GetSmartEdgeReturn = {
+export interface GetSmartEdgeReturn {
   svgPathString: string;
   edgeCenterX: number;
   edgeCenterY: number;
-};
+}
 
-export type GetSmartEdgeOptions = {
+export interface GetSmartEdgeOptions {
   drawEdge?: SVGDrawFunction;
-};
+}
 
 export type GetSmartEdgeParams<NodeDataType = unknown> = EdgeParams & {
   options?: GetSmartEdgeOptions;
@@ -73,9 +74,9 @@ export const getSmartEdge = <NodeDataType = unknown,>({
     // }
     // calculate offset for edges with nodes with the same parent or where the destination is the parent of the source
     if (
-      sourceParentNodes?.slice(-1).length &&
-      [...targetParentNodes?.slice(-1), targetNode].find(
-        (n) => n === sourceParentNodes?.slice(-1)[0]
+      sourceParentNodes.slice(-1).length &&
+      [...targetParentNodes.slice(-1), targetNode].find(
+        (n) => n === sourceParentNodes.slice(-1)[0],
       )
     ) {
       // if source and destination have the same parent or the destination is the parent of the source, use the parent offset
@@ -103,7 +104,7 @@ export const getSmartEdge = <NodeDataType = unknown,>({
       }
     }
 
-    let graphPath = [
+    const graphPath = [
       ...[
         edgeSection.startPoint,
         ...(edgeSection.bendPoints ?? []),
@@ -156,7 +157,7 @@ function findParents(node?: Node, nodes?: Node[]): Node[] {
     const parent = findParent(node, nodes);
     if (!parent) {
       throw new Error(
-        `parent node [${node.parentNode}] not found for child [${node.id}]`
+        `parent node [${node.parentNode}] not found for child [${node.id}]`,
       );
     }
     pNodes.push(parent);

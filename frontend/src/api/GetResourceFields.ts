@@ -6,7 +6,7 @@ export interface ResourceField {
 
 export function getResourceFields(
   provider: string,
-  type: string
+  type: string,
 ): ResourceField[] {
   // TODO: implement getResourceFields
   return [];

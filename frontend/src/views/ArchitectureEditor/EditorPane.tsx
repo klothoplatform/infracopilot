@@ -1,30 +1,18 @@
+import type { Edge, Node } from "reactflow";
 import ReactFlow, {
   Background,
   BackgroundVariant,
   Controls,
-  Edge,
-  getRectOfNodes,
-  getTransformForBounds,
   MiniMap,
-  Node,
   useReactFlow,
 } from "reactflow";
 import NodesTypes, { NodeType } from "../../shared/reactflow/NodesTypes";
 import EdgeTypes, {
   defaultEdgeOptions,
 } from "../../shared/reactflow/EdgeTypes";
-import React, {
-  MouseEvent as ReactMouseEvent,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import type { MouseEvent as ReactMouseEvent } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { NodeId } from "../../shared/architecture/TopologyNode";
-import {
-  ArchitectureView,
-  toReactFlowElements,
-} from "../../shared/architecture/Architecture";
 import useApplicationStore from "../store/store";
 import StraightConnectionLine from "../../shared/reactflow/StraightConnectionLine";
 import ContextMenu from "./ContextMenu";
@@ -103,7 +91,7 @@ export default function EditorPane() {
       applyConstraints,
       addGraphElements,
       reactFlowInstance,
-    ]
+    ],
   );
 
   const onNodeClick = (event: ReactMouseEvent, node: Node) => {
@@ -139,7 +127,7 @@ export default function EditorPane() {
         },
       });
     },
-    [setMenu]
+    [setMenu],
   );
 
   const onEdgeContextMenu = useCallback(
@@ -163,7 +151,7 @@ export default function EditorPane() {
         },
       });
     },
-    [setMenu]
+    [setMenu],
   );
 
   // Close the context menu if it's open whenever the window is clicked.

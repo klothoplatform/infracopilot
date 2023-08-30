@@ -1,5 +1,6 @@
 import React from "react";
-import { ConnectionLineComponentProps, getStraightPath } from "reactflow";
+import type { ConnectionLineComponentProps } from "reactflow";
+import { getStraightPath } from "reactflow";
 
 function StraightConnectionLine({
   fromX,

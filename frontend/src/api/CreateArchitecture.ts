@@ -1,13 +1,14 @@
 import axios from "axios";
-import { Architecture } from "../shared/architecture/Architecture";
+import type { Architecture } from "../shared/architecture/Architecture";
 
-export type CreateArchitectureRequest = {
+export interface CreateArchitectureRequest {
   name: string;
   owner: string;
   engineVersion: string;
-};
+}
+
 export default async function createArchitecture(
-  request: CreateArchitectureRequest
+  request: CreateArchitectureRequest,
 ): Promise<Architecture> {
   console.log("CreateArchitecture called");
   const response = await axios.post(
@@ -21,7 +22,7 @@ export default async function createArchitecture(
       headers: {
         "Content-Type": "application/json",
       },
-    }
+    },
   );
   if (response.status !== 200) {
     throw new Error("CreateArchitecture failed");

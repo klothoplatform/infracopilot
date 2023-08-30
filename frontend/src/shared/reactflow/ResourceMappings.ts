@@ -1,8 +1,8 @@
+import type { IconProps } from "../../components/Icon";
 import {
   Docker,
   ErrorIcon,
   Helm,
-  IconProps,
   NoIcon,
   UnknownIcon,
   WarningIcon,
@@ -93,11 +93,14 @@ import {
   AmazonEfs,
   AmazonSimpleStorageService,
 } from "../../components/icons/AwsArchitectureService/Storage";
-import React from "react";
+import type React from "react";
 import { PublicSubnet } from "../../components/icons/AwsCustom/PublicSubnet";
 import { PrivateSubnet } from "../../components/icons/AwsCustom/PrivateSubnet";
-import { TopologyNodeData } from "../architecture/TopologyNode";
-import { RdsInstanceData, SubnetData } from "../architecture/TopologyMetadata";
+import type { TopologyNodeData } from "../architecture/TopologyNode";
+import type {
+  RdsInstanceData,
+  SubnetData,
+} from "../architecture/TopologyMetadata";
 import { LogoWithBorder } from "../../components/icons/K8SLogo/Unlabeled";
 import {
   Deploy,
@@ -249,7 +252,7 @@ export const typeMappings = new Map<
         {
           nodeIcon: AmazonAuroraAmazonRdsInstance,
           discriminator: (n: RdsInstanceData) => {
-            let engine = n.engine?.toLowerCase();
+            const engine = n.engine?.toLowerCase();
             if (engine?.startsWith("aurora")) {
               return "aurora";
             }
@@ -303,7 +306,7 @@ export const typeMappings = new Map<
             borderColor: "#82A036",
           },
           discriminator: (n: SubnetData) =>
-            n?.public === true ? "public" : "private",
+            n.public === true ? "public" : "private",
           variants: new Map<String, IconMapping>([
             [
               "private",
@@ -398,7 +401,7 @@ export const getIconMapping = (
   provider: string,
   type: string,
   data?: TopologyNodeData,
-  variant?: string
+  variant?: string,
 ): IconMapping | undefined => {
   let mapping = typeMappings.get(provider)?.get(type) as any;
   if (!variant) {
@@ -412,7 +415,7 @@ export const getIcon = (
   type: string,
   props?: IconProps,
   data?: TopologyNodeData,
-  variant?: string
+  variant?: string,
 ): React.JSX.Element => {
   let mapping = typeMappings.get(provider)?.get(type) as any;
   if (!variant) {
@@ -427,7 +430,7 @@ export const getGroupIcon = (
   type: string,
   props?: IconProps,
   data?: TopologyNodeData,
-  variant?: string
+  variant?: string,
 ): React.JSX.Element => {
   let mapping = typeMappings.get(provider)?.get(type) as any;
   if (!variant) {

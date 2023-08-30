@@ -1,10 +1,11 @@
 import React, { useCallback } from "react";
-import { Edge, Node, useReactFlow } from "reactflow";
+import type { Edge, Node } from "reactflow";
+import { useReactFlow } from "reactflow";
 
 import "./ContextMenu.scss";
 import useApplicationStore from "../store/store";
 
-type ContextMenuProps = {
+interface ContextMenuProps {
   node?: Node;
   edge?: Edge;
   top: number;
@@ -12,7 +13,7 @@ type ContextMenuProps = {
   right: number;
   bottom: number;
   onAction?: () => void;
-};
+}
 
 export const ContextMenuOptions = [];
 

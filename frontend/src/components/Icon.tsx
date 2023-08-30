@@ -16,7 +16,7 @@ export const ErrorIcon = (props: IconProps) => {
       width="24px"
       alt="error"
       {...props}
-      src="indicator_icons/error-round-icon.svg"
+      src="/indicator_icons/error-round-icon.svg"
     />
   );
 };
@@ -28,7 +28,7 @@ export const WarningIcon = (props: IconProps) => {
       width="24px"
       alt="warning"
       {...props}
-      src="indicator_icons/exclamation-round-icon.svg"
+      src="/indicator_icons/exclamation-round-icon.svg"
     />
   );
 };
@@ -52,7 +52,7 @@ export const Helm = (props: IconProps) => {
       width="100px"
       alt="helm"
       {...props}
-      src="other_icons/helm-icon-color.svg"
+      src="/other_icons/helm-icon-color.svg"
     />
   );
 };
@@ -64,7 +64,7 @@ export const Docker = (props: IconProps) => {
       width="100px"
       alt="docker"
       {...props}
-      src="other_icons/docker-icon.svg"
+      src="/other_icons/docker-icon.svg"
     />
   );
 };
@@ -76,7 +76,7 @@ export const AwsLogo = (props: IconProps) => {
       width="100px"
       alt="aws"
       {...props}
-      src="other_icons/aws-logo.svg"
+      src="/other_icons/aws-logo.svg"
     />
   );
 };

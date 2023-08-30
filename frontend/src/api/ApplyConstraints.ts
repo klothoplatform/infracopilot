@@ -1,19 +1,16 @@
-import {
-  Constraint,
-  formatConstraints,
-} from "../shared/architecture/Constraints";
-import {
-  Architecture,
-  ArchitectureView,
-} from "../shared/architecture/Architecture";
+import type { Constraint } from "../shared/architecture/Constraints";
+import { formatConstraints } from "../shared/architecture/Constraints";
+import type { Architecture } from "../shared/architecture/Architecture";
+import { ArchitectureView } from "../shared/architecture/Architecture";
 import axios from "axios";
-import { parse, TopologyGraph } from "../shared/architecture/TopologyGraph";
+import type { TopologyGraph } from "../shared/architecture/TopologyGraph";
+import { parse } from "../shared/architecture/TopologyGraph";
 import yaml from "yaml";
 
 export async function applyConstraints(
   architectureId: string,
   latestState: number,
-  constraints: Constraint[]
+  constraints: Constraint[],
 ): Promise<Architecture> {
   console.log("applyConstraints", architectureId);
 
@@ -26,7 +23,7 @@ export async function applyConstraints(
       },
       responseType: "arraybuffer",
       decompress: true,
-    }
+    },
   );
   const architectureJSON = JSON.parse(new TextDecoder().decode(data));
   architectureJSON.views = new Map<ArchitectureView, TopologyGraph>([

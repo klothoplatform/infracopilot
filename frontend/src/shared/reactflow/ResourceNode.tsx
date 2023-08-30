@@ -14,7 +14,7 @@ interface ResourceNodeProps {
 
 const connectionNodeIdSelector = (state: any) => state.connectionNodeId;
 
-export default memo(
+const ResourceNode = memo(
   ({ id, data, isConnectable, isSelected }: ResourceNodeProps) => {
     const { architecture } = useApplicationStore();
     const connectionNodeId = useStore(connectionNodeIdSelector);
@@ -27,6 +27,7 @@ export default memo(
       return data.handles?.map((h: any) => {
         return (
           <Handle
+            key={h.id}
             type={h.type}
             position={h.position}
             id={h.id}
@@ -83,7 +84,7 @@ export default memo(
                   : undefined,
               },
             },
-            data
+            data,
           )}
           <div style={{ textAlign: "center" }}>
             <div
@@ -116,5 +117,7 @@ export default memo(
         </div>
       </>
     );
-  }
+  },
 );
+ResourceNode.displayName = "ResourceNode";
+export default ResourceNode;

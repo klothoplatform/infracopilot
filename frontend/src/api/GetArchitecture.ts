@@ -1,12 +1,12 @@
-import { Architecture } from "../shared/architecture/Architecture";
+import type { Architecture } from "../shared/architecture/Architecture";
 import axios from "axios";
 
 export async function getArchitecture(
   id: string,
-  version?: number
+  version?: number,
 ): Promise<Architecture> {
   console.log(
-    "getArchitecture called with id: " + id + " and version: " + version
+    "getArchitecture called with id: " + id + " and version: " + version,
   );
   const { data } = await axios.get(`/architecture/${id}`, {
     responseType: "arraybuffer",

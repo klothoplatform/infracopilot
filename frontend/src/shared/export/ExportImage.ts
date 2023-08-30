@@ -1,5 +1,5 @@
-import { Edge, Node, Rect } from "reactflow";
-import { Options } from "html-to-image/src/types";
+import type { Edge, Node, Rect } from "reactflow";
+import type { Options } from "html-to-image/src/types";
 import { Watermark } from "../VizState";
 import { addInfraCopilotWatermark } from "./AddInfraCopilotWatermark";
 import { toPng, toSvg } from "html-to-image";
@@ -9,7 +9,7 @@ export async function exportImage(
   nodes: Node[],
   edges: Edge[],
   format: string,
-  watermark?: Watermark
+  watermark?: Watermark,
 ): Promise<string> {
   const boundingElements = getBoundingElements(nodes, edges);
   const nodesBounds = getDiagramSize(boundingElements);
@@ -25,8 +25,8 @@ export async function exportImage(
   };
 
   const viewPort = document.querySelector(
-    ".react-flow__viewport"
-  ) as HTMLElement;
+    ".react-flow__viewport",
+  )! as HTMLElement;
 
   let watermarkContainer;
   if (watermark === Watermark.InfraCopilot) {
@@ -34,7 +34,7 @@ export async function exportImage(
       exportSettings,
       boundingElements,
       nodesBounds,
-      viewPort
+      viewPort,
     );
   }
 
@@ -82,22 +82,22 @@ function getBoundingElements(nodes: Node[], edges: Edge[]): BoundingElements {
 
     minXEdge: edges.length
       ? edges.reduce((e1, e2) =>
-          e1.data.edgeSection.minX < e2.data.edgeSection.minX ? e1 : e2
+          e1.data.edgeSection.minX < e2.data.edgeSection.minX ? e1 : e2,
         )
       : undefined,
     minYEdge: edges.length
       ? edges.reduce((e1, e2) =>
-          e1.data.edgeSection.minY < e2.data.edgeSection.minY ? e1 : e2
+          e1.data.edgeSection.minY < e2.data.edgeSection.minY ? e1 : e2,
         )
       : undefined,
     maxXEdge: edges.length
       ? edges.reduce((e1, e2) =>
-          e1.data.edgeSection.maxX > e2.data.edgeSection.maxX ? e1 : e2
+          e1.data.edgeSection.maxX > e2.data.edgeSection.maxX ? e1 : e2,
         )
       : undefined,
     maxYEdge: edges.length
       ? edges.reduce((e1, e2) =>
-          e1.data.edgeSection.maxY > e2.data.edgeSection.maxY ? e1 : e2
+          e1.data.edgeSection.maxY > e2.data.edgeSection.maxY ? e1 : e2,
         )
       : undefined,
   } as BoundingElements;

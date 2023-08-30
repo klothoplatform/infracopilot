@@ -1,10 +1,10 @@
-import { NodeId } from "./TopologyNode";
+import type { NodeId } from "./TopologyNode";
 
 class TopologyEdge {
   constructor(
     public sourceId: NodeId,
     public targetId: NodeId,
-    public vizMetadata?: object
+    public vizMetadata?: object,
   ) {}
 
   public get source(): string {

@@ -29,7 +29,7 @@ export const IndicatorNode = (props: IndicatorNodeProps) => {
         props.data.resourceId.provider,
         props.data.resourceId.type,
         undefined,
-        props.data.iconVariant
+        props.data.iconVariant,
       )}
       <Handle
         type="source"

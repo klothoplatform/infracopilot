@@ -1,5 +1,5 @@
-import { NodeId } from "./TopologyNode";
-import TopologyEdge from "./TopologyEdge";
+import type { NodeId } from "./TopologyNode";
+import type TopologyEdge from "./TopologyEdge";
 
 export enum ConstraintOperator {
   MustExist = "must_exist",
@@ -51,7 +51,7 @@ export class ApplicationConstraint implements Constraint {
   constructor(
     public operator: ApplicationConstraintOperators,
     public node: NodeId,
-    public replacementNode?: NodeId
+    public replacementNode?: NodeId,
   ) {}
 }
 
@@ -62,7 +62,7 @@ export class ConstructConstraint implements Constraint {
     public operator: ConstructConstraintOperators,
     public target: NodeId,
     public type: string,
-    public attributes: object
+    public attributes: object,
   ) {}
 }
 
@@ -73,7 +73,7 @@ export class ResourceConstraint implements Constraint {
     public operator: ResourceConstraintOperators,
     public target: NodeId,
     public property: string,
-    public value: any
+    public value: any,
   ) {}
 }
 
@@ -84,7 +84,7 @@ export class EdgeConstraint implements Constraint {
     public operator: EdgeConstraintOperators,
     public target: TopologyEdge,
     public node?: NodeId,
-    public attributes?: object
+    public attributes?: object,
   ) {}
 }
 
@@ -95,9 +95,7 @@ export function formatConstraints(constraints: Constraint[]): string {
         case ConstraintScope.Application:
           return {
             ...constraint,
-            node: (
-              constraint as ApplicationConstraint
-            ).node?.toKlothoIdString(),
+            node: (constraint as ApplicationConstraint).node.toKlothoIdString(),
             replacementNode: (
               constraint as ApplicationConstraint
             ).replacementNode?.toKlothoIdString(),
@@ -107,14 +105,14 @@ export function formatConstraints(constraints: Constraint[]): string {
             ...constraint,
             target: (
               constraint as ConstructConstraint
-            ).target?.toKlothoIdString(),
+            ).target.toKlothoIdString(),
           };
         case ConstraintScope.Resource:
           return {
             ...constraint,
             target: (
               constraint as ResourceConstraint
-            ).target?.toKlothoIdString(),
+            ).target.toKlothoIdString(),
           };
         case ConstraintScope.Edge:
           return {
@@ -130,6 +128,6 @@ export function formatConstraints(constraints: Constraint[]): string {
             },
           };
       }
-    })
+    }),
   );
 }

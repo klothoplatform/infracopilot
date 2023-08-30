@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
-import { Edge, Node, useReactFlow } from "reactflow";
+import type { Edge, Node } from "reactflow";
+import { useReactFlow } from "reactflow";
 
-type UseUndoRedoOptions = {
+interface UseUndoRedoOptions {
   maxHistorySize: number;
   enableShortcuts: boolean;
   onUndo: () => void;
   onRedo: () => void;
-};
+}
 
 type UseUndoRedo = (options?: Partial<UseUndoRedoOptions>) => {
   undo: () => void;
@@ -16,10 +17,10 @@ type UseUndoRedo = (options?: Partial<UseUndoRedoOptions>) => {
   canRedo: boolean;
 };
 
-type HistoryItem = {
+interface HistoryItem {
   nodes: Node[];
   edges: Edge[];
-};
+}
 
 const defaultOptions: UseUndoRedoOptions = {
   maxHistorySize: 100,
