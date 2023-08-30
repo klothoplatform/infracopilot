@@ -8,6 +8,9 @@ fastapi = "*"
 uvicorn = "*"
 aiofiles = "*"
 aiounittest = "*"
+botocore = "*"
+jsons = "*"
+sqlalchemy = "*"
 
 [dev-packages]
 black = "*"

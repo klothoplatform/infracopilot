@@ -23,5 +23,5 @@ jobs:
           pipenv install --dev
       - name: Run tests
         run: |
-          pipenv run python -m unittest discover
-          pipenv run coverage report -m --fail-under 80 --skip-empty
+          PYTHONPATH=. pipenv run coverage run -m unittest discover
+          PYTHONPATH=. pipenv run coverage report -m --fail-under 80 --skip-empty
