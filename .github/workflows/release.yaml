@@ -85,10 +85,8 @@ jobs:
         run: |
           make install-frontend
           make build-frontend
-      - name: download klotho
-        uses: actions/download-artifact@v3
-        with:
-          name: klotho
+        env:
+          CI: false
       - name: download klotho
         uses: actions/download-artifact@v3
         with:
