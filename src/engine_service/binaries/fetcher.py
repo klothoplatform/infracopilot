@@ -15,7 +15,7 @@ import aiofiles
 
 # @klotho::static_unit {
 #   id = "binaries-store"
-#   static_files = ["./binaries/**"]
+#   static_files = ["/binaries/**"]
 # }
 
 root_path = Path("binaries")
