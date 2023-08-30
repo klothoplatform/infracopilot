@@ -140,8 +140,8 @@ jobs:
           config-map: |
             {
               aws:region: { value: "${{ inputs.region }}", secret: false },
-              infracopilot:ifcp-orm_username: { value: "${{ secrets.INFRACOPILOT_STORAGE_USERNAME }}", secret: true },
-              infracopilot:ifcp-orm_password: { value: "${{ secrets.INFRACOPILOT_STORAGE_PASSWORD }}", secret: true }
+              infracopilot:ifcporm_username: { value: "${{ secrets.INFRACOPILOT_STORAGE_USERNAME }}", secret: true },
+              infracopilot:ifcporm_password: { value: "${{ secrets.INFRACOPILOT_STORAGE_PASSWORD }}", secret: true }
             }
         env:
           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
