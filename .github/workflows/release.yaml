@@ -33,8 +33,8 @@ on:
         description: The region to deploy to
         required: true
         type: string
-      default: us-west-2
-        build-klotho-ref:
+        default: us-west-2
+      build-klotho-ref:
         description: the ref (branch, tag or SHA) of klotho to compile infracopilot with
         required: false
         type: string
