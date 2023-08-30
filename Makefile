@@ -28,10 +28,6 @@ black-check:
 
 # Frontend commands
 
-build-frontend:
-	npm --prefix frontend run build
-
-
 install:
 	cd frontend && npm install
 
