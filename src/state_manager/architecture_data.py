@@ -1,6 +1,4 @@
 from sqlite3 import IntegrityError
-from src.util.entity import KlothoEntity
-
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import select, JSON
 from src.util.orm import Base, session

@@ -2,7 +2,6 @@
 #    id = "main"
 # }
 from pathlib import Path
-from typing import Optional
 
 from botocore.exceptions import ClientError
 import os

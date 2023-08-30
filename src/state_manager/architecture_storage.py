@@ -1,15 +1,11 @@
 # @klotho::execution_unit {
 #    id = "main"
 # }
-import decimal
-from datetime import datetime
 from io import BytesIO
-from typing import List, Dict, Optional
-from dataclasses import dataclass, field
+from typing import Optional
 from pathlib import Path
 import os
 
-from aiocache import Cache
 import jsons
 from botocore.exceptions import ClientError
 
