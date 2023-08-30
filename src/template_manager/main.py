@@ -11,7 +11,7 @@ from src.template_manager.template_data import (
 
 async def get_owner_templates(
     owner_id: str,
-) -> List[ResourceTemplateData | EdgeTemplateData]:
+) -> List[ResourceTemplateData or EdgeTemplateData]:
     klotho_resource_templates = await get_klotho_supported_resource_template_data()
     klotho_edge_templates = await get_klotho_supported_edge_template_data()
     owner_resource_templates = await get_resource_templates_data_for_owner(owner_id)
@@ -26,8 +26,8 @@ async def get_owner_templates(
 
 
 def add_latest_version_of_templates(
-    templates: List[ResourceTemplateData | EdgeTemplateData],
-    latest_templates: List[ResourceTemplateData | EdgeTemplateData],
+    templates: List[ResourceTemplateData or EdgeTemplateData],
+    latest_templates: List[ResourceTemplateData or EdgeTemplateData],
 ):
     for template in templates:
         duplicate = False

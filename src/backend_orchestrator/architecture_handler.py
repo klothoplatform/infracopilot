@@ -1,4 +1,3 @@
-
 import logging
 import jsons
 import uuid
@@ -7,20 +6,30 @@ from fastapi import FastAPI, HTTPException, Response
 from fastapi.responses import JSONResponse
 from typing import List
 from pydantic import BaseModel
-from src.engine_service.engine_commands.get_resource_types import GetResourceTypesRequest, get_resource_types
+from src.engine_service.engine_commands.get_resource_types import (
+    GetResourceTypesRequest,
+    get_resource_types,
+)
 from src.guardrails_manager.guardrails_store import get_guardrails
 from src.backend_orchestrator.main import app
-from src.state_manager.architecture_data import get_architecture_latest, add_architecture, Architecture
-from src.state_manager.architecture_storage import get_state_from_fs, ArchitectureStateDoesNotExistError
+from src.state_manager.architecture_data import (
+    get_architecture_latest,
+    add_architecture,
+    Architecture,
+)
+from src.state_manager.architecture_storage import (
+    get_state_from_fs,
+    ArchitectureStateDoesNotExistError,
+)
 
 
 log = logging.getLogger(__name__)
 
+
 class CreateArchitectureRequest(BaseModel):
     name: str
     owner: str
-    engine_version: float | None
-
+    engine_version: float
 
 
 @app.post("/architecture")
@@ -75,8 +84,6 @@ async def copilot_get_state(id: str):
     except Exception:
         log.error("Error getting state", exc_info=True)
         raise HTTPException(status_code=500, detail="internal server error")
-
-
 
 
 class ResourceTypeResponse(BaseModel):

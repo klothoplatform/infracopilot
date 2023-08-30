@@ -1,0 +1,145 @@
+name: Deploy
+
+env:
+  NODE_VERSION: "18.x"
+  GO_VERSION: "1.20.3"
+  PYTHON_VERSION: "3.11"
+  ZIG_VERSION: "0.9.1"
+
+on:
+  workflow_call:
+    inputs:
+      stage:
+        description: The stage (environment) of the deployment
+        required: true
+        type: string
+      region:
+        description: The region to deploy to
+        required: true
+        type: string
+        default: us-west-2
+      build-klotho-ref:
+        description: the ref (branch, tag or SHA) of klotho pro to compile infracopilot with
+        required: false
+        type: string
+        default: pre-ifc2
+  workflow_dispatch:
+    inputs:
+      stage:
+        description: The stage (environment) of the deployment
+        required: true
+        type: environment
+      region:
+        description: The region to deploy to
+        required: true
+        type: string
+      default: us-west-2
+        build-klotho-ref:
+        description: the ref (branch, tag or SHA) of klotho to compile infracopilot with
+        required: false
+        type: string
+        default: pre-ifc2
+
+concurrency:
+  group: ci-${{ inputs.stage }}-${{ inputs.region }}
+
+jobs:
+
+  build-build-klotho:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout klotho (${{ inputs.build-klotho-ref }})
+        uses: actions/checkout@v3
+        with:
+          repository: klothoplatform/klotho
+          ref: ${{ inputs.build-klotho-ref }}
+          token: ${{ secrets.KLOTHO_READ_GH_TOKEN }}
+      - uses: actions/setup-go@v3
+        with:
+          go-version: ${{ env.GO_VERSION }}
+      - name: build
+        run: |
+          go generate ./...
+          go build -o klotho ./cmd/klotho
+      - name: upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: klotho
+          path: klotho
+          retention-days: 30
+
+  deploy:
+    needs:
+      - build-build-klotho
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.stage }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install pipenv
+        run: pip install pipenv
+      - name: export requirements.txt
+        run: pipenv requirements > requirements.txt
+      - name: build frontend
+        run: |
+          make build-frontend
+      - name: download klotho
+        uses: actions/download-artifact@v3
+        with:
+          name: klotho
+      - name: download klotho
+        uses: actions/download-artifact@v3
+        with:
+          name: klotho
+      - name: compile with klotho
+        env:
+          KLOTHO_ID_TOKEN: ${{ secrets.KLOTHO_ID_TOKEN }}
+          STAGE: ${{ inputs.stage }}
+        run: |
+          chmod +x ./klotho_pro
+          ./klotho . --app infracopilot --config klotho_config/${STAGE}.yaml --provider aws
+      - name: fix static unit directory
+        run: |
+          make post-compile
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-region: ${{ inputs.region }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      - name: Create Pulumi.yaml
+        run: |
+          echo "name: infracopilot" > Pulumi.yaml
+          echo "runtime: nodejs" >> Pulumi.yaml
+      - name: Pulumi Refresh
+        uses: pulumi/actions@v4
+        env:
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+          PULUMI_CONFIG_PASSPHRASE: ""
+          AWS_REGION: ${{ inputs.region }}
+          STAGE: ${{ inputs.stage }}
+        with:
+          command: refresh
+          work-dir: "./compiled"
+          stack-name: "infracopilot-ui-${{ inputs.stage }}-${{ inputs.region }}"
+          upsert: true
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: npm install
+        run: npm install
+        working-directory: ./compiled
+      - name: pulumi - up
+        uses: pulumi/actions@v4
+        with:
+          command: up
+          work-dir: "./compiled"
+          stack-name: "infracopilot-ui-${{ inputs.stage }}-${{ inputs.region }}"
+          upsert: true
+        env:
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+          PULUMI_CONFIG_PASSPHRASE: ""
+          AWS_REGION: ${{ inputs.region }}

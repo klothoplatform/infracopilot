@@ -1,0 +1,35 @@
+#!/bin/bash
+
+set -euo pipefail
+
+
+if [[ "${SKIP_IFCP_CI_CHECKS-0}" == '1' ]]; then
+  echo ''
+  echo '╭───────────────────────────────────────────────────────────────────────────────────────────╮'
+  echo '│ Skipping CI checks. To run them, export SKIP_IFCP_CI_CHECKS=0 (or unset it altogether). │'
+  echo '╰───────────────────────────────────────────────────────────────────────────────────────────╯'
+else
+  echo '╭──────────────────────────────────────────────────────────────────╮'
+  echo '│ Running CI checks. To skip them, export SKIP_IFCP_CI_CHECKS=1. │'
+  echo '╰──────────────────────────────────────────────────────────────────╯'
+
+  echo 'Running tests...'
+  make test
+  echo '✅'
+
+  echo '────────────────────────────────────────────────────────────────────'
+  echo 'Running coverage...'
+  make test-coverage
+  echo '✅'
+
+  if hash black ; then
+    printf 'Running black... '
+    make black-check
+    echo '✅'
+  else
+    echo "⚠️  Couldn't find black"
+    echo "   To install it: pip install black"
+    exit 1
+  fi
+  echo '────────────────────────────────────────────────────────────────────'
+fi

@@ -5,7 +5,7 @@ from src.engine_service.engine_commands.util import run_engine_command, EngineEx
 
 @dataclass
 class GetResourceTypesRequest:
-    guardrails: str | None
+    guardrails: str
 
 
 async def get_resource_types(request: GetResourceTypesRequest) -> List[str]:

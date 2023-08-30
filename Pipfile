@@ -7,16 +7,12 @@ name = "pypi"
 fastapi = "*"
 uvicorn = "*"
 aiofiles = "*"
-pytest = "*"
-pytest-xdist = "*"
-pytest-asyncio = "*"
-pytest-check = "*"
-pytest-repeat = "*"
 aiounittest = "*"
 
 [dev-packages]
 black = "*"
 pre-commit = "*"
+coverage = "*"
 
 [requires]
 python_version = "3.11"

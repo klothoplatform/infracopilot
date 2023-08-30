@@ -1,6 +1,5 @@
-
 # @klotho::execution_unit {
-#    id = "Backend-Api"
+#    id = "main"
 # }
 import logging
 from fastapi import FastAPI, Response
@@ -18,12 +17,11 @@ log = logging.getLogger(__name__)
 
 Base.metadata.create_all(engine)
 
+
 @app.get("/ping")
 async def ping():
     return Response(status_code=204)
 
+
 class ArchitecutreStateNotLatestError(Exception):
     pass
-
-
-

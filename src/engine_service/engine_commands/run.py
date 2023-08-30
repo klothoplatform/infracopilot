@@ -15,9 +15,9 @@ from src.engine_service.engine_commands.util import run_engine_command, EngineEx
 class RunEngineRequest(NamedTuple):
     id: str
     templates: List[str]
-    input_graph: str | None
-    constraints: List[dict] | None
-    guardrails: str | None
+    input_graph: str
+    constraints: List[dict]
+    guardrails: str
     engine_version: float
 
 
@@ -25,7 +25,6 @@ class RunEngineResult(NamedTuple):
     resources_yaml: str
     topology_yaml: str
     iac_topology: str
-
 
 
 async def run_engine(request: RunEngineRequest) -> RunEngineResult:

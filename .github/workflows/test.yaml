@@ -1,0 +1,21 @@
+
+env:
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  on_build_actions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Setup virtual environment
+        run: |
+          pip install pipenv
+          pipenv install --dev
+      - name: Run tests
+        run: |
+          PYTHONPATH=. pipenv run coverage run -m unittest discover
+	        PYTHONPATH=. pipenv run coverage report -m --fail-under 80 --skip-empty
+          

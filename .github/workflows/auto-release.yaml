@@ -1,0 +1,17 @@
+name: Auto-Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release-dev:
+    name: Release (dev)
+    concurrency:
+      group: ci-dev-us-west-2
+    uses: ./.github/workflows/release.yaml
+    with:
+      stage: dev
+      region: us-west-2
+    secrets: inherit

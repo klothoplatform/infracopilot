@@ -6,11 +6,25 @@ from typing import List
 from pydantic import BaseModel
 from src.guardrails_manager.guardrails_store import get_guardrails
 from src.backend_orchestrator.main import app, ArchitecutreStateNotLatestError
-from src.state_manager.architecture_data import get_architecture_latest, add_architecture, Architecture
-from src.state_manager.architecture_storage import get_iac_from_fs, get_state_from_fs, write_state_to_fs, ArchitectureStateDoesNotExistError
-from src.engine_service.engine_commands.run import run_engine, RunEngineRequest, RunEngineResult
+from src.state_manager.architecture_data import (
+    get_architecture_latest,
+    add_architecture,
+    Architecture,
+)
+from src.state_manager.architecture_storage import (
+    get_iac_from_fs,
+    get_state_from_fs,
+    write_state_to_fs,
+    ArchitectureStateDoesNotExistError,
+)
+from src.engine_service.engine_commands.run import (
+    run_engine,
+    RunEngineRequest,
+    RunEngineResult,
+)
 
 log = logging.getLogger(__name__)
+
 
 class CopilotRunRequest(BaseModel):
     constraints: List[dict]

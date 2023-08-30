@@ -1,3 +1,6 @@
+# @klotho::execution_unit {
+#    id = "main"
+# }
 from typing import Optional
 from pathlib import Path
 import os

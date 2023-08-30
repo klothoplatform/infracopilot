@@ -2,11 +2,20 @@ import logging
 from fastapi import FastAPI, HTTPException, Response
 from fastapi.responses import StreamingResponse
 from src.backend_orchestrator.main import app, ArchitecutreStateNotLatestError
-from src.state_manager.architecture_data import get_architecture_latest, add_architecture
-from src.state_manager.architecture_storage import get_iac_from_fs, get_state_from_fs, write_iac_to_fs, ArchitectureStateDoesNotExistError
+from src.state_manager.architecture_data import (
+    get_architecture_latest,
+    add_architecture,
+)
+from src.state_manager.architecture_storage import (
+    get_iac_from_fs,
+    get_state_from_fs,
+    write_iac_to_fs,
+    ArchitectureStateDoesNotExistError,
+)
 from src.engine_service.engine_commands.export_iac import export_iac, ExportIacRequest
 
 log = logging.getLogger(__name__)
+
 
 @app.get("/architecture/{id}/iac")
 async def copilot_get_iac(id, state: int):
