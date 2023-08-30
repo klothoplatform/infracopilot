@@ -2,21 +2,35 @@
 #    id = "Backend-Api"
 # }
 
-import base64
+import logging
 import time
 import uuid
-from contextlib import asynccontextmanager
-from typing import Optional, Annotated, List, Dict
+from typing import List
 
 import jsons
-import yaml
-from fastapi import FastAPI, Response, BackgroundTasks, Header, HTTPException
+from fastapi import FastAPI, Response, HTTPException
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import StreamingResponse, JSONResponse
 from pydantic import BaseModel
-from src.engine_service.engine_commands.util import EngineRunner, IacRunner
-from src.guardrails_manager.guardrails_store import get_guardrails
 
+from src.engine_service.engine_commands.export_iac import (
+    export_iac,
+    ExportIacRequest,
+)
+from src.engine_service.engine_commands.get_resource_types import (
+    get_resource_types,
+    GetResourceTypesRequest,
+)
+from src.engine_service.engine_commands.run import (
+    run_engine,
+    RunEngineRequest,
+)
+from src.guardrails_manager.guardrails_store import get_guardrails
+from src.state_manager.architecture_data import (
+    get_architecture_latest,
+    Architecture,
+    add_architecture,
+)
 from src.state_manager.architecture_storage import (
     ArchitectureStateDoesNotExistError,
     get_iac_from_fs,
@@ -24,29 +38,7 @@ from src.state_manager.architecture_storage import (
     write_iac_to_fs,
     write_state_to_fs,
 )
-from src.state_manager.architecture_data import (
-    get_architecture_latest,
-    Architecture,
-    add_architecture,
-    get_architecture_history,
-)
-from src.template_manager.template_data import ResourceTemplateData, EdgeTemplateData
-from src.engine_service.engine_commands.run import (
-    run_engine,
-    RunEngineRequest,
-    RunEngineResult,
-)
-from src.engine_service.engine_commands.export_iac import (
-    export_iac,
-    ExportIacRequest,
-    ExportIacResult,
-)
-from src.engine_service.engine_commands.get_resource_types import (
-    get_resource_types,
-    GetResourceTypesRequest,
-)
 from src.util.orm import Base, engine
-import logging
 
 # @klotho::expose {
 #   id = "myapi"
@@ -56,7 +48,6 @@ app = FastAPI()
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 log = logging.getLogger(__name__)
-
 
 Base.metadata.create_all(engine)
 
@@ -137,6 +128,7 @@ class CopilotRunRequest(BaseModel):
 @app.post("/architecture/{id}/run")
 async def copilot_run(id: str, state: int, body: CopilotRunRequest):
     try:
+        print(body)
         architecture = await get_architecture_latest(id)
         if architecture is None:
             raise ArchitectureStateDoesNotExistError(
@@ -151,7 +143,7 @@ async def copilot_run(id: str, state: int, body: CopilotRunRequest):
         input_graph = await get_state_from_fs(architecture)
         request = RunEngineRequest(
             id=id,
-            input_graph=input_graph,
+            input_graph=input_graph.resources_yaml if input_graph is not None else None,
             templates=[],
             engine_version=1.0,
             constraints=body.constraints,
@@ -207,7 +199,7 @@ class ResourceTypeResponse(BaseModel):
 @app.get("/architecture/{id}/resource_types")
 async def copilot_get_resource_types(id):
     try:
-        architecture = await get_architecture_latest(request.architecture_id)
+        architecture = await get_architecture_latest(id)
         if architecture is None:
             raise ArchitectureStateDoesNotExistError(
                 "Architecture with id, {request.architecture_id}, does not exist"
@@ -250,7 +242,7 @@ async def copilot_get_iac(id, state: int):
                 input_graph=arch_state.resources_yaml,
                 name=arch.name if arch.name is not None else arch.id,
             )
-            result = await export_iac(request, IacRunner())
+            result = await export_iac(request)
             iac = result.iac_bytes
             if iac is None:
                 return Response(content="I failed to generate IaC", status_code=500)

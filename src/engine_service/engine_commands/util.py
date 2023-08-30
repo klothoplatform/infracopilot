@@ -63,7 +63,7 @@ class IacException(Exception):
 engine_path = os.environ.get("ENGINE_PATH", "engine")
 
 
-async def run_engine_command(self, *args, **kwargs) -> tuple[str, str]:
+async def run_engine_command(*args, **kwargs) -> tuple[str, str]:
     cwd = kwargs.get("cwd", None)
 
     env = os.environ.copy()
