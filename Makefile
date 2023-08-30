@@ -1,4 +1,4 @@
-PHONY: run test test-coverage black black-check
+PHONY: run test test-coverage black black-check install-frontend build-frontend start clean post-compile
 
 ifdef KLOTHO_CONFIG_FILE
 KLOTHO_CONFIG_FILE := $(KLOTHO_CONFIG_FILE)
@@ -28,8 +28,8 @@ black-check:
 
 # Frontend commands
 
-install:
-	cd frontend && npm install
+install-frontend:
+	npm --prefix frontend install
 
 build-frontend:
 	npm --prefix frontend run build

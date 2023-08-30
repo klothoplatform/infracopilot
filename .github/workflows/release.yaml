@@ -83,6 +83,7 @@ jobs:
         run: pipenv requirements > requirements.txt
       - name: build frontend
         run: |
+          make install-frontend
           make build-frontend
       - name: download klotho
         uses: actions/download-artifact@v3
