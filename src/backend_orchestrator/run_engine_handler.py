@@ -5,7 +5,9 @@ from fastapi.responses import StreamingResponse
 from typing import List
 from pydantic import BaseModel
 from src.guardrails_manager.guardrails_store import get_guardrails
-from src.backend_orchestrator.main import app, ArchitecutreStateNotLatestError
+from src.backend_orchestrator.architecture_handler import (
+    ArchitecutreStateNotLatestError,
+)
 from src.state_manager.architecture_data import (
     get_architecture_latest,
     add_architecture,
@@ -22,6 +24,7 @@ from src.engine_service.engine_commands.run import (
     RunEngineRequest,
     RunEngineResult,
 )
+from src.engine_service.binaries.fetcher import write_binary_to_disk, Binary
 
 log = logging.getLogger(__name__)
 
@@ -30,7 +33,6 @@ class CopilotRunRequest(BaseModel):
     constraints: List[dict]
 
 
-@app.post("/architecture/{id}/run")
 async def copilot_run(id: str, state: int, body: CopilotRunRequest):
     try:
         architecture = await get_architecture_latest(id)
@@ -45,6 +47,7 @@ async def copilot_run(id: str, state: int, body: CopilotRunRequest):
 
         guardrails = await get_guardrails(architecture.owner)
         input_graph = await get_state_from_fs(architecture)
+        await write_binary_to_disk(Binary.ENGINE)
         request = RunEngineRequest(
             id=id,
             input_graph=input_graph.resources_yaml if input_graph is not None else None,

@@ -2,7 +2,7 @@ import logging
 import jsons
 import uuid
 import time
-from fastapi import FastAPI, HTTPException, Response
+from fastapi import HTTPException, Response
 from fastapi.responses import JSONResponse
 from typing import List
 from pydantic import BaseModel
@@ -11,7 +11,6 @@ from src.engine_service.engine_commands.get_resource_types import (
     get_resource_types,
 )
 from src.guardrails_manager.guardrails_store import get_guardrails
-from src.backend_orchestrator.main import app
 from src.state_manager.architecture_data import (
     get_architecture_latest,
     add_architecture,
@@ -26,13 +25,16 @@ from src.state_manager.architecture_storage import (
 log = logging.getLogger(__name__)
 
 
+class ArchitecutreStateNotLatestError(Exception):
+    pass
+
+
 class CreateArchitectureRequest(BaseModel):
     name: str
     owner: str
     engine_version: float
 
 
-@app.post("/architecture")
 async def copilot_new_architecture(body: CreateArchitectureRequest):
     try:
         id = str(uuid.uuid4())
@@ -53,7 +55,6 @@ async def copilot_new_architecture(body: CreateArchitectureRequest):
         raise HTTPException(status_code=500, detail="internal server error")
 
 
-@app.get("/architecture/{id}")
 async def copilot_get_state(id: str):
     try:
         arch = await get_architecture_latest(id)
@@ -90,7 +91,6 @@ class ResourceTypeResponse(BaseModel):
     resources: List[str]
 
 
-@app.get("/architecture/{id}/resource_types")
 async def copilot_get_resource_types(id):
     try:
         architecture = await get_architecture_latest(id)

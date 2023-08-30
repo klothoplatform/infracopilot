@@ -1,7 +1,9 @@
 import logging
 from fastapi import FastAPI, HTTPException, Response
 from fastapi.responses import StreamingResponse
-from src.backend_orchestrator.main import app, ArchitecutreStateNotLatestError
+from src.backend_orchestrator.architecture_handler import (
+    ArchitecutreStateNotLatestError,
+)
 from src.state_manager.architecture_data import (
     get_architecture_latest,
     add_architecture,
@@ -13,11 +15,11 @@ from src.state_manager.architecture_storage import (
     ArchitectureStateDoesNotExistError,
 )
 from src.engine_service.engine_commands.export_iac import export_iac, ExportIacRequest
+from src.engine_service.binaries.fetcher import write_binary_to_disk, Binary
 
 log = logging.getLogger(__name__)
 
 
-@app.get("/architecture/{id}/iac")
 async def copilot_get_iac(id, state: int):
     try:
         arch = await get_architecture_latest(id)
@@ -38,6 +40,7 @@ async def copilot_get_iac(id, state: int):
                 raise ArchitectureStateDoesNotExistError(
                     f"No architecture exists for id {id}"
                 )
+            await write_binary_to_disk(Binary.IAC)
             request = ExportIacRequest(
                 input_graph=arch_state.resources_yaml,
                 name=arch.name if arch.name is not None else arch.id,

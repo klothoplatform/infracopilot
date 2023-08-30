@@ -10,6 +10,7 @@ from typing import List, NamedTuple
 
 import yaml
 
+from src.engine_service.binaries.fetcher import engine_path, iac_cli_path
 
 log = logging.getLogger()
 
@@ -60,9 +61,6 @@ class IacException(Exception):
         )
 
 
-engine_path = os.environ.get("ENGINE_PATH", "engine")
-
-
 async def run_engine_command(*args, **kwargs) -> tuple[str, str]:
     cwd = kwargs.get("cwd", None)
 
@@ -93,13 +91,12 @@ async def run_engine_command(*args, **kwargs) -> tuple[str, str]:
     return out_logs, err_logs
 
 
-iac_cli_path = os.environ.get("IAC_CLI_PATH", "iac-cli")
-
-
-async def run_iac_command(self, *args, **kwargs) -> tuple[str, str]:
+async def run_iac_command(*args, **kwargs) -> tuple[str, str]:
     cwd = kwargs.get("cwd", None)
 
     env = os.environ.copy()
+
+    print(args)
 
     cmd = [
         iac_cli_path,

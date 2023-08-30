@@ -96,7 +96,7 @@ jobs:
           KLOTHO_ID_TOKEN: ${{ secrets.KLOTHO_ID_TOKEN }}
           STAGE: ${{ inputs.stage }}
         run: |
-          chmod +x ./klotho_pro
+          chmod +x ./klotho
           ./klotho . --app infracopilot --config klotho_config/${STAGE}.yaml --provider aws
       - name: fix static unit directory
         run: |
@@ -123,7 +123,7 @@ jobs:
           work-dir: "./compiled"
           stack-name: "infracopilot-ui-${{ inputs.stage }}-${{ inputs.region }}"
           upsert: true
-      - name: Use Node.js ${{ env.NODE_VERSION }}
+      - name: Use Node.js
         uses: actions/setup-node@v3
         with:
           node-version: ${{ env.NODE_VERSION }}
