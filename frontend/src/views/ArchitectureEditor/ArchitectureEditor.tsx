@@ -4,14 +4,11 @@ import React, { useEffect } from "react";
 import { ReactFlowProvider } from "reactflow";
 import "reactflow/dist/style.css";
 
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import EditorPane from "./EditorPane";
 import useApplicationStore from "../store/store";
 import createArchitecture from "../../api/CreateArchitecture";
 import NavbarSidebarLayout from "../../layouts/navbar-sidebar";
-import Grid2 from "@mui/material/Unstable_Grid2";
-import RightSidebar from "./RightSidebar";
-import LeftSidebar from "./LeftSidebar";
 import { Breadcrumb } from "flowbite-react";
 import { HiHome } from "react-icons/hi";
 
@@ -38,9 +35,9 @@ function ArchitectureEditor() {
 
   return (
     <NavbarSidebarLayout isFooter={false}>
-      <div className="block items-center justify-between border-b border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800 sm:flex">
+      <div className="block items-center justify-between overflow-hidden border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800 sm:flex">
         <div className="mb-1 w-full">
-          <div className="mb-4">
+          <div className="mb-4 px-4 pt-4">
             <Breadcrumb className="mb-4">
               <Breadcrumb.Item href="#">
                 <div className="flex items-center gap-x-3">
@@ -55,7 +52,7 @@ function ArchitectureEditor() {
             </Breadcrumb>
           </div>
           <div className="flex flex-col">
-            <div className={"h-screen"}>
+            <div className={"h-[calc(100vh-7rem)] divide-x-2"}>
               <EditorPane />
             </div>
           </div>

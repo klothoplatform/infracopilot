@@ -54,12 +54,12 @@ const flowbiteTheme: CustomFlowbiteTheme = {
   },
   navbar: {
     root: {
-      base: "fixed z-30 w-full bg-white border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700",
+      base: "relative z-1 w-full bg-white border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700",
     },
   },
   sidebar: {
     root: {
-      base: "flex fixed top-0 left-0 z-20 flex-col flex-shrink-0 pt-16 h-full duration-75 border-r border-gray-200 lg:flex transition-width dark:border-gray-700",
+      base: "flex relative top-0 z-20 flex-col flex-shrink-0 h-full duration-75 border-r border-gray-200 lg:flex transition-width dark:border-gray-700",
     },
     item: {
       base: "flex items-center justify-center rounded-lg p-2 text-base font-medium text-gray-900 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700",
@@ -92,6 +92,9 @@ const flowbiteTheme: CustomFlowbiteTheme = {
         },
       },
     },
+  },
+  tooltip: {
+    target: "",
   },
 };
 

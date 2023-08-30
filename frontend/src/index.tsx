@@ -2,43 +2,7 @@ import React, { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import reportWebVitals from "./reportWebVitals";
-import { createTheme } from "@mui/material";
 import App from "./App";
-
-declare module "@mui/material/styles" {
-  interface TypographyVariants {
-    resourceLabel: React.CSSProperties;
-  }
-
-  // allow configuration using `createTheme`
-  interface TypographyVariantsOptions {
-    resourceLabel?: React.CSSProperties;
-  }
-}
-
-// Update the Typography's variant prop options
-declare module "@mui/material/Typography" {
-  interface TypographyPropsVariantOverrides {
-    resourceLabel: true;
-  }
-}
-
-const theme = createTheme({
-  typography: {
-    resourceLabel: {
-      fontSize: "10px",
-    },
-  },
-  components: {
-    MuiTypography: {
-      defaultProps: {
-        variantMapping: {
-          resourceLabel: "span",
-        },
-      },
-    },
-  },
-});
 
 const container = document.getElementById("root");
 

@@ -164,7 +164,10 @@ export default function EditorPane() {
   }, [nodes, edges]);
 
   return (
-    <div style={{ height: "90%", width: "100%" }} ref={reactFlowWrapper}>
+    <div
+      className={"mx-4 block h-full w-full bg-gray-50 dark:bg-gray-900"}
+      ref={reactFlowWrapper}
+    >
       <ReactFlow
         nodes={nodes}
         edges={edges}

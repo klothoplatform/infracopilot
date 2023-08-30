@@ -1,11 +1,13 @@
 import { Footer } from "flowbite-react";
 import type { FC, PropsWithChildren } from "react";
+import React from "react";
 import Navbar from "../components/navbar";
-import Sidebar from "../components/sidebar";
+import EditorSidebarLeft from "../components/EditorSidebarLeft";
 import { MdFacebook } from "react-icons/md";
 import { FaDribbble, FaGithub, FaInstagram, FaTwitter } from "react-icons/fa";
 import { SidebarProvider, useSidebarContext } from "../context/SidebarContext";
 import classNames from "classnames";
+import EditorSidebarRight from "../components/EditorSidebarRight";
 
 interface NavbarSidebarLayoutProps {
   isFooter?: boolean;
@@ -17,8 +19,9 @@ const NavbarSidebarLayout: FC<PropsWithChildren<NavbarSidebarLayoutProps>> =
       <SidebarProvider>
         <Navbar />
         <div className="flex items-start">
-          <Sidebar />
+          <EditorSidebarLeft />
           <MainContent isFooter={isFooter}>{children}</MainContent>
+          <EditorSidebarRight />
         </div>
       </SidebarProvider>
     );
@@ -31,12 +34,7 @@ const MainContent: FC<PropsWithChildren<NavbarSidebarLayoutProps>> = function ({
   const { isOpenOnSmallScreens: isSidebarOpen } = useSidebarContext();
 
   return (
-    <main
-      className={classNames(
-        "overflow-y-auto relative w-full h-full bg-gray-50 dark:bg-gray-900",
-        isSidebarOpen ? "lg:ml-16" : "lg:ml-64",
-      )}
-    >
+    <main className="relative h-full w-full basis-8/12 overflow-y-auto dark:bg-gray-900">
       {children}
       {isFooter && (
         <div className="mx-4 mt-4">
