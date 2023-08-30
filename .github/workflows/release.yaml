@@ -130,13 +130,6 @@ jobs:
       - name: npm install
         run: npm install
         working-directory: ./compiled
-      - name: pulumi config
-        env:
-          AWS_REGION: ${{ inputs.region }}
-          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
-        run: |
-          set -euo pipefail
-          pulumi -s "infracopilot-ui-${{ inputs.stage }}-${{ inputs.region }}" config set aws:region "$AWS_REGION"
       - name: pulumi - up
         uses: pulumi/actions@v4
         with:
@@ -144,6 +137,10 @@ jobs:
           work-dir: "./compiled"
           stack-name: "infracopilot-ui-${{ inputs.stage }}-${{ inputs.region }}"
           upsert: true
+          config-map: |
+            {
+              aws:region: { value: "${{ inputs.region }}"", secret: false }
+            }
         env:
           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
           PULUMI_CONFIG_PASSPHRASE: ""
