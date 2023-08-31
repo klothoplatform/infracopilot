@@ -1,13 +1,6 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
-import type { FC } from "react";
-import {
-  Avatar,
-  DarkThemeToggle,
-  Dropdown,
-  Label,
-  Navbar,
-  TextInput,
-} from "flowbite-react";
+import type { FC, PropsWithChildren } from "react";
+import { Avatar, DarkThemeToggle, Dropdown, Navbar } from "flowbite-react";
 import {
   HiArchive,
   HiBell,
@@ -16,19 +9,18 @@ import {
   HiEye,
   HiInbox,
   HiLogout,
-  HiMenuAlt1,
   HiOutlineTicket,
   HiSearch,
   HiShoppingBag,
   HiUserCircle,
   HiUsers,
   HiViewGrid,
-  HiX,
 } from "react-icons/hi";
 import { useSidebarContext } from "../context/SidebarContext";
-import isSmallScreen from "../helpers/is-small-screen";
 
-const ExampleNavbar: FC = function () {
+interface NavbarProps {}
+
+const NavBar: FC<PropsWithChildren<NavbarProps>> = function ({ children }) {
   const { isOpenOnSmallScreens, isPageWithSidebar, setOpenOnSmallScreens } =
     useSidebarContext();
 
@@ -36,7 +28,7 @@ const ExampleNavbar: FC = function () {
     <Navbar fluid>
       <div className="w-full p-3 lg:px-5 lg:pl-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center">
+          <div className="flex items-center pr-20">
             {/* TODO: consider enabling sidebar toggle? */}
             {/*{isPageWithSidebar && (*/}
             {/*  <button*/}
@@ -62,6 +54,8 @@ const ExampleNavbar: FC = function () {
               </span>
             </Navbar.Brand>
           </div>
+          <div className="mx-6 my-4 h-5 border-r-[1px] border-gray-300 shadow-black"></div>
+          <div className="w-full items-start">{children}</div>
           <div className="flex items-center lg:gap-3">
             <div className="flex items-center">
               <button
@@ -469,4 +463,4 @@ const UserDropdown: FC = function () {
   );
 };
 
-export default ExampleNavbar;
+export default NavBar;

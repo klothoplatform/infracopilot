@@ -165,7 +165,7 @@ export default function EditorPane() {
 
   return (
     <div
-      className={"mx-4 block h-full w-full bg-gray-50 dark:bg-gray-900"}
+      className={"mx-2 block h-full w-full bg-gray-50 dark:bg-gray-900"}
       ref={reactFlowWrapper}
     >
       <ReactFlow

@@ -1,13 +1,18 @@
-import { Footer } from "flowbite-react";
+import { Button, Footer } from "flowbite-react";
 import type { FC, PropsWithChildren } from "react";
-import React from "react";
+import React, { useState } from "react";
 import Navbar from "../components/navbar";
 import EditorSidebarLeft from "../components/EditorSidebarLeft";
 import { MdFacebook } from "react-icons/md";
 import { FaDribbble, FaGithub, FaInstagram, FaTwitter } from "react-icons/fa";
-import { SidebarProvider, useSidebarContext } from "../context/SidebarContext";
-import classNames from "classnames";
+import { SidebarProvider } from "../context/SidebarContext";
 import EditorSidebarRight from "../components/EditorSidebarRight";
+import useApplicationStore from "../views/store/store";
+import { TbFileExport } from "react-icons/tb";
+import ExportIaC from "../api/ExportIaC";
+import { downloadFile } from "../helpers/download-file";
+import { FaFileCirclePlus } from "react-icons/fa6";
+import NewArchitectureModal from "../components/NewArchitectureModal";
 
 interface NavbarSidebarLayoutProps {
   isFooter?: boolean;
@@ -17,7 +22,9 @@ const NavbarSidebarLayout: FC<PropsWithChildren<NavbarSidebarLayoutProps>> =
   function ({ children, isFooter = true }) {
     return (
       <SidebarProvider>
-        <Navbar />
+        <Navbar>
+          <EditorNavContent />
+        </Navbar>
         <div className="flex items-start">
           <EditorSidebarLeft />
           <MainContent isFooter={isFooter}>{children}</MainContent>
@@ -27,12 +34,53 @@ const NavbarSidebarLayout: FC<PropsWithChildren<NavbarSidebarLayoutProps>> =
     );
   };
 
+const EditorNavContent: FC = function () {
+  const { architecture } = useApplicationStore();
+  const [showCreateArchitectureModal, setShowCreateArchitectureModal] =
+    useState(false);
+
+  let onClickExportIac = async () => {
+    const iacZip = await ExportIaC(architecture.id, architecture.version);
+    const url = URL.createObjectURL(iacZip);
+    downloadFile(architecture.name + ".zip", url);
+  };
+
+  let onClickNewArchitecture = () => {
+    setShowCreateArchitectureModal(true);
+  };
+  let onCloseCreateArchitectureModal = () => {
+    setShowCreateArchitectureModal(false);
+  };
+
+  let onSubmitCreateArchitectureModal = (event: any) => {
+    event.preventDefault();
+    setShowCreateArchitectureModal(false);
+  };
+
+  return (
+    <div className="inline-block align-middle">
+      <div className="mr-6 inline">{architecture.name}</div>
+      <Button className="mr-2 inline gap-1" onClick={onClickNewArchitecture}>
+        <FaFileCirclePlus className="mr-1" />
+        <p>New Architecture</p>
+      </Button>
+      <Button className="inline" onClick={onClickExportIac}>
+        <TbFileExport className="mr-1" />
+        <p>Export IaC</p>
+      </Button>
+      <NewArchitectureModal
+        onClose={onCloseCreateArchitectureModal}
+        show={showCreateArchitectureModal}
+        onSubmit={onSubmitCreateArchitectureModal}
+      />
+    </div>
+  );
+};
+
 const MainContent: FC<PropsWithChildren<NavbarSidebarLayoutProps>> = function ({
   children,
   isFooter,
 }) {
-  const { isOpenOnSmallScreens: isSidebarOpen } = useSidebarContext();
-
   return (
     <main className="relative h-full w-full basis-8/12 overflow-y-auto dark:bg-gray-900">
       {children}
