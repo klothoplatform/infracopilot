@@ -7,35 +7,42 @@ import "reactflow/dist/style.css";
 import { useNavigate, useParams } from "react-router-dom";
 import EditorPane from "./EditorPane";
 import useApplicationStore from "../store/store";
-import createArchitecture from "../../api/CreateArchitecture";
 import NavbarSidebarLayout from "../../layouts/navbar-sidebar";
+import { PiArrowElbowLeftUpBold } from "react-icons/pi";
 
 function ArchitectureEditor() {
   let { architectureId } = useParams();
-  const { loadArchitecture, architecture } = useApplicationStore();
+  const { architecture, loadArchitecture } = useApplicationStore();
   const navigate = useNavigate();
 
   useEffect(() => {
-    (async function initArchitecture() {
-      if (!architectureId) {
-        architectureId = (
-          await createArchitecture({
-            name: "New Architecture",
-            owner: "test",
-            engineVersion: "1.0",
-          })
-        ).id;
-        navigate(`/editor/${architectureId}`);
+    (async () => {
+      if (
+        (architectureId === undefined && architecture.id) ||
+        (architectureId &&
+          architecture.id &&
+          architectureId !== architecture.id)
+      ) {
+        navigate(`/editor/${architecture.id}`);
+        return;
       }
-      loadArchitecture(architectureId);
+      if (architectureId && !architecture.id) {
+        await loadArchitecture(architectureId);
+      }
     })();
-  }, [loadArchitecture, architectureId]);
+  }, [navigate, architecture, architectureId, loadArchitecture]);
 
   return (
     <NavbarSidebarLayout isFooter={false}>
       <div className="block items-center justify-between overflow-hidden border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800 sm:flex">
         <div className={"my-2 h-[calc(100vh-7rem)] w-full"}>
-          <EditorPane />
+          {architecture.id && <EditorPane />}
+          {!architecture.id && (
+            <span className={"flex gap-2"}>
+              <PiArrowElbowLeftUpBold />
+              <h1>Create a new architecture </h1>
+            </span>
+          )}
         </div>
       </div>
     </NavbarSidebarLayout>

@@ -10,9 +10,9 @@ export default async function ExportIaC(
       params: {
         state: `${state}`,
       },
-      responseType: "blob", // Important
+      responseType: "blob",
       headers: {
-        "Content-Type": "application/binary",
+        accept: "application/octet-stream",
       },
     },
   );

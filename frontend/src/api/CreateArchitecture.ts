@@ -4,7 +4,7 @@ import type { Architecture } from "../shared/architecture/Architecture";
 export interface CreateArchitectureRequest {
   name: string;
   owner: string;
-  engineVersion: string;
+  engineVersion: number;
 }
 
 export default async function createArchitecture(

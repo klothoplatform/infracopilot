@@ -1,19 +1,11 @@
 import type { FC } from "react";
-import { Routes, Route } from "react-router";
+import { Route, Routes } from "react-router";
 import { BrowserRouter, Navigate } from "react-router-dom";
-import DashboardPage from "./pages";
 import ForgotPasswordPage from "./pages/authentication/forgot-password";
 import ProfileLockPage from "./pages/authentication/profile-lock";
 import ResetPasswordPage from "./pages/authentication/reset-password";
 import SignInPage from "./pages/authentication/sign-in";
 import SignUpPage from "./pages/authentication/sign-up";
-import EcommerceBillingPage from "./pages/e-commerce/billing";
-import EcommerceInvoicePage from "./pages/e-commerce/invoice";
-import EcommerceProductsPage from "./pages/e-commerce/products";
-import MailingComposePage from "./pages/mailing/compose";
-import MailingInboxPage from "./pages/mailing/inbox";
-import MailingReadPage from "./pages/mailing/read";
-import MailingReplyPage from "./pages/mailing/reply";
 import NotFoundPage from "./pages/pages/404";
 import ServerErrorPage from "./pages/pages/500";
 import MaintenancePage from "./pages/pages/maintenance";
@@ -31,10 +23,6 @@ const App: FC = function () {
       <Routes>
         <Route element={<FlowbiteWrapper />}>
           <Route path="/" element={<Navigate to={"/editor"} />} index />
-          <Route path="/mailing/compose" element={<MailingComposePage />} />
-          <Route path="/mailing/inbox" element={<MailingInboxPage />} />
-          <Route path="/mailing/read" element={<MailingReadPage />} />
-          <Route path="/mailing/reply" element={<MailingReplyPage />} />
           <Route path="/editor" element={<ArchitectureEditor />} />
           <Route
             path="/editor/:architectureId"
@@ -57,18 +45,6 @@ const App: FC = function () {
           <Route
             path="/authentication/profile-lock"
             element={<ProfileLockPage />}
-          />
-          <Route
-            path="/e-commerce/billing"
-            element={<EcommerceBillingPage />}
-          />
-          <Route
-            path="/e-commerce/invoice"
-            element={<EcommerceInvoicePage />}
-          />
-          <Route
-            path="/e-commerce/products"
-            element={<EcommerceProductsPage />}
           />
           <Route path="/users/feed" element={<UserFeedPage />} />
           <Route path="/users/list" element={<UserListPage />} />

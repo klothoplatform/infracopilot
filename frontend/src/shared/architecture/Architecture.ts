@@ -19,10 +19,13 @@ export interface ReactFlowElements {
 export interface Architecture {
   provider: string;
   id: string;
-  engineVersion: string;
+  engineVersion: number;
+  state: {
+    resources_yaml: string;
+    topology_yaml: string;
+  };
   version: number;
   name: string;
-  creator: string;
   owner: string;
   views: Map<ArchitectureView, TopologyGraph>;
   resourceMetadata: object;
@@ -130,17 +133,3 @@ export function toReactFlowElements(
     edges: getEdgesFromGraph(topology),
   };
 }
-
-export const defaultArchitecture: Architecture = {
-  provider: "aws",
-  id: "1",
-  engineVersion: "1",
-  version: 0,
-  name: "A new diagram",
-  creator: "John Doe",
-  owner: "John Doe",
-  views: new Map<ArchitectureView, TopologyGraph>([
-    [ArchitectureView.DataFlow, parse(sampleGraphYaml).values().next().value],
-  ]),
-  resourceMetadata: {},
-};

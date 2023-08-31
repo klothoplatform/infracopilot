@@ -12,7 +12,9 @@ import { TbFileExport } from "react-icons/tb";
 import ExportIaC from "../api/ExportIaC";
 import { downloadFile } from "../helpers/download-file";
 import { FaFileCirclePlus } from "react-icons/fa6";
+import type { NewArchitectureFormState } from "../components/NewArchitectureModal";
 import NewArchitectureModal from "../components/NewArchitectureModal";
+import createArchitecture from "../api/CreateArchitecture";
 
 interface NavbarSidebarLayoutProps {
   isFooter?: boolean;
@@ -35,7 +37,7 @@ const NavbarSidebarLayout: FC<PropsWithChildren<NavbarSidebarLayoutProps>> =
   };
 
 const EditorNavContent: FC = function () {
-  const { architecture } = useApplicationStore();
+  const { architecture, loadArchitecture } = useApplicationStore();
   const [showCreateArchitectureModal, setShowCreateArchitectureModal] =
     useState(false);
 
@@ -52,9 +54,18 @@ const EditorNavContent: FC = function () {
     setShowCreateArchitectureModal(false);
   };
 
-  let onSubmitCreateArchitectureModal = (event: any) => {
+  let onSubmitCreateArchitectureModal = async (
+    event: SubmitEvent,
+    state: NewArchitectureFormState,
+  ) => {
     event.preventDefault();
     setShowCreateArchitectureModal(false);
+    const { id } = await createArchitecture({
+      name: state.name,
+      owner: "user",
+      engineVersion: 1,
+    });
+    await loadArchitecture(id);
   };
 
   return (

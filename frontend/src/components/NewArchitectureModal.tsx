@@ -1,10 +1,9 @@
 import { Button, Label, Modal, TextInput } from "flowbite-react";
-import type { FC } from "react";
-import { useReducer } from "react";
+import { useEffect, useReducer, useState } from "react";
 
 interface NewArchitectureModalProps {
   onClose?: () => void;
-  onSubmit?: (state: NewArchitectureFormState) => void;
+  onSubmit?: (event: SubmitEvent, state: NewArchitectureFormState) => void;
   show: boolean;
 }
 
@@ -30,6 +29,15 @@ export default function NewArchitectureModal({
 }: NewArchitectureModalProps) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
+  const [reset, setReset] = useState(false);
+
+  useEffect(() => {
+    if (reset) {
+      dispatch({ field: "name", value: "" });
+      setReset(false);
+    }
+  }, [reset]);
+
   const onChange = (e: any) => {
     dispatch({ field: e.target.id, value: e.target.value });
   };
@@ -37,7 +45,13 @@ export default function NewArchitectureModal({
   const { name } = state;
 
   return (
-    <Modal show={show} onClose={onClose}>
+    <Modal
+      show={show}
+      onClose={() => {
+        setReset(true);
+        onClose?.();
+      }}
+    >
       <form>
         <Modal.Header>Create a New Architecture</Modal.Header>
         <Modal.Body>
@@ -56,7 +70,13 @@ export default function NewArchitectureModal({
           </div>
         </Modal.Body>
         <Modal.Footer>
-          <Button type="submit" onClick={(e: SubmitEvent) => onSubmit?.(state)}>
+          <Button
+            type="submit"
+            onClick={(e: SubmitEvent) => {
+              onSubmit?.(e, state);
+              setReset(true);
+            }}
+          >
             Create
           </Button>
         </Modal.Footer>

@@ -23,6 +23,9 @@ export async function applyConstraints(
       },
       responseType: "arraybuffer",
       decompress: true,
+      headers: {
+        accept: "application/octet-stream",
+      },
     },
   );
   const architectureJSON = JSON.parse(new TextDecoder().decode(data));
@@ -35,7 +38,7 @@ export async function applyConstraints(
     ],
   ]);
   architectureJSON.resourceMetadata = architectureJSON.state.resources_yaml
-    ? yaml.parse(architectureJSON.state.resources_yaml)
+    ? yaml.parse(architectureJSON.state.resources_yaml).resourceMetadata
     : {};
   console.log("architectureJSON: ", architectureJSON);
 
