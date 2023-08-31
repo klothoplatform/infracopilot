@@ -9,12 +9,12 @@ from botocore.exceptions import ClientError
 
 
 # @klotho::persist {
-#   id = "binaries-store"
+#   id = "binarystore"
 # }
 import aiofiles
 
 # @klotho::static_unit {
-#   id = "binaries-store"
+#   id = "binarystore"
 #   static_files = ["/binaries/**"]
 # }
 
