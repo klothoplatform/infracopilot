@@ -1,5 +1,4 @@
-import type { StateCreator, StoreApi, UseBoundStore } from "zustand";
-import { create } from "zustand";
+import type { StoreApi, UseBoundStore } from "zustand";
 import type {
   Connection,
   Edge,
@@ -35,7 +34,6 @@ import { applyConstraints } from "../../api/ApplyConstraints";
 import TopologyEdge from "../../shared/architecture/TopologyEdge";
 import { NodeId } from "../../shared/architecture/TopologyNode";
 import { devtools } from "zustand/middleware";
-import { immer } from "zustand/middleware/immer";
 import { createWithEqualityFn } from "zustand/traditional";
 import { shallow } from "zustand/shallow";
 
@@ -87,6 +85,7 @@ export interface EditorState {
   deselectEdge: (edgeId: string) => void;
   deleteElements: (elements: Partial<ReactFlowElements>) => Promise<void>;
   errors: Error[];
+  replaceResource: (oldId: NodeId, newId: NodeId) => Promise<void>;
 }
 
 const useApplicationStoreBase = createWithEqualityFn<EditorState>()(
@@ -181,7 +180,11 @@ const useApplicationStoreBase = createWithEqualityFn<EditorState>()(
           console.log("connected", connection);
         },
         selectNode: (nodeId: string) => {
+          if (get().selectedNode === nodeId) {
+            return;
+          }
           get().deselectNode(get().selectedNode ?? "");
+
           set({
             nodes: get().nodes.map((node) => {
               if (node.id === nodeId) {
@@ -334,9 +337,13 @@ const useApplicationStoreBase = createWithEqualityFn<EditorState>()(
           }
 
           try {
-            set({
-              canApplyConstraints: false,
-            });
+            set(
+              {
+                canApplyConstraints: false,
+              },
+              false,
+              "editor/applyConstraints:start",
+            );
             console.log("applying constraints", get().unappliedConstraints);
             console.log("architecture", architecture);
             const newArchitecture = await applyConstraints(
@@ -354,19 +361,27 @@ const useApplicationStoreBase = createWithEqualityFn<EditorState>()(
               elements.edges,
               get().layoutOptions,
             );
-            set({
-              nodes: result.nodes,
-              edges: result.edges,
-              unappliedConstraints: [],
-              canApplyConstraints: true,
-              architecture: newArchitecture,
-            });
+            set(
+              {
+                nodes: result.nodes,
+                edges: result.edges,
+                unappliedConstraints: [],
+                canApplyConstraints: true,
+                architecture: newArchitecture,
+              },
+              false,
+              "editor/applyConstraints:end",
+            );
             console.log("new nodes", result.nodes);
           } catch (e) {
-            set({
-              unappliedConstraints: [],
-              canApplyConstraints: true,
-            });
+            set(
+              {
+                unappliedConstraints: [],
+                canApplyConstraints: true,
+              },
+              false,
+              "editor/applyConstraints:error",
+            );
             throw e;
           }
         },
@@ -395,6 +410,26 @@ const useApplicationStoreBase = createWithEqualityFn<EditorState>()(
               return edge;
             }),
           });
+        },
+        replaceResource: async (oldId: NodeId, newId: NodeId) => {
+          if (oldId.toKlothoIdString() === newId.toKlothoIdString()) {
+            console.log("skipping replace resource, same id");
+            return;
+          }
+
+          const constraint = new ApplicationConstraint(
+            ConstraintOperator.Replace,
+            oldId,
+            newId,
+          );
+          set(
+            {
+              unappliedConstraints: [...get().unappliedConstraints, constraint],
+            },
+            false,
+            "editor/renameResource",
+          );
+          await get().applyConstraints();
         },
       }) as EditorState,
   ),

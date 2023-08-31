@@ -1,5 +1,6 @@
 import { Button, Label, Modal, TextInput } from "flowbite-react";
 import { useEffect, useReducer, useState } from "react";
+import fieldsReducer from "../helpers/reducer";
 
 interface NewArchitectureModalProps {
   onClose?: () => void;
@@ -15,19 +16,12 @@ const initialState = {
   name: "",
 };
 
-function reducer(state: any, { field, value }: any) {
-  return {
-    ...state,
-    [field]: value,
-  };
-}
-
 export default function NewArchitectureModal({
   onClose,
   onSubmit,
   show,
 }: NewArchitectureModalProps) {
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const [state, dispatch] = useReducer(fieldsReducer, initialState);
 
   const [reset, setReset] = useState(false);
 

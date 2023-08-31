@@ -69,7 +69,7 @@ const EditorNavContent: FC = function () {
   };
 
   return (
-    <div className="inline-block align-middle">
+    <div className="inline-block align-middle dark:text-white">
       <div className="mr-6 inline">{architecture.name}</div>
       <Button className="mr-2 inline gap-1" onClick={onClickNewArchitecture}>
         <FaFileCirclePlus className="mr-1" />

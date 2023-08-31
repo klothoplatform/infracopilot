@@ -92,14 +92,16 @@ export function formatConstraints(constraints: Constraint[]): string {
   return JSON.stringify(
     constraints.map((constraint) => {
       switch (constraint.scope) {
-        case ConstraintScope.Application:
+        case ConstraintScope.Application: {
+          const applicationConstraint = constraint as ApplicationConstraint;
           return {
-            ...constraint,
-            node: (constraint as ApplicationConstraint).node.toKlothoIdString(),
-            replacementNode: (
-              constraint as ApplicationConstraint
-            ).replacementNode?.toKlothoIdString(),
+            scope: applicationConstraint.scope,
+            operator: applicationConstraint.operator,
+            node: applicationConstraint.node.toKlothoIdString(),
+            replacement_node:
+              applicationConstraint.replacementNode?.toKlothoIdString(),
           };
+        }
         case ConstraintScope.Construct:
           return {
             ...constraint,

@@ -30,13 +30,15 @@ export default function EditorPane() {
     onEdgesChange,
     onConnect,
     addGraphElements,
-    architecture,
-    refreshLayout,
     applyConstraints,
     canApplyConstraints,
     selectNode,
     selectEdge,
+    selectedNode,
+    selectedEdge,
     unappliedConstraints,
+    deselectNode,
+    deselectEdge,
   } = useApplicationStore();
 
   const getId = () => `${id++}`;
@@ -154,14 +156,21 @@ export default function EditorPane() {
     [setMenu],
   );
 
-  // Close the context menu if it's open whenever the window is clicked.
-  const onPaneClick = useCallback(() => setMenu(null), [setMenu]);
+  const onPaneClick = useCallback(() => {
+    // Close the context menu if it's open whenever the window is clicked.
+    setMenu(null);
+
+    // Clear the selected node/edge whenever the window is clicked.
+    deselectNode(selectedNode ?? "");
+    deselectEdge(selectedEdge ?? "");
+    console.log("clicked pane");
+  }, [setMenu, selectedNode, selectedEdge, deselectNode, deselectEdge]);
 
   const { fitView } = useReactFlow();
 
   useEffect(() => {
     fitView({ padding: 0.1, nodes: nodes, maxZoom: 1 });
-  }, [nodes, edges]);
+  }, [fitView, nodes, edges]);
 
   return (
     <div
