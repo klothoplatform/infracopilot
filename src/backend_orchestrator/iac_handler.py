@@ -1,9 +1,13 @@
 import logging
-from fastapi import FastAPI, HTTPException, Response
+
+from fastapi import HTTPException, Response
 from fastapi.responses import StreamingResponse
+
 from src.backend_orchestrator.architecture_handler import (
     ArchitecutreStateNotLatestError,
 )
+from src.engine_service.binaries.fetcher import write_binary_to_disk, Binary
+from src.engine_service.engine_commands.export_iac import export_iac, ExportIacRequest
 from src.state_manager.architecture_data import (
     get_architecture_latest,
     add_architecture,
@@ -14,13 +18,11 @@ from src.state_manager.architecture_storage import (
     write_iac_to_fs,
     ArchitectureStateDoesNotExistError,
 )
-from src.engine_service.engine_commands.export_iac import export_iac, ExportIacRequest
-from src.engine_service.binaries.fetcher import write_binary_to_disk, Binary
 
 log = logging.getLogger(__name__)
 
 
-async def copilot_get_iac(id, state: int):
+async def copilot_get_iac(id, state: int, accept: str | None = None):
     try:
         arch = await get_architecture_latest(id)
 
@@ -55,7 +57,12 @@ async def copilot_get_iac(id, state: int):
             return StreamingResponse(
                 iter([iac.getvalue()]),
                 media_type="application/x-zip-compressed",
-                headers={"Content-Disposition": f"attachment; filename=images.zip"},
+                headers={
+                    "Content-Type": "application/octet-stream"
+                    if accept == "application/octet-stream"
+                    else "application/x-zip-compressed",
+                    "Content-Disposition": f"attachment; filename=images.zip",
+                },
             )
         return Response(content=iac)
     except ArchitecutreStateNotLatestError as e:

@@ -55,7 +55,7 @@ async def copilot_new_architecture(body: CreateArchitectureRequest):
         raise HTTPException(status_code=500, detail="internal server error")
 
 
-async def copilot_get_state(id: str):
+async def copilot_get_state(id: str, accept: str | None = None):
     try:
         arch = await get_architecture_latest(id)
         if arch is None:
@@ -64,6 +64,11 @@ async def copilot_get_state(id: str):
             )
         state = await get_state_from_fs(arch)
         return Response(
+            headers={
+                "Content-Type": "application/octet-stream"
+                if accept == "application/octet-stream"
+                else "application/json"
+            },
             content=jsons.dumps(
                 {
                     "id": arch.id,
@@ -78,7 +83,7 @@ async def copilot_get_state(id: str):
                     if state is not None
                     else None,
                 }
-            )
+            ),
         )
     except ArchitectureStateDoesNotExistError:
         raise HTTPException(status_code=404, detail="Architecture state not found")

@@ -2,7 +2,9 @@
 #    id = "main"
 # }
 import logging
-from fastapi import FastAPI, Response
+from typing import Annotated
+
+from fastapi import FastAPI, Response, Header
 from fastapi.middleware.gzip import GZipMiddleware
 from src.util.orm import Base, engine
 from src.backend_orchestrator.architecture_handler import (
@@ -32,12 +34,17 @@ async def ping():
 
 
 @app.get("/architecture/{id}/iac")
-async def export_iac(id, state: int):
-    return await copilot_get_iac(id, state)
+async def export_iac(id, state: int, accept: Annotated[str | None, Header()] = None):
+    return await copilot_get_iac(id, state, accept)
 
 
 @app.post("/architecture/{id}/run")
-async def run(id, state: int, body: CopilotRunRequest):
+async def run(
+    id,
+    state: int,
+    body: CopilotRunRequest,
+    accept: Annotated[str | None, Header()] = None,
+):
     return await copilot_run(id, state, body)
 
 
@@ -47,8 +54,8 @@ async def new_architecture(body: CreateArchitectureRequest):
 
 
 @app.get("/architecture/{id}")
-async def get_state(id: str):
-    return await copilot_get_state(id)
+async def get_state(id: str, accept: Annotated[str | None, Header()] = None):
+    return await copilot_get_state(id, accept)
 
 
 @app.get("/architecture/{id}/resource_types")

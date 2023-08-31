@@ -1,30 +1,29 @@
 import logging
-import jsons
-from fastapi import FastAPI, HTTPException, Response
-from fastapi.responses import StreamingResponse
 from typing import List
+
+import jsons
+from fastapi import HTTPException, Response
 from pydantic import BaseModel
-from src.guardrails_manager.guardrails_store import get_guardrails
+
 from src.backend_orchestrator.architecture_handler import (
     ArchitecutreStateNotLatestError,
 )
+from src.engine_service.binaries.fetcher import write_binary_to_disk, Binary
+from src.engine_service.engine_commands.run import (
+    run_engine,
+    RunEngineRequest,
+)
+from src.guardrails_manager.guardrails_store import get_guardrails
 from src.state_manager.architecture_data import (
     get_architecture_latest,
     add_architecture,
     Architecture,
 )
 from src.state_manager.architecture_storage import (
-    get_iac_from_fs,
     get_state_from_fs,
     write_state_to_fs,
     ArchitectureStateDoesNotExistError,
 )
-from src.engine_service.engine_commands.run import (
-    run_engine,
-    RunEngineRequest,
-    RunEngineResult,
-)
-from src.engine_service.binaries.fetcher import write_binary_to_disk, Binary
 
 log = logging.getLogger(__name__)
 
@@ -33,7 +32,9 @@ class CopilotRunRequest(BaseModel):
     constraints: List[dict]
 
 
-async def copilot_run(id: str, state: int, body: CopilotRunRequest):
+async def copilot_run(
+    id: str, state: int, body: CopilotRunRequest, accept: str | None = None
+):
     try:
         architecture = await get_architecture_latest(id)
         if architecture is None:
@@ -72,7 +73,12 @@ async def copilot_run(id: str, state: int, body: CopilotRunRequest):
         arch.state_location = state_location
         await add_architecture(arch)
         return Response(
-            jsons.dumps(
+            headers={
+                "Content-Type": "application/octet-stream"
+                if accept == "application/octet-stream"
+                else "application/json"
+            },
+            content=jsons.dumps(
                 {
                     "id": arch.id,
                     "name": arch.name,
@@ -84,7 +90,7 @@ async def copilot_run(id: str, state: int, body: CopilotRunRequest):
                         "topology_yaml": result.topology_yaml,
                     },
                 }
-            )
+            ),
         )
     except ArchitecutreStateNotLatestError:
         raise HTTPException(
