@@ -13,7 +13,7 @@ from src.engine_service.engine_commands.run import RunEngineResult
 
 
 # @klotho::persist {
-#   id = "architecture_store"
+#   id = "architecturestore"
 # }
 import aiofiles
 

@@ -9,7 +9,7 @@ from botocore.exceptions import ClientError
 
 
 # @klotho::persist {
-#   id = "guardrails-store"
+#   id = "guardrailsstore"
 # }
 import aiofiles
 

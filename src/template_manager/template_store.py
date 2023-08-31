@@ -7,7 +7,7 @@ from botocore.exceptions import ClientError
 import os
 
 # @klotho::persist {
-#   id = "template_store"
+#   id = "templatestore"
 # }
 import aiofiles
 
