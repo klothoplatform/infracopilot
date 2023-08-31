@@ -1,5 +1,5 @@
 import logging
-from typing import List
+from typing import List, Optional
 
 import jsons
 from fastapi import HTTPException, Response
@@ -33,7 +33,7 @@ class CopilotRunRequest(BaseModel):
 
 
 async def copilot_run(
-    id: str, state: int, body: CopilotRunRequest, accept: str | None = None
+    id: str, state: int, body: CopilotRunRequest, accept: Optional[str] = None
 ):
     try:
         architecture = await get_architecture_latest(id)

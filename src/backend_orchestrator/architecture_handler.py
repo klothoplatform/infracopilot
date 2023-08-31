@@ -4,7 +4,7 @@ import uuid
 import time
 from fastapi import HTTPException, Response
 from fastapi.responses import JSONResponse
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel
 from src.engine_service.engine_commands.get_resource_types import (
     GetResourceTypesRequest,
@@ -55,7 +55,7 @@ async def copilot_new_architecture(body: CreateArchitectureRequest):
         raise HTTPException(status_code=500, detail="internal server error")
 
 
-async def copilot_get_state(id: str, accept: str | None = None):
+async def copilot_get_state(id: str, accept: Optional[str] = None):
     try:
         arch = await get_architecture_latest(id)
         if arch is None:

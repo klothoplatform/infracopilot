@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 
 from fastapi import HTTPException, Response
 from fastapi.responses import StreamingResponse
@@ -22,7 +23,7 @@ from src.state_manager.architecture_storage import (
 log = logging.getLogger(__name__)
 
 
-async def copilot_get_iac(id, state: int, accept: str | None = None):
+async def copilot_get_iac(id, state: int, accept: Optional[str] = None):
     try:
         arch = await get_architecture_latest(id)
 
