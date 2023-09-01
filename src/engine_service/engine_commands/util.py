@@ -1,16 +1,12 @@
 import json
 import logging
 import os
-import re
 import subprocess
-import tempfile
-from io import BytesIO
-from pathlib import Path
-from typing import List, NamedTuple
 
-import yaml
-
-from src.engine_service.binaries.fetcher import engine_path, iac_cli_path
+from src.engine_service.binaries.fetcher import (
+    engine_executable_path,
+    iac_cli_executable_path,
+)
 
 log = logging.getLogger()
 
@@ -67,7 +63,7 @@ async def run_engine_command(*args, **kwargs) -> tuple[str, str]:
     env = os.environ.copy()
 
     cmd = [
-        engine_path,
+        engine_executable_path,
         *args,
     ]
     print("Running engine command: %s", " ".join(cmd))
@@ -99,7 +95,7 @@ async def run_iac_command(*args, **kwargs) -> tuple[str, str]:
     print(args)
 
     cmd = [
-        iac_cli_path,
+        iac_cli_executable_path,
         *args,
     ]
     print("Running iac command: %s", " ".join(cmd))

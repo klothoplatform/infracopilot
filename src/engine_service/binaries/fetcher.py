@@ -30,6 +30,9 @@ iac_cli_path = os.environ.get(
     "IAC_CLI_PATH", os.path.abspath(f"{root_path}/{iac_binary_path_suffix}")
 )
 
+engine_executable_path = "/tmp/engine"
+iac_cli_executable_path = "/tmp/iac"
+
 
 class Binary(Enum):
     ENGINE = engine_binary_path_suffix
@@ -39,7 +42,7 @@ class Binary(Enum):
 async def get_binary(binary: Binary) -> Optional[str]:
     path = engine_path if binary == Binary.ENGINE else iac_cli_path
     try:
-        async with aiofiles.open(path, mode="r") as f:
+        async with aiofiles.open(path, mode="rb") as f:
             b_raw = await f.read()
             return b_raw
     except FileNotFoundError:
@@ -54,8 +57,11 @@ async def get_binary(binary: Binary) -> Optional[str]:
 
 # write binary to disk checks to see if the binary passed in exists otherwise it will read it and write it to disk
 async def write_binary_to_disk(binary: Binary):
-    path = engine_path if binary == Binary.ENGINE else iac_cli_path
+    path = (
+        engine_executable_path if binary == Binary.ENGINE else iac_cli_executable_path
+    )
     if not os.path.exists(path):
         raw = await get_binary(binary)
-        with open(path, "w") as file:
+        with open(path, "wb") as file:
             file.write(raw)
+        os.chmod(path, 0o755)
