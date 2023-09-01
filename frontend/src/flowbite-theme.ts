@@ -1,6 +1,11 @@
 import type { CustomFlowbiteTheme } from "flowbite-react";
 
 const flowbiteTheme: CustomFlowbiteTheme = {
+  alert: {
+    color: {
+      info: "text-blue-800 bg-blue-100 border-blue-200 dark:text-blue-800 dark:bg-blue-200 dark:border-blue-300",
+    },
+  },
   badge: {
     root: {
       color: {
@@ -21,6 +26,8 @@ const flowbiteTheme: CustomFlowbiteTheme = {
       gray: "text-gray-900 bg-white border border-gray-200 enabled:hover:bg-gray-100 enabled:hover:text-blue-700 :ring-blue-700 focus:text-blue-700 dark:bg-transparent dark:text-gray-400 dark:border-gray-600 dark:enabled:hover:text-white dark:enabled:hover:bg-gray-700 focus:ring-2",
       info: "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800",
       primary: "p-0",
+      purple:
+        "text-white bg-purple-600 border border-transparent enabled:hover:bg-purple-700 focus:ring-4 focus:ring-purple-200 dark:bg-purple-700 dark:enabled:hover:bg-purple-600 dark:focus:ring-purple-800",
     },
     inner: {
       base: "flex items-center transition-all duration-200",
@@ -96,6 +103,21 @@ const flowbiteTheme: CustomFlowbiteTheme = {
   tooltip: {
     target: "",
   },
+  tab: {
+    tablist: {
+      tabitem: {
+        base: "flex items-center justify-center p-4 rounded-t-lg text-sm font-medium first:ml-0 disabled:cursor-not-allowed disabled:text-gray-400 disabled:dark:text-gray-500 focus:ring-4 focus:ring-cyan-300 focus:outline-none",
+        styles: {
+          fullWidth: {
+            base: "rounded-t-lg",
+            active: {
+              on: "bg-purple-600 text-white dark:bg-purple-700 dark:white",
+              off: "text-gray-500 hover:bg-gray-50 hover:text-gray-600 dark:text-gray-400 dark:hover:bg-gray-800  dark:hover:text-gray-300",
+            },
+          },
+        },
+      },
+    },
+  },
 };
-
 export default flowbiteTheme;
