@@ -2,7 +2,7 @@
 #    id = "main"
 # }
 import logging
-from typing import Annotated
+from typing import Annotated, Optional
 
 from fastapi import FastAPI, Response, Header
 from fastapi.middleware.gzip import GZipMiddleware
@@ -34,7 +34,7 @@ async def ping():
 
 
 @app.get("/architecture/{id}/iac")
-async def export_iac(id, state: int, accept: Annotated[str | None, Header()] = None):
+async def export_iac(id, state: int, accept: Annotated[Optional[str], Header()] = None):
     return await copilot_get_iac(id, state, accept)
 
 
@@ -43,9 +43,9 @@ async def run(
     id,
     state: int,
     body: CopilotRunRequest,
-    accept: Annotated[str | None, Header()] = None,
+    accept: Annotated[Optional[str], Header()] = None,
 ):
-    return await copilot_run(id, state, body)
+    return await copilot_run(id, state, body, accept)
 
 
 @app.post("/architecture")
@@ -54,7 +54,7 @@ async def new_architecture(body: CreateArchitectureRequest):
 
 
 @app.get("/architecture/{id}")
-async def get_state(id: str, accept: Annotated[str | None, Header()] = None):
+async def get_state(id: str, accept: Annotated[Optional[str], Header()] = None):
     return await copilot_get_state(id, accept)
 
 
