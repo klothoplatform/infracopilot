@@ -6,7 +6,7 @@ from pathlib import Path
 import os
 from enum import Enum
 from botocore.exceptions import ClientError
-
+import logging
 
 # @klotho::persist {
 #   id = "binarystore"
@@ -17,6 +17,8 @@ import aiofiles
 #   id = "binarystore"
 #   static_files = ["/binaries/**"]
 # }
+
+log = logging.getLogger()
 
 root_path = Path("binaries")
 
@@ -39,19 +41,26 @@ class Binary(Enum):
     IAC = iac_binary_path_suffix
 
 
+class BinaryNotFoundException(Exception):
+    pass
+
+
 async def get_binary(binary: Binary) -> Optional[str]:
     path = engine_path if binary == Binary.ENGINE else iac_cli_path
     try:
+        log.info(f"Reading binary from {path}")
         async with aiofiles.open(path, mode="rb") as f:
             b_raw = await f.read()
             return b_raw
     except FileNotFoundError:
-        return None
+        log.error(f"Binary not found at {path}")
+        raise BinaryNotFoundException(f"Binary not found at {path}")
     except ClientError as err:
         # This is only necessary because Klotho's fs implementation
         # doesn't convert this to FileNotFoundError
         if err.response["Error"]["Code"] == "NoSuchKey":
-            return None
+            log.error(f"Binary not found at {path}")
+            raise BinaryNotFoundException(f"Binary not found at {path}")
         raise
 
 
