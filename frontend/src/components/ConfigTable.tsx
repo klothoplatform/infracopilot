@@ -61,7 +61,7 @@ export default function ConfigTable() {
       {rows.length > 0 && (
         <Card className="drop-shadow-xs p-2">
           <div className={"mb-2 ml-2 inline"}>
-            <Table>
+            <Table striped>
               <Table.Body className="divide-y">{rows}</Table.Body>
             </Table>
           </div>
