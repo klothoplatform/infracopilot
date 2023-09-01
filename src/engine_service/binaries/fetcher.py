@@ -41,7 +41,7 @@ class BinaryNotFoundException(Exception):
     pass
 
 
-async def get_binary(binary: Binary) -> Optional[str]:
+async def get_binary(binary: Binary) -> Optional[bytes]:
     path = engine_path if binary == Binary.ENGINE else iac_cli_path
     try:
         log.info(f"Reading binary from {path}")
