@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { Alert, Sidebar, Tabs, type TabsRef } from "flowbite-react";
+import { Alert, Card, Sidebar, Tabs, type TabsRef } from "flowbite-react";
 import type { FC } from "react";
 import React, { useRef, useState } from "react";
 import {
@@ -11,6 +11,8 @@ import {
 
 import { useSidebarContext } from "../context/SidebarContext";
 import { HiBars3, HiCog6Tooth } from "react-icons/hi2";
+import ConfigTable from "./ConfigTable";
+import AdditionalResources from "./AdditionalResources";
 
 const EditorSidebarRight: FC = function () {
   const { isOpenOnSmallScreens: isSidebarOpenOnSmallScreens } =
@@ -89,22 +91,10 @@ const Details: FC = function () {
         onActiveTabChange={(tab) => setActiveTab(tab)}
       >
         <Tabs.Item active title="Config" icon={HiCog6Tooth}>
-          This is{" "}
-          <span className="font-medium text-gray-800 dark:text-white">
-            Profile tab's associated content
-          </span>
-          . Clicking another tab will toggle the visibility of this one for the
-          next. The tab JavaScript swaps classes to control the content
-          visibility and styling.
+          <ConfigTable />
         </Tabs.Item>
         <Tabs.Item title="Additional Resources">
-          This is{" "}
-          <span className="font-medium text-gray-800 dark:text-white">
-            Dashboard tab's associated content
-          </span>
-          . Clicking another tab will toggle the visibility of this one for the
-          next. The tab JavaScript swaps classes to control the content
-          visibility and styling.
+          <AdditionalResources />
         </Tabs.Item>
       </Tabs.Group>
     </>
@@ -148,11 +138,13 @@ interface EventNotificationsProps {
 
 const EventNotifications: FC<EventNotificationsProps> = function ({ events }) {
   return (
-    <div className="flex flex-col space-y-4">
-      {events.map((event, index) => (
-        <EventNotification key={index} {...event} />
-      ))}
-    </div>
+    <Card className="drop-shadow-xs p-4">
+      <div className="flex flex-col space-y-4">
+        {events.map((event, index) => (
+          <EventNotification key={index} {...event} />
+        ))}
+      </div>
+    </Card>
   );
 };
 

@@ -18,7 +18,6 @@ interface ResourceOption {
 }
 
 type ResourceCardProps = {
-  key: string;
   option: ResourceOption;
   onDragStart: (event: any, nodeType: string) => void;
 };
@@ -86,11 +85,10 @@ export default function ResourceAccordion({ name, icon }: DragSubmenuOptions) {
   );
 }
 
-const ResourceCard = ({ key, option, onDragStart }: ResourceCardProps) => {
+const ResourceCard = ({ option, onDragStart }: ResourceCardProps) => {
   return (
     <Card
       className={"mx-auto mr-2 flex h-[100px] w-[100px] dark:text-white"}
-      key={key}
       onDragStart={(event) =>
         onDragStart(event, `${option.provider}:${option.type}`)
       }

@@ -38,7 +38,7 @@ function ArchitectureEditor() {
         <div className={"my-2 h-[calc(100vh-7rem)] w-full"}>
           {architecture.id && <EditorPane />}
           {!architecture.id && (
-            <span className={"flex gap-2"}>
+            <span className={"flex gap-2 dark:text-white"}>
               <PiArrowElbowLeftUpBold />
               <h1>Create a new architecture </h1>
             </span>

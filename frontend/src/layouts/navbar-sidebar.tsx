@@ -1,4 +1,4 @@
-import { Alert, Button, Footer } from "flowbite-react";
+import { Button, Footer } from "flowbite-react";
 import type { FC, PropsWithChildren } from "react";
 import React, { useState } from "react";
 import Navbar from "../components/navbar";
@@ -15,12 +15,6 @@ import { FaFileCirclePlus } from "react-icons/fa6";
 import type { NewArchitectureFormState } from "../components/NewArchitectureModal";
 import NewArchitectureModal from "../components/NewArchitectureModal";
 import createArchitecture from "../api/CreateArchitecture";
-import {
-  HiCheckCircle,
-  HiExclamationCircle,
-  HiInformationCircle,
-  HiXCircle,
-} from "react-icons/hi";
 
 interface NavbarSidebarLayoutProps {
   isFooter?: boolean;

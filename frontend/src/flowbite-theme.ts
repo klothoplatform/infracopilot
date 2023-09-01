@@ -119,5 +119,13 @@ const flowbiteTheme: CustomFlowbiteTheme = {
       },
     },
   },
+  table: {
+    row: {
+      hovered:
+        "group/row hover:bg-purple-100 dark:hover:bg-purple-500 bg-white border-gray-300 dark:border-gray-500 dark:bg-gray-700",
+      striped:
+        "group/row odd:bg-white even:bg-gray-50 odd:dark:bg-gray-700 even:dark:bg-gray-800 bg-white border-gray-300 dark:border-gray-500 dark:bg-gray-600",
+    },
+  },
 };
 export default flowbiteTheme;

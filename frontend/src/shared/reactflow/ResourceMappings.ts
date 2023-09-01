@@ -252,7 +252,7 @@ export const typeMappings = new Map<
         {
           nodeIcon: AmazonAuroraAmazonRdsInstance,
           discriminator: (n: RdsInstanceData) => {
-            const engine = n.engine?.toLowerCase();
+            const engine = n?.engine?.toLowerCase();
             if (engine?.startsWith("aurora")) {
               return "aurora";
             }
