@@ -26,11 +26,9 @@ iac_binary_path_suffix = "iac"
 engine_binary_path_suffix = "engine"
 
 engine_path = os.environ.get(
-    "ENGINE_PATH", os.path.abspath(f"{root_path}/{engine_binary_path_suffix}")
+    "ENGINE_PATH", f"./{root_path}/{engine_binary_path_suffix}"
 )
-iac_cli_path = os.environ.get(
-    "IAC_CLI_PATH", os.path.abspath(f"{root_path}/{iac_binary_path_suffix}")
-)
+iac_cli_path = os.environ.get("IAC_CLI_PATH", f"./{root_path}/{iac_binary_path_suffix}")
 
 engine_executable_path = "/tmp/engine"
 iac_cli_executable_path = "/tmp/iac"
