@@ -2,7 +2,6 @@ import { Card, Table, Tooltip } from "flowbite-react";
 import type { FC, ReactNode } from "react";
 import * as React from "react";
 import { useEffect, useState } from "react";
-import type { Node } from "reactflow";
 import { getConnectedEdges } from "reactflow";
 import useApplicationStore from "../views/store/store";
 import { getIcon } from "../shared/reactflow/ResourceMappings";
@@ -11,19 +10,22 @@ import { UnknownIcon } from "./Icon";
 
 function AdditionalResources() {
   const [resourceRows, setResourceRows] = useState<ReactNode[]>([]);
-  const { nodes, edges, selectedNode } = useApplicationStore();
+  const { nodes, edges, selectedResource, selectResource } =
+    useApplicationStore();
 
   useEffect(() => {
-    if (selectedNode === undefined) {
+    if (selectedResource === undefined) {
       setResourceRows([]);
       return;
     }
-    const node = nodes?.find((e) => e.id === selectedNode);
+    const node = nodes?.find(
+      (e) => e.id === selectedResource?.toTopologyString(),
+    );
     if (node === undefined) {
       setResourceRows([]);
       return;
     }
-    // TODO: look into making this smarter/recursive?
+    // TODO: use edges from the backend instead of the react flow graph
     const connectedEdges = getConnectedEdges([node], edges);
     const connectedNodes = connectedEdges
       .map((e) => [e.source, e.target])
@@ -47,13 +49,13 @@ function AdditionalResources() {
             <ResourceItem
               key={nodeId.toKlothoIdString()}
               icon={icon}
-              node={node}
+              resourceId={node.data.resourceId}
             />
           );
         })
         .filter((e) => e !== null),
     );
-  }, [nodes, edges, selectedNode]);
+  }, [nodes, edges, selectedResource]);
 
   return (
     <Card className="drop-shadow-xs">
@@ -66,20 +68,25 @@ function AdditionalResources() {
 
 type ResourceItemProps = {
   icon: React.JSX.Element;
-  node: Node;
+  resourceId: NodeId;
 };
 
-const ResourceItem: FC<ResourceItemProps> = function ({ icon, node }) {
+const ResourceItem: FC<ResourceItemProps> = function ({ icon, resourceId }) {
+  const { selectResource } = useApplicationStore();
+
   return (
-    <Table.Row className="border-gray-300 bg-white dark:border-gray-500 dark:bg-gray-700">
+    <Table.Row
+      className="border-gray-300 bg-white dark:border-gray-500 dark:bg-gray-700"
+      onClick={() => {
+        selectResource(resourceId);
+      }}
+    >
       <Table.Cell className="pr-0 font-medium text-gray-900 dark:text-white">
-        <Tooltip content={node.data.resourceId.type}>
+        <Tooltip content={resourceId.type}>
           <div className="block h-5 w-5">{icon}</div>
         </Tooltip>
       </Table.Cell>
-      <Table.Cell className="pl-4">
-        {node?.data.resourceId?.toKlothoIdString()}
-      </Table.Cell>
+      <Table.Cell className="pl-4">{resourceId.toKlothoIdString()}</Table.Cell>
     </Table.Row>
   );
 };

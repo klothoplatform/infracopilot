@@ -15,6 +15,8 @@ import { FaFileCirclePlus } from "react-icons/fa6";
 import type { NewArchitectureFormState } from "../components/NewArchitectureModal";
 import NewArchitectureModal from "../components/NewArchitectureModal";
 import createArchitecture from "../api/CreateArchitecture";
+import { AiOutlineLoading } from "react-icons/ai";
+import { PiArrowElbowLeftUpBold } from "react-icons/pi";
 
 interface NavbarSidebarLayoutProps {
   isFooter?: boolean;
@@ -22,15 +24,20 @@ interface NavbarSidebarLayoutProps {
 
 const NavbarSidebarLayout: FC<PropsWithChildren<NavbarSidebarLayoutProps>> =
   function ({ children, isFooter = true }) {
+    const { architecture } = useApplicationStore();
     return (
       <SidebarProvider>
         <Navbar>
           <EditorNavContent />
         </Navbar>
         <div className="flex items-start">
-          <EditorSidebarLeft />
-          <MainContent isFooter={isFooter}>{children}</MainContent>
-          <EditorSidebarRight />
+          {architecture?.id && (
+            <>
+              <EditorSidebarLeft />
+              <MainContent isFooter={isFooter}>{children}</MainContent>
+              <EditorSidebarRight />
+            </>
+          )}
         </div>
       </SidebarProvider>
     );
@@ -41,10 +48,21 @@ const EditorNavContent: FC = function () {
   const [showCreateArchitectureModal, setShowCreateArchitectureModal] =
     useState(false);
 
+  const [isProcessing, setIsProcessing] = useState(false);
+  const hidden = architecture.id === undefined;
+
   let onClickExportIac = async () => {
-    const iacZip = await ExportIaC(architecture.id, architecture.version);
-    const url = URL.createObjectURL(iacZip);
-    downloadFile(architecture.name + ".zip", url);
+    setIsProcessing(true);
+    try {
+      const iacZip = await ExportIaC(architecture.id, architecture.version);
+      const url = URL.createObjectURL(iacZip);
+      downloadFile(architecture.name + ".zip", url);
+    } finally {
+      setTimeout(() => {
+        // reduce flickering for fast requests
+        setIsProcessing(false);
+      }, 200);
+    }
   };
 
   let onClickNewArchitecture = () => {
@@ -70,19 +88,42 @@ const EditorNavContent: FC = function () {
 
   return (
     <div className="inline-block align-middle dark:text-white">
-      <div className="mr-6 inline">{architecture.name}</div>
-      <Button
-        color={"purple"}
-        className="mr-2 inline gap-1"
-        onClick={onClickNewArchitecture}
-      >
-        <FaFileCirclePlus className="mr-1" />
-        <p>New Architecture</p>
-      </Button>
-      <Button color={"purple"} className="inline" onClick={onClickExportIac}>
-        <TbFileExport className="mr-1" />
-        <p>Export IaC</p>
-      </Button>
+      <div className="flex">
+        <div className="my-auto mr-6 flex font-semibold">
+          {architecture.name}
+        </div>
+        <div className="flex">
+          <Button
+            color={"purple"}
+            className="mr-2 flex gap-1"
+            onClick={onClickNewArchitecture}
+          >
+            <FaFileCirclePlus className="mr-1" />
+            <p>New Architecture</p>
+          </Button>
+        </div>
+        {!architecture.id && (
+          <div
+            className={
+              "absolute left-[20rem] top-[5rem] flex gap-2 rounded-md border-gray-300 bg-blue-100 px-4 py-2 drop-shadow-md dark:border-gray-700 dark:bg-blue-500 dark:text-white"
+            }
+          >
+            <PiArrowElbowLeftUpBold className="my-auto" />
+            <h2>Create a new architecture </h2>
+          </div>
+        )}
+        <Button
+          color={"purple"}
+          className="flex"
+          onClick={onClickExportIac}
+          isProcessing={isProcessing}
+          disabled={hidden}
+          processingSpinner={<AiOutlineLoading className="animate-spin" />}
+        >
+          {!isProcessing && <TbFileExport className="mr-1" />}
+          <p>{isProcessing ? "Exporting..." : "Export IaC"}</p>
+        </Button>
+      </div>
       <NewArchitectureModal
         onClose={onCloseCreateArchitectureModal}
         show={showCreateArchitectureModal}

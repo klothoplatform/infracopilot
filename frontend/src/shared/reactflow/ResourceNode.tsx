@@ -30,10 +30,14 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
   const { architecture, selectedNode, replaceResource } = useApplicationStore();
 
   const connectionNodeId = useStore(connectionNodeIdSelector);
-  const [isEditingLabel, setIsEditingLabel] = React.useState(false);
+  const [isEditingLabel, setIsEditingLabel] = useState(false);
   const isConnecting = !!connectionNodeId;
   const isTarget = connectionNodeId && connectionNodeId !== id;
   const isSelected = selectedNode === id;
+  const [mouseOverNode, setMouseOverNode] = useState(false);
+  // this could be a map by handle id
+  const [mouseOverHandle, setMouseOverHandle] = useState(false);
+  const showSourceHandle = !isConnecting && (mouseOverNode || mouseOverHandle);
   const updateNodeInternals = useUpdateNodeInternals();
   const handles = useMemo(() => {
     updateNodeInternals(id);
@@ -58,49 +62,57 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
   }, [updateNodeInternals, id, data, isConnectable]);
 
   return (
-    <>
+    // eslint-disable-next-line jsx-a11y/mouse-events-have-key-events,tailwindcss/no-custom-classname
+    <div
+      className="resource-node"
+      onMouseOver={(e) => {
+        setMouseOverNode(true);
+      }}
+      onMouseLeave={(e) => {
+        setMouseOverNode(false);
+      }}
+    >
       {handles}
-      {!isConnecting && (
-        <Handle
-          className="customHandle"
-          id={`${id}-dnd-source`}
-          position={Position.Right}
-          type="source"
-        />
-      )}
-
       {isConnecting && (
         <Handle
-          className="customHandle"
+          // eslint-disable-next-line tailwindcss/no-custom-classname
+          className="full-icon-handle"
           id={`${id}-dnd-target`}
           position={Position.Left}
           type="target"
         />
       )}
-
-      <div
-        style={{
-          textAlign: "center",
-          width: "100px",
-          maxHeight: "200px",
-        }}
-      >
+      <div className="flex max-h-[200px] w-[100px] flex-col items-center">
         {getIcon(
           data.resourceId.provider,
           data.resourceId.type,
           {
             height: "100%",
             width: "100%",
-            // style: {
-            //   // displays a green border around new nodes
-            //   boxShadow: isSelected
-            //     ? "rgb(44 183 27 / 12%) 0px 0px 4px 4px"
-            //     : undefined,
-            // },
           },
           data,
         )}
-        <div className="text-center dark:text-white">
+        {/* eslint-disable-next-line jsx-a11y/mouse-events-have-key-events */}
+        <div
+          className="relative ml-14 mt-[-100px] flex h-full px-8 pb-8 pt-16"
+          onMouseOver={(e) => {
+            setMouseOverHandle(true);
+          }}
+          onMouseLeave={(e) => {
+            setMouseOverHandle(false);
+          }}
+        >
+          <Handle
+            className={classNames(
+              "handle-source -right-2 bottom-0 pr-3",
+              showSourceHandle ? "opacity-85" : "opacity-0",
+            )}
+            id={`${id}-dnd-source`}
+            position={Position.Right}
+            type="source"
+          />
+        </div>
+        <div className="flex flex-col text-center dark:text-white">
           <button
             onClick={() => setIsEditingLabel(true)}
             style={{
@@ -120,7 +132,6 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
                   data.resourceId,
                   new NodeId(type, namespace, newValue, provider),
                 );
-                console.log("submitted");
                 setIsEditingLabel(false);
               }}
             ></EditableLabel>
@@ -142,7 +153,7 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 });
 ResourceNode.displayName = "ResourceNode";

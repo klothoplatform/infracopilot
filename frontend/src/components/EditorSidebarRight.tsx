@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import { Alert, Card, Sidebar, Tabs, type TabsRef } from "flowbite-react";
 import type { FC } from "react";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import {
   HiCheckCircle,
   HiExclamationCircle,
@@ -13,6 +13,12 @@ import { useSidebarContext } from "../context/SidebarContext";
 import { HiBars3, HiCog6Tooth } from "react-icons/hi2";
 import ConfigTable from "./ConfigTable";
 import AdditionalResources from "./AdditionalResources";
+import useApplicationStore from "../views/store/store";
+import {
+  RightSidebarDetailsTabs,
+  RightSidebarTabs,
+} from "../shared/sidebar-nav";
+import type { NodeId } from "../shared/architecture/TopologyNode";
 
 const EditorSidebarRight: FC = function () {
   const { isOpenOnSmallScreens: isSidebarOpenOnSmallScreens } =
@@ -34,8 +40,12 @@ const EditorSidebarRight: FC = function () {
 };
 
 function SidebarTabs() {
-  const [activeTab, setActiveTab] = useState<number>(0);
   const tabsRef = useRef<TabsRef>(null);
+  const { rightSidebarSelector, navigateRightSidebar } = useApplicationStore();
+
+  useEffect(() => {
+    tabsRef.current?.setActiveTab(rightSidebarSelector[0]);
+  }, [rightSidebarSelector]);
 
   const notifications = [
     {
@@ -60,11 +70,21 @@ function SidebarTabs() {
   return (
     <>
       <Tabs.Group
-        aria-label="Default tabs"
+        aria-label="Activity Sidebar"
         /* eslint-disable-next-line react/style-prop-object */
         style={"fullWidth"}
         ref={tabsRef}
-        onActiveTabChange={(tab) => setActiveTab(tab)}
+        onActiveTabChange={(tab) => {
+          if (tab === rightSidebarSelector[0]) {
+            return;
+          }
+          navigateRightSidebar([
+            RightSidebarTabs[
+              RightSidebarTabs[tab] as keyof typeof RightSidebarTabs
+            ],
+            rightSidebarSelector[1],
+          ]);
+        }}
       >
         <Tabs.Item active title="Changes" icon={HiInformationCircle}>
           <EventNotifications events={notifications} />
@@ -78,26 +98,57 @@ function SidebarTabs() {
 }
 
 const Details: FC = function () {
-  const [activeTab, setActiveTab] = useState<number>(0);
   const tabsRef = useRef<TabsRef>(null);
+  const { rightSidebarSelector, navigateRightSidebar, selectedResource } =
+    useApplicationStore();
+
+  useEffect(() => {
+    tabsRef.current?.setActiveTab(rightSidebarSelector[1]);
+  }, [rightSidebarSelector]);
 
   return (
     <>
       <Tabs.Group
-        aria-label="Default tabs"
+        aria-label="Architecture Actions"
         /* eslint-disable-next-line react/style-prop-object */
         style={"fullWidth"}
         ref={tabsRef}
-        onActiveTabChange={(tab) => setActiveTab(tab)}
+        onActiveTabChange={(tab) => {
+          if (tab === rightSidebarSelector[1]) {
+            return;
+          }
+          navigateRightSidebar([
+            rightSidebarSelector[0],
+            RightSidebarDetailsTabs[
+              RightSidebarDetailsTabs[
+                tab
+              ] as keyof typeof RightSidebarDetailsTabs
+            ],
+          ]);
+        }}
       >
         <Tabs.Item active title="Config" icon={HiCog6Tooth}>
+          <ResourceIdHeader resourceId={selectedResource} />
           <ConfigTable />
         </Tabs.Item>
         <Tabs.Item title="Additional Resources">
+          <ResourceIdHeader resourceId={selectedResource} />
           <AdditionalResources />
         </Tabs.Item>
       </Tabs.Group>
     </>
+  );
+};
+
+type ResourceIdHeaderProps = {
+  resourceId?: NodeId;
+};
+
+const ResourceIdHeader: FC<ResourceIdHeaderProps> = function ({ resourceId }) {
+  return (
+    <div className="mb-2 flex rounded-t-lg border-2 border-gray-100 bg-gray-50 py-4 pl-6 text-sm font-medium drop-shadow-md first:ml-0 dark:border-gray-700 dark:bg-gray-600 dark:text-white">
+      {resourceId?.toKlothoIdString() ?? "No resource selected"}
+    </div>
   );
 };
 
@@ -124,7 +175,7 @@ const EventNotification: FC<EventProps> = function ({ type, title, details }) {
       </Alert>
 
       {details && (
-        <div className="mx-2 flex border-[1px] border-t-0 border-gray-300 bg-white py-2 pl-4 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+        <div className="mx-2 flex border-[1px] border-t-0 border-gray-300 bg-white py-2 pl-4 pr-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
           {details}
         </div>
       )}

@@ -6,14 +6,21 @@ import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 
 export default function ConfigTable() {
-  const { nodes, architecture, selectedNode } = useApplicationStore();
+  const {
+    nodes,
+    architecture,
+    selectedNode,
+    selectedResource,
+    selectResource,
+  } = useApplicationStore();
 
   const [rows, setRows] = useState<ReactNode[]>([]);
 
   useEffect(() => {
-    const selectedNodeId = nodes
-      ?.find((e) => e.id === selectedNode)
-      ?.data?.resourceId?.toKlothoIdString();
+    selectResource(nodes.find((n) => n.id === selectedNode)?.data?.resourceId);
+  }, [nodes, selectResource, selectedNode]);
+
+  useEffect(() => {
     if (
       architecture === undefined ||
       !(architecture.resourceMetadata instanceof Array) ||
@@ -23,11 +30,8 @@ export default function ConfigTable() {
       return;
     }
     const metadata = (architecture.resourceMetadata as any[])?.find((e) => {
-      console.log(e.id, selectedNodeId);
-      return e.id === selectedNodeId;
+      return e.id === selectedResource?.toKlothoIdString();
     })?.metadata;
-
-    console.log(metadata);
 
     if (metadata === undefined) {
       setRows([]);
@@ -54,7 +58,7 @@ export default function ConfigTable() {
         );
       }),
     );
-  }, [architecture, nodes, selectedNode]);
+  }, [architecture, nodes, selectedNode, selectedResource]);
 
   return (
     <>

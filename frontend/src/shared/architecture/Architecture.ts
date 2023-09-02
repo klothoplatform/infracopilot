@@ -112,7 +112,7 @@ function getEdgesFromGraph(graph: TopologyGraph): Edge[] {
       id: `${edge.source}-${edge.target}`,
       source: edge.source,
       target: edge.target,
-      zIndex: 100,
+      zIndex: 50,
       data: {
         vizMetadata: edge.vizMetadata,
       },

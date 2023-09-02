@@ -37,12 +37,6 @@ function ArchitectureEditor() {
       <div className="block items-center justify-between overflow-hidden border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800 sm:flex">
         <div className={"my-2 h-[calc(100vh-7rem)] w-full"}>
           {architecture.id && <EditorPane />}
-          {!architecture.id && (
-            <span className={"flex gap-2 dark:text-white"}>
-              <PiArrowElbowLeftUpBold />
-              <h1>Create a new architecture </h1>
-            </span>
-          )}
         </div>
       </div>
     </NavbarSidebarLayout>

@@ -345,7 +345,8 @@ export async function autoLayout(
           sourcePosition: Position.Left,
           targetPosition: Position.Right,
           position: { x, y },
-          zIndex: node.type === "resourceGroup" ? 0 : 10,
+          positionAbsolute: { x, y },
+          zIndex: node.type === "resourceGroup" ? 0 : 1,
           style: {
             width,
             height,
@@ -376,7 +377,7 @@ export async function autoLayout(
             style: { stroke: "#545B64", strokeWidth: "2" },
             sourceHandle: `${edge.id}:${source?.id ?? ""}:s`,
             targetHandle: `${edge.id}:${target?.id ?? ""}:t`,
-            zIndex: 100,
+            zIndex: 1,
             markerEnd:
               nodes.find((e) => e.id === edge.target)?.data?.resourceId
                 .provider !== "indicators"

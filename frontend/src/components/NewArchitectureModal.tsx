@@ -66,6 +66,7 @@ export default function NewArchitectureModal({
         <Modal.Footer>
           <Button
             type="submit"
+            color="purple"
             onClick={(e: SubmitEvent) => {
               onSubmit?.(e, state);
               setReset(true);

@@ -1,12 +1,56 @@
-div.customHandle {
-  width: 100%;
-  height: 100%;
-  background: blue;
-  position: absolute;
-  top: 0;
-  left: 0;
-  border-radius: 0;
-  transform: none;
-  border: none;
-  opacity: 0;
+
+.resource-node {
+  --handle-color: rgb(126 58 242 / var(--tw-bg-opacity));
+
+  .react-flow__handle {
+    z-index: 5
+  }
+
+  .full-icon-handle {
+    width: 100%;
+    height: 100%;
+    transform: none;
+    left: 0;
+    top: 0;
+    border-radius: 0;
+    border: 0;
+    opacity: 0;
+  }
+
+  .handle-source {
+    background: transparent;
+    border-style: solid;
+    border-radius: 0;
+    right: -15px;
+    width: 10px;
+    height: 10px;
+  }
+
+  .handle-source.react-flow__handle-right {
+    border-left: 10px solid var(--handle-color);
+    border-right: 0;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+  }
+
+  .handle-source.react-flow__handle-left {
+    border-left: 0;
+    border-right: 10px solid var(--handle-color);
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+  }
+
+  .handle-source.react-flow__handle-top {
+    border-top: 10px solid var(--handle-color);
+    border-bottom: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+  }
+
+  .handle-source.react-flow__handle-bottom {
+    border-top: 0;
+    border-bottom: 10px solid var(--handle-color);
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+  }
 }

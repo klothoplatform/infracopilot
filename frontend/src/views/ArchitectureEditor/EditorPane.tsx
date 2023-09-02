@@ -2,6 +2,7 @@ import type { Edge, Node } from "reactflow";
 import ReactFlow, {
   Background,
   BackgroundVariant,
+  ConnectionLineType,
   Controls,
   MiniMap,
   useReactFlow,
@@ -14,7 +15,6 @@ import type { MouseEvent as ReactMouseEvent } from "react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { NodeId } from "../../shared/architecture/TopologyNode";
 import useApplicationStore from "../store/store";
-import StraightConnectionLine from "../../shared/reactflow/StraightConnectionLine";
 import ContextMenu from "./ContextMenu";
 import { Backdrop, CircularProgress } from "@mui/material";
 
@@ -191,11 +191,11 @@ export default function EditorPane() {
         nodeTypes={NodesTypes}
         edgeTypes={EdgeTypes}
         defaultEdgeOptions={defaultEdgeOptions}
-        connectionLineComponent={StraightConnectionLine}
+        connectionLineType={ConnectionLineType.Straight}
         connectionLineStyle={{
-          stroke: "blue",
+          stroke: "#545B64",
           strokeWidth: 2,
-          strokeLinecap: "round",
+          strokeLinecap: "square",
           zIndex: 1000,
         }}
         elevateNodesOnSelect={false}
