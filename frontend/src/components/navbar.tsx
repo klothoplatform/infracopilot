@@ -44,11 +44,13 @@ const NavBar: FC<PropsWithChildren<NavbarProps>> = function ({ children }) {
             {/*  </button>*/}
             {/*)}*/}
             <Navbar.Brand href="/">
-              <img
-                alt=""
-                src="https://flowbite.com/docs/images/logo.svg"
-                className="mr-3 h-6 sm:h-8"
-              />
+              {/* TODO: replace with logo */}
+              {/*<img*/}
+              {/*  alt=""*/}
+              {/*  src="https://flowbite.com/docs/images/logo.svg"*/}
+              {/*  className="mr-3 h-6 sm:h-8"*/}
+              {/*/>*/}
+              <span className="mr-6 pr-2"></span>
               <span className="self-center whitespace-nowrap text-2xl font-semibold dark:text-white">
                 InfraCopilot
               </span>
