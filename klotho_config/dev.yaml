@@ -15,3 +15,8 @@ static_unit:
   web-ui:
     content_delivery_network:
       id: infracopilot-web-ui-cdn-dev
+persisted:
+    ifcporm:
+        type: rds_postgres
+        pulumi_params:
+          engineVersion: "13.10"

@@ -6,10 +6,12 @@ import tempfile
 from io import BytesIO
 from pathlib import Path
 from typing import List, NamedTuple, Dict
-
+import logging
 import yaml
 
 from src.engine_service.engine_commands.util import run_engine_command, EngineException
+
+log = logging.getLogger(__name__)
 
 
 class RunEngineRequest(NamedTuple):
@@ -100,6 +102,7 @@ async def run_engine(request: RunEngineRequest) -> RunEngineResult:
     except EngineException:
         raise
     except Exception as e:
+        log.error(f"Error running engine: {e}. Constraints: {request.constraints}")
         raise EngineException(
             message="Error running engine",
             stdout=out_logs,
