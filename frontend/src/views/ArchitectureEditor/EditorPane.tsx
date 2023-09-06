@@ -82,10 +82,6 @@ export default function EditorPane() {
       await addGraphElements({
         nodes: [newNode],
       });
-      console.log("added node");
-      console.log("applying constraints", unappliedConstraints);
-      // await applyConstraints();
-      selectNode(newNode.id);
     },
     [
       unappliedConstraints,
@@ -97,7 +93,6 @@ export default function EditorPane() {
   );
 
   const onNodeClick = (event: ReactMouseEvent, node: Node) => {
-    selectNode(node.id);
     menu && setMenu(null);
   };
 
@@ -172,6 +167,7 @@ export default function EditorPane() {
     fitView({ padding: 0.1, nodes: nodes, maxZoom: 1 });
   }, [fitView, nodes, edges]);
 
+  console.log("edges", edges)
   return (
     <div
       className={"mx-2 block h-full w-full bg-gray-50 dark:bg-gray-900"}

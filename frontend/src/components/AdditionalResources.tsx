@@ -5,12 +5,13 @@ import { useEffect, useState } from "react";
 import { getConnectedEdges } from "reactflow";
 import useApplicationStore from "../views/store/store";
 import { getIcon } from "../shared/reactflow/ResourceMappings";
-import type { NodeId } from "../shared/architecture/TopologyNode";
+import { NodeId } from "../shared/architecture/TopologyNode";
 import { UnknownIcon } from "./Icon";
+import { getDownstreamResources } from "../shared/architecture/Architecture";
 
 function AdditionalResources() {
   const [resourceRows, setResourceRows] = useState<ReactNode[]>([]);
-  const { nodes, edges, selectedResource, selectResource } =
+  const { architecture, nodes, edges, selectedResource, selectResource } =
     useApplicationStore();
 
   useEffect(() => {
@@ -18,28 +19,16 @@ function AdditionalResources() {
       setResourceRows([]);
       return;
     }
-    const node = nodes?.find(
-      (e) => e.id === selectedResource?.toTopologyString(),
-    );
-    if (node === undefined) {
-      setResourceRows([]);
-      return;
-    }
+
     // TODO: use edges from the backend instead of the react flow graph
-    const connectedEdges = getConnectedEdges([node], edges);
-    const connectedNodes = connectedEdges
-      .map((e) => [e.source, e.target])
-      .flat()
-      .filter((e) => e !== node.id);
+
+
+    const connectedNodes = getDownstreamResources(architecture, selectedResource).map((node) => node.toKlothoIdString());
     setResourceRows(
       connectedNodes
         .map((nodeIdStr) => {
-          const node = nodes.find((e) => e.id === nodeIdStr);
-          if (node === undefined) {
-            return null;
-          }
-          const nodeId = node?.data?.resourceId as NodeId;
-          console.log(nodeId);
+          
+          const nodeId = NodeId.fromId(nodeIdStr);
           const icon = nodeId
             ? getIcon(nodeId.provider, nodeId.type, {
                 className: "w-full h-full",
@@ -49,7 +38,7 @@ function AdditionalResources() {
             <ResourceItem
               key={nodeId.toKlothoIdString()}
               icon={icon}
-              resourceId={node.data.resourceId}
+              resourceId={nodeId}
             />
           );
         })

@@ -21,6 +21,7 @@ export enum ConstraintScope {
 
 export interface Constraint {
   scope: ConstraintScope;
+  toIntent: () => string;
 }
 
 export type ApplicationConstraintOperators = Extract<
@@ -53,6 +54,17 @@ export class ApplicationConstraint implements Constraint {
     public node: NodeId,
     public replacementNode?: NodeId,
   ) {}
+
+  toIntent(): string {
+    switch (this.operator) {
+      case ConstraintOperator.Add:
+        return `Added ${this.node.toKlothoIdString()}`;
+      case ConstraintOperator.Remove:
+        return `Removed ${this.node.toKlothoIdString()}`;
+      case ConstraintOperator.Replace:
+        return `Replaced ${this.node.toKlothoIdString()} -> ${this.replacementNode?.toKlothoIdString()}`;
+    }
+  }
 }
 
 export class ConstructConstraint implements Constraint {
@@ -64,6 +76,10 @@ export class ConstructConstraint implements Constraint {
     public type: string,
     public attributes: object,
   ) {}
+
+  toIntent(): string {
+    return `Expanded construct ${this.target.toKlothoIdString()}`;
+  }
 }
 
 export class ResourceConstraint implements Constraint {
@@ -75,6 +91,10 @@ export class ResourceConstraint implements Constraint {
     public property: string,
     public value: any,
   ) {}
+
+  toIntent(): string {
+        return `Configured ${this.target.toKlothoIdString()}`;
+  }
 }
 
 export class EdgeConstraint implements Constraint {
@@ -86,6 +106,19 @@ export class EdgeConstraint implements Constraint {
     public node?: NodeId,
     public attributes?: object,
   ) {}
+
+  toIntent(): string {
+    switch (this.operator) {
+      case ConstraintOperator.MustExist:
+        return `Connected ${this.target.sourceId.name} -> ${this.target.targetId.name}`;
+      case ConstraintOperator.MustNotExist:
+        return `Disconnected ${this.target.sourceId.name} -> ${this.target.targetId.name}`;
+      case ConstraintOperator.MustContain:
+        return `Added ${this.node?.toKlothoIdString()} to ${this.target.sourceId.name} -> ${this.target.targetId.name}`;
+      case ConstraintOperator.MustNotContain:
+        return `Removed ${this.node?.toKlothoIdString()} from ${this.target.sourceId.name} -> ${this.target.targetId.name}`;
+    }
+  }
 }
 
 export function formatConstraints(constraints: Constraint[]): string {

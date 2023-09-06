@@ -51,15 +51,21 @@ export const parse = (content: string): Map<string, TopologyGraph> => {
         }
         const sourceId = NodeId.fromString(source, graph.Provider);
         const targetId = NodeId.fromString(target, graph.Provider);
-        graph.Edges.push(new TopologyEdge(sourceId, targetId, {}));
+        graph.Edges.push(new TopologyEdge(sourceId, targetId, {
+          path:  resources[k]?.path.split(",").map((p: string) => NodeId.fromString(p, graph.Provider)),
+        }));
         edgeDefinedNodes.push(sourceId, targetId);
       } else {
+        console.log("k: ", k, "resources[k]: ", resources[k])
         graph.Nodes.push(
           new TopologyNode(NodeId.fromString(k, graph.Provider), {
             ...resources[k],
             parent: resources[k]?.parent
               ? NodeId.fromString(resources[k]?.parent, graph.Provider)
               : undefined,
+            children: resources[k]?.children ? resources[k]?.children.split(",").map((c: string) =>
+              NodeId.fromId(c),
+            ) : undefined,
           }),
         );
       }

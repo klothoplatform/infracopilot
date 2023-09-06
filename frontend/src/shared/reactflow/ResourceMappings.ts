@@ -298,6 +298,8 @@ export const typeMappings = new Map<
       ["secret", AwsSecretsManager],
       ["secret_version", AwsSecretsManager],
       ["security_group", AmazonVirtualPrivateCloud],
+      ["subnet_private", PrivateSubnet],
+      ["subnet_public", PublicSubnet],
       [
         "subnet",
         {

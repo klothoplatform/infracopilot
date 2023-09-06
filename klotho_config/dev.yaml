@@ -1,9 +1,14 @@
 app: infracopilot-ui-dev
 provider: aws
 path: .
-
 execution_unit:
-  Backend-Api:
+  main:
+    type: lambda
+    pulumi_params:
+      memorySize: 2048
+      timeout: 300
+exposed:
+  myapi:
     content_delivery_network:
       id: infracopilot-web-ui-cdn-dev
 static_unit:

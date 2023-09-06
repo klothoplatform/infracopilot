@@ -44,6 +44,7 @@ class BinaryNotFoundException(Exception):
 async def get_binary(binary: Binary) -> Optional[bytes]:
     path = engine_path if binary == Binary.ENGINE else iac_cli_path
     try:
+        print(path)
         log.info(f"Reading binary from {path}")
         async with aiofiles.open(path, mode="rb") as f:
             b_raw = await f.read()

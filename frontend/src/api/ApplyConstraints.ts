@@ -14,33 +14,38 @@ export async function applyConstraints(
 ): Promise<Architecture> {
   console.log("applyConstraints", architectureId);
 
-  const { data } = await axios.post(
-    `/architecture/${architectureId}/run`,
-    { constraints: JSON.parse(formatConstraints(constraints)) },
-    {
-      params: {
-        state: latestState,
+  try {
+    const { data } = await axios.post(
+      `/architecture/${architectureId}/run`,
+      { constraints: JSON.parse(formatConstraints(constraints)) },
+      {
+        params: {
+          state: latestState,
+        },
+        responseType: "arraybuffer",
+        decompress: true,
+        headers: {
+          accept: "application/octet-stream",
+        },
       },
-      responseType: "arraybuffer",
-      decompress: true,
-      headers: {
-        accept: "application/octet-stream",
-      },
-    },
-  );
-  const architectureJSON = JSON.parse(new TextDecoder().decode(data));
-  architectureJSON.views = new Map<ArchitectureView, TopologyGraph>([
-    [
-      ArchitectureView.DataFlow,
-      parse(architectureJSON.state.topology_yaml as string)
-        .values()
-        .next().value,
-    ],
-  ]);
-  architectureJSON.resourceMetadata = architectureJSON.state.resources_yaml
-    ? yaml.parse(architectureJSON.state.resources_yaml).resourceMetadata
-    : {};
-  console.log("architectureJSON: ", architectureJSON);
-
-  return architectureJSON as Architecture;
+    );
+    const architectureJSON = JSON.parse(new TextDecoder().decode(data));
+    architectureJSON.views = new Map<ArchitectureView, TopologyGraph>([
+      [
+        ArchitectureView.DataFlow,
+        parse(architectureJSON.state.topology_yaml as string)
+          .values()
+          .next().value,
+      ],
+    ]);
+    architectureJSON.resourceMetadata = architectureJSON.state.resources_yaml
+      ? yaml.parse(architectureJSON.state.resources_yaml).resourceMetadata
+      : {};
+    console.log("architectureJSON: ", architectureJSON);
+  
+    return architectureJSON as Architecture;
+  } catch (error) {
+    console.log("error: ", error);
+    return {} as Architecture;
+  }
 }

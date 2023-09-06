@@ -16,6 +16,7 @@ class Architecture(Base):
     created_at: Mapped[int]
     updated_by: Mapped[str]
     engine_version: Mapped[float]
+    decisions: Mapped[List[dict[str, Any]]] = mapped_column(nullable=True, type_=JSON)
     state_location: Mapped[str] = mapped_column(nullable=True)
     iac_location: Mapped[str] = mapped_column(nullable=True)
 

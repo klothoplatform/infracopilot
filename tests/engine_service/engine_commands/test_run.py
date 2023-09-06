@@ -31,6 +31,12 @@ class TestRunEngine(aiounittest.AsyncTestCase):
         with open(dir / "resources.yaml", "w") as file:
             file.write("resources_yaml")
 
+        with open(dir / "decisions.json", "w") as file:
+            file.write("[]")
+
+        with open(dir / "failures.json", "w") as file:
+            file.write("[]")
+
     @mock.patch(
         "src.engine_service.engine_commands.run.run_engine_command",
         new_callable=mock.AsyncMock,
@@ -52,7 +58,7 @@ class TestRunEngine(aiounittest.AsyncTestCase):
             "",
         )
         mock_eng_cmd.side_effect = self.run_engine_side_effect(self.temp_dir.name)
-        await run_engine(request)
+        result = await run_engine(request)
         mock_temp_dir.assert_called_once()
         mock_eng_cmd.assert_called_once_with(
             "Run",
@@ -65,4 +71,14 @@ class TestRunEngine(aiounittest.AsyncTestCase):
             "--output-dir",
             self.temp_dir.name,
             cwd=PosixPath(self.temp_dir.name),
+        )
+        self.assertEqual(
+            result,
+            RunEngineResult(
+                resources_yaml="resources_yaml",
+                topology_yaml="topology_yaml",
+                iac_topology="iac_topology",
+                decisions_json=[],
+                failures_json=[],
+            ),
         )

@@ -24,7 +24,7 @@ export default function ConfigTable() {
     if (
       architecture === undefined ||
       !(architecture.resourceMetadata instanceof Array) ||
-      selectedNode === undefined
+      selectedResource === undefined
     ) {
       setRows([]);
       return;

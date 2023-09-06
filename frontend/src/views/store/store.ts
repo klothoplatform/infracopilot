@@ -41,6 +41,7 @@ import {
   RightSidebarTabs,
 } from "../../shared/sidebar-nav";
 import { shallow } from "zustand/shallow";
+import {Decision} from "../../shared/architecture/Decision";
 
 type WithSelectors<S> = S extends {
   getState: () => infer T;
@@ -66,6 +67,8 @@ export interface EditorState {
   layoutOptions: LayoutOptions;
   nodes: Node[];
   edges: Edge[];
+  decisions: Decision[];
+  failures: any[];
   onNodesChange: OnNodesChange;
   onEdgesChange: OnEdgesChange;
   deletingNodes: boolean; // used for skipping layout refresh on a node's dependent edges
@@ -104,6 +107,8 @@ const useApplicationStoreBase = createWithEqualityFn<EditorState>()(
     errors: [],
     nodes: [],
     edges: [],
+    decisions: [],
+    failures: [],
     selectedNode: undefined,
     selectedEdge: undefined,
     selectedResource: undefined,
@@ -193,6 +198,7 @@ const useApplicationStoreBase = createWithEqualityFn<EditorState>()(
       if (get().selectedNode === nodeId) {
         return;
       }
+
       get().deselectNode(get().selectedNode ?? "");
 
       set(
@@ -237,11 +243,10 @@ const useApplicationStoreBase = createWithEqualityFn<EditorState>()(
               resourceId.toKlothoIdString(),
           )
         : undefined;
-      if (!node) {
-        get().deselectNode(get().selectedNode ?? "");
-      } else {
+      if (node) {
         get().selectNode(node.id);
       }
+      console.log("selecting resource", resourceId)
       set(
         {
           selectedResource: resourceId,
@@ -251,6 +256,7 @@ const useApplicationStoreBase = createWithEqualityFn<EditorState>()(
       );
     },
     deselectResource: (resourceId: NodeId) => {
+      console.log("deselecting resource", resourceId);
       if (
         get().selectedResource?.toKlothoIdString() ===
         resourceId.toKlothoIdString()
@@ -278,6 +284,8 @@ const useApplicationStoreBase = createWithEqualityFn<EditorState>()(
           architecture: architecture,
           nodes,
           edges,
+          decisions: [],
+          failures: [],
         },
         false,
         "editor/loadArchitecture",
@@ -396,15 +404,22 @@ const useApplicationStoreBase = createWithEqualityFn<EditorState>()(
           newArchitecture,
           ArchitectureView.DataFlow,
         );
+        console.log(elements)
         const result = await autoLayout(
           elements.nodes,
           elements.edges,
           get().layoutOptions,
         );
+        console.log("new nodes", result.nodes)
+        console.log("new edges", result.edges)
+        console.log(newArchitecture.decisions)
+        const decision = new Decision(get().unappliedConstraints, newArchitecture.decisions)
         set(
           {
             nodes: result.nodes,
             edges: result.edges,
+            decisions: newArchitecture.decisions ? [decision].concat(get().decisions) : get().decisions,
+            failures: newArchitecture.failures ? newArchitecture.failures.concat(get().failures) : get().failures,
             unappliedConstraints: [],
             canApplyConstraints: true,
             architecture: newArchitecture,
@@ -412,7 +427,7 @@ const useApplicationStoreBase = createWithEqualityFn<EditorState>()(
           false,
           "editor/applyConstraints:end",
         );
-        console.log("new nodes", result.nodes);
+        console.log("new nodes", elements.nodes);
       } catch (e) {
         set(
           {

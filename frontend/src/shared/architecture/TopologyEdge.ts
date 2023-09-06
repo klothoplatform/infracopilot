@@ -1,10 +1,14 @@
 import type { NodeId } from "./TopologyNode";
 
+export interface TopologyEdgeData {
+  path?: NodeId[];
+}
+
 class TopologyEdge {
   constructor(
     public sourceId: NodeId,
     public targetId: NodeId,
-    public vizMetadata?: object,
+    public vizMetadata?: TopologyEdgeData,
   ) {}
 
   public get source(): string {

@@ -47,6 +47,7 @@ async def copilot_new_architecture(body: CreateArchitectureRequest):
             created_at=int(time.time()),
             updated_by=body.owner,
             engine_version=body.engine_version,
+            decisions=[],
         )
         await add_architecture(architecture)
         return JSONResponse(content={"id": id})

@@ -3,6 +3,7 @@ const UNKNOWN_PROVIDER = "UNKNOWN";
 export interface TopologyNodeData {
   parent?: NodeId;
   isNew?: boolean;
+  children?: NodeId[];
 }
 
 export class TopologyNode {
@@ -56,5 +57,19 @@ export class NodeId {
       nodeId,
       provider ?? defaultProvider ?? UNKNOWN_PROVIDER,
     );
+  }
+
+  public static fromId(input:string): NodeId {
+    const chunks = input.split(":")
+    if (chunks.length == 4) {
+      const [provider, type, namespace, name] = chunks;
+    return new NodeId(type, namespace, name, provider);
+    } else if (chunks.length == 3) {
+      const [provider, type, name] = chunks;
+      return new NodeId(type, "", name, provider);
+    } else {
+      throw new Error(`Invalid node id: ${input}`)
+    }
+    
   }
 }

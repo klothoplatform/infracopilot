@@ -41,31 +41,31 @@ const EditorSidebarRight: FC = function () {
 
 function SidebarTabs() {
   const tabsRef = useRef<TabsRef>(null);
-  const { rightSidebarSelector, navigateRightSidebar } = useApplicationStore();
+  const { rightSidebarSelector, navigateRightSidebar, decisions, failures } = useApplicationStore();
 
   useEffect(() => {
     tabsRef.current?.setActiveTab(rightSidebarSelector[0]);
   }, [rightSidebarSelector]);
 
-  const notifications = [
-    {
-      type: "success",
-      title: "I added aws:lambda_function:lambda_01 to the architecture.",
-      details: "I also added the following resources: aws:iam:role:role_01",
-    },
-    {
-      type: "failure",
-      title: "I was unable to do that for you.",
-    },
-    {
-      type: "warning",
-      title: "kubernetes:pod:pod_01 has no containers configured",
-    },
-    {
-      type: "info",
-      title: "Here's some info!",
-    },
-  ] as EventProps[];
+
+  let notifications = [] as EventProps[]
+  if (failures.length > 0) {
+    notifications = failures.map((failure) => {
+      return {
+        type: "failure",
+        title: failure,
+      }
+    })
+  } else {
+     decisions.forEach((decision) => {
+        notifications.push({
+          type: "success",
+          title: decision.formatTitle(),
+          details: decision.formatInfo(),
+        })
+      
+    })
+  }
 
   return (
     <>
@@ -176,7 +176,7 @@ const EventNotification: FC<EventProps> = function ({ type, title, details }) {
 
       {details && (
         <div className="mx-2 flex border-[1px] border-t-0 border-gray-300 bg-white py-2 pl-4 pr-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-          {details}
+          {details.split(/\n/).map(line => <React.Fragment key={line}>{line}<br/></React.Fragment>)}
         </div>
       )}
     </div>

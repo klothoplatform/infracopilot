@@ -17,6 +17,8 @@ import reducer from "../../helpers/reducer";
 import { NodeId } from "../architecture/TopologyNode";
 import { BiEdit } from "react-icons/bi";
 import classNames from "classnames";
+import { Button } from "flowbite-react";
+import { RightSidebarDetailsTabs, RightSidebarTabSelector, RightSidebarTabs } from "../../shared/sidebar-nav";
 
 interface ResourceNodeProps {
   id: string;
@@ -27,7 +29,7 @@ interface ResourceNodeProps {
 const connectionNodeIdSelector = (state: any) => state.connectionNodeId;
 
 const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
-  const { architecture, selectedNode, replaceResource } = useApplicationStore();
+  const { architecture, selectedNode, replaceResource, selectNode, selectResource, navigateRightSidebar, rightSidebarSelector } = useApplicationStore();
 
   const connectionNodeId = useStore(connectionNodeIdSelector);
   const [isEditingLabel, setIsEditingLabel] = useState(false);
@@ -61,8 +63,71 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
     });
   }, [updateNodeInternals, id, data, isConnectable]);
 
+
+    const DotsHorizontal = (resourceId: NodeId) => {
+        return (
+            <button type="button" onClick={() => {
+                selectResource(resourceId)
+                navigateRightSidebar([
+                  RightSidebarTabs.Details,
+                  RightSidebarDetailsTabs.AdditionalResources,
+                ]);
+              }}>
+              {/* eslint-disable-next-line tailwindcss/classnames-order */}
+    <svg className="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 3">
+        <path d="M2 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Zm6.041 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM14 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Z"/>
+      </svg>
+            </button>
+        )
+    }
+
+  const children = useMemo(() => {
+    if (data.vizMetadata?.children === undefined) {
+      return
+    }
+    const childrenComponents =  data.vizMetadata?.children.map((element: NodeId) => {
+      let icon = getIcon(
+        element.provider,
+        element.type,
+        {
+          height: "70%",
+          width: "70%",
+          key: element.name
+        },
+        data)
+        const clone = React.cloneElement(icon, {key: element.toKlothoIdString()})
+        return (
+          <div key={element.name} style={{display: "inline-block", width: "33%"}}>
+            <button type="button" onClick={() => {
+              selectResource(element)
+              navigateRightSidebar([
+                RightSidebarTabs.Details,
+                RightSidebarDetailsTabs.Config,
+              ]);
+            }}>
+                {clone}              
+            </button>
+            
+          </div>
+          )
+        
+        })
+        const dotsComponent = (
+          /* eslint-disable jsx-a11y/click-events-have-key-events */
+          <div key={data.resourceId.name + "dots"} style={{display: "inline-block", width: "33%"}} >
+            {DotsHorizontal(data.resourceId)}
+          </div>
+        )
+        if (childrenComponents === undefined) {
+          return
+        }
+        return [...childrenComponents.slice(0,2), dotsComponent]
+      }, [data.vizMetadata?.children, selectNode])
+        
+
   return (
-    // eslint-disable-next-line jsx-a11y/mouse-events-have-key-events,tailwindcss/no-custom-classname
+    <React.Fragment>
+    {/* eslint-disable-next-line jsx-a11y/mouse-events-have-key-events,tailwindcss/no-custom-classname */}
     <div
       className="resource-node"
       onMouseOver={(e) => {
@@ -82,13 +147,21 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
           type="target"
         />
       )}
-      <div className="flex max-h-[200px] w-[100px] flex-col items-center">
+      <div className="flex max-h-[200px] w-[100px] flex-col items-center" >
         {getIcon(
           data.resourceId.provider,
           data.resourceId.type,
           {
             height: "100%",
             width: "100%",
+            onClick: () => {
+              selectNode(id)
+              selectResource(data.resourceId)
+              navigateRightSidebar([
+                RightSidebarTabs.Details,
+                RightSidebarDetailsTabs.Config,
+              ]);
+            }
           },
           data,
         )}
@@ -151,9 +224,13 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
                 : `${data.resourceId.provider}:${data.resourceId.type}`}
             </i>
           </div>
+         
         </div>
       </div>
-    </div>
+      </div>
+
+      {children}
+      </React.Fragment>
   );
 });
 ResourceNode.displayName = "ResourceNode";

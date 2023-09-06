@@ -3,8 +3,10 @@ import { parse } from "./TopologyGraph";
 import { sampleGraphYaml } from "./Samples";
 import type { Edge, Node } from "reactflow";
 import type { TopologyNode } from "./TopologyNode";
+import {NodeId} from "./TopologyNode";
 import { NodeType } from "../reactflow/NodesTypes";
 import type TopologyEdge from "./TopologyEdge";
+import yaml from "yaml";
 
 export enum ArchitectureView {
   DataFlow = "DataFlow",
@@ -24,11 +26,36 @@ export interface Architecture {
     resources_yaml: string;
     topology_yaml: string;
   };
+  decisions: any[];
+  failures: any[];
   version: number;
   name: string;
   owner: string;
   views: Map<ArchitectureView, TopologyGraph>;
   resourceMetadata: object;
+}
+
+export interface GraphEdge {
+  source: string;
+  destination: string
+}
+
+
+export function getDownstreamResources(architecture: Architecture, resourceId: NodeId): NodeId[] {
+  const result: NodeId[] = []
+  if (architecture.state?.resources_yaml === undefined) {
+    return [];
+  }
+  const edges = yaml.parse(architecture.state.resources_yaml).edges
+  if (!edges) {
+    return [];
+  }
+  edges.forEach((edge: GraphEdge) => {
+    if (edge.source === resourceId.toKlothoIdString()) {
+      result.push(NodeId.fromId(edge.destination))
+    }
+  })
+  return result
 }
 
 /**

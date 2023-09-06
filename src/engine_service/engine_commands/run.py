@@ -1,11 +1,11 @@
-import json
+import jsons
 import os
 import re
 import subprocess
 import tempfile
 from io import BytesIO
 from pathlib import Path
-from typing import List, NamedTuple
+from typing import List, NamedTuple, Dict
 
 import yaml
 
@@ -25,6 +25,8 @@ class RunEngineResult(NamedTuple):
     resources_yaml: str
     topology_yaml: str
     iac_topology: str
+    decisions_json: List[Dict] = []
+    failures_json: List[Dict] = []
 
 
 async def run_engine(request: RunEngineRequest) -> RunEngineResult:
@@ -69,6 +71,8 @@ async def run_engine(request: RunEngineRequest) -> RunEngineResult:
                 cwd=dir,
             )
 
+            print(os.listdir(dir))
+
             with open(dir / "dataflow-topology.yaml") as file:
                 topology_yaml = file.read()
 
@@ -78,10 +82,20 @@ async def run_engine(request: RunEngineRequest) -> RunEngineResult:
             with open(dir / "resources.yaml") as file:
                 resources_yaml = file.read()
 
+            with open(dir / "decisions.json") as file:
+                raw_str = file.read()
+                decisions_json = jsons.loads(raw_str)
+
+            with open(dir / "failures.json") as file:
+                raw_str = file.read()
+                failures_json = jsons.loads(raw_str)
+
             return RunEngineResult(
                 resources_yaml=resources_yaml,
                 topology_yaml=topology_yaml,
                 iac_topology=iac_topology,
+                decisions_json=decisions_json,
+                failures_json=failures_json,
             )
     except EngineException:
         raise
