@@ -3,6 +3,7 @@ import type {
   Connection,
   Edge,
   EdgeChange,
+  EdgeSelectionChange,
   Node,
   NodeChange,
   OnConnect,
@@ -29,6 +30,7 @@ import {
   ApplicationConstraint,
   ConstraintOperator,
   EdgeConstraint,
+  parseConstraints,
 } from "../../shared/architecture/Constraints";
 import { applyConstraints } from "../../api/ApplyConstraints";
 import TopologyEdge from "../../shared/architecture/TopologyEdge";
@@ -41,7 +43,7 @@ import {
   RightSidebarTabs,
 } from "../../shared/sidebar-nav";
 import { shallow } from "zustand/shallow";
-import {Decision} from "../../shared/architecture/Decision";
+import {Decision, Failure} from "../../shared/architecture/Decision";
 
 type WithSelectors<S> = S extends {
   getState: () => infer T;
@@ -68,7 +70,7 @@ export interface EditorState {
   nodes: Node[];
   edges: Edge[];
   decisions: Decision[];
-  failures: any[];
+  failures: Failure[];
   onNodesChange: OnNodesChange;
   onEdgesChange: OnEdgesChange;
   deletingNodes: boolean; // used for skipping layout refresh on a node's dependent edges
@@ -154,7 +156,6 @@ const useApplicationStoreBase = createWithEqualityFn<EditorState>()(
           ...edgeConstraints,
         ],
       });
-      console.log("constraints", get().unappliedConstraints);
       get().applyConstraints();
       get().refreshLayout();
     },
@@ -198,7 +199,7 @@ const useApplicationStoreBase = createWithEqualityFn<EditorState>()(
       if (get().selectedNode === nodeId) {
         return;
       }
-
+      get().deselectEdge(get().selectedEdge ?? "");
       get().deselectNode(get().selectedNode ?? "");
 
       set(
@@ -221,6 +222,7 @@ const useApplicationStoreBase = createWithEqualityFn<EditorState>()(
       console.log("selected node", nodeId);
     },
     deselectNode: (nodeId: string) => {
+      console.log("deselect ", nodeId)
       if (!nodeId) {
         return;
       }
@@ -246,7 +248,6 @@ const useApplicationStoreBase = createWithEqualityFn<EditorState>()(
       if (node) {
         get().selectNode(node.id);
       }
-      console.log("selecting resource", resourceId)
       set(
         {
           selectedResource: resourceId,
@@ -256,7 +257,6 @@ const useApplicationStoreBase = createWithEqualityFn<EditorState>()(
       );
     },
     deselectResource: (resourceId: NodeId) => {
-      console.log("deselecting resource", resourceId);
       if (
         get().selectedResource?.toKlothoIdString() ===
         resourceId.toKlothoIdString()
@@ -272,25 +272,26 @@ const useApplicationStoreBase = createWithEqualityFn<EditorState>()(
     },
     architecture: {} as Architecture,
     loadArchitecture: async (id: string, version?: number) => {
+      console.log(get().failures)
       const architecture = await getArchitecture(id, version);
       const elements = toReactFlowElements(
         architecture,
         ArchitectureView.DataFlow,
       );
       const { nodes, edges } = await autoLayout(elements.nodes, elements.edges);
-      console.log("elements", elements);
+      console.log(get().failures)
       set(
         {
           architecture: architecture,
           nodes,
           edges,
-          decisions: [],
-          failures: [],
+          decisions: architecture.decisions.map((d) => new Decision(parseConstraints(d.constraints), d.decisions)),
         },
         false,
         "editor/loadArchitecture",
       );
       console.log("architecture loaded");
+      console.log(get().failures)
     },
     refreshLayout: async () => {
       try {
@@ -370,7 +371,6 @@ const useApplicationStoreBase = createWithEqualityFn<EditorState>()(
       set({
         unappliedConstraints: [...get().unappliedConstraints, ...constraints],
       });
-      console.log("constraints", get().unappliedConstraints);
       await get().applyConstraints();
     },
     unappliedConstraints: [],
@@ -393,33 +393,43 @@ const useApplicationStoreBase = createWithEqualityFn<EditorState>()(
           "editor/applyConstraints:start",
         );
         console.log("applying constraints", get().unappliedConstraints);
-        console.log("architecture", architecture);
         const newArchitecture = await applyConstraints(
           architecture.id,
           architecture.version,
           get().unappliedConstraints,
         );
+        if (newArchitecture.failures.length > 0) {
+          console.log(newArchitecture.failures)
+          const failures = [new Failure(get().unappliedConstraints, newArchitecture.failures)]
+          console.log("failures that we should be setting", failures)
+          await get().loadArchitecture(get().architecture.id);
+          set({
+            unappliedConstraints: [],
+            canApplyConstraints: true,
+            failures: failures,
+          },
+          false,
+          "editor/applyConstraints:error",
+          )
+          return
+        }
         console.log("new architecture", newArchitecture);
         const elements = toReactFlowElements(
           newArchitecture,
           ArchitectureView.DataFlow,
         );
-        console.log(elements)
         const result = await autoLayout(
           elements.nodes,
           elements.edges,
           get().layoutOptions,
         );
-        console.log("new nodes", result.nodes)
-        console.log("new edges", result.edges)
-        console.log(newArchitecture.decisions)
         const decision = new Decision(get().unappliedConstraints, newArchitecture.decisions)
         set(
           {
             nodes: result.nodes,
             edges: result.edges,
             decisions: newArchitecture.decisions ? [decision].concat(get().decisions) : get().decisions,
-            failures: newArchitecture.failures ? newArchitecture.failures.concat(get().failures) : get().failures,
+            failures: [],
             unappliedConstraints: [],
             canApplyConstraints: true,
             architecture: newArchitecture,
@@ -429,15 +439,17 @@ const useApplicationStoreBase = createWithEqualityFn<EditorState>()(
         );
         console.log("new nodes", elements.nodes);
       } catch (e) {
+        console.error("error applying constraints", e);
+        await get().loadArchitecture(get().architecture.id);
         set(
           {
             unappliedConstraints: [],
             canApplyConstraints: true,
+            failures: [new Failure(get().unappliedConstraints, [{cause: "The Klotho engine ran into an unexpected issue, the team was notified and is investigating, please try again. If this keeps occurring please join us on discord"}])]
           },
           false,
           "editor/applyConstraints:error",
         );
-        throw e;
       } finally {
         get().navigateRightSidebar([
           RightSidebarTabs.Changes,
@@ -462,6 +474,12 @@ const useApplicationStoreBase = createWithEqualityFn<EditorState>()(
     },
     selectEdge: (edgeId: string) => {
       get().deselectEdge(get().selectedEdge ?? "");
+      get().deselectNode(get().selectedNode ?? "");
+      get().deselectResource(get().selectedResource ?? NodeId.fromString(""));
+      get().navigateRightSidebar([
+        RightSidebarTabs.Details,
+        RightSidebarDetailsTabs.AdditionalResources,
+      ]);
       set({
         edges: get().edges.map((edge) => {
           if (edge.id === edgeId) {
@@ -469,6 +487,7 @@ const useApplicationStoreBase = createWithEqualityFn<EditorState>()(
           }
           return edge;
         }),
+        selectedEdge: edgeId,
       });
     },
     replaceResource: async (oldId: NodeId, newId: NodeId) => {
@@ -496,7 +515,6 @@ const useApplicationStoreBase = createWithEqualityFn<EditorState>()(
       RightSidebarDetailsTabs.Config,
     ],
     navigateRightSidebar: (selector: RightSidebarTabSelector) => {
-      console.log("navigating right sidebar", selector);
       set(
         {
           rightSidebarSelector: selector,

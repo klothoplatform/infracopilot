@@ -134,7 +134,9 @@ function getNodesFromGraph(
 }
 
 function getEdgesFromGraph(graph: TopologyGraph): Edge[] {
+  console.log("graph edges: ", graph.Edges)
   return graph.Edges.map((edge: TopologyEdge) => {
+    console.log("looking for vizMetadata edge: ", edge)
     return {
       id: `${edge.source}-${edge.target}`,
       source: edge.source,

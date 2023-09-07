@@ -31,11 +31,19 @@ class RunEngineResult(NamedTuple):
     failures_json: List[Dict] = []
 
 
+class FailedRunException(Exception):
+    failures_json: List[Dict]
+
+    def __init__(self, message, failures_json):
+        super().__init__(message)
+        self.failures_json = failures_json
+
+
 async def run_engine(request: RunEngineRequest) -> RunEngineResult:
     out_logs = None
     err_logs = None
-    try:
-        with tempfile.TemporaryDirectory() as tmp_dir:
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        try:
             dir = Path(tmp_dir)
 
             args = []
@@ -73,8 +81,6 @@ async def run_engine(request: RunEngineRequest) -> RunEngineResult:
                 cwd=dir,
             )
 
-            print(os.listdir(dir))
-
             with open(dir / "dataflow-topology.yaml") as file:
                 topology_yaml = file.read()
 
@@ -99,12 +105,20 @@ async def run_engine(request: RunEngineRequest) -> RunEngineResult:
                 decisions_json=decisions_json,
                 failures_json=failures_json,
             )
-    except EngineException:
-        raise
-    except Exception as e:
-        log.error(f"Error running engine: {e}. Constraints: {request.constraints}")
-        raise EngineException(
-            message="Error running engine",
-            stdout=out_logs,
-            stderr=err_logs,
-        )
+        except EngineException:
+            print(os.listdir(tmp_dir))
+            if "failures.json" in os.listdir(tmp_dir):
+                with open(dir / "failures.json") as file:
+                    raw_str = file.read()
+                    failures_json = jsons.loads(raw_str)
+                raise FailedRunException(
+                    "Could not solve graph", failures_json=failures_json
+                )
+            raise
+        except Exception as e:
+            log.error(f"Error running engine: {e}. Constraints: {request.constraints}")
+            raise EngineException(
+                message="Error running engine",
+                stdout=out_logs,
+                stderr=err_logs,
+            )

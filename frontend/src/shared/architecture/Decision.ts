@@ -7,12 +7,9 @@ export class Decision {
 
     constructor(constraints: Constraint[], json: any[]) {
         this.constraints = constraints
-        console.log("json: ", json)
         let res: any[] = []
         if (json != undefined) {
             json.forEach(j => {
-                console.log("j: ", j)
-                console.log("j.resources: ", j.Resources)
                 if (j.Resources == undefined) {
                     return
                 }
@@ -27,7 +24,6 @@ export class Decision {
     }
 
     formatInfo(): string {
-        console.log(this.resources)
         const resourcesMap = this.resources.map(res => {
             const id = NodeId.fromId(res)
             const resType = id.type
@@ -45,5 +41,32 @@ export class Decision {
             return infostr + "\n• and " + (resourcesMap.length - 4) + " more"
         }
         return infostr
+    }
+}
+
+export class Failure {
+    constraints: Constraint[]
+    cause: string[]
+
+    constructor(constraints: Constraint[], json: any[]) {
+        this.constraints = constraints
+        let cause: string[] = []
+        if (json != undefined) {
+            json.forEach(j => {
+                if (j.cause == undefined) {
+                    return
+                }
+                cause.push(j.cause)
+            })
+        }
+        this.cause = cause
+    }
+
+    formatTitle(): string {
+        return this.constraints.map(c => c.tofailureMessage()).join(", ")
+    }
+
+    formatInfo(): string {
+        return this.cause.map(c => "• " + c).join("\n")
     }
 }

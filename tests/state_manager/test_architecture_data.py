@@ -1,6 +1,7 @@
 from src.util.orm import Base, engine, session
 from src.state_manager.architecture_data import (
     Architecture,
+    get_architecture_changelog_history,
     get_architecture_latest,
     get_architecture_history,
     add_architecture,
@@ -31,6 +32,7 @@ class TestArchitectureData(aiounittest.AsyncTestCase):
                 constraints={},
                 created_at=1,
                 updated_by="bob",
+                decisions=[{"id": "test"}],
             )
         )
         self.session.add(
@@ -42,6 +44,7 @@ class TestArchitectureData(aiounittest.AsyncTestCase):
                 constraints={},
                 created_at=1,
                 updated_by="bob",
+                decisions=[{"id": "another test"}],
             )
         )
 
@@ -147,5 +150,15 @@ class TestArchitectureData(aiounittest.AsyncTestCase):
                     created_at=1,
                     updated_by="bob",
                 ),
+            ],
+        )
+
+    async def test_get_architecture_changelog_history(self):
+        history = await get_architecture_changelog_history("test")
+        self.assertEqual(
+            history,
+            [
+                {"constraints": {}, "decisions": [{"id": "test"}]},
+                {"constraints": {}, "decisions": [{"id": "another test"}]},
             ],
         )

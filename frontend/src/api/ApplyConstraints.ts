@@ -13,9 +13,9 @@ export async function applyConstraints(
   constraints: Constraint[],
 ): Promise<Architecture> {
   console.log("applyConstraints", architectureId);
-
-  try {
-    const { data } = await axios.post(
+    let data;
+    
+    const response = await axios.post(
       `/architecture/${architectureId}/run`,
       { constraints: JSON.parse(formatConstraints(constraints)) },
       {
@@ -27,8 +27,18 @@ export async function applyConstraints(
         headers: {
           accept: "application/octet-stream",
         },
+        validateStatus: (status) => status === 200 || status === 400,
       },
     );
+    data = response.data
+
+    console.log("resoibse frin apply constraints", response)
+    if (response.status === 400) {
+      console.log(new TextDecoder().decode(data))
+      const architectureJSON = JSON.parse(new TextDecoder().decode(data));
+      return architectureJSON as Architecture;
+    }
+
     const architectureJSON = JSON.parse(new TextDecoder().decode(data));
     architectureJSON.views = new Map<ArchitectureView, TopologyGraph>([
       [
@@ -44,8 +54,4 @@ export async function applyConstraints(
     console.log("architectureJSON: ", architectureJSON);
   
     return architectureJSON as Architecture;
-  } catch (error) {
-    console.log("error: ", error);
-    return {} as Architecture;
-  }
 }

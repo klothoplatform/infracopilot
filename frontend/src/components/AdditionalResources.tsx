@@ -5,30 +5,42 @@ import { useEffect, useState } from "react";
 import { getConnectedEdges } from "reactflow";
 import useApplicationStore from "../views/store/store";
 import { getIcon } from "../shared/reactflow/ResourceMappings";
-import { NodeId } from "../shared/architecture/TopologyNode";
+import type { NodeId } from "../shared/architecture/TopologyNode";
 import { UnknownIcon } from "./Icon";
 import { getDownstreamResources } from "../shared/architecture/Architecture";
 
 function AdditionalResources() {
   const [resourceRows, setResourceRows] = useState<ReactNode[]>([]);
-  const { architecture, nodes, edges, selectedResource, selectResource } =
+  const { architecture, nodes, edges, selectedResource, selectedEdge } =
     useApplicationStore();
 
   useEffect(() => {
-    if (selectedResource === undefined) {
+    console.log("un use ef", selectedEdge, selectedResource)
+    if (selectedResource === undefined && selectedEdge === undefined) {
       setResourceRows([]);
       return;
     }
 
     // TODO: use edges from the backend instead of the react flow graph
-
-
-    const connectedNodes = getDownstreamResources(architecture, selectedResource).map((node) => node.toKlothoIdString());
+    let connectedNodes: NodeId[] = []
+    if (selectedResource !== undefined) {
+      const downstreamNodes = getDownstreamResources(architecture, selectedResource);
+      console.log("downstream nodes", downstreamNodes)
+      connectedNodes = downstreamNodes
+    } else {
+      edges.filter((edge) => edge.id === selectedEdge).map((edge) => {
+        console.log("edge data", edge.data)
+        if (edge.data.vizMetadata !== undefined) {
+          console.log("edge data path", edge.data.vizMetadata.path)
+          connectedNodes = connectedNodes.concat(edge.data.vizMetadata.path)
+        }
+      });
+    }
+    console.log("connected nodes", connectedNodes)
     setResourceRows(
       connectedNodes
-        .map((nodeIdStr) => {
+        .map((nodeId) => {
           
-          const nodeId = NodeId.fromId(nodeIdStr);
           const icon = nodeId
             ? getIcon(nodeId.provider, nodeId.type, {
                 className: "w-full h-full",
@@ -44,7 +56,7 @@ function AdditionalResources() {
         })
         .filter((e) => e !== null),
     );
-  }, [nodes, edges, selectedResource]);
+  }, [nodes, edges, selectedResource, selectedEdge]);
 
   return (
     <Card className="drop-shadow-xs">

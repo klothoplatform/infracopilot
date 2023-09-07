@@ -12,6 +12,7 @@ from src.engine_service.engine_commands.get_resource_types import (
 )
 from src.guardrails_manager.guardrails_store import get_guardrails
 from src.state_manager.architecture_data import (
+    get_architecture_changelog_history,
     get_architecture_latest,
     add_architecture,
     Architecture,
@@ -42,7 +43,7 @@ async def copilot_new_architecture(body: CreateArchitectureRequest):
             id=id,
             name=body.name,
             state=0,
-            constraints={},
+            constraints=[],
             owner=body.owner,
             created_at=int(time.time()),
             updated_by=body.owner,
@@ -64,6 +65,7 @@ async def copilot_get_state(id: str, accept: Optional[str] = None):
                 f"No architecture exists for id {id}"
             )
         state = await get_state_from_fs(arch)
+        decisions = await get_architecture_changelog_history(id)
         return Response(
             headers={
                 "Content-Type": "application/octet-stream"
@@ -77,6 +79,7 @@ async def copilot_get_state(id: str, accept: Optional[str] = None):
                     "owner": arch.owner,
                     "engineVersion": arch.engine_version,
                     "version": arch.state if arch.state is not None else 0,
+                    "decisions": decisions,
                     "state": {
                         "resources_yaml": state.resources_yaml,
                         "topology_yaml": state.topology_yaml,

@@ -11,7 +11,7 @@ class Architecture(Base):
     id: Mapped[str] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(nullable=True)
     state: Mapped[int] = mapped_column(primary_key=True)
-    constraints: Mapped[dict[str, Any]] = mapped_column(type_=JSON)
+    constraints: Mapped[List[dict[str, Any]]] = mapped_column(type_=JSON)
     owner: Mapped[str]
     created_at: Mapped[int]
     updated_by: Mapped[str]
@@ -76,3 +76,14 @@ async def add_architecture(architecture: Architecture):
                 f"Architecture with id, {architecture.id}, already exists"
             )
         raise e
+
+
+async def get_architecture_changelog_history(id: str) -> List[dict[str, Any]]:
+    stmt = select(Architecture).where(Architecture.id == id)
+    results = session.execute(statement=stmt).fetchall()
+    history: List[Architecture] = [result[0] for result in results]
+    decisions: List[dict] = []
+    for h in history:
+        if h.decisions is not None and len(h.decisions) > 0:
+            decisions.append({"constraints": h.constraints, "decisions": h.decisions})
+    return decisions

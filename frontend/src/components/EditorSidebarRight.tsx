@@ -49,24 +49,28 @@ function SidebarTabs() {
 
 
   let notifications = [] as EventProps[]
+  console.log("failures", failures)
   if (failures.length > 0) {
-    notifications = failures.map((failure) => {
-      return {
-        type: "failure",
-        title: failure,
-      }
-    })
-  } else {
-     decisions.forEach((decision) => {
+    for (const failure of failures) {
+      console.log(failure, failure.cause)
+      if (failure.cause.length > 0 ) {
         notifications.push({
-          type: "success",
-          title: decision.formatTitle(),
-          details: decision.formatInfo(),
+          type: "failure",
+          title: failure.formatTitle(),
+          details: failure.formatInfo(),
         })
-      
+      }
+    }
+  } 
+  console.log(notifications)
+  decisions.forEach((decision) => {
+    notifications.push({
+      type: "success",
+      title: decision.formatTitle(),
+      details: decision.formatInfo(),
     })
-  }
-
+  
+})
   return (
     <>
       <Tabs.Group
@@ -99,7 +103,7 @@ function SidebarTabs() {
 
 const Details: FC = function () {
   const tabsRef = useRef<TabsRef>(null);
-  const { rightSidebarSelector, navigateRightSidebar, selectedResource } =
+  const { rightSidebarSelector, navigateRightSidebar, selectedResource, selectedEdge } =
     useApplicationStore();
 
   useEffect(() => {
@@ -128,11 +132,11 @@ const Details: FC = function () {
         }}
       >
         <Tabs.Item active title="Config" icon={HiCog6Tooth}>
-          <ResourceIdHeader resourceId={selectedResource} />
+          <ResourceIdHeader resourceId={selectedResource} edgeId={selectedEdge}/>
           <ConfigTable />
         </Tabs.Item>
         <Tabs.Item title="Additional Resources">
-          <ResourceIdHeader resourceId={selectedResource} />
+          <ResourceIdHeader resourceId={selectedResource} edgeId={selectedEdge}/>
           <AdditionalResources />
         </Tabs.Item>
       </Tabs.Group>
@@ -142,12 +146,13 @@ const Details: FC = function () {
 
 type ResourceIdHeaderProps = {
   resourceId?: NodeId;
+  edgeId?: string;
 };
 
-const ResourceIdHeader: FC<ResourceIdHeaderProps> = function ({ resourceId }) {
+const ResourceIdHeader: FC<ResourceIdHeaderProps> = function ({ resourceId, edgeId }) {
   return (
     <div className="mb-2 flex rounded-t-lg border-2 border-gray-100 bg-gray-50 py-4 pl-6 text-sm font-medium drop-shadow-md first:ml-0 dark:border-gray-700 dark:bg-gray-600 dark:text-white">
-      {resourceId?.toKlothoIdString() ?? "No resource selected"}
+      {resourceId?.toKlothoIdString() ?? edgeId ?? "No resource selected"}
     </div>
   );
 };

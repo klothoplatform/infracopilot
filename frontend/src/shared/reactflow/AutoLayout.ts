@@ -371,6 +371,7 @@ export async function autoLayout(
                     s.incomingShape === edge.source &&
                     s.outgoingShape === edge.target,
                 ),
+                ...edge.data
             },
             hidden: false, // we're currently hiding all edges until after they're all laid out with elk
             type: layoutOptions.flowEdgeType,

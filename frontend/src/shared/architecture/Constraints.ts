@@ -1,5 +1,5 @@
-import type { NodeId } from "./TopologyNode";
-import type TopologyEdge from "./TopologyEdge";
+import { NodeId } from "./TopologyNode";
+import TopologyEdge from "./TopologyEdge";
 
 export enum ConstraintOperator {
   MustExist = "must_exist",
@@ -22,6 +22,7 @@ export enum ConstraintScope {
 export interface Constraint {
   scope: ConstraintScope;
   toIntent: () => string;
+  tofailureMessage: () => string;
 }
 
 export type ApplicationConstraintOperators = Extract<
@@ -65,6 +66,17 @@ export class ApplicationConstraint implements Constraint {
         return `Replaced ${this.node.toKlothoIdString()} -> ${this.replacementNode?.toKlothoIdString()}`;
     }
   }
+
+  tofailureMessage(): string {
+    switch (this.operator) {
+      case ConstraintOperator.Add:
+        return `Failed to add ${this.node.toKlothoIdString()}`;
+      case ConstraintOperator.Remove:
+        return `Failed to remove ${this.node.toKlothoIdString()}`;
+      case ConstraintOperator.Replace:
+        return `Failed to replace ${this.node.toKlothoIdString()} -> ${this.replacementNode?.toKlothoIdString()}`;
+    }
+  }
 }
 
 export class ConstructConstraint implements Constraint {
@@ -80,6 +92,10 @@ export class ConstructConstraint implements Constraint {
   toIntent(): string {
     return `Expanded construct ${this.target.toKlothoIdString()}`;
   }
+
+  tofailureMessage(): string {
+    return `Failed to expand construct ${this.target.toKlothoIdString()}`;
+  }
 }
 
 export class ResourceConstraint implements Constraint {
@@ -94,6 +110,10 @@ export class ResourceConstraint implements Constraint {
 
   toIntent(): string {
         return `Configured ${this.target.toKlothoIdString()}`;
+  }
+
+  tofailureMessage(): string {
+    return `Failed to configure ${this.target.toKlothoIdString()}`;
   }
 }
 
@@ -117,6 +137,19 @@ export class EdgeConstraint implements Constraint {
         return `Added ${this.node?.toKlothoIdString()} to ${this.target.sourceId.name} -> ${this.target.targetId.name}`;
       case ConstraintOperator.MustNotContain:
         return `Removed ${this.node?.toKlothoIdString()} from ${this.target.sourceId.name} -> ${this.target.targetId.name}`;
+    }
+  }
+
+  tofailureMessage(): string {
+    switch (this.operator) {
+      case ConstraintOperator.MustExist:
+        return `Failed to connect ${this.target.sourceId.name} -> ${this.target.targetId.name}`;
+      case ConstraintOperator.MustNotExist:
+        return `Failed to disconnect ${this.target.sourceId.name} -> ${this.target.targetId.name}`;
+      case ConstraintOperator.MustContain:
+        return `Failed to add ${this.node?.toKlothoIdString()} to ${this.target.sourceId.name} -> ${this.target.targetId.name}`;
+      case ConstraintOperator.MustNotContain:
+        return `Failed to remove ${this.node?.toKlothoIdString()} from ${this.target.sourceId.name} -> ${this.target.targetId.name}`;
     }
   }
 }
@@ -165,4 +198,48 @@ export function formatConstraints(constraints: Constraint[]): string {
       }
     }),
   );
+}
+
+export function parseConstraints(constraints: any[]): Constraint[] {
+  if (!constraints) {
+    return [];
+  }
+  return constraints.map((constraint) => {
+    switch (constraint.scope) {
+      case ConstraintScope.Application:
+        return new ApplicationConstraint(
+          constraint.operator,
+          NodeId.fromString(constraint.node),
+          constraint.replacement_node
+            ? NodeId.fromString(constraint.replacement_node)
+            : undefined,
+        );
+      case ConstraintScope.Construct:
+        return new ConstructConstraint(
+          constraint.operator,
+          NodeId.fromString(constraint.target),
+          constraint.type,
+          constraint.attributes,
+        );
+      case ConstraintScope.Resource:
+        return new ResourceConstraint(
+          constraint.operator,
+          NodeId.fromString(constraint.target),
+          constraint.property,
+          constraint.value,
+        );
+      case ConstraintScope.Edge:
+        return new EdgeConstraint(
+          constraint.operator,
+          new TopologyEdge(
+            NodeId.fromString(constraint.target.source),
+            NodeId.fromString(constraint.target.target),
+          ),
+          constraint.node ? NodeId.fromString(constraint.node) : undefined,
+          constraint.attributes,
+        );
+      default:
+        throw new Error(`Unknown constraint scope: ${constraint.scope}`);
+    }
+  });
 }

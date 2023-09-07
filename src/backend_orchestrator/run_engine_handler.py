@@ -10,6 +10,7 @@ from src.backend_orchestrator.architecture_handler import (
 )
 from src.engine_service.binaries.fetcher import write_binary_to_disk, Binary
 from src.engine_service.engine_commands.run import (
+    FailedRunException,
     run_engine,
     RunEngineRequest,
 )
@@ -92,6 +93,22 @@ async def copilot_run(
                         "resources_yaml": result.resources_yaml,
                         "topology_yaml": result.topology_yaml,
                     },
+                }
+            ),
+        )
+    except FailedRunException as e:
+        print(
+            jsons.dumps(
+                {
+                    "failures": e.failures_json,
+                }
+            )
+        )
+        return Response(
+            status_code=400,
+            content=jsons.dumps(
+                {
+                    "failures": e.failures_json,
                 }
             ),
         )

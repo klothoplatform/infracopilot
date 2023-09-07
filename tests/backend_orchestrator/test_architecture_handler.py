@@ -45,7 +45,7 @@ class TestNewArchitecture(aiounittest.AsyncTestCase):
                 id="test-uuid",
                 name="test-new",
                 state=0,
-                constraints={},
+                constraints=[],
                 owner="test-owner",
                 created_at=mock.ANY,
                 updated_by="test-owner",
@@ -67,6 +67,7 @@ class TestGetState(aiounittest.AsyncTestCase):
         created_at=mock.ANY,
         updated_by="test-owner",
         engine_version=0.0,
+        decisions=[{"id": "test"}],
     )
     test_result = RunEngineResult(
         resources_yaml="test-yaml",
@@ -75,6 +76,10 @@ class TestGetState(aiounittest.AsyncTestCase):
     )
 
     @mock.patch(
+        "src.backend_orchestrator.architecture_handler.get_architecture_changelog_history",
+        new_callable=mock.AsyncMock,
+    )
+    @mock.patch(
         "src.backend_orchestrator.architecture_handler.get_architecture_latest",
         new_callable=mock.AsyncMock,
     )
@@ -82,14 +87,19 @@ class TestGetState(aiounittest.AsyncTestCase):
         "src.backend_orchestrator.architecture_handler.get_state_from_fs",
         new_callable=mock.AsyncMock,
     )
-    async def test_copilot_new_architecture(
-        self, mock_fs: mock.Mock, mock_latest: mock.Mock
+    async def test_copilot_get_state(
+        self,
+        mock_fs: mock.Mock,
+        mock_latest: mock.Mock,
+        mock_get_architecture_changelog_history: mock.Mock,
     ):
         mock_latest.return_value = self.test_architecture
         mock_fs.return_value = self.test_result
+        mock_get_architecture_changelog_history.return_value = [{"id": "test"}]
         result = await copilot_get_state(self.test_id)
         mock_fs.assert_called_once_with(self.test_architecture)
         mock_latest.assert_called_once_with(self.test_id)
+        mock_get_architecture_changelog_history.assert_called_once_with(self.test_id)
         response = jsons.loads(result.body.decode("utf-8"))
         self.assertEqual(response["id"], "test-id")
         self.assertEqual(
@@ -99,6 +109,7 @@ class TestGetState(aiounittest.AsyncTestCase):
                 "topology_yaml": "test-yaml",
             },
         )
+        self.assertEqual(response["decisions"], [{"id": "test"}])
 
 
 class TestListResourceTypes(aiounittest.AsyncTestCase):
@@ -131,7 +142,7 @@ class TestListResourceTypes(aiounittest.AsyncTestCase):
         "src.backend_orchestrator.architecture_handler.get_resource_types",
         new_callable=mock.AsyncMock,
     )
-    async def test_copilot_new_architecture(
+    async def test_copilot_list_resource_types(
         self,
         mock_get_resource_types: mock.Mock,
         mock_guardrails: mock.Mock,

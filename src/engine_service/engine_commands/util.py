@@ -92,8 +92,6 @@ async def run_iac_command(*args, **kwargs) -> tuple[str, str]:
 
     env = os.environ.copy()
 
-    print(args)
-
     cmd = [
         iac_cli_executable_path,
         *args,
