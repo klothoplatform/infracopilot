@@ -40,6 +40,7 @@ class FailedRunException(Exception):
 
 
 async def run_engine(request: RunEngineRequest) -> RunEngineResult:
+    print(request.constraints)
     out_logs = None
     err_logs = None
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -106,7 +107,6 @@ async def run_engine(request: RunEngineRequest) -> RunEngineResult:
                 failures_json=failures_json,
             )
         except EngineException:
-            print(os.listdir(tmp_dir))
             if "failures.json" in os.listdir(tmp_dir):
                 with open(dir / "failures.json") as file:
                     raw_str = file.read()
