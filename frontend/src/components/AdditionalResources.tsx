@@ -25,18 +25,14 @@ function AdditionalResources() {
     let connectedNodes: NodeId[] = []
     if (selectedResource !== undefined) {
       const downstreamNodes = getDownstreamResources(architecture, selectedResource);
-      console.log("downstream nodes", downstreamNodes)
       connectedNodes = downstreamNodes
     } else {
       edges.filter((edge) => edge.id === selectedEdge).map((edge) => {
-        console.log("edge data", edge.data)
-        if (edge.data.vizMetadata !== undefined) {
-          console.log("edge data path", edge.data.vizMetadata.path)
+        if (edge.data.vizMetadata?.path !== undefined) {
           connectedNodes = connectedNodes.concat(edge.data.vizMetadata.path)
         }
       });
     }
-    console.log("connected nodes", connectedNodes)
     setResourceRows(
       connectedNodes
         .map((nodeId) => {
