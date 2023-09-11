@@ -13,18 +13,6 @@ const EditorSidebarLeft: FC = function () {
   const { isOpenOnSmallScreens: isSidebarOpenOnSmallScreens } =
     useSidebarContext();
 
-  const [currentPage, setCurrentPage] = useState("");
-  const [isEcommerceOpen, setEcommerceOpen] = useState(true);
-  const [isUsersOpen, setUsersOpen] = useState(true);
-
-  useEffect(() => {
-    const newPage = window.location.pathname;
-
-    setCurrentPage(newPage);
-    setEcommerceOpen(newPage.includes("/e-commerce/"));
-    setUsersOpen(newPage.includes("/users/"));
-  }, [setCurrentPage, setEcommerceOpen, setUsersOpen]);
-
   return (
     <div
       className={classNames("lg:!block left-0 basis-2/12", {
@@ -57,6 +45,7 @@ const ResourceAccordions: FC = function () {
       <ResourceAccordion
         name={"AWS"}
         icon={<AwsLogo width={"20px"} height={"20px"} />}
+        open
       />
       <ResourceAccordion
         name={"Kubernetes"}

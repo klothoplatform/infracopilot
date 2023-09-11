@@ -8,6 +8,7 @@ import "./ResourceAccordion.scss";
 interface DragSubmenuOptions {
   name: string;
   icon: React.ReactElement;
+  open?: boolean;
 }
 
 interface ResourceOption {
@@ -22,12 +23,16 @@ type ResourceCardProps = {
   onDragStart: (event: any, nodeType: string) => void;
 };
 
-export default function ResourceAccordion({ name, icon }: DragSubmenuOptions) {
+export default function ResourceAccordion({
+  name,
+  icon,
+  open,
+}: DragSubmenuOptions) {
   const provider = name.toLowerCase();
   const mappings = typeMappings.get(provider);
   let options: ResourceOption[] = [];
 
-  const [isOpen, setIsOpen] = React.useState(false);
+  const [isOpen, setIsOpen] = React.useState(open);
 
   if (mappings) {
     options = Array.from(mappings.entries()).map(([type, mapping]) => {
