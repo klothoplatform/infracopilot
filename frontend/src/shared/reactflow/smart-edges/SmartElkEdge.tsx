@@ -1,6 +1,6 @@
 import React from "react";
 import type { EdgeProps, Node } from "reactflow";
-import { BaseEdge, BezierEdge } from "reactflow";
+import { BaseEdge, BezierEdge, EdgeLabelRenderer } from "reactflow";
 
 import type { ElkEdgeSection } from "elkjs/lib/elk.bundled";
 import type { SVGDrawFunction } from "./drawSvgPath";
@@ -27,6 +27,8 @@ export interface GetSmartEdgeReturn {
   svgPathString: string;
   edgeCenterX: number;
   edgeCenterY: number;
+  labelX: number;
+  labelY: number;
 }
 
 export interface GetSmartEdgeOptions {
@@ -124,28 +126,102 @@ export const getSmartEdge = <NodeDataType = unknown,>({
     // Finally, we can use the graph path to draw the edge
     const svgPathString = drawEdge(graphPath);
 
-    //TODO: calculate edge center based on our updated elk path logic
-
-    // // Compute the edge's middle point using the full path, so users can use
-    // // it to position their custom labels
-    // const index = Math.floor(fullPath.length / 2);
-    // const middlePoint = fullPath[index];
-    // const [middleX, middleY] = middlePoint;
-    // const { x: edgeCenterX, y: edgeCenterY } = gridToGraphPoint(
-    //   { x: middleX, y: middleY },
-    //   graphBox.xMin,
-    //   graphBox.yMin,
-    //   gridRatio
-    // );
-
-    const edgeCenterX = 0,
-      edgeCenterY = 0;
-    return { svgPathString, edgeCenterX, edgeCenterY };
+    // Compute the edge's middle point using the full path, so users can use
+    // it to position their custom labels
+    const edgeCenterX =
+      edgeSection.minX + (edgeSection.maxX - edgeSection.minX) / 2;
+    const edgeCenterY =
+      edgeSection.minY + (edgeSection.maxY - edgeSection.minY) / 2;
+    console.log(edgeSection.id);
+    const labelPosition = positionLabel(edgeCenterX, graphPath);
+    return {
+      svgPathString,
+      edgeCenterX,
+      edgeCenterY,
+      labelX: labelPosition.x,
+      labelY: labelPosition.y,
+    };
   } catch (e) {
-    console.log(e);
+    console.debug(e);
     return null;
   }
 };
+
+type Point = {
+  x: number;
+  y: number;
+};
+
+function positionLabel(x: number, path: number[][]): Point {
+  // find the closest point on the path to the x coordinate
+  const closestPoint = path.reduce(
+    (closest, point, currentIndex) => {
+      const distance = Math.abs(point[0] - x);
+      if (distance < closest.distance) {
+        return { point, distance, currentIndex };
+      }
+      return closest;
+    },
+    { point: path[0], distance: Infinity, currentIndex: 0 },
+  );
+
+  // find the other point on the segment closest to the x coordinate
+  let oppositePoint = path[closestPoint.currentIndex + 1];
+  if (x < closestPoint.point[0]) {
+    oppositePoint = path[closestPoint.currentIndex - 1];
+  }
+
+  // find the direction of the segment
+  const segmentDirection = findSegmentDirection(
+    closestPoint.point,
+    oppositePoint,
+  );
+  console.log({
+    closestPoint,
+    oppositePoint,
+    segmentDirection,
+  });
+  // find the y coordinate of the label
+  switch (segmentDirection) {
+    case "ascending":
+      return {
+        x:
+          closestPoint.point[0] +
+          (oppositePoint[0] - closestPoint.point[0]) / 2,
+        y:
+          closestPoint.point[1] -
+          (closestPoint.point[1] - oppositePoint[1]) / 2,
+      };
+    case "descending":
+      return {
+        x:
+          closestPoint.point[0] +
+          (oppositePoint[0] - closestPoint.point[0]) / 2,
+        y:
+          closestPoint.point[1] +
+          (oppositePoint[1] - closestPoint.point[1]) / 2,
+      };
+    case "horizontal":
+    default:
+      return {
+        x,
+        y: closestPoint.point[1],
+      };
+  }
+}
+
+function findSegmentDirection(
+  pointA: number[],
+  pointB: number[],
+): "ascending" | "descending" | "horizontal" {
+  if (pointA[1] === pointB[1]) {
+    return "horizontal";
+  }
+  if (pointA[1] < pointB[1]) {
+    return "descending";
+  }
+  return "ascending";
+}
 
 function findParent(node?: Node, nodes?: Node[]): Node | undefined {
   return nodes?.find((n) => n.id === node?.parentNode);
@@ -193,10 +269,6 @@ export function SmartElkEdge<EdgeDataType = unknown, NodeDataType = unknown>({
     style,
     label,
     labelStyle,
-    labelShowBg,
-    labelBgStyle,
-    labelBgPadding,
-    labelBgBorderRadius,
     markerEnd,
     markerStart,
     interactionWidth,
@@ -221,24 +293,32 @@ export function SmartElkEdge<EdgeDataType = unknown, NodeDataType = unknown>({
     return <FallbackEdge {...edgeProps} />;
   }
 
-  const { edgeCenterX, edgeCenterY, svgPathString } = smartResponse;
+  const { svgPathString, labelX, labelY } = smartResponse;
 
   return (
-    <BaseEdge
-      path={svgPathString}
-      labelX={edgeCenterX}
-      labelY={edgeCenterY}
-      label={label}
-      labelStyle={labelStyle}
-      labelShowBg={labelShowBg}
-      labelBgStyle={labelBgStyle}
-      labelBgPadding={labelBgPadding}
-      labelBgBorderRadius={labelBgBorderRadius}
-      style={style}
-      markerStart={markerStart}
-      markerEnd={markerEnd}
-      interactionWidth={interactionWidth}
-    />
+    <>
+      <BaseEdge
+        path={svgPathString}
+        style={style}
+        markerStart={markerStart}
+        markerEnd={markerEnd}
+        interactionWidth={interactionWidth}
+      />
+
+      {label && (
+        <EdgeLabelRenderer>
+          <div
+            style={{
+              transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
+              ...labelStyle,
+            }}
+            className="absolute z-20 overflow-hidden text-ellipsis  rounded-lg border-[1px] border-gray-700 bg-gray-100 p-[10px] text-center text-xs dark:border-gray-200 dark:bg-gray-800 dark:text-gray-200"
+          >
+            {label}
+          </div>
+        </EdgeLabelRenderer>
+      )}
+    </>
   );
 }
 

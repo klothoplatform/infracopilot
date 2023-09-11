@@ -103,7 +103,7 @@ function ElkMap(input: object): string {
 function sizedLabel(
   label: ElkLabel,
   fontSize = 16,
-  minHeight = 32,
+  minHeight = 80,
   maxWidth = 600,
   maxHeight = 140,
   lineChars = 12,
@@ -237,6 +237,21 @@ export async function autoLayout(
         id: e.id,
         sources: [e.source],
         targets: [e.target],
+        // TODO: look into a more robust way to handle edge labels
+        labels: e.label
+          ? [
+              sizedLabel(
+                {
+                  text: typeof e.label === "string" ? (e.label as string) : "",
+                },
+                12,
+                32,
+                300,
+                80,
+                30,
+              ),
+            ]
+          : undefined,
       };
     });
     const elkGraph = {
@@ -371,7 +386,7 @@ export async function autoLayout(
                     s.incomingShape === edge.source &&
                     s.outgoingShape === edge.target,
                 ),
-                ...edge.data
+              ...edge.data,
             },
             hidden: false, // we're currently hiding all edges until after they're all laid out with elk
             type: layoutOptions.flowEdgeType,

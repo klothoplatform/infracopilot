@@ -3,7 +3,7 @@ import { parse } from "./TopologyGraph";
 import { sampleGraphYaml } from "./Samples";
 import type { Edge, Node } from "reactflow";
 import type { TopologyNode } from "./TopologyNode";
-import {NodeId} from "./TopologyNode";
+import { NodeId } from "./TopologyNode";
 import { NodeType } from "../reactflow/NodesTypes";
 import type TopologyEdge from "./TopologyEdge";
 import yaml from "yaml";
@@ -37,25 +37,27 @@ export interface Architecture {
 
 export interface GraphEdge {
   source: string;
-  destination: string
+  destination: string;
 }
 
-
-export function getDownstreamResources(architecture: Architecture, resourceId: NodeId): NodeId[] {
-  const result: NodeId[] = []
+export function getDownstreamResources(
+  architecture: Architecture,
+  resourceId: NodeId,
+): NodeId[] {
+  const result: NodeId[] = [];
   if (architecture.state?.resources_yaml === undefined) {
     return [];
   }
-  const edges = yaml.parse(architecture.state.resources_yaml).edges
+  const edges = yaml.parse(architecture.state.resources_yaml).edges;
   if (!edges) {
     return [];
   }
   edges.forEach((edge: GraphEdge) => {
     if (edge.source === resourceId.toKlothoIdString()) {
-      result.push(NodeId.fromId(edge.destination))
+      result.push(NodeId.fromId(edge.destination));
     }
-  })
-  return result
+  });
+  return result;
 }
 
 /**
@@ -134,9 +136,9 @@ function getNodesFromGraph(
 }
 
 function getEdgesFromGraph(graph: TopologyGraph): Edge[] {
-  console.log("graph edges: ", graph.Edges)
+  console.log("graph edges: ", graph.Edges);
   return graph.Edges.map((edge: TopologyEdge) => {
-    console.log("looking for vizMetadata edge: ", edge)
+    console.log("looking for vizMetadata edge: ", edge);
     return {
       id: `${edge.source}-${edge.target}`,
       source: edge.source,

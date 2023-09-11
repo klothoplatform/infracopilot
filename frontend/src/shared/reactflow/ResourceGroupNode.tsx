@@ -91,7 +91,7 @@ const ResourceGroupNode = memo(
             )}
           </span>
           <button
-            className="flex font-bold dark:text-white"
+            className="flex font-bold dark:text-gray-200"
             style={{
               overflowWrap: "anywhere",
               paddingTop: "6px",
