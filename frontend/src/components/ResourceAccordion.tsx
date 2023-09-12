@@ -1,14 +1,19 @@
 import type { MouseEventHandler } from "react";
 import * as React from "react";
-import { Accordion, Card, Tooltip } from "flowbite-react";
+import { useEffect } from "react";
+import type { CustomFlowbiteTheme } from "flowbite-react";
+import { Accordion, Badge, Card } from "flowbite-react";
 import { typeMappings } from "../shared/reactflow/ResourceMappings";
 
 import "./ResourceAccordion.scss";
+import { HiArrowUp } from "react-icons/hi";
+import { AiFillCaretUp } from "react-icons/ai";
 
-interface DragSubmenuOptions {
+interface ResourceAccordionOptions {
   name: string;
   icon: React.ReactElement;
   open?: boolean;
+  filter?: FilterFunction;
 }
 
 interface ResourceOption {
@@ -23,33 +28,62 @@ type ResourceCardProps = {
   onDragStart: (event: any, nodeType: string) => void;
 };
 
+export type FilterFunction = (type: string) => boolean;
+
+const theme: CustomFlowbiteTheme["accordion"] = {};
+
 export default function ResourceAccordion({
   name,
   icon,
   open,
-}: DragSubmenuOptions) {
+  filter,
+}: ResourceAccordionOptions) {
   const provider = name.toLowerCase();
   const mappings = typeMappings.get(provider);
-  let options: ResourceOption[] = [];
+  const [options, setOptions] = React.useState<ResourceOption[]>(() => {
+    return mappings
+      ? Array.from(mappings.entries())
+          .filter(([type, mapping]) => filter?.(type) ?? true)
+          .map(([type, mapping]) => {
+            return {
+              provider: provider,
+              type: type,
+              name: type
+                .split("_")
+                .map(
+                  ([firstChar, ...rest]) =>
+                    firstChar.toUpperCase() + rest.join("").toLowerCase(),
+                )
+                .join(" "),
+              icon: mapping instanceof Function ? mapping : mapping.nodeIcon,
+            };
+          })
+      : [];
+  });
+
+  useEffect(() => {
+    setOptions(
+      Array.from(mappings?.entries() ?? [])
+        .filter(([type, mapping]) => filter?.(type) ?? true)
+        .map(([type, mapping]) => {
+          return {
+            provider: provider,
+            type: type,
+            name: type
+              .split("_")
+              .map(
+                ([firstChar, ...rest]) =>
+                  firstChar.toUpperCase() + rest.join("").toLowerCase(),
+              )
+              .join(" "),
+            icon: mapping instanceof Function ? mapping : mapping.nodeIcon,
+          };
+        }),
+    );
+  }, [filter, mappings, options, provider, setOptions]);
 
   const [isOpen, setIsOpen] = React.useState(open);
-
-  if (mappings) {
-    options = Array.from(mappings.entries()).map(([type, mapping]) => {
-      return {
-        provider: provider,
-        type: type,
-        name: type
-          .split("_")
-          .map(
-            ([firstChar, ...rest]) =>
-              firstChar.toUpperCase() + rest.join("").toLowerCase(),
-          )
-          .join(" "),
-        icon: mapping instanceof Function ? mapping : mapping.nodeIcon,
-      };
-    });
-  }
+  const [showResourceCount, setShowResourceCount] = React.useState(false);
 
   const onDragStart = (event: any, nodeType: string) => {
     event.dataTransfer.setData("application/reactflow", nodeType);
@@ -60,16 +94,41 @@ export default function ResourceAccordion({
     setIsOpen(!isOpen);
   };
 
+  useEffect(() => {
+    if (filter) {
+      setShowResourceCount(true);
+      if (options?.length) {
+        if (isOpen === undefined) setIsOpen(true);
+      } else {
+        setIsOpen(undefined);
+      }
+    } else {
+      setShowResourceCount(false);
+    }
+  }, [setIsOpen, setShowResourceCount, filter, options, isOpen]);
+
   return (
-    <Accordion.Panel isOpen={isOpen}>
+    <Accordion.Panel
+      isOpen={isOpen}
+      className={"flex w-full"}
+      arrowIcon={AiFillCaretUp}
+    >
       <Accordion.Title
         aria-controls="panel1bh-content"
         id="panel1bh-header"
         onClick={onTitleClick}
+        className={"flex w-full"}
       >
-        <div className={"inline w-fit"}>
-          <span className={"inline-flex"}>{icon}</span>
-          <span className={"ml-2 inline-flex"}>{name}</span>
+        <div className={"mr-3 inline-flex w-full"}>
+          <div className={"flex h-[20px] w-[20px] basis-1/12"}>{icon}</div>
+          <div className={"ml-3 flex basis-10/12"}>{name}</div>
+          <div className={"mr-3 flex basis-1/12"}>
+            {showResourceCount && (
+              <Badge color={"purple"} className={"ml-2"}>
+                {options?.length ?? 0}
+              </Badge>
+            )}
+          </div>
         </div>
       </Accordion.Title>
       <Accordion.Content className="mb-4 overflow-y-scroll px-0">
