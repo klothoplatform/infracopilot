@@ -15,28 +15,32 @@ function AdditionalResources() {
     useApplicationStore();
 
   useEffect(() => {
-    console.log("un use ef", selectedEdge, selectedResource)
+    console.log("un use ef", selectedEdge, selectedResource);
     if (selectedResource === undefined && selectedEdge === undefined) {
       setResourceRows([]);
       return;
     }
 
     // TODO: use edges from the backend instead of the react flow graph
-    let connectedNodes: NodeId[] = []
+    let connectedNodes: NodeId[] = [];
     if (selectedResource !== undefined) {
-      const downstreamNodes = getDownstreamResources(architecture, selectedResource);
-      connectedNodes = downstreamNodes
+      const downstreamNodes = getDownstreamResources(
+        architecture,
+        selectedResource,
+      );
+      connectedNodes = downstreamNodes;
     } else {
-      edges.filter((edge) => edge.id === selectedEdge).map((edge) => {
-        if (edge.data.vizMetadata?.path !== undefined) {
-          connectedNodes = connectedNodes.concat(edge.data.vizMetadata.path)
-        }
-      });
+      edges
+        .filter((edge) => edge.id === selectedEdge)
+        .map((edge) => {
+          if (edge.data.vizMetadata?.path !== undefined) {
+            connectedNodes = connectedNodes.concat(edge.data.vizMetadata.path);
+          }
+        });
     }
     setResourceRows(
       connectedNodes
         .map((nodeId) => {
-          
           const icon = nodeId
             ? getIcon(nodeId.provider, nodeId.type, {
                 className: "w-full h-full",

@@ -167,7 +167,7 @@ export default function EditorPane() {
     fitView({ padding: 0.1, nodes: nodes, maxZoom: 1 });
   }, [fitView, nodes, edges]);
 
-  console.log("edges", edges)
+  console.log("edges", edges);
   return (
     <div
       className={"mx-2 block h-full w-full bg-gray-50 dark:bg-gray-900"}

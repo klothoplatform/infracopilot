@@ -7,10 +7,12 @@ const LogoutButton = () => {
 
   return (
     <Button
-    color={"purple"}
-    className="mr-2 flex gap-1"
-    onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
-  >
+      color={"purple"}
+      className="mr-2 flex gap-1"
+      onClick={() =>
+        logout({ logoutParams: { returnTo: window.location.origin } })
+      }
+    >
       Log Out
     </Button>
   );

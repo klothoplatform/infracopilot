@@ -59,17 +59,16 @@ export class NodeId {
     );
   }
 
-  public static fromId(input:string): NodeId {
-    const chunks = input.split(":")
+  public static fromId(input: string): NodeId {
+    const chunks = input.split(":");
     if (chunks.length == 4) {
       const [provider, type, namespace, name] = chunks;
-    return new NodeId(type, namespace, name, provider);
+      return new NodeId(type, namespace, name, provider);
     } else if (chunks.length == 3) {
       const [provider, type, name] = chunks;
       return new NodeId(type, "", name, provider);
     } else {
-      throw new Error(`Invalid node id: ${input}`)
+      throw new Error(`Invalid node id: ${input}`);
     }
-    
   }
 }

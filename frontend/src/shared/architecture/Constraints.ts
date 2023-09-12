@@ -109,7 +109,7 @@ export class ResourceConstraint implements Constraint {
   ) {}
 
   toIntent(): string {
-        return `Configured ${this.target.toKlothoIdString()}`;
+    return `Configured ${this.target.toKlothoIdString()}`;
   }
 
   tofailureMessage(): string {
@@ -134,9 +134,13 @@ export class EdgeConstraint implements Constraint {
       case ConstraintOperator.MustNotExist:
         return `Disconnected ${this.target.sourceId.name} -> ${this.target.targetId.name}`;
       case ConstraintOperator.MustContain:
-        return `Added ${this.node?.toKlothoIdString()} to ${this.target.sourceId.name} -> ${this.target.targetId.name}`;
+        return `Added ${this.node?.toKlothoIdString()} to ${
+          this.target.sourceId.name
+        } -> ${this.target.targetId.name}`;
       case ConstraintOperator.MustNotContain:
-        return `Removed ${this.node?.toKlothoIdString()} from ${this.target.sourceId.name} -> ${this.target.targetId.name}`;
+        return `Removed ${this.node?.toKlothoIdString()} from ${
+          this.target.sourceId.name
+        } -> ${this.target.targetId.name}`;
     }
   }
 
@@ -147,9 +151,13 @@ export class EdgeConstraint implements Constraint {
       case ConstraintOperator.MustNotExist:
         return `Failed to disconnect ${this.target.sourceId.name} -> ${this.target.targetId.name}`;
       case ConstraintOperator.MustContain:
-        return `Failed to add ${this.node?.toKlothoIdString()} to ${this.target.sourceId.name} -> ${this.target.targetId.name}`;
+        return `Failed to add ${this.node?.toKlothoIdString()} to ${
+          this.target.sourceId.name
+        } -> ${this.target.targetId.name}`;
       case ConstraintOperator.MustNotContain:
-        return `Failed to remove ${this.node?.toKlothoIdString()} from ${this.target.sourceId.name} -> ${this.target.targetId.name}`;
+        return `Failed to remove ${this.node?.toKlothoIdString()} from ${
+          this.target.sourceId.name
+        } -> ${this.target.targetId.name}`;
     }
   }
 }

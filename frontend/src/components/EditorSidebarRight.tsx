@@ -41,36 +41,35 @@ const EditorSidebarRight: FC = function () {
 
 function SidebarTabs() {
   const tabsRef = useRef<TabsRef>(null);
-  const { rightSidebarSelector, navigateRightSidebar, decisions, failures } = useApplicationStore();
+  const { rightSidebarSelector, navigateRightSidebar, decisions, failures } =
+    useApplicationStore();
 
   useEffect(() => {
     tabsRef.current?.setActiveTab(rightSidebarSelector[0]);
   }, [rightSidebarSelector]);
 
-
-  let notifications = [] as EventProps[]
-  console.log("failures", failures)
+  let notifications = [] as EventProps[];
+  console.log("failures", failures);
   if (failures.length > 0) {
     for (const failure of failures) {
-      console.log(failure, failure.cause)
-      if (failure.cause.length > 0 ) {
+      console.log(failure, failure.cause);
+      if (failure.cause.length > 0) {
         notifications.push({
           type: "failure",
           title: failure.formatTitle(),
           details: failure.formatInfo(),
-        })
+        });
       }
     }
-  } 
-  console.log(notifications)
+  }
+  console.log(notifications);
   decisions.forEach((decision) => {
     notifications.push({
       type: "success",
       title: decision.formatTitle(),
       details: decision.formatInfo(),
-    })
-  
-})
+    });
+  });
   return (
     <>
       <Tabs.Group
@@ -103,8 +102,12 @@ function SidebarTabs() {
 
 const Details: FC = function () {
   const tabsRef = useRef<TabsRef>(null);
-  const { rightSidebarSelector, navigateRightSidebar, selectedResource, selectedEdge } =
-    useApplicationStore();
+  const {
+    rightSidebarSelector,
+    navigateRightSidebar,
+    selectedResource,
+    selectedEdge,
+  } = useApplicationStore();
 
   useEffect(() => {
     tabsRef.current?.setActiveTab(rightSidebarSelector[1]);
@@ -132,11 +135,17 @@ const Details: FC = function () {
         }}
       >
         <Tabs.Item active title="Config" icon={HiCog6Tooth}>
-          <ResourceIdHeader resourceId={selectedResource} edgeId={selectedEdge}/>
+          <ResourceIdHeader
+            resourceId={selectedResource}
+            edgeId={selectedEdge}
+          />
           <ConfigTable />
         </Tabs.Item>
         <Tabs.Item title="Additional Resources">
-          <ResourceIdHeader resourceId={selectedResource} edgeId={selectedEdge}/>
+          <ResourceIdHeader
+            resourceId={selectedResource}
+            edgeId={selectedEdge}
+          />
           <AdditionalResources />
         </Tabs.Item>
       </Tabs.Group>
@@ -149,7 +158,10 @@ type ResourceIdHeaderProps = {
   edgeId?: string;
 };
 
-const ResourceIdHeader: FC<ResourceIdHeaderProps> = function ({ resourceId, edgeId }) {
+const ResourceIdHeader: FC<ResourceIdHeaderProps> = function ({
+  resourceId,
+  edgeId,
+}) {
   return (
     <div className="mb-2 flex rounded-t-lg border-2 border-gray-100 bg-gray-50 py-4 pl-6 text-sm font-medium drop-shadow-md first:ml-0 dark:border-gray-700 dark:bg-gray-600 dark:text-white">
       {resourceId?.toKlothoIdString() ?? edgeId ?? "No resource selected"}
@@ -181,7 +193,12 @@ const EventNotification: FC<EventProps> = function ({ type, title, details }) {
 
       {details && (
         <div className="mx-2 flex border-[1px] border-t-0 border-gray-300 bg-white py-2 pl-4 pr-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-          {details.split(/\n/).map(line => <React.Fragment key={line}>{line}<br/></React.Fragment>)}
+          {details.split(/\n/).map((line) => (
+            <React.Fragment key={line}>
+              {line}
+              <br />
+            </React.Fragment>
+          ))}
         </div>
       )}
     </div>

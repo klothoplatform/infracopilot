@@ -7,16 +7,16 @@ const LoginButton = () => {
 
   return (
     <Button
-    color={"purple"}
-    className="mr-2 flex gap-1"
-    onClick={async () => {
+      color={"purple"}
+      className="mr-2 flex gap-1"
+      onClick={async () => {
         await loginWithRedirect({
-            appState: { returnTo: window.location.origin },
-        })
-    }}
-  >
-  Log In
-  </Button>
+          appState: { returnTo: window.location.origin },
+        });
+      }}
+    >
+      Log In
+    </Button>
   );
 };
 

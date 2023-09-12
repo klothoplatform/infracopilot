@@ -43,7 +43,7 @@ import {
   RightSidebarTabs,
 } from "../../shared/sidebar-nav";
 import { shallow } from "zustand/shallow";
-import {Decision, Failure} from "../../shared/architecture/Decision";
+import { Decision, Failure } from "../../shared/architecture/Decision";
 
 type WithSelectors<S> = S extends {
   getState: () => infer T;
@@ -222,7 +222,7 @@ const useApplicationStoreBase = createWithEqualityFn<EditorState>()(
       console.log("selected node", nodeId);
     },
     deselectNode: (nodeId: string) => {
-      console.log("deselect ", nodeId)
+      console.log("deselect ", nodeId);
       if (!nodeId) {
         return;
       }
@@ -272,26 +272,28 @@ const useApplicationStoreBase = createWithEqualityFn<EditorState>()(
     },
     architecture: {} as Architecture,
     loadArchitecture: async (id: string, version?: number) => {
-      console.log(get().failures)
+      console.log(get().failures);
       const architecture = await getArchitecture(id, version);
       const elements = toReactFlowElements(
         architecture,
         ArchitectureView.DataFlow,
       );
       const { nodes, edges } = await autoLayout(elements.nodes, elements.edges);
-      console.log(get().failures)
+      console.log(get().failures);
       set(
         {
           architecture: architecture,
           nodes,
           edges,
-          decisions: architecture.decisions.map((d) => new Decision(parseConstraints(d.constraints), d.decisions)),
+          decisions: architecture.decisions.map(
+            (d) => new Decision(parseConstraints(d.constraints), d.decisions),
+          ),
         },
         false,
         "editor/loadArchitecture",
       );
       console.log("architecture loaded");
-      console.log(get().failures)
+      console.log(get().failures);
     },
     refreshLayout: async () => {
       try {
@@ -399,19 +401,22 @@ const useApplicationStoreBase = createWithEqualityFn<EditorState>()(
           get().unappliedConstraints,
         );
         if (newArchitecture.failures.length > 0) {
-          console.log(newArchitecture.failures)
-          const failures = [new Failure(get().unappliedConstraints, newArchitecture.failures)]
-          console.log("failures that we should be setting", failures)
+          console.log(newArchitecture.failures);
+          const failures = [
+            new Failure(get().unappliedConstraints, newArchitecture.failures),
+          ];
+          console.log("failures that we should be setting", failures);
           await get().loadArchitecture(get().architecture.id);
-          set({
-            unappliedConstraints: [],
-            canApplyConstraints: true,
-            failures: failures,
-          },
-          false,
-          "editor/applyConstraints:error",
-          )
-          return
+          set(
+            {
+              unappliedConstraints: [],
+              canApplyConstraints: true,
+              failures: failures,
+            },
+            false,
+            "editor/applyConstraints:error",
+          );
+          return;
         }
         console.log("new architecture", newArchitecture);
         const elements = toReactFlowElements(
@@ -423,12 +428,17 @@ const useApplicationStoreBase = createWithEqualityFn<EditorState>()(
           elements.edges,
           get().layoutOptions,
         );
-        const decision = new Decision(get().unappliedConstraints, newArchitecture.decisions)
+        const decision = new Decision(
+          get().unappliedConstraints,
+          newArchitecture.decisions,
+        );
         set(
           {
             nodes: result.nodes,
             edges: result.edges,
-            decisions: newArchitecture.decisions ? [decision].concat(get().decisions) : get().decisions,
+            decisions: newArchitecture.decisions
+              ? [decision].concat(get().decisions)
+              : get().decisions,
             failures: [],
             unappliedConstraints: [],
             canApplyConstraints: true,
@@ -445,7 +455,14 @@ const useApplicationStoreBase = createWithEqualityFn<EditorState>()(
           {
             unappliedConstraints: [],
             canApplyConstraints: true,
-            failures: [new Failure(get().unappliedConstraints, [{cause: "The Klotho engine ran into an unexpected issue, the team was notified and is investigating, please try again. If this keeps occurring please join us on discord"}])]
+            failures: [
+              new Failure(get().unappliedConstraints, [
+                {
+                  cause:
+                    "The Klotho engine ran into an unexpected issue, the team was notified and is investigating, please try again. If this keeps occurring please join us on discord",
+                },
+              ]),
+            ],
           },
           false,
           "editor/applyConstraints:error",
