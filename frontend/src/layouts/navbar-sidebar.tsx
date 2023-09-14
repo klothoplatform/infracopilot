@@ -37,7 +37,7 @@ const NavbarSidebarLayout: FC<PropsWithChildren<NavbarSidebarLayoutProps>> =
           <EditorNavContent />
         </Navbar>
         <div
-          className="flex h-[calc(100vh-5rem)] w-full gap-0 overflow-hidden"
+          className="flex h-[calc(100vh-5rem)] w-full gap-0 overflow-hidden bg-white dark:bg-gray-800"
           ref={containerRef}
         >
           {architecture?.id && (
