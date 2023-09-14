@@ -20,7 +20,10 @@ export class Decision {
   }
 
   formatTitle(): string {
-    return this.constraints.map((c) => c.toIntent()).join(", ");
+    return this.constraints
+      .map((c) => c.toIntent())
+      .join(", ")
+      .replace(/:$/g, "");
   }
 
   formatInfo(): string {
@@ -63,7 +66,10 @@ export class Failure {
   }
 
   formatTitle(): string {
-    return this.constraints.map((c) => c.tofailureMessage()).join(", ");
+    return this.constraints
+      .map((c) => c.tofailureMessage())
+      .join(", ")
+      .replace(/:$/g, "");
   }
 
   formatInfo(): string {

@@ -1,6 +1,6 @@
 import { Button, Footer } from "flowbite-react";
-import type { FC, PropsWithChildren } from "react";
-import React, { useState } from "react";
+import type { FC, ForwardedRef, PropsWithChildren } from "react";
+import React, { forwardRef, useCallback, useRef, useState } from "react";
 import Navbar from "../components/navbar";
 import EditorSidebarLeft from "../components/EditorSidebarLeft";
 import { MdFacebook } from "react-icons/md";
@@ -9,14 +9,15 @@ import { SidebarProvider } from "../context/SidebarContext";
 import EditorSidebarRight from "../components/EditorSidebarRight";
 import useApplicationStore from "../views/store/store";
 import { TbFileExport } from "react-icons/tb";
-import ExportIaC from "../api/ExportIaC";
-import { downloadFile } from "../helpers/download-file";
 import { FaFileCirclePlus } from "react-icons/fa6";
 import type { NewArchitectureFormState } from "../components/NewArchitectureModal";
 import NewArchitectureModal from "../components/NewArchitectureModal";
-import createArchitecture from "../api/CreateArchitecture";
 import { AiOutlineLoading } from "react-icons/ai";
 import { PiArrowElbowLeftUpBold } from "react-icons/pi";
+import ExportIaC from "../api/ExportIaC";
+import { downloadFile } from "../helpers/download-file";
+import createArchitecture from "../api/CreateArchitecture";
+import classNames from "classnames";
 
 interface NavbarSidebarLayoutProps {
   isFooter?: boolean;
@@ -25,23 +26,131 @@ interface NavbarSidebarLayoutProps {
 const NavbarSidebarLayout: FC<PropsWithChildren<NavbarSidebarLayoutProps>> =
   function ({ children, isFooter = true }) {
     const { architecture } = useApplicationStore();
+
+    const containerRef = useRef<HTMLDivElement>(null);
+    const leftSidebarRef = useRef<HTMLDivElement>(null);
+    const rightSidebarRef = useRef<HTMLDivElement>(null);
+
     return (
       <SidebarProvider>
         <Navbar>
           <EditorNavContent />
         </Navbar>
-        <div className="flex items-start">
+        <div
+          className="flex h-[calc(100vh-5rem)] w-full gap-0 overflow-hidden"
+          ref={containerRef}
+        >
           {architecture?.id && (
             <>
-              <EditorSidebarLeft />
-              <MainContent isFooter={isFooter}>{children}</MainContent>
-              <EditorSidebarRight />
+              <Resizable containerRef={containerRef} childRef={leftSidebarRef}>
+                <div
+                  ref={leftSidebarRef}
+                  className="mr-2 box-border flex min-w-[240px] max-w-[29%] shrink-0 grow-0 basis-2/12"
+                >
+                  <EditorSidebarLeft />
+                </div>
+              </Resizable>
+              <div
+                className="grow-1 shrink-1 box-border flex w-full min-w-[30%] basis-10/12"
+                ref={rightSidebarRef}
+              >
+                <MainContent isFooter={isFooter}>{children}</MainContent>
+              </div>
+              <Resizable
+                containerRef={containerRef}
+                childRef={rightSidebarRef}
+                handleSide="left"
+              >
+                <div
+                  ref={rightSidebarRef}
+                  className="right-0 box-border flex h-full min-w-[15%] max-w-[39%] shrink-0 grow-0"
+                >
+                  <EditorSidebarRight />
+                </div>
+              </Resizable>
             </>
           )}
         </div>
       </SidebarProvider>
     );
   };
+
+type ResizableProps = {
+  handleSide?: "left" | "right";
+  handleStyle?: React.CSSProperties;
+  containerRef: React.RefObject<HTMLDivElement>;
+  childRef: React.RefObject<HTMLDivElement>;
+};
+
+const Resizable: FC<PropsWithChildren<ResizableProps>> = function ({
+  handleStyle,
+  handleSide,
+  children,
+  containerRef,
+  childRef,
+}) {
+  const isDragging = useRef(false);
+  const handleRef = useRef<HTMLDivElement>(null);
+  const width = useRef(childRef.current?.clientWidth ?? 0);
+
+  const onMouseDown = (event: any) => {
+    event.preventDefault();
+    isDragging.current = true;
+    console.log("resizing");
+    console.log("current width", childRef.current?.offsetWidth);
+    width.current = childRef.current?.clientWidth ?? 0;
+    document.addEventListener("mouseup", onMouseUp, { once: true });
+    document.addEventListener("mousemove", onMouseMove);
+  };
+
+  const onMouseUp = () => {
+    isDragging.current = false;
+    document.removeEventListener("mousemove", onMouseMove);
+    console.log("done resizing");
+  };
+
+  const onMouseMove = useCallback(
+    (event: any) => {
+      if (!isDragging?.current) {
+        return;
+      }
+
+      const parent = containerRef.current as HTMLDivElement;
+      const child = childRef.current as HTMLDivElement;
+      const handle = handleRef.current as HTMLDivElement;
+
+      const parentX = parent.getBoundingClientRect().x + window.scrollX;
+      const xChange =
+        event.pageX - parentX - (handle.offsetLeft + handle.offsetWidth);
+      width.current =
+        width.current + (handleSide !== "left" ? +xChange : -xChange);
+      child.style.width = `${width.current}px`;
+      child.style.flexGrow = "0";
+      child.style.flexBasis = "auto";
+    },
+    [containerRef, childRef, width, handleSide],
+  );
+
+  const handleDiv = (
+    // eslint-disable-next-line jsx-a11y/no-static-element-interactions
+    <div
+      className={classNames(
+        "shrink-0 grow-0 cursor-col-resize p-0 px-[1px] mx-1 bg-gray-400 active:bg-blue-500 active:px-[2px]",
+      )}
+      style={handleStyle}
+      ref={handleRef}
+      onMouseDown={onMouseDown}
+    ></div>
+  );
+
+  return (
+    <>
+      {handleSide === "left" && handleDiv}
+      {children}
+      {handleSide !== "left" && handleDiv}
+    </>
+  );
+};
 
 const EditorNavContent: FC = function () {
   const { architecture, loadArchitecture } = useApplicationStore();
@@ -133,21 +242,27 @@ const EditorNavContent: FC = function () {
   );
 };
 
-const MainContent: FC<PropsWithChildren<NavbarSidebarLayoutProps>> = function ({
-  children,
-  isFooter,
-}) {
-  return (
-    <main className="relative h-full w-full basis-8/12 overflow-y-auto dark:bg-gray-900">
-      {children}
-      {isFooter && (
-        <div className="mx-4 mt-4">
-          <MainContentFooter />
-        </div>
-      )}
-    </main>
-  );
-};
+const MainContent = forwardRef(
+  (
+    { children, isFooter }: PropsWithChildren<NavbarSidebarLayoutProps>,
+    ref: ForwardedRef<HTMLDivElement>,
+  ) => {
+    return (
+      <div
+        className="relative h-full w-full overflow-hidden dark:bg-gray-900"
+        ref={ref}
+      >
+        {children}
+        {isFooter && (
+          <div className="mx-4 mt-4">
+            <MainContentFooter />
+          </div>
+        )}
+      </div>
+    );
+  },
+);
+MainContent.displayName = "MainContent";
 
 const MainContentFooter: FC = function () {
   return (

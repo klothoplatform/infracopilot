@@ -1,9 +1,17 @@
 "use client";
 
+import type { CustomFlowbiteTheme } from "flowbite-react";
 import { Card, Table } from "flowbite-react";
 import useApplicationStore from "../views/store/store";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
+
+const cardTheme: CustomFlowbiteTheme["card"] = {
+  root: {
+    base: "flex h-full rounded-lg border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800",
+    children: "flex h-full flex-col justify-center",
+  },
+};
 
 export default function ConfigTable() {
   const {
@@ -63,8 +71,8 @@ export default function ConfigTable() {
   return (
     <>
       {rows.length > 0 && (
-        <Card className="drop-shadow-xs p-2">
-          <div className={"mb-2 ml-2 inline"}>
+        <Card theme={cardTheme} className="max-h-[60vh]">
+          <div className={"max-h-[60vh] overflow-auto"}>
             <Table striped>
               <Table.Body className="divide-y">{rows}</Table.Body>
             </Table>

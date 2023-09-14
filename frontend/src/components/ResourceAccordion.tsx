@@ -1,12 +1,10 @@
 import type { MouseEventHandler } from "react";
 import * as React from "react";
 import { useEffect } from "react";
-import type { CustomFlowbiteTheme } from "flowbite-react";
 import { Accordion, Badge, Card } from "flowbite-react";
 import { typeMappings } from "../shared/reactflow/ResourceMappings";
 
 import "./ResourceAccordion.scss";
-import { HiArrowUp } from "react-icons/hi";
 import { AiFillCaretUp } from "react-icons/ai";
 
 interface ResourceAccordionOptions {
@@ -29,8 +27,6 @@ type ResourceCardProps = {
 };
 
 export type FilterFunction = (type: string) => boolean;
-
-const theme: CustomFlowbiteTheme["accordion"] = {};
 
 export default function ResourceAccordion({
   name,
@@ -80,7 +76,7 @@ export default function ResourceAccordion({
           };
         }),
     );
-  }, [filter, mappings, options, provider, setOptions]);
+  }, [filter, mappings, provider, setOptions]);
 
   const [isOpen, setIsOpen] = React.useState(open);
   const [showResourceCount, setShowResourceCount] = React.useState(false);
@@ -108,21 +104,19 @@ export default function ResourceAccordion({
   }, [setIsOpen, setShowResourceCount, filter, options, isOpen]);
 
   return (
-    <Accordion.Panel
-      isOpen={isOpen}
-      className={"flex w-full"}
-      arrowIcon={AiFillCaretUp}
-    >
+    <Accordion.Panel isOpen={isOpen} arrowIcon={AiFillCaretUp}>
       <Accordion.Title
         aria-controls="panel1bh-content"
         id="panel1bh-header"
         onClick={onTitleClick}
         className={"flex w-full"}
       >
-        <div className={"mr-3 inline-flex w-full"}>
-          <div className={"flex h-[20px] w-[20px] basis-1/12"}>{icon}</div>
-          <div className={"ml-3 flex basis-10/12"}>{name}</div>
-          <div className={"mr-3 flex basis-1/12"}>
+        <div className={"mr-3 flex w-full"}>
+          <div className={"h-[20px] min-h-[20px] w-[20px] min-w-[20px]"}>
+            {icon}
+          </div>
+          <div className={"ml-3"}>{name}</div>
+          <div className={"ml-auto mr-3"}>
             {showResourceCount && (
               <Badge color={"purple"} className={"ml-2"}>
                 {options?.length ?? 0}
@@ -131,8 +125,8 @@ export default function ResourceAccordion({
           </div>
         </div>
       </Accordion.Title>
-      <Accordion.Content className="mb-4 overflow-y-scroll px-0">
-        <div className={"grid max-h-[40vh] max-w-max grid-cols-3 gap-2"}>
+      <Accordion.Content className="py-2">
+        <div className="mb-4 flex max-h-[40vh] w-full flex-wrap content-start gap-[6px] overflow-y-auto px-2">
           {options.map((option: ResourceOption) => {
             // eslint-disable-next-line react/jsx-key
             return (
@@ -152,13 +146,15 @@ export default function ResourceAccordion({
 const ResourceCard = ({ option, onDragStart }: ResourceCardProps) => {
   return (
     <Card
-      className={"mx-auto mr-2 flex h-[100px] w-[100px] dark:text-white"}
+      className={
+        "h-[100px] w-[100px] shrink-0 grow-0 basis-[100px] dark:text-white"
+      }
       onDragStart={(event) =>
         onDragStart(event, `${option.provider}:${option.type}`)
       }
       draggable
     >
-      <option.icon className="mx-auto h-[50px] w-[50px]" />
+      <option.icon className="fixed-image mx-auto h-[50px] w-[50px]" />
       <div className={"mx-auto mb-2 max-w-[85%] truncate text-center text-xs"}>
         {option.name}
       </div>

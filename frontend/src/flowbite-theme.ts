@@ -33,6 +33,8 @@ const flowbiteTheme: CustomFlowbiteTheme = {
     },
   },
   alert: {
+    wrapper:
+      "max-w-full flex items-center [&_div]:max-w-full [&_div]:overflow-hidden",
     color: {
       info: "text-blue-800 bg-blue-100 border-blue-200 dark:text-blue-800 dark:bg-blue-200 dark:border-blue-300",
     },
@@ -98,6 +100,8 @@ const flowbiteTheme: CustomFlowbiteTheme = {
   sidebar: {
     root: {
       base: "flex relative top-0 z-20 flex-col flex-shrink-0 h-full duration-75 border-r border-gray-200 lg:flex transition-width dark:border-gray-700",
+      inner:
+        "h-full overflow-y-auto overflow-x-hidden rounded bg-gray-50 py-4 px-3 dark:bg-gray-800",
     },
     item: {
       base: "flex items-center justify-center rounded-lg p-2 text-base font-medium text-gray-900 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700",
@@ -137,7 +141,6 @@ const flowbiteTheme: CustomFlowbiteTheme = {
   tab: {
     tablist: {
       tabitem: {
-        base: "flex items-center justify-center p-4 rounded-t-lg text-sm font-medium first:ml-0 disabled:cursor-not-allowed disabled:text-gray-400 disabled:dark:text-gray-500 focus:ring-4 focus:ring-cyan-300 focus:outline-none",
         styles: {
           fullWidth: {
             base: "rounded-t-lg",
@@ -149,6 +152,7 @@ const flowbiteTheme: CustomFlowbiteTheme = {
         },
       },
     },
+    tabpanel: "py-3 h-full",
   },
   table: {
     row: {

@@ -2,7 +2,6 @@ import { Card, Table, Tooltip } from "flowbite-react";
 import type { FC, ReactNode } from "react";
 import * as React from "react";
 import { useEffect, useState } from "react";
-import { getConnectedEdges } from "reactflow";
 import useApplicationStore from "../views/store/store";
 import { getIcon } from "../shared/reactflow/ResourceMappings";
 import type { NodeId } from "../shared/architecture/TopologyNode";
@@ -59,8 +58,8 @@ function AdditionalResources() {
   }, [nodes, edges, selectedResource, selectedEdge]);
 
   return (
-    <Card className="drop-shadow-xs">
-      <Table hoverable striped>
+    <Card className="drop-shadow-xs overflow-auto">
+      <Table hoverable striped className="w-full">
         <Table.Body>{resourceRows}</Table.Body>
       </Table>
     </Card>
