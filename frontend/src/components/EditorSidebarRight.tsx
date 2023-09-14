@@ -49,10 +49,8 @@ function SidebarTabs() {
   }, [rightSidebarSelector]);
 
   let notifications = [] as EventProps[];
-  console.log("failures", failures);
   if (failures.length > 0) {
     for (const failure of failures) {
-      console.log(failure, failure.cause);
       if (failure.cause.length > 0) {
         notifications.push({
           type: "failure",
@@ -62,7 +60,6 @@ function SidebarTabs() {
       }
     }
   }
-  console.log(notifications);
   decisions.forEach((decision) => {
     notifications.push({
       type: "success",

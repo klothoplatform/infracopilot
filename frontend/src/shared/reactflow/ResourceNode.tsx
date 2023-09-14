@@ -1,6 +1,7 @@
 import type { FC } from "react";
 import React, {
   memo,
+  useContext,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -21,6 +22,8 @@ import {
   RightSidebarDetailsTabs,
   RightSidebarTabs,
 } from "../../shared/sidebar-nav";
+import { ThemeContext } from "flowbite-react/lib/esm/components/Flowbite/ThemeContext";
+import { TbDotsCircleHorizontal } from "react-icons/tb";
 
 interface ResourceNodeProps {
   id: string;
@@ -33,7 +36,7 @@ const connectionNodeIdSelector = (state: any) => state.connectionNodeId;
 const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
   const {
     architecture,
-    selectedNode,
+    selectedResource,
     replaceResource,
     selectNode,
     selectResource,
@@ -41,10 +44,10 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
   } = useApplicationStore();
 
   const connectionNodeId = useStore(connectionNodeIdSelector);
-  const [isEditingLabel, setIsEditingLabel] = useState(false);
   const isConnecting = !!connectionNodeId;
   const isTarget = connectionNodeId && connectionNodeId !== id;
-  const isSelected = selectedNode === id;
+  const isSelected = selectedResource === data.resourceId;
+  const { mode } = useContext(ThemeContext);
   const [mouseOverNode, setMouseOverNode] = useState(false);
   // this could be a map by handle id
   const [mouseOverHandle, setMouseOverHandle] = useState(false);
@@ -72,44 +75,18 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
     });
   }, [updateNodeInternals, id, data, isConnectable]);
 
-  const DotsHorizontal = (resourceId: NodeId) => {
-    return (
-      <button
-        type="button"
-        onClick={() => {
-          selectResource(resourceId);
-          navigateRightSidebar([
-            RightSidebarTabs.Details,
-            RightSidebarDetailsTabs.AdditionalResources,
-          ]);
-        }}
-      >
-        {/* eslint-disable-next-line tailwindcss/classnames-order */}
-        <svg
-          className="h-6 w-6 text-gray-800 dark:text-gray-200"
-          aria-hidden="true"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="currentColor"
-          viewBox="0 0 16 3"
-        >
-          <path d="M2 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Zm6.041 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM14 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Z" />
-        </svg>
-      </button>
-    );
-  };
-
-  const children = useMemo(() => {
+  const quickIcons = useMemo(() => {
     if (data.vizMetadata?.children === undefined) {
       return;
     }
-    const childrenComponents = data.vizMetadata?.children.map(
+    const quickIconComponents = data.vizMetadata?.children.map(
       (element: NodeId) => {
         let icon = getIcon(
           element.provider,
           element.type,
           {
-            height: "70%",
-            width: "70%",
+            height: "25px",
+            width: "25px",
             key: element.name,
           },
           data,
@@ -118,10 +95,7 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
           key: element.toKlothoIdString(),
         });
         return (
-          <div
-            key={element.name}
-            style={{ display: "inline-block", width: "33%" }}
-          >
+          <div key={element.name} title={element.toKlothoIdString()}>
             <button
               type="button"
               onClick={() => {
@@ -138,26 +112,27 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
         );
       },
     );
-    const dotsComponent = (
-      /* eslint-disable jsx-a11y/click-events-have-key-events */
-      <div
-        key={data.resourceId.name + "dots"}
-        style={{ display: "inline-block", width: "33%" }}
-      >
-        {DotsHorizontal(data.resourceId)}
-      </div>
-    );
-    if (childrenComponents === undefined) {
+
+    if (quickIconComponents === undefined) {
       return;
     }
-    return [...childrenComponents.slice(0, 2), dotsComponent];
-  }, [data.vizMetadata?.children, selectNode]);
+    return [
+      ...quickIconComponents.slice(0, 2),
+      <DotsHorizontal
+        key={`${data.resourceId.toKlothoIdString()}-dots`}
+        resourceId={data.resourceId}
+      />,
+    ];
+  }, [data, navigateRightSidebar, selectResource]);
 
   return (
-    <React.Fragment>
+    <>
       {/* eslint-disable-next-line jsx-a11y/mouse-events-have-key-events,tailwindcss/no-custom-classname */}
       <div
-        className="resource-node"
+        className={classNames("resource-node", {
+          "border-2 rounded-md border-purple-700 shadow-md bg-white dark:bg-gray-900 dark:border-purple-200 w-fit p-2 transform-[translateY(-8px)]":
+            false, //isSelected, -- TODO: enable this once styling is fixed to ensure that this div properly wraps the node's contents
+        })}
         onMouseOver={(e) => {
           setMouseOverNode(true);
         }}
@@ -175,7 +150,7 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
             type="target"
           />
         )}
-        <div className="flex max-h-[200px] w-[100px] flex-col items-center">
+        <div className="flex max-h-[200px] w-[100px] flex-col justify-center gap-1">
           {getIcon(
             data.resourceId.provider,
             data.resourceId.type,
@@ -214,29 +189,16 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
             />
           </div>
           <div className="flex flex-col text-center dark:text-gray-200">
-            <button
-              onClick={() => setIsEditingLabel(true)}
-              style={{
-                position: "relative",
-                width: "200%",
-                left: "-50px",
-                overflowWrap: "anywhere",
-                paddingBottom: "2px",
+            <EditableLabel
+              label={data.label}
+              onSubmit={async (newValue) => {
+                const { provider, type, namespace } = data.resourceId;
+                await replaceResource(
+                  data.resourceId,
+                  new NodeId(type, namespace, newValue, provider),
+                );
               }}
-            >
-              <EditableLabel
-                label={data.label}
-                editing={isEditingLabel}
-                onSubmit={async (newValue) => {
-                  const { provider, type, namespace } = data.resourceId;
-                  await replaceResource(
-                    data.resourceId,
-                    new NodeId(type, namespace, newValue, provider),
-                  );
-                  setIsEditingLabel(false);
-                }}
-              ></EditableLabel>
-            </button>
+            ></EditableLabel>
             <div
               style={{
                 position: "relative",
@@ -254,10 +216,11 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
             </div>
           </div>
         </div>
+        <div className="flex flex-row justify-center gap-2 pt-1">
+          {quickIcons}
+        </div>
       </div>
-
-      {children}
-    </React.Fragment>
+    </>
   );
 });
 ResourceNode.displayName = "ResourceNode";
@@ -265,85 +228,123 @@ ResourceNode.displayName = "ResourceNode";
 type EditableLabelProps = {
   label: string;
   onSubmit?: (newValue: string) => void;
-  editing?: boolean;
 };
 
-const EditableLabel: FC<EditableLabelProps> = ({
-  editing,
-  label,
-  onSubmit,
-}) => {
+const EditableLabel: FC<EditableLabelProps> = ({ label, onSubmit }) => {
+  const isEditingRef = useRef(false);
   const [state, dispatch] = useReducer(reducer, { label });
-  const { selectedNode } = useApplicationStore();
   const inputRef = useRef<HTMLInputElement>(null);
   const [showEditIcon, setShowEditIcon] = useState(false);
 
   useEffect(() => {
-    if (editing) {
-      onSubmit?.(state.label);
+    if (isEditingRef.current && document.activeElement !== inputRef.current) {
+      if (state.label !== label) {
+        onSubmit?.(state.label);
+      }
+      isEditingRef.current = false;
     }
-  }, [selectedNode]);
+  }, [onSubmit, state.label]);
 
   useLayoutEffect(() => {
-    if (editing) {
+    if (isEditingRef.current) {
       inputRef.current?.focus();
     }
-  }, [editing, inputRef]);
+  }, [inputRef.current, isEditingRef.current]);
 
   return (
-    <div className="font-semibold">
-      {!editing && (
-        <div
-          className="flex justify-center hover:border-[1px] hover:border-gray-500 hover:bg-gray-100/50"
-          onMouseEnter={(e) => {
-            setShowEditIcon(true);
-          }}
-          onMouseLeave={(e) => {
-            setShowEditIcon(false);
-          }}
-        >
+    <button
+      onClick={() => (isEditingRef.current = true)}
+      style={{
+        position: "relative",
+        width: "200%",
+        left: "-50px",
+        overflowWrap: "anywhere",
+        paddingBottom: "2px",
+      }}
+    >
+      <div className="font-semibold">
+        {!isEditingRef.current && (
           <div
-            className={classNames(
-              "text-center",
-              showEditIcon ? "ml-auto" : undefined,
-            )}
-          >
-            {label}
-          </div>
-          {!editing && showEditIcon && (
-            <>
-              <div className="ml-1"></div>
-              <div className="mr-auto">
-                <BiEdit />
-              </div>
-            </>
-          )}
-        </div>
-      )}
-      {editing && (
-        <form>
-          <input
-            ref={inputRef}
-            className="border-[1px] border-gray-50 bg-gray-300/[.25] px-1 py-0.5 text-center"
-            id="label"
-            required
-            value={state.label}
-            type="text"
-            onChange={(e) =>
-              dispatch({ field: e.target.id, value: e.target.value })
-            }
-          />
-          <input
-            hidden
-            type="submit"
-            onClick={(e) => {
-              e.preventDefault();
-              onSubmit?.(state.label);
+            className="flex justify-center hover:border-[1px] hover:border-gray-500 hover:bg-gray-100/50"
+            onMouseEnter={(e) => {
+              setShowEditIcon(true);
             }}
-          />
-        </form>
-      )}
-    </div>
+            onMouseLeave={(e) => {
+              setShowEditIcon(false);
+            }}
+          >
+            <div
+              className={classNames(
+                "text-center",
+                showEditIcon ? "ml-auto" : undefined,
+              )}
+            >
+              {label}
+            </div>
+            {!isEditingRef.current && showEditIcon && (
+              <>
+                <div className="ml-1"></div>
+                <div className="mr-auto">
+                  <BiEdit />
+                </div>
+              </>
+            )}
+          </div>
+        )}
+        {isEditingRef.current && (
+          <form>
+            <input
+              ref={inputRef}
+              className="border-[1px] border-gray-50 bg-gray-300/[.25] px-1 py-0.5 text-center"
+              id="label"
+              required
+              value={state.label}
+              type="text"
+              onChange={(e) =>
+                dispatch({ field: e.target.id, value: e.target.value })
+              }
+            />
+            <input
+              hidden
+              type="submit"
+              onClick={(e) => {
+                e.preventDefault();
+                if (state.label !== label) {
+                  onSubmit?.(state.label);
+                }
+                isEditingRef.current = false;
+              }}
+            />
+          </form>
+        )}
+      </div>
+    </button>
+  );
+};
+
+type DotsHorizontalProps = {
+  resourceId: NodeId;
+};
+const DotsHorizontal: FC<DotsHorizontalProps> = ({ resourceId }) => {
+  const { selectResource, navigateRightSidebar } = useApplicationStore();
+  return (
+    <button
+      title="additional resources"
+      className="h-[25px] w-[25px]"
+      type="button"
+      onClick={() => {
+        selectResource(resourceId);
+        navigateRightSidebar([
+          RightSidebarTabs.Details,
+          RightSidebarDetailsTabs.AdditionalResources,
+        ]);
+      }}
+    >
+      <TbDotsCircleHorizontal
+        className="text-gray-800 dark:text-gray-200"
+        size="25px"
+      />
+    </button>
   );
 };
 

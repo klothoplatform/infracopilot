@@ -14,7 +14,6 @@ function AdditionalResources() {
     useApplicationStore();
 
   useEffect(() => {
-    console.log("un use ef", selectedEdge, selectedResource);
     if (selectedResource === undefined && selectedEdge === undefined) {
       setResourceRows([]);
       return;

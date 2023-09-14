@@ -279,7 +279,6 @@ const useApplicationStoreBase = createWithEqualityFn<EditorState>()(
         ArchitectureView.DataFlow,
       );
       const { nodes, edges } = await autoLayout(elements.nodes, elements.edges);
-      console.log(get().failures);
       set(
         {
           architecture: architecture,
@@ -293,7 +292,6 @@ const useApplicationStoreBase = createWithEqualityFn<EditorState>()(
         "editor/loadArchitecture",
       );
       console.log("architecture loaded");
-      console.log(get().failures);
     },
     refreshLayout: async () => {
       try {
