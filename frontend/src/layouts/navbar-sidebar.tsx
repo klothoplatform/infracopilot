@@ -63,7 +63,7 @@ const NavbarSidebarLayout: FC<PropsWithChildren<NavbarSidebarLayoutProps>> =
               >
                 <div
                   ref={rightSidebarRef}
-                  className="right-0 box-border flex h-full min-w-[15%] max-w-[39%] shrink-0 grow-0"
+                  className="right-0 box-border flex h-full w-[25rem] min-w-[15%] max-w-[39%] shrink-0 grow-0"
                 >
                   <EditorSidebarRight />
                 </div>
@@ -96,8 +96,8 @@ const Resizable: FC<PropsWithChildren<ResizableProps>> = function ({
   const onMouseDown = (event: any) => {
     event.preventDefault();
     isDragging.current = true;
-    console.log("resizing");
-    console.log("current width", childRef.current?.offsetWidth);
+    console.debug("resizing");
+    console.debug("current width", childRef.current?.offsetWidth);
     width.current = childRef.current?.clientWidth ?? 0;
     document.addEventListener("mouseup", onMouseUp, { once: true });
     document.addEventListener("mousemove", onMouseMove);
@@ -106,7 +106,7 @@ const Resizable: FC<PropsWithChildren<ResizableProps>> = function ({
   const onMouseUp = () => {
     isDragging.current = false;
     document.removeEventListener("mousemove", onMouseMove);
-    console.log("done resizing");
+    console.debug("done resizing");
   };
 
   const onMouseMove = useCallback(
@@ -135,7 +135,7 @@ const Resizable: FC<PropsWithChildren<ResizableProps>> = function ({
     // eslint-disable-next-line jsx-a11y/no-static-element-interactions
     <div
       className={classNames(
-        "shrink-0 grow-0 cursor-col-resize p-0 px-[1px] mx-1 bg-gray-400 active:bg-blue-500 active:px-[2px]",
+        "shrink-0 grow-0 cursor-col-resize p-0 px-[1px] mx-1 bg-gray-400 active:bg-blue-500 active:px-[4px]",
       )}
       style={handleStyle}
       ref={handleRef}
