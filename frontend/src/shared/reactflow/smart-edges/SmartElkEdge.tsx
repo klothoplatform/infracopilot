@@ -132,7 +132,6 @@ export const getSmartEdge = <NodeDataType = unknown,>({
       edgeSection.minX + (edgeSection.maxX - edgeSection.minX) / 2;
     const edgeCenterY =
       edgeSection.minY + (edgeSection.maxY - edgeSection.minY) / 2;
-    console.log(edgeSection.id);
     const labelPosition = positionLabel(edgeCenterX, graphPath);
     return {
       svgPathString,
@@ -176,11 +175,6 @@ function positionLabel(x: number, path: number[][]): Point {
     closestPoint.point,
     oppositePoint,
   );
-  console.log({
-    closestPoint,
-    oppositePoint,
-    segmentDirection,
-  });
   // find the y coordinate of the label
   switch (segmentDirection) {
     case "ascending":
