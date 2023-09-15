@@ -31,6 +31,14 @@ const NavbarSidebarLayout: FC<PropsWithChildren<NavbarSidebarLayoutProps>> =
     const leftSidebarRef = useRef<HTMLDivElement>(null);
     const rightSidebarRef = useRef<HTMLDivElement>(null);
 
+    const [resourceLayout, setResourceLayout] = useState<"list" | "grid">(
+      "grid",
+    );
+
+    const onResizeLeftSidebar = (newSize: number) => {
+      setResourceLayout(newSize < 280 ? "list" : "grid");
+    };
+
     return (
       <SidebarProvider>
         <Navbar>
@@ -42,12 +50,16 @@ const NavbarSidebarLayout: FC<PropsWithChildren<NavbarSidebarLayoutProps>> =
         >
           {architecture?.id && (
             <>
-              <Resizable containerRef={containerRef} childRef={leftSidebarRef}>
+              <Resizable
+                containerRef={containerRef}
+                childRef={leftSidebarRef}
+                onResize={onResizeLeftSidebar}
+              >
                 <div
                   ref={leftSidebarRef}
-                  className="mr-2 box-border flex min-w-[240px] max-w-[29%] shrink-0 grow-0 basis-2/12"
+                  className="mr-2 box-border flex min-w-[280px] max-w-[29%] shrink-0 grow-0 basis-[383px]"
                 >
-                  <EditorSidebarLeft />
+                  <EditorSidebarLeft resourceLayout={resourceLayout} />
                 </div>
               </Resizable>
               <div
@@ -80,6 +92,7 @@ type ResizableProps = {
   handleStyle?: React.CSSProperties;
   containerRef: React.RefObject<HTMLDivElement>;
   childRef: React.RefObject<HTMLDivElement>;
+  onResize?: (newSize: number) => void;
 };
 
 const Resizable: FC<PropsWithChildren<ResizableProps>> = function ({
@@ -88,6 +101,7 @@ const Resizable: FC<PropsWithChildren<ResizableProps>> = function ({
   children,
   containerRef,
   childRef,
+  onResize,
 }) {
   const isDragging = useRef(false);
   const handleRef = useRef<HTMLDivElement>(null);
@@ -127,6 +141,7 @@ const Resizable: FC<PropsWithChildren<ResizableProps>> = function ({
       child.style.width = `${width.current}px`;
       child.style.flexGrow = "0";
       child.style.flexBasis = "auto";
+      onResize?.(width.current);
     },
     [containerRef, childRef, width, handleSide],
   );
@@ -135,7 +150,7 @@ const Resizable: FC<PropsWithChildren<ResizableProps>> = function ({
     // eslint-disable-next-line jsx-a11y/no-static-element-interactions
     <div
       className={classNames(
-        "shrink-0 grow-0 cursor-col-resize p-0 px-[1px] mx-1 bg-gray-400 active:bg-blue-500 active:px-[4px]",
+        "shrink-0 grow-0 cursor-col-resize p-0 px-[1px] mx-1 bg-gray-200 hover:bg-purple-500 dark:bg-gray-700 dark:active:bg-purple-500 dark:hover:bg-purple-500 active:bg-purple-500 active:px-[4px]",
       )}
       style={handleStyle}
       ref={handleRef}

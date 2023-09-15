@@ -5,13 +5,15 @@ import { Accordion, Badge, Card } from "flowbite-react";
 import { typeMappings } from "../shared/reactflow/ResourceMappings";
 
 import "./ResourceAccordion.scss";
-import { AiFillCaretUp } from "react-icons/ai";
+import classNames from "classnames";
+import { FaAngleUp } from "react-icons/fa";
 
 interface ResourceAccordionOptions {
   name: string;
   icon: React.ReactElement;
   open?: boolean;
   filter?: FilterFunction;
+  layout?: "grid" | "list";
 }
 
 interface ResourceOption {
@@ -22,6 +24,7 @@ interface ResourceOption {
 }
 
 type ResourceCardProps = {
+  orientation?: "horizontal" | "vertical";
   option: ResourceOption;
   onDragStart: (event: any, nodeType: string) => void;
 };
@@ -33,6 +36,7 @@ export default function ResourceAccordion({
   icon,
   open,
   filter,
+  layout,
 }: ResourceAccordionOptions) {
   const provider = name.toLowerCase();
   const mappings = typeMappings.get(provider);
@@ -104,7 +108,7 @@ export default function ResourceAccordion({
   }, [setIsOpen, setShowResourceCount, filter, options, isOpen]);
 
   return (
-    <Accordion.Panel isOpen={isOpen} arrowIcon={AiFillCaretUp}>
+    <Accordion.Panel isOpen={isOpen} arrowIcon={FaAngleUp}>
       <Accordion.Title
         aria-controls="panel1bh-content"
         id="panel1bh-header"
@@ -125,8 +129,15 @@ export default function ResourceAccordion({
           </div>
         </div>
       </Accordion.Title>
-      <Accordion.Content className="py-2">
-        <div className="mb-4 flex max-h-[40vh] w-full flex-wrap content-start gap-[6px] overflow-y-auto px-2">
+      <Accordion.Content className="px-1 py-2">
+        <div
+          className={classNames(
+            "mb-4 flex w-full flex-wrap content-start gap-2 px-2",
+            {
+              "flex-col": layout === "list",
+            },
+          )}
+        >
           {options.map((option: ResourceOption) => {
             // eslint-disable-next-line react/jsx-key
             return (
@@ -134,6 +145,7 @@ export default function ResourceAccordion({
                 key={`${option.provider}:${option.type}`}
                 option={option}
                 onDragStart={onDragStart}
+                orientation={layout === "list" ? "horizontal" : "vertical"}
               />
             );
           })}
@@ -143,21 +155,44 @@ export default function ResourceAccordion({
   );
 }
 
-const ResourceCard = ({ option, onDragStart }: ResourceCardProps) => {
+const ResourceCard = ({
+  option,
+  onDragStart,
+  orientation,
+}: ResourceCardProps) => {
   return (
     <Card
-      className={
-        "h-[100px] w-[100px] shrink-0 grow-0 basis-[100px] dark:text-white"
-      }
+      title={option.name}
+      className={classNames(
+        "shadow-sm hover:border-2 hover:border-purple-500 hover:bg-purple-50 dark:hover:border-purple-500 dark:hover:bg-purple-900 hover:shadow-md dark:text-white",
+        {
+          "h-[100px] w-[100px] shrink-0 grow-0 basis-[100px]":
+            orientation !== "horizontal",
+          "min-h-[40px] max-h-[40px] justify-center items-start w-full max-w-full":
+            orientation === "horizontal",
+        },
+      )}
       onDragStart={(event) =>
         onDragStart(event, `${option.provider}:${option.type}`)
       }
       draggable
     >
-      <option.icon className="fixed-image mx-auto h-[50px] w-[50px]" />
-      <div className={"mx-auto mb-2 max-w-[85%] truncate text-center text-xs"}>
-        {option.name}
-      </div>
+      {orientation !== "horizontal" && (
+        <div className={"flex flex-col justify-center gap-2"}>
+          <option.icon className="fixed-image mx-auto h-[50px] w-[50px]" />
+          <div className={"mx-auto max-w-[85%] truncate text-center text-xs"}>
+            {option.name}
+          </div>
+        </div>
+      )}
+      {orientation === "horizontal" && (
+        <div className="mx-2 flex h-full max-w-full items-center gap-3">
+          <option.icon className="fixed-image mx-auto h-[30px] w-[30px] shrink-0 grow-0" />
+          <div className={"mx-auto truncate text-start text-xs"}>
+            {option.name}
+          </div>
+        </div>
+      )}
     </Card>
   );
 };

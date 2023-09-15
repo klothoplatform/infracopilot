@@ -20,8 +20,15 @@ const sidebarTheme: CustomFlowbiteTheme["sidebar"] = {
   },
 };
 
+type EditorSidebarLeftProps = {
+  resourceLayout?: "list" | "grid";
+};
+
 const EditorSidebarLeft = forwardRef(
-  (props, ref: ForwardedRef<HTMLDivElement>) => {
+  (
+    { resourceLayout }: EditorSidebarLeftProps,
+    ref: ForwardedRef<HTMLDivElement>,
+  ) => {
     const { isOpenOnSmallScreens: isSidebarOpenOnSmallScreens } =
       useSidebarContext();
 
@@ -81,16 +88,19 @@ const EditorSidebarLeft = forwardRef(
                   icon={<AwsLogo width={"20px"} height={"20px"} />}
                   open
                   filter={filterFunction}
+                  layout={resourceLayout}
                 />
                 <ResourceAccordion
                   name={"Kubernetes"}
                   icon={<Logo width={"20px"} height={"20px"} />}
                   filter={filterFunction}
+                  layout={resourceLayout}
                 />
                 <ResourceAccordion
                   name={"Docker"}
                   icon={<Docker width={"20px"} height={"20px"} />}
                   filter={filterFunction}
+                  layout={resourceLayout}
                 />
               </Accordion>
             </div>
