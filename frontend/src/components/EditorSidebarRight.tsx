@@ -1,11 +1,20 @@
 import type { CustomFlowbiteTheme } from "flowbite-react";
-import { Alert, Card, Sidebar, Tabs, type TabsRef } from "flowbite-react";
-import type { FC, ForwardedRef } from "react";
-import React, { forwardRef, useEffect, useRef } from "react";
 import {
+  Alert,
+  Button,
+  Card,
+  Sidebar,
+  Tabs,
+  type TabsRef,
+} from "flowbite-react";
+import type { FC, ForwardedRef } from "react";
+import React, { forwardRef, useEffect, useRef, useState } from "react";
+import {
+  HiCheck,
   HiCheckCircle,
   HiExclamationCircle,
   HiInformationCircle,
+  HiOutlineClipboardCopy,
   HiXCircle,
 } from "react-icons/hi";
 import { HiBars3, HiCog6Tooth } from "react-icons/hi2";
@@ -17,6 +26,7 @@ import {
   RightSidebarTabs,
 } from "../shared/sidebar-nav";
 import type { NodeId } from "../shared/architecture/TopologyNode";
+import debounce from "lodash.debounce";
 
 const sidebarTheme: CustomFlowbiteTheme["sidebar"] = {
   root: {
@@ -137,7 +147,11 @@ const Details: FC = function () {
             resourceId={selectedResource}
             edgeId={selectedEdge}
           />
-          <ConfigTable />
+          {selectedResource && (
+            <ConfigTable
+              key={`config-table-${selectedResource.toKlothoIdString()}`}
+            />
+          )}
         </Tabs.Item>
         <Tabs.Item title="Additional Resources">
           <ResourceIdHeader
@@ -162,13 +176,45 @@ const ResourceIdHeader: FC<ResourceIdHeaderProps> = function ({
 }) {
   const text =
     resourceId?.toKlothoIdString() ?? edgeId ?? "No resource selected";
+
+  const [copied, setCopied] = useState(false);
+
+  const onClickCopyButton = async (e: any) => {
+    e.target.blur();
+    await navigator.clipboard.writeText(resourceId?.toKlothoIdString() ?? "");
+    setCopied(true);
+    e.target.disabled = true;
+    setTimeout(() => {
+      e.target.disabled = false;
+      setCopied(false);
+    }, 3000);
+  };
+
   return (
-    <div
-      className="mb-2 block w-full overflow-hidden text-ellipsis rounded-t-lg border-2 border-gray-100 bg-gray-50 py-4 pl-6 text-sm font-medium first:ml-0 dark:border-gray-700 dark:bg-gray-600 dark:text-white"
-      title={text}
+    <Button.Group
+      color="gray"
+      className="w-full max-w-full overflow-hidden truncate"
     >
-      {text}
-    </div>
+      <Button
+        title={text}
+        color="gray"
+        className="h-14 w-[calc(100%-2.5rem)] max-w-[calc(100%-2.5rem)] justify-start truncate disabled:cursor-default"
+        disabled
+      >
+        {text}
+      </Button>
+      <Button
+        color="gray"
+        className="h-14 w-10 focus:ring-0"
+        onClick={onClickCopyButton}
+        disabled={resourceId === undefined}
+      >
+        {!copied && (
+          <HiOutlineClipboardCopy className="stroke-gray-700 dark:stroke-gray-300" />
+        )}
+        {copied && <HiCheck color="green" />}
+      </Button>
+    </Button.Group>
   );
 };
 

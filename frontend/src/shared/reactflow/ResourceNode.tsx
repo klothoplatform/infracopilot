@@ -1,7 +1,6 @@
 import type { FC } from "react";
 import React, {
   memo,
-  useContext,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -22,7 +21,6 @@ import {
   RightSidebarDetailsTabs,
   RightSidebarTabs,
 } from "../../shared/sidebar-nav";
-import { ThemeContext } from "flowbite-react/lib/esm/components/Flowbite/ThemeContext";
 import { TbDotsCircleHorizontal } from "react-icons/tb";
 
 interface ResourceNodeProps {
@@ -47,7 +45,6 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
   const isConnecting = !!connectionNodeId;
   const isTarget = connectionNodeId && connectionNodeId !== id;
   const isSelected = selectedResource === data.resourceId;
-  const { mode } = useContext(ThemeContext);
   const [mouseOverNode, setMouseOverNode] = useState(false);
   // this could be a map by handle id
   const [mouseOverHandle, setMouseOverHandle] = useState(false);

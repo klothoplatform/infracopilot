@@ -3,7 +3,6 @@ import type {
   Connection,
   Edge,
   EdgeChange,
-  EdgeSelectionChange,
   Node,
   NodeChange,
   OnConnect,
@@ -31,6 +30,7 @@ import {
   ConstraintOperator,
   EdgeConstraint,
   parseConstraints,
+  ResourceConstraint,
 } from "../../shared/architecture/Constraints";
 import { applyConstraints } from "../../api/ApplyConstraints";
 import TopologyEdge from "../../shared/architecture/TopologyEdge";
@@ -64,6 +64,12 @@ const createSelectors = <S extends UseBoundStore<StoreApi<object>>>(
 
   return store;
 };
+
+export interface ResourceConfigurationRequest {
+  resourceId: NodeId;
+  property: string;
+  value: any;
+}
 
 export interface EditorState {
   layoutOptions: LayoutOptions;
@@ -102,6 +108,10 @@ export interface EditorState {
   rightSidebarSelector: RightSidebarTabSelector;
 
   navigateRightSidebar(selector: RightSidebarTabSelector): void;
+
+  configureResources: (
+    requests: ResourceConfigurationRequest[],
+  ) => Promise<void>;
 }
 
 const useApplicationStoreBase = createWithEqualityFn<EditorState>()(
@@ -537,6 +547,26 @@ const useApplicationStoreBase = createWithEqualityFn<EditorState>()(
         false,
         "editor/navigateRightSidebar",
       );
+    },
+    configureResources: async (requests: ResourceConfigurationRequest[]) => {
+      const constraints = requests.map(
+        (request) =>
+          new ResourceConstraint(
+            ConstraintOperator.Equals,
+            request.resourceId,
+            request.property,
+            request.value,
+          ),
+      );
+      set(
+        {
+          unappliedConstraints: [...get().unappliedConstraints, ...constraints],
+        },
+        false,
+        "editor/configureResources",
+      );
+      await get().applyConstraints();
+      console.log("configured resources");
     },
   })),
   shallow,
