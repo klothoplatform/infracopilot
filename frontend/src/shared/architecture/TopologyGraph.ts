@@ -1,8 +1,6 @@
 import TopologyEdge from "./TopologyEdge";
-import { TopologyNode, NodeId } from "./TopologyNode";
+import { NodeId, TopologyNode } from "./TopologyNode";
 import yaml from "yaml";
-import { createContext } from "react";
-import type { Architecture } from "./Architecture";
 
 export class TopologyGraph {
   Provider: string;
@@ -15,11 +13,6 @@ export class TopologyGraph {
     this.Provider = "";
   }
 }
-
-export const ArchitectureContext = createContext({
-  architecture: {} as Architecture,
-  setArchitecture: (architecture: Architecture) => {},
-});
 
 export const parse = (content: string): Map<string, TopologyGraph> => {
   const apps = new Map<string, TopologyGraph>();
@@ -41,44 +34,46 @@ export const parse = (content: string): Map<string, TopologyGraph> => {
     const resources = (app as any).resources as any;
     graph.Provider = (app as any).provider as string;
     const edgeDefinedNodes: NodeId[] = [];
-    Object.keys(resources).forEach((k: string) => {
-      let source, target;
-      if (k.includes("->") || k.includes("<-")) {
-        if (k.includes("->")) {
-          [source, target] = k.split("->");
+    if (resources) {
+      Object.keys(resources).forEach((k: string) => {
+        let source, target;
+        if (k.includes("->") || k.includes("<-")) {
+          if (k.includes("->")) {
+            [source, target] = k.split("->");
+          } else {
+            [target, source] = k.split("<-");
+          }
+          const sourceId = NodeId.fromString(source, graph.Provider);
+          const targetId = NodeId.fromString(target, graph.Provider);
+          console.log("resources of k ", resources[k], k, sourceId, targetId);
+          graph.Edges.push(
+            new TopologyEdge(sourceId, targetId, {
+              path: resources[k]?.path
+                ? resources[k]?.path
+                    .split(",")
+                    .map((p: string) => NodeId.fromId(p))
+                : undefined,
+            }),
+          );
+          console.log(graph.Edges);
+          edgeDefinedNodes.push(sourceId, targetId);
         } else {
-          [target, source] = k.split("<-");
+          graph.Nodes.push(
+            new TopologyNode(NodeId.fromString(k, graph.Provider), {
+              ...resources[k],
+              parent: resources[k]?.parent
+                ? NodeId.fromString(resources[k]?.parent, graph.Provider)
+                : undefined,
+              children: resources[k]?.children
+                ? resources[k]?.children
+                    .split(",")
+                    .map((c: string) => NodeId.fromId(c))
+                : undefined,
+            }),
+          );
         }
-        const sourceId = NodeId.fromString(source, graph.Provider);
-        const targetId = NodeId.fromString(target, graph.Provider);
-        console.log("resources of k ", resources[k], k, sourceId, targetId);
-        graph.Edges.push(
-          new TopologyEdge(sourceId, targetId, {
-            path: resources[k]?.path
-              ? resources[k]?.path
-                  .split(",")
-                  .map((p: string) => NodeId.fromId(p))
-              : undefined,
-          }),
-        );
-        console.log(graph.Edges);
-        edgeDefinedNodes.push(sourceId, targetId);
-      } else {
-        graph.Nodes.push(
-          new TopologyNode(NodeId.fromString(k, graph.Provider), {
-            ...resources[k],
-            parent: resources[k]?.parent
-              ? NodeId.fromString(resources[k]?.parent, graph.Provider)
-              : undefined,
-            children: resources[k]?.children
-              ? resources[k]?.children
-                  .split(",")
-                  .map((c: string) => NodeId.fromId(c))
-              : undefined,
-          }),
-        );
-      }
-    });
+      });
+    }
     edgeDefinedNodes.forEach((r) => {
       if (
         !graph.Nodes.find(
