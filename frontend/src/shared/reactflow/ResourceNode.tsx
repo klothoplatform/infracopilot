@@ -167,24 +167,25 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
           )}
           {/* eslint-disable-next-line jsx-a11y/mouse-events-have-key-events */}
           <div
-            className="relative ml-14 mt-[-100px] flex h-full px-8 pb-8 pt-16"
-            onMouseOver={(e) => {
-              setMouseOverHandle(true);
-            }}
-            onMouseLeave={(e) => {
-              setMouseOverHandle(false);
-            }}
+            className="absolute left-[100px] top-0 h-full w-[20px] px-4 py-[40px]"
+            onMouseOver={() => setMouseOverHandle(true)}
+            onMouseLeave={() => setMouseOverHandle(false)}
           >
             <Handle
               className={classNames(
-                "handle-source -right-2 bottom-0 pr-3",
+                "node-handle mr-7 border-2 border-red-500",
                 showSourceHandle ? "opacity-85" : "opacity-0",
               )}
               id={`${id}-dnd-source`}
               position={Position.Right}
               type="source"
-            />
+            >
+              <div className="handle-source handle-right pointer-events-none">
+                &nbsp;
+              </div>
+            </Handle>
           </div>
+
           <div className="flex flex-col text-center dark:text-gray-200">
             <EditableLabel
               label={data.label}

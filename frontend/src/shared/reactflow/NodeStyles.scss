@@ -17,36 +17,46 @@
   }
 
   .handle-source {
-    background: transparent;
-    border-style: solid;
-    border-radius: 0;
-    right: -15px;
     width: 10px;
     height: 10px;
   }
 
-  .handle-source.react-flow__handle-right {
+  .node-handle.react-flow__handle-right {
+    width: 25px;
+    height: 32px;
+    background: transparent;
+    border: 0;
+    right: -22px;
+  }
+
+
+  .handle-source.handle-right {
     border-left: 10px solid var(--handle-color);
     border-right: 0;
     border-top: 10px solid transparent;
     border-bottom: 10px solid transparent;
+    position: relative;
+    right: -15px;
+    top: 6px;
+    left: 5px;
   }
 
-  .handle-source.react-flow__handle-left {
+  // TODO: align remaining handles to center of node
+  .handle-source.handle-left {
     border-left: 0;
     border-right: 10px solid var(--handle-color);
     border-top: 10px solid transparent;
     border-bottom: 10px solid transparent;
   }
 
-  .handle-source.react-flow__handle-top {
+  .handle-source.handle-top {
     border-top: 10px solid var(--handle-color);
     border-bottom: 0;
     border-left: 10px solid transparent;
     border-right: 10px solid transparent;
   }
 
-  .handle-source.react-flow__handle-bottom {
+  .handle-source.handle-bottom {
     border-top: 0;
     border-bottom: 10px solid var(--handle-color);
     border-left: 10px solid transparent;
