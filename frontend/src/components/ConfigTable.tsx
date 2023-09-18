@@ -1,11 +1,18 @@
 "use client";
 
 import type { CustomFlowbiteTheme } from "flowbite-react";
-import { Button, Card, Table, Textarea, TextInput } from "flowbite-react";
+import {
+  Button,
+  Card,
+  Checkbox,
+  Table,
+  Textarea,
+  TextInput,
+} from "flowbite-react";
 import type { ResourceConfigurationRequest } from "../views/store/store";
 import useApplicationStore from "../views/store/store";
 import type { FC } from "react";
-import React, { useEffect, useReducer, useState } from "react";
+import React, { useReducer, useState } from "react";
 import fieldsReducer from "../helpers/reducer";
 import classNames from "classnames";
 import type { NodeId } from "../shared/architecture/TopologyNode";
@@ -52,10 +59,18 @@ export default function ConfigTable() {
   const [state, dispatch] = useReducer(fieldsReducer, initialState);
 
   const rows = Object.entries(metadata ?? {}).map(([key, value]) => {
-    const inputType =
-      state[key]?.type === "string" || state[key]?.type === "number"
-        ? "text"
-        : "textarea";
+    let inputType: ConfigFieldType = "textarea";
+    switch (state[key]?.type) {
+      case "boolean":
+        inputType = "checkbox";
+        break;
+      case "number":
+        inputType = "number";
+        break;
+      case "string":
+        inputType = "text";
+        break;
+    }
 
     const onChange = (e: any) => {
       console.log("changed!!");
@@ -116,19 +131,13 @@ export default function ConfigTable() {
   return (
     <>
       {rows.length > 0 && (
-        <div
-          className={
-            "flex h-full flex-col justify-center gap-4 overflow-hidden"
-          }
-        >
+        <div className={"w-full"}>
           <form>
-            <div className={"flex flex-col gap-4 overflow-auto"}>
-              <Card theme={cardTheme} className="max-h-[50vh]">
-                <Table striped>
-                  <Table.Body className="divide-y">{rows}</Table.Body>
-                </Table>
-              </Card>
-            </div>
+            <Card theme={cardTheme} className="max-h-[50vh] overflow-auto">
+              <Table striped>
+                <Table.Body className="divide-y">{rows}</Table.Body>
+              </Table>
+            </Card>
             <Button
               type="submit"
               color="purple"
@@ -144,9 +153,11 @@ export default function ConfigTable() {
   );
 }
 
+type ConfigFieldType = "text" | "textarea" | "checkbox" | "number";
+
 type ConfigFieldProps = {
   id: string;
-  type: "text" | "textarea";
+  type: ConfigFieldType;
   readOnly?: boolean;
   onChange?: (e: any) => void;
   dispatch?: CallableFunction;
@@ -162,7 +173,6 @@ const ConfigField: FC<ConfigFieldProps> = ({
   readOnly,
   color,
 }) => {
-  const [isReadOnly, setIsReadOnly] = useState(readOnly ?? false);
   const [isModified, setIsModified] = useState(false);
 
   const handleChange = (e: any) => {
@@ -175,36 +185,36 @@ const ConfigField: FC<ConfigFieldProps> = ({
       return (
         <Textarea
           className={classNames({
-            "hover:read-only:opacity-[80%]": isReadOnly,
             "border-primary-400 border-2 rounded-lg": isModified,
-            "bg-white": !isReadOnly,
           })}
           id={id}
           value={value}
           onChange={handleChange}
-          onDoubleClick={() => {
-            setIsReadOnly(false);
-          }}
-          readOnly={isReadOnly}
+        />
+      );
+    case "checkbox":
+      return (
+        <Checkbox
+          className={classNames({
+            "border-primary-400 border-2 rounded-lg": isModified,
+          })}
+          id={id}
+          value={value}
+          onChange={handleChange}
         />
       );
     case "text":
+    case "number":
     default:
       return (
         <TextInput
           className={classNames({
-            "hover:read-only:opacity-[80%]": isReadOnly,
             "border-primary-400 border-2 rounded-lg": isModified,
-            "bg-white": !isReadOnly,
           })}
           id={id}
           value={value}
           onChange={handleChange}
-          type="text"
-          onDoubleClick={() => {
-            setIsReadOnly(false);
-          }}
-          readOnly={isReadOnly}
+          type={type}
         />
       );
   }

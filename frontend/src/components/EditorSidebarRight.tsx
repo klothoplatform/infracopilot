@@ -193,7 +193,7 @@ const ResourceIdHeader: FC<ResourceIdHeaderProps> = function ({
   return (
     <Button.Group
       color="gray"
-      className="w-full max-w-full overflow-hidden truncate"
+      className="mb-2 w-full max-w-full overflow-hidden truncate"
     >
       <Button
         title={text}
