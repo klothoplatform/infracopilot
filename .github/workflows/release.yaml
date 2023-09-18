@@ -99,8 +99,6 @@ jobs:
           chmod +x ./klotho
           ./klotho . --app infracopilot --config klotho_config/${STAGE}.yaml --provider aws
       - name: fix static unit directory
-        env:
-          STAGE: ${{ inputs.stage }}
         run: |
           make post-compile
       - name: Configure AWS Credentials
@@ -149,3 +147,4 @@ jobs:
           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
           PULUMI_CONFIG_PASSPHRASE: ""
           AWS_REGION: ${{ inputs.region }}
+          STAGE: ${{ inputs.stage }}
