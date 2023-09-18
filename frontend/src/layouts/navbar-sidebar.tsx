@@ -158,7 +158,7 @@ const Resizable: FC<PropsWithChildren<ResizableProps>> = function ({
     // eslint-disable-next-line jsx-a11y/no-static-element-interactions
     <div
       className={classNames(
-        "shrink-0 grow-0 cursor-col-resize p-0 px-[1px] mx-1 bg-gray-200 hover:bg-purple-500 dark:bg-gray-700 dark:active:bg-purple-500 dark:hover:bg-purple-500 active:bg-purple-500 active:px-[4px]",
+        "shrink-0 grow-0 cursor-col-resize p-0 px-[1px] mx-1 bg-gray-200 hover:bg-primary-500 dark:bg-gray-700 dark:active:bg-primary-500 dark:hover:bg-primary-500 active:bg-primary-500 active:px-[4px]",
       )}
       style={handleStyle}
       ref={handleRef}

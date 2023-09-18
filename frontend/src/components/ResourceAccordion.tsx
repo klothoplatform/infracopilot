@@ -147,7 +147,7 @@ const ResourceCard = ({
     <Card
       title={option.name}
       className={classNames(
-        "shadow-sm hover:border-2 hover:border-purple-500 hover:bg-purple-50 dark:hover:border-purple-500 dark:hover:bg-purple-900 hover:shadow-md dark:text-white",
+        "shadow-sm hover:border-2 hover:border-primary-500 hover:bg-primary-50 dark:hover:border-primary-500 dark:hover:bg-primary-900 hover:shadow-md dark:text-white",
         {
           "h-[100px] w-[100px] shrink-0 grow-0 basis-[100px]":
             orientation !== "horizontal",

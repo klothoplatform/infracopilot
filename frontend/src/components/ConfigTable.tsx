@@ -176,7 +176,7 @@ const ConfigField: FC<ConfigFieldProps> = ({
         <Textarea
           className={classNames({
             "hover:read-only:opacity-[80%]": isReadOnly,
-            "border-purple-400 border-2 rounded-lg": isModified,
+            "border-primary-400 border-2 rounded-lg": isModified,
             "bg-white": !isReadOnly,
           })}
           id={id}
@@ -194,7 +194,7 @@ const ConfigField: FC<ConfigFieldProps> = ({
         <TextInput
           className={classNames({
             "hover:read-only:opacity-[80%]": isReadOnly,
-            "border-purple-400 border-2 rounded-lg": isModified,
+            "border-primary-400 border-2 rounded-lg": isModified,
             "bg-white": !isReadOnly,
           })}
           id={id}

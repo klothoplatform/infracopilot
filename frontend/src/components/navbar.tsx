@@ -225,7 +225,7 @@ const NotificationBellDropdown: FC = function () {
                 src="../images/users/robert-brown.png"
                 className="h-11 w-11 rounded-full"
               />
-              <div className="absolute -mt-5 ml-6 flex h-5 w-5 items-center justify-center rounded-full border border-white bg-purple-500 dark:border-gray-700">
+              <div className="bg-primary-500 absolute -mt-5 ml-6 flex h-5 w-5 items-center justify-center rounded-full border border-white dark:border-gray-700">
                 <NewVideoIcon />
               </div>
             </div>

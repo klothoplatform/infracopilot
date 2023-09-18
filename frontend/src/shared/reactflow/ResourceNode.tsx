@@ -131,7 +131,7 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
       {/* eslint-disable-next-line jsx-a11y/mouse-events-have-key-events,tailwindcss/no-custom-classname */}
       <div
         className={classNames("resource-node", {
-          "border-2 rounded-md border-purple-700 shadow-md bg-white dark:bg-gray-900 dark:border-purple-200 w-fit p-2 transform-[translateY(-8px)]":
+          "border-2 rounded-md border-primary-700 shadow-md bg-white dark:bg-gray-900 dark:border-primary-200 w-fit p-2 transform-[translateY(-8px)]":
             false, //isSelected, -- TODO: enable this once styling is fixed to ensure that this div properly wraps the node's contents
         })}
         onMouseOver={(e) => {

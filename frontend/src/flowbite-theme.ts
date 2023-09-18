@@ -60,7 +60,7 @@ const flowbiteTheme: CustomFlowbiteTheme = {
       info: "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800",
       primary: "p-0",
       purple:
-        "text-white bg-purple-600 border border-transparent enabled:hover:bg-purple-700 focus:ring-4 focus:ring-purple-200 dark:bg-purple-700 dark:enabled:hover:bg-purple-600 dark:focus:ring-purple-800",
+        "text-white bg-primary-600 border border-transparent enabled:hover:bg-primary-700 focus:ring-4 focus:ring-primary-200 dark:bg-primary-700 dark:enabled:hover:bg-primary-600 dark:focus:ring-primary-800",
     },
     inner: {
       base: "flex items-center transition-all duration-200",
@@ -145,7 +145,7 @@ const flowbiteTheme: CustomFlowbiteTheme = {
           fullWidth: {
             base: "rounded-t-lg",
             active: {
-              on: "bg-purple-600 text-white dark:bg-purple-700 dark:white",
+              on: "bg-primary-600 text-white dark:bg-primary-700 dark:white",
               off: "text-gray-500 hover:bg-gray-50 hover:text-gray-600 dark:text-gray-400 dark:hover:bg-gray-800  dark:hover:text-gray-300",
             },
           },
@@ -157,7 +157,7 @@ const flowbiteTheme: CustomFlowbiteTheme = {
   table: {
     row: {
       hovered:
-        "group/row hover:bg-purple-100 dark:hover:bg-purple-500 bg-white border-gray-300 dark:border-gray-500 dark:bg-gray-700",
+        "group/row hover:bg-primary-100 dark:hover:bg-primary-500 bg-white border-gray-300 dark:border-gray-500 dark:bg-gray-700",
       striped:
         "group/row odd:bg-white even:bg-gray-50 odd:dark:bg-gray-700 even:dark:bg-gray-800 bg-white border-gray-300 dark:border-gray-500 dark:bg-gray-600",
     },
