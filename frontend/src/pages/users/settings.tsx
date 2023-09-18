@@ -82,7 +82,7 @@ const UserProfileCard: FC = function () {
           </div>
           <a
             href="#"
-            className="bg-primary-700 hover:bg-primary-800 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800 inline-flex items-center rounded-lg px-3 py-2 text-center text-sm font-medium text-white focus:ring-4"
+            className="inline-flex items-center rounded-lg bg-primary-700 px-3 py-2 text-center text-sm font-medium text-white hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
           >
             <HiCloudUpload className="mr-2" />
             Change picture
@@ -145,7 +145,7 @@ const SocialAccountsCard: FC = function () {
                 </span>
                 <a
                   href="#"
-                  className="text-primary-700 dark:text-primary-500 block truncate text-sm font-normal hover:underline"
+                  className="block truncate text-sm font-normal text-primary-700 hover:underline dark:text-primary-500"
                 >
                   www.facebook.com/themesberg
                 </a>
@@ -168,7 +168,7 @@ const SocialAccountsCard: FC = function () {
                 </span>
                 <a
                   href="#"
-                  className="text-primary-700 dark:text-primary-500 block truncate text-sm font-normal hover:underline"
+                  className="block truncate text-sm font-normal text-primary-700 hover:underline dark:text-primary-500"
                 >
                   www.twitter.com/themesberg
                 </a>
@@ -247,7 +247,7 @@ const OtherAccountsCard: FC = function () {
                   <p className="mb-0.5 truncate text-base font-semibold leading-none text-gray-900 dark:text-white">
                     Bonnie Green
                   </p>
-                  <p className="text-primary-700 dark:text-primary-500 mb-1 truncate text-sm font-normal">
+                  <p className="mb-1 truncate text-sm font-normal text-primary-700 dark:text-primary-500">
                     New York, USA
                   </p>
                   <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
@@ -276,7 +276,7 @@ const OtherAccountsCard: FC = function () {
                   <p className="mb-0.5 truncate text-base font-semibold leading-none text-gray-900 dark:text-white">
                     Jese Leos
                   </p>
-                  <p className="text-primary-700 dark:text-primary-500 mb-1 truncate text-sm font-normal">
+                  <p className="mb-1 truncate text-sm font-normal text-primary-700 dark:text-primary-500">
                     California, USA
                   </p>
                   <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
@@ -305,7 +305,7 @@ const OtherAccountsCard: FC = function () {
                   <p className="mb-0.5 truncate text-base font-semibold leading-none text-gray-900 dark:text-white">
                     Thomas Lean
                   </p>
-                  <p className="text-primary-700 dark:text-primary-500 mb-1 truncate text-sm font-normal">
+                  <p className="mb-1 truncate text-sm font-normal text-primary-700 dark:text-primary-500">
                     Texas, USA
                   </p>
                   <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
@@ -334,7 +334,7 @@ const OtherAccountsCard: FC = function () {
                   <p className="mb-0.5 truncate text-base font-semibold leading-none text-gray-900 dark:text-white">
                     Lana Byrd
                   </p>
-                  <p className="text-primary-700 dark:text-primary-500 mb-1 truncate text-sm font-normal">
+                  <p className="mb-1 truncate text-sm font-normal text-primary-700 dark:text-primary-500">
                     Texas, USA
                   </p>
                   <p className="text-xs font-medium text-gray-500 dark:text-gray-400">

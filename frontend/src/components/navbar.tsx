@@ -108,7 +108,7 @@ const NotificationBellDropdown: FC = function () {
                 src="../images/users/bonnie-green.png"
                 className="h-11 w-11 rounded-full"
               />
-              <div className="bg-primary-700 absolute -mt-5 ml-6 flex h-5 w-5 items-center justify-center rounded-full border border-white dark:border-gray-700">
+              <div className="absolute -mt-5 ml-6 flex h-5 w-5 items-center justify-center rounded-full border border-white bg-primary-700 dark:border-gray-700">
                 <NewMessageIcon />
               </div>
             </div>
@@ -120,7 +120,7 @@ const NotificationBellDropdown: FC = function () {
                 </span>
                 : "Hey, what's up? All set for the presentation?"
               </div>
-              <div className="text-primary-700 dark:text-primary-400 text-xs font-medium">
+              <div className="text-xs font-medium text-primary-700 dark:text-primary-400">
                 a few moments ago
               </div>
             </div>
@@ -150,7 +150,7 @@ const NotificationBellDropdown: FC = function () {
                 </span>
                 &nbsp;started following you.
               </div>
-              <div className="text-primary-700 dark:text-primary-400 text-xs font-medium">
+              <div className="text-xs font-medium text-primary-700 dark:text-primary-400">
                 10 minutes ago
               </div>
             </div>
@@ -180,7 +180,7 @@ const NotificationBellDropdown: FC = function () {
                 </span>
                 &nbsp;love your story. See it and view more stories.
               </div>
-              <div className="text-primary-700 dark:text-primary-400 text-xs font-medium">
+              <div className="text-xs font-medium text-primary-700 dark:text-primary-400">
                 44 minutes ago
               </div>
             </div>
@@ -205,12 +205,12 @@ const NotificationBellDropdown: FC = function () {
                   Leslie Livingston
                 </span>
                 &nbsp;mentioned you in a comment:&nbsp;
-                <span className="text-primary-700 dark:text-primary-500 font-medium">
+                <span className="font-medium text-primary-700 dark:text-primary-500">
                   @bonnie.green
                 </span>
                 &nbsp;what do you say?
               </div>
-              <div className="text-primary-700 dark:text-primary-400 text-xs font-medium">
+              <div className="text-xs font-medium text-primary-700 dark:text-primary-400">
                 1 hour ago
               </div>
             </div>
@@ -225,7 +225,7 @@ const NotificationBellDropdown: FC = function () {
                 src="../images/users/robert-brown.png"
                 className="h-11 w-11 rounded-full"
               />
-              <div className="bg-primary-500 absolute -mt-5 ml-6 flex h-5 w-5 items-center justify-center rounded-full border border-white dark:border-gray-700">
+              <div className="absolute -mt-5 ml-6 flex h-5 w-5 items-center justify-center rounded-full border border-white bg-primary-500 dark:border-gray-700">
                 <NewVideoIcon />
               </div>
             </div>
@@ -237,7 +237,7 @@ const NotificationBellDropdown: FC = function () {
                 &nbsp;posted a new video: Glassmorphism - learn how to implement
                 the new design trend.
               </div>
-              <div className="text-primary-700 dark:text-primary-400 text-xs font-medium">
+              <div className="text-xs font-medium text-primary-700 dark:text-primary-400">
                 3 hours ago
               </div>
             </div>

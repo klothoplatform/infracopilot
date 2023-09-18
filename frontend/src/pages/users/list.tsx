@@ -270,7 +270,7 @@ const AllUsersTable: FC = function () {
                 id="checkbox-2"
                 aria-describedby="checkbox-1"
                 type="checkbox"
-                className="focus:ring-primary-300 dark:focus:ring-primary-600 h-4 w-4 rounded border-gray-300 bg-gray-50 focus:ring-4 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800"
+                className="h-4 w-4 rounded border-gray-300 bg-gray-50 focus:ring-4 focus:ring-primary-300 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-primary-600"
               />
               <label htmlFor="checkbox-2" className="sr-only">
                 checkbox
@@ -318,7 +318,7 @@ const AllUsersTable: FC = function () {
                 id="checkbox-3"
                 aria-describedby="checkbox-1"
                 type="checkbox"
-                className="focus:ring-primary-300 dark:focus:ring-primary-600 h-4 w-4 rounded border-gray-300 bg-gray-50 focus:ring-4 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800"
+                className="h-4 w-4 rounded border-gray-300 bg-gray-50 focus:ring-4 focus:ring-primary-300 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-primary-600"
               />
               <label htmlFor="checkbox-3" className="sr-only">
                 checkbox
@@ -366,7 +366,7 @@ const AllUsersTable: FC = function () {
                 id="checkbox-4"
                 aria-describedby="checkbox-1"
                 type="checkbox"
-                className="focus:ring-primary-300 dark:focus:ring-primary-600 h-4 w-4 rounded border-gray-300 bg-gray-50 focus:ring-4 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800"
+                className="h-4 w-4 rounded border-gray-300 bg-gray-50 focus:ring-4 focus:ring-primary-300 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-primary-600"
               />
               <label htmlFor="checkbox-4" className="sr-only">
                 checkbox
@@ -414,7 +414,7 @@ const AllUsersTable: FC = function () {
                 id="checkbox-5"
                 aria-describedby="checkbox-1"
                 type="checkbox"
-                className="focus:ring-primary-300 dark:focus:ring-primary-600 h-4 w-4 rounded border-gray-300 bg-gray-50 focus:ring-4 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800"
+                className="h-4 w-4 rounded border-gray-300 bg-gray-50 focus:ring-4 focus:ring-primary-300 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-primary-600"
               />
               <label htmlFor="checkbox-5" className="sr-only">
                 checkbox
@@ -462,7 +462,7 @@ const AllUsersTable: FC = function () {
                 id="checkbox-6"
                 aria-describedby="checkbox-1"
                 type="checkbox"
-                className="focus:ring-primary-300 dark:focus:ring-primary-600 h-4 w-4 rounded border-gray-300 bg-gray-50 focus:ring-4 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800"
+                className="h-4 w-4 rounded border-gray-300 bg-gray-50 focus:ring-4 focus:ring-primary-300 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-primary-600"
               />
               <label htmlFor="checkbox-6" className="sr-only">
                 checkbox
@@ -510,7 +510,7 @@ const AllUsersTable: FC = function () {
                 id="checkbox-7"
                 aria-describedby="checkbox-1"
                 type="checkbox"
-                className="focus:ring-primary-300 dark:focus:ring-primary-600 h-4 w-4 rounded border-gray-300 bg-gray-50 focus:ring-4 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800"
+                className="h-4 w-4 rounded border-gray-300 bg-gray-50 focus:ring-4 focus:ring-primary-300 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-primary-600"
               />
               <label htmlFor="checkbox-7" className="sr-only">
                 checkbox
@@ -558,7 +558,7 @@ const AllUsersTable: FC = function () {
                 id="checkbox-8"
                 aria-describedby="checkbox-1"
                 type="checkbox"
-                className="focus:ring-primary-300 dark:focus:ring-primary-600 h-4 w-4 rounded border-gray-300 bg-gray-50 focus:ring-4 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800"
+                className="h-4 w-4 rounded border-gray-300 bg-gray-50 focus:ring-4 focus:ring-primary-300 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-primary-600"
               />
               <label htmlFor="checkbox-8" className="sr-only">
                 checkbox
@@ -606,7 +606,7 @@ const AllUsersTable: FC = function () {
                 id="checkbox-9"
                 aria-describedby="checkbox-1"
                 type="checkbox"
-                className="focus:ring-primary-300 dark:focus:ring-primary-600 h-4 w-4 rounded border-gray-300 bg-gray-50 focus:ring-4 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800"
+                className="h-4 w-4 rounded border-gray-300 bg-gray-50 focus:ring-4 focus:ring-primary-300 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-primary-600"
               />
               <label htmlFor="checkbox-9" className="sr-only">
                 checkbox
@@ -654,7 +654,7 @@ const AllUsersTable: FC = function () {
                 id="checkbox-10"
                 aria-describedby="checkbox-1"
                 type="checkbox"
-                className="focus:ring-primary-300 dark:focus:ring-primary-600 h-4 w-4 rounded border-gray-300 bg-gray-50 focus:ring-4 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800"
+                className="h-4 w-4 rounded border-gray-300 bg-gray-50 focus:ring-4 focus:ring-primary-300 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-primary-600"
               />
               <label htmlFor="checkbox-10" className="sr-only">
                 checkbox
@@ -702,7 +702,7 @@ const AllUsersTable: FC = function () {
                 id="checkbox-11"
                 aria-describedby="checkbox-1"
                 type="checkbox"
-                className="focus:ring-primary-300 dark:focus:ring-primary-600 h-4 w-4 rounded border-gray-300 bg-gray-50 focus:ring-4 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800"
+                className="h-4 w-4 rounded border-gray-300 bg-gray-50 focus:ring-4 focus:ring-primary-300 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-primary-600"
               />
               <label htmlFor="checkbox-11" className="sr-only">
                 checkbox
@@ -750,7 +750,7 @@ const AllUsersTable: FC = function () {
                 id="checkbox-12"
                 aria-describedby="checkbox-1"
                 type="checkbox"
-                className="focus:ring-primary-300 dark:focus:ring-primary-600 h-4 w-4 rounded border-gray-300 bg-gray-50 focus:ring-4 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800"
+                className="h-4 w-4 rounded border-gray-300 bg-gray-50 focus:ring-4 focus:ring-primary-300 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-primary-600"
               />
               <label htmlFor="checkbox-12" className="sr-only">
                 checkbox
@@ -798,7 +798,7 @@ const AllUsersTable: FC = function () {
                 id="checkbox-13"
                 aria-describedby="checkbox-1"
                 type="checkbox"
-                className="focus:ring-primary-300 dark:focus:ring-primary-600 h-4 w-4 rounded border-gray-300 bg-gray-50 focus:ring-4 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800"
+                className="h-4 w-4 rounded border-gray-300 bg-gray-50 focus:ring-4 focus:ring-primary-300 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-primary-600"
               />
               <label htmlFor="checkbox-13" className="sr-only">
                 checkbox
@@ -846,7 +846,7 @@ const AllUsersTable: FC = function () {
                 id="checkbox-14"
                 aria-describedby="checkbox-1"
                 type="checkbox"
-                className="focus:ring-primary-300 dark:focus:ring-primary-600 h-4 w-4 rounded border-gray-300 bg-gray-50 focus:ring-4 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800"
+                className="h-4 w-4 rounded border-gray-300 bg-gray-50 focus:ring-4 focus:ring-primary-300 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-primary-600"
               />
               <label htmlFor="checkbox-14" className="sr-only">
                 checkbox
@@ -894,7 +894,7 @@ const AllUsersTable: FC = function () {
                 id="checkbox-15"
                 aria-describedby="checkbox-1"
                 type="checkbox"
-                className="focus:ring-primary-300 dark:focus:ring-primary-600 h-4 w-4 rounded border-gray-300 bg-gray-50 focus:ring-4 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800"
+                className="h-4 w-4 rounded border-gray-300 bg-gray-50 focus:ring-4 focus:ring-primary-300 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-primary-600"
               />
               <label htmlFor="checkbox-15" className="sr-only">
                 checkbox
@@ -943,7 +943,7 @@ const AllUsersTable: FC = function () {
                 id="checkbox-16"
                 aria-describedby="checkbox-1"
                 type="checkbox"
-                className="focus:ring-primary-300 dark:focus:ring-primary-600 h-4 w-4 rounded border-gray-300 bg-gray-50 focus:ring-4 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800"
+                className="h-4 w-4 rounded border-gray-300 bg-gray-50 focus:ring-4 focus:ring-primary-300 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-primary-600"
               />
               <label htmlFor="checkbox-16" className="sr-only">
                 checkbox
@@ -992,7 +992,7 @@ const AllUsersTable: FC = function () {
                 id="checkbox-17"
                 aria-describedby="checkbox-1"
                 type="checkbox"
-                className="focus:ring-primary-300 dark:focus:ring-primary-600 h-4 w-4 rounded border-gray-300 bg-gray-50 focus:ring-4 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800"
+                className="h-4 w-4 rounded border-gray-300 bg-gray-50 focus:ring-4 focus:ring-primary-300 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-primary-600"
               />
               <label htmlFor="checkbox-17" className="sr-only">
                 checkbox
@@ -1040,7 +1040,7 @@ const AllUsersTable: FC = function () {
                 id="checkbox-18"
                 aria-describedby="checkbox-1"
                 type="checkbox"
-                className="focus:ring-primary-300 dark:focus:ring-primary-600 h-4 w-4 rounded border-gray-300 bg-gray-50 focus:ring-4 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800"
+                className="h-4 w-4 rounded border-gray-300 bg-gray-50 focus:ring-4 focus:ring-primary-300 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-primary-600"
               />
               <label htmlFor="checkbox-18" className="sr-only">
                 checkbox
@@ -1088,7 +1088,7 @@ const AllUsersTable: FC = function () {
                 id="checkbox-19"
                 aria-describedby="checkbox-1"
                 type="checkbox"
-                className="focus:ring-primary-300 dark:focus:ring-primary-600 h-4 w-4 rounded border-gray-300 bg-gray-50 focus:ring-4 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800"
+                className="h-4 w-4 rounded border-gray-300 bg-gray-50 focus:ring-4 focus:ring-primary-300 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-primary-600"
               />
               <label htmlFor="checkbox-19" className="sr-only">
                 checkbox
@@ -1136,7 +1136,7 @@ const AllUsersTable: FC = function () {
                 id="checkbox-20"
                 aria-describedby="checkbox-1"
                 type="checkbox"
-                className="focus:ring-primary-300 dark:focus:ring-primary-600 h-4 w-4 rounded border-gray-300 bg-gray-50 focus:ring-4 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800"
+                className="h-4 w-4 rounded border-gray-300 bg-gray-50 focus:ring-4 focus:ring-primary-300 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-primary-600"
               />
               <label htmlFor="checkbox-20" className="sr-only">
                 checkbox
@@ -1359,14 +1359,14 @@ export const Pagination: FC = function () {
       <div className="flex items-center space-x-3">
         <a
           href="#"
-          className="bg-primary-700 hover:bg-primary-800 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800 inline-flex flex-1 items-center justify-center rounded-lg px-3 py-2 text-center text-sm font-medium text-white focus:ring-4"
+          className="inline-flex flex-1 items-center justify-center rounded-lg bg-primary-700 px-3 py-2 text-center text-sm font-medium text-white hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
         >
           <HiChevronLeft className="mr-1 text-base" />
           Previous
         </a>
         <a
           href="#"
-          className="bg-primary-700 hover:bg-primary-800 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800 inline-flex flex-1 items-center justify-center rounded-lg px-3 py-2 text-center text-sm font-medium text-white focus:ring-4"
+          className="inline-flex flex-1 items-center justify-center rounded-lg bg-primary-700 px-3 py-2 text-center text-sm font-medium text-white hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
         >
           Next
           <HiChevronRight className="ml-1 text-base" />

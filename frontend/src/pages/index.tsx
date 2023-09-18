@@ -60,7 +60,7 @@ const SalesThisWeek: FC = function () {
         <div className="shrink-0">
           <a
             href="#"
-            className="text-primary-700 dark:text-primary-500 inline-flex items-center rounded-lg p-2 text-xs font-medium uppercase hover:bg-gray-100 dark:hover:bg-gray-700 sm:text-sm"
+            className="inline-flex items-center rounded-lg p-2 text-xs font-medium uppercase text-primary-700 hover:bg-gray-100 dark:text-primary-500 dark:hover:bg-gray-700 sm:text-sm"
           >
             Sales Report
             <svg
@@ -278,7 +278,7 @@ const NewProductsThisWeek: FC = function () {
         <div className="shrink-0">
           <a
             href="#"
-            className="text-primary-700 dark:text-primary-500 inline-flex items-center rounded-lg p-2 text-xs font-medium uppercase hover:bg-gray-100 dark:hover:bg-gray-700 sm:text-sm"
+            className="inline-flex items-center rounded-lg p-2 text-xs font-medium uppercase text-primary-700 hover:bg-gray-100 dark:text-primary-500 dark:hover:bg-gray-700 sm:text-sm"
           >
             Products Report
             <svg
@@ -433,7 +433,7 @@ const VisitorsThisWeek: FC = function () {
         <div className="shrink-0">
           <a
             href="#"
-            className="text-primary-700 dark:text-primary-500 inline-flex items-center rounded-lg p-2 text-xs font-medium uppercase hover:bg-gray-100 dark:hover:bg-gray-700 sm:text-sm"
+            className="inline-flex items-center rounded-lg p-2 text-xs font-medium uppercase text-primary-700 hover:bg-gray-100 dark:text-primary-500 dark:hover:bg-gray-700 sm:text-sm"
           >
             Visits Report
             <svg
@@ -552,7 +552,7 @@ const UserSignupsThisWeek: FC = function () {
         <div className="shrink-0">
           <a
             href="#"
-            className="text-primary-700 dark:text-primary-500 inline-flex items-center rounded-lg p-2 text-xs font-medium uppercase hover:bg-gray-100 dark:hover:bg-gray-700 sm:text-sm"
+            className="inline-flex items-center rounded-lg p-2 text-xs font-medium uppercase text-primary-700 hover:bg-gray-100 dark:text-primary-500 dark:hover:bg-gray-700 sm:text-sm"
           >
             Users Report
             <svg
@@ -696,7 +696,7 @@ const LatestCustomers: FC = function () {
         </h3>
         <a
           href="#"
-          className="text-primary-700 dark:text-primary-500 inline-flex items-center rounded-lg p-2 text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700"
+          className="inline-flex items-center rounded-lg p-2 text-sm font-medium text-primary-700 hover:bg-gray-100 dark:text-primary-500 dark:hover:bg-gray-700"
         >
           View all
         </a>
@@ -820,7 +820,7 @@ const LatestCustomers: FC = function () {
         <div className="shrink-0">
           <a
             href="#"
-            className="text-primary-700 dark:text-primary-500 inline-flex items-center rounded-lg p-2 text-xs font-medium uppercase hover:bg-gray-100 dark:hover:bg-gray-700 sm:text-sm"
+            className="inline-flex items-center rounded-lg p-2 text-xs font-medium uppercase text-primary-700 hover:bg-gray-100 dark:text-primary-500 dark:hover:bg-gray-700 sm:text-sm"
           >
             Sales Report
             <svg
@@ -883,7 +883,7 @@ const AcquisitionOverview: FC = function () {
                         <div className="relative w-full">
                           <div className="h-2 w-full rounded-sm bg-gray-200 dark:bg-gray-700">
                             <div
-                              className="bg-primary-700 h-2 rounded-sm"
+                              className="h-2 rounded-sm bg-primary-700"
                               style={{ width: "30%" }}
                             />
                           </div>
@@ -1007,7 +1007,7 @@ const AcquisitionOverview: FC = function () {
         <div className="shrink-0">
           <a
             href="#"
-            className="text-primary-700 dark:text-primary-500 inline-flex items-center rounded-lg p-2 text-xs font-medium uppercase hover:bg-gray-100 dark:hover:bg-gray-700 sm:text-sm"
+            className="inline-flex items-center rounded-lg p-2 text-xs font-medium uppercase text-primary-700 hover:bg-gray-100 dark:text-primary-500 dark:hover:bg-gray-700 sm:text-sm"
           >
             Acquisition Report
             <svg
@@ -1114,7 +1114,7 @@ const Transactions: FC = function () {
         <div className="shrink-0">
           <a
             href="#"
-            className="text-primary-700 dark:text-primary-500 rounded-lg p-2 text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="rounded-lg p-2 text-sm font-medium text-primary-700 hover:bg-gray-100 dark:text-primary-500 dark:hover:bg-gray-700"
           >
             View all
           </a>
@@ -1300,7 +1300,7 @@ const Transactions: FC = function () {
         <div className="shrink-0">
           <a
             href="#"
-            className="text-primary-700 dark:text-primary-500 inline-flex items-center rounded-lg p-2 text-xs font-medium uppercase hover:bg-gray-100 dark:hover:bg-gray-700 sm:text-sm"
+            className="inline-flex items-center rounded-lg p-2 text-xs font-medium uppercase text-primary-700 hover:bg-gray-100 dark:text-primary-500 dark:hover:bg-gray-700 sm:text-sm"
           >
             Transactions Report
             <svg

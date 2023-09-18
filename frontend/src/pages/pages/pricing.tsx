@@ -194,7 +194,7 @@ const PricingPage: FC = function () {
               </div>
               <a
                 href="#"
-                className="bg-primary-700 hover:bg-primary-800 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800 rounded-lg px-5 py-2.5 text-center text-sm font-medium text-white focus:ring-4"
+                className="rounded-lg bg-primary-700 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
               >
                 Choose plan
               </a>
@@ -352,7 +352,7 @@ const PricingPage: FC = function () {
               </div>
               <a
                 href="#"
-                className="bg-primary-700 hover:bg-primary-800 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800 rounded-lg px-5 py-2.5 text-center text-sm font-medium text-white focus:ring-4"
+                className="rounded-lg bg-primary-700 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
               >
                 Choose plan
               </a>
@@ -510,7 +510,7 @@ const PricingPage: FC = function () {
               </div>
               <a
                 href="#"
-                className="bg-primary-700 hover:bg-primary-800 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800 rounded-lg px-5 py-2.5 text-center text-sm font-medium text-white focus:ring-4"
+                className="rounded-lg bg-primary-700 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
               >
                 Choose plan
               </a>
@@ -1122,7 +1122,7 @@ const PricingPage: FC = function () {
                     Feel free to&nbsp;
                     <a
                       href="#"
-                      className="text-primary-600 dark:text-primary-500 font-medium underline hover:no-underline"
+                      className="font-medium text-primary-600 underline hover:no-underline dark:text-primary-500"
                       target="_blank"
                       rel="noreferrer"
                     >
@@ -1147,7 +1147,7 @@ const PricingPage: FC = function () {
                     Find out more information by&nbsp;
                     <a
                       href="/license"
-                      className="text-primary-600 dark:text-primary-500 font-medium underline hover:no-underline"
+                      className="font-medium text-primary-600 underline hover:no-underline dark:text-primary-500"
                     >
                       reading the license
                     </a>
@@ -1162,7 +1162,7 @@ const PricingPage: FC = function () {
                     The free updates that will be provided is based on the{" "}
                     <a
                       href="#"
-                      className="text-primary-600 dark:text-primary-500 font-medium underline hover:no-underline"
+                      className="font-medium text-primary-600 underline hover:no-underline dark:text-primary-500"
                     >
                       roadmap
                     </a>
@@ -1179,7 +1179,7 @@ const PricingPage: FC = function () {
                     The&nbsp;
                     <a
                       href="#"
-                      className="text-primary-600 dark:text-primary-500 font-medium underline hover:no-underline"
+                      className="font-medium text-primary-600 underline hover:no-underline dark:text-primary-500"
                     >
                       free version
                     </a>
@@ -1220,18 +1220,18 @@ const PricingPage: FC = function () {
                   </p>
                   <ul className="mb-4 list-disc pl-4">
                     <li className="mb-2 text-gray-600">
-                      <span className="text-primary-600 dark:text-primary-500 cursor-pointer font-medium hover:underline">
+                      <span className="cursor-pointer font-medium text-primary-600 hover:underline dark:text-primary-500">
                         Figma Files - Buy a team license for $299 USD
                       </span>
                     </li>
                     <li className="mb-2 text-gray-600">
-                      <span className="text-primary-600 dark:text-primary-500 cursor-pointer font-medium hover:underline">
+                      <span className="cursor-pointer font-medium text-primary-600 hover:underline dark:text-primary-500">
                         Figma Files + Tailwind CSS code pre-order - Buy a team
                         license for <del>$699</del> $559 USD
                       </span>
                     </li>
                     <li className="mb-4 text-gray-600 dark:text-gray-400">
-                      <span className="text-primary-600 dark:text-primary-500 cursor-pointer font-medium hover:underline">
+                      <span className="cursor-pointer font-medium text-primary-600 hover:underline dark:text-primary-500">
                         Tailwind CSS code pre-order - Buy a team license for{" "}
                         <del>$399</del> $319 USD
                       </span>
@@ -1254,7 +1254,7 @@ const PricingPage: FC = function () {
                     Find out more information by{" "}
                     <a
                       href="/license"
-                      className="text-primary-600 dark:text-primary-500 font-medium underline hover:no-underline"
+                      className="font-medium text-primary-600 underline hover:no-underline dark:text-primary-500"
                     >
                       reading the license
                     </a>
@@ -1279,7 +1279,7 @@ const PricingPage: FC = function () {
                     Find out more information by{" "}
                     <a
                       href="/license"
-                      className="text-primary-600 dark:text-primary-500 font-medium underline hover:no-underline"
+                      className="font-medium text-primary-600 underline hover:no-underline dark:text-primary-500"
                     >
                       reading the license
                     </a>
@@ -1303,7 +1303,7 @@ const PricingPage: FC = function () {
                     Find out more information by{" "}
                     <a
                       href="/license"
-                      className="text-primary-600 dark:text-primary-500 font-medium underline hover:no-underline"
+                      className="font-medium text-primary-600 underline hover:no-underline dark:text-primary-500"
                     >
                       reading the license
                     </a>
@@ -1327,7 +1327,7 @@ const PricingPage: FC = function () {
                       rel="noreferrer"
                       target="_blank"
                       href="#"
-                      className="text-primary-600 dark:text-primary-500 font-medium underline hover:no-underline"
+                      className="font-medium text-primary-600 underline hover:no-underline dark:text-primary-500"
                     >
                       contact us
                     </a>
@@ -1366,7 +1366,7 @@ const PricingPage: FC = function () {
                       rel="noreferrer"
                       target="_blank"
                       href="#"
-                      className="text-primary-600 dark:text-primary-500 font-medium underline hover:no-underline"
+                      className="font-medium text-primary-600 underline hover:no-underline dark:text-primary-500"
                     >
                       contact us
                     </a>

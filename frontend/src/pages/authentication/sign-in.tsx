@@ -50,7 +50,7 @@ const SignInPage: FC = function () {
             </div>
             <a
               href="#"
-              className="text-primary-600 dark:text-primary-300 w-1/2 text-right text-sm"
+              className="w-1/2 text-right text-sm text-primary-600 dark:text-primary-300"
             >
               Lost Password?
             </a>
