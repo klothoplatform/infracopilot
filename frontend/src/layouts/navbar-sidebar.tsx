@@ -1,6 +1,13 @@
 import { Button, Footer } from "flowbite-react";
 import type { FC, ForwardedRef, PropsWithChildren } from "react";
-import React, { forwardRef, useCallback, useRef, useState } from "react";
+import React, {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import Navbar from "../components/navbar";
 import EditorSidebarLeft from "../components/EditorSidebarLeft";
 import { MdFacebook } from "react-icons/md";
@@ -13,11 +20,12 @@ import { FaFileCirclePlus } from "react-icons/fa6";
 import type { NewArchitectureFormState } from "../components/NewArchitectureModal";
 import NewArchitectureModal from "../components/NewArchitectureModal";
 import { AiOutlineLoading } from "react-icons/ai";
-import { PiArrowElbowLeftUpBold } from "react-icons/pi";
 import ExportIaC from "../api/ExportIaC";
 import { downloadFile } from "../helpers/download-file";
 import createArchitecture from "../api/CreateArchitecture";
 import classNames from "classnames";
+import { useNavigate, useParams } from "react-router-dom";
+import { WorkingOverlay } from "../components/WorkingOverlay";
 
 interface NavbarSidebarLayoutProps {
   isFooter?: boolean;
@@ -169,14 +177,56 @@ const Resizable: FC<PropsWithChildren<ResizableProps>> = function ({
 
 const EditorNavContent: FC = function () {
   const { architecture, loadArchitecture } = useApplicationStore();
+  const [isExporting, setIsExporting] = useState(false);
+  const [isLoadingArchitecture, setIsLoadingArchitecture] = useState(false);
+
+  let { architectureId } = useParams();
+  const navigate = useNavigate();
+
+  useLayoutEffect(() => {
+    (async () => {
+      if (
+        (architectureId === undefined && architecture.id) ||
+        (architectureId &&
+          architecture.id &&
+          architectureId !== architecture.id)
+      ) {
+        navigate(`/editor/${architecture.id}`);
+        return;
+      }
+      if (architectureId && !architecture.id) {
+        try {
+          setIsLoadingArchitecture(true);
+          await loadArchitecture(architectureId);
+        } finally {
+          setIsLoadingArchitecture(false);
+        }
+      }
+    })();
+  }, [
+    navigate,
+    architecture,
+    architectureId,
+    loadArchitecture,
+    setIsLoadingArchitecture,
+  ]);
+
   const [showCreateArchitectureModal, setShowCreateArchitectureModal] =
     useState(false);
 
-  const [isProcessing, setIsProcessing] = useState(false);
+  useEffect(() => {
+    setShowCreateArchitectureModal(!architecture?.id && !isLoadingArchitecture);
+  }, [
+    architecture,
+    isLoadingArchitecture,
+    setIsLoadingArchitecture,
+    setShowCreateArchitectureModal,
+  ]);
+
   const hidden = architecture.id === undefined;
 
   let onClickExportIac = async () => {
-    setIsProcessing(true);
+    setIsExporting(true);
     try {
       const iacZip = await ExportIaC(architecture.id, architecture.version);
       const url = URL.createObjectURL(iacZip);
@@ -184,7 +234,7 @@ const EditorNavContent: FC = function () {
     } finally {
       setTimeout(() => {
         // reduce flickering for fast requests
-        setIsProcessing(false);
+        setIsExporting(false);
       }, 200);
     }
   };
@@ -200,12 +250,17 @@ const EditorNavContent: FC = function () {
     state: NewArchitectureFormState,
   ) => {
     setShowCreateArchitectureModal(false);
-    const { id } = await createArchitecture({
-      name: state.name,
-      owner: "user",
-      engineVersion: 1,
-    });
-    await loadArchitecture(id);
+    try {
+      setIsLoadingArchitecture(true);
+      const { id } = await createArchitecture({
+        name: state.name,
+        owner: "user",
+        engineVersion: 1,
+      });
+      await loadArchitecture(id);
+    } finally {
+      setIsLoadingArchitecture(false);
+    }
   };
 
   return (
@@ -224,26 +279,16 @@ const EditorNavContent: FC = function () {
             <p>New Architecture</p>
           </Button>
         </div>
-        {!architecture.id && (
-          <div
-            className={
-              "absolute left-[20rem] top-[5rem] flex gap-2 rounded-md border-gray-300 bg-blue-100 px-4 py-2 drop-shadow-md dark:border-gray-700 dark:bg-blue-500 dark:text-white"
-            }
-          >
-            <PiArrowElbowLeftUpBold className="my-auto" />
-            <h2>Create a new architecture </h2>
-          </div>
-        )}
         <Button
           color={"purple"}
           className="flex"
           onClick={onClickExportIac}
-          isProcessing={isProcessing}
+          isProcessing={isExporting}
           disabled={hidden}
           processingSpinner={<AiOutlineLoading className="animate-spin" />}
         >
-          {!isProcessing && <TbFileExport className="mr-1" />}
-          <p>{isProcessing ? "Exporting..." : "Export IaC"}</p>
+          {!isExporting && <TbFileExport className="mr-1" />}
+          <p>{isExporting ? "Exporting..." : "Export IaC"}</p>
         </Button>
       </div>
       <NewArchitectureModal
@@ -251,6 +296,7 @@ const EditorNavContent: FC = function () {
         show={showCreateArchitectureModal}
         onSubmit={onSubmitCreateArchitectureModal}
       />
+      <WorkingOverlay show={isLoadingArchitecture} />
     </div>
   );
 };

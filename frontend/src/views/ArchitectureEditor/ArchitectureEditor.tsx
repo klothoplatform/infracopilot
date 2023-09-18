@@ -10,26 +10,7 @@ import useApplicationStore from "../store/store";
 import NavbarSidebarLayout from "../../layouts/navbar-sidebar";
 
 function ArchitectureEditor() {
-  let { architectureId } = useParams();
-  const { architecture, loadArchitecture } = useApplicationStore();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    (async () => {
-      if (
-        (architectureId === undefined && architecture.id) ||
-        (architectureId &&
-          architecture.id &&
-          architectureId !== architecture.id)
-      ) {
-        navigate(`/editor/${architecture.id}`);
-        return;
-      }
-      if (architectureId && !architecture.id) {
-        await loadArchitecture(architectureId);
-      }
-    })();
-  }, [navigate, architecture, architectureId, loadArchitecture]);
+  const { architecture } = useApplicationStore();
 
   return (
     <NavbarSidebarLayout isFooter={false}>
