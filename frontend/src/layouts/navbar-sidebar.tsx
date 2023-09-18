@@ -26,6 +26,8 @@ import createArchitecture from "../api/CreateArchitecture";
 import classNames from "classnames";
 import { useNavigate, useParams } from "react-router-dom";
 import { WorkingOverlay } from "../components/WorkingOverlay";
+import { PiArrowElbowLeftUpBold } from "react-icons/pi";
+import { useAuth0 } from "@auth0/auth0-react";
 
 interface NavbarSidebarLayoutProps {
   isFooter?: boolean;
@@ -103,7 +105,7 @@ type ResizableProps = {
   onResize?: (newSize: number) => void;
 };
 
-const Resizable: FC<PropsWithChildren<ResizableProps>> = function ({
+export const Resizable: FC<PropsWithChildren<ResizableProps>> = function ({
   handleStyle,
   handleSide,
   children,
@@ -217,6 +219,7 @@ const EditorNavContent: FC = function () {
 
   const [showCreateArchitectureModal, setShowCreateArchitectureModal] =
     useState(false);
+  const { getIdTokenClaims } = useAuth0();
 
   useEffect(() => {
     setShowCreateArchitectureModal(!architecture?.id && !isLoadingArchitecture);
@@ -227,12 +230,21 @@ const EditorNavContent: FC = function () {
     setShowCreateArchitectureModal,
   ]);
 
+  const { isAuthenticated, isLoading } = useAuth0();
   const hidden = architecture.id === undefined;
 
   let onClickExportIac = async () => {
     setIsExporting(true);
     try {
-      const iacZip = await ExportIaC(architecture.id, architecture.version);
+      const idToken = await getIdTokenClaims();
+      if (!idToken) {
+        return;
+      }
+      const iacZip = await ExportIaC(
+        architecture.id,
+        architecture.version,
+        idToken.__raw,
+      );
       const url = URL.createObjectURL(iacZip);
       downloadFile(architecture.name + ".zip", url);
     } finally {
@@ -255,11 +267,16 @@ const EditorNavContent: FC = function () {
   ) => {
     setShowCreateArchitectureModal(false);
     try {
+      const idToken = await getIdTokenClaims();
+      if (!idToken) {
+        return;
+      }
       setIsLoadingArchitecture(true);
       const { id } = await createArchitecture({
         name: state.name,
         owner: "user",
         engineVersion: 1,
+        idToken: idToken.__raw,
       });
       await loadArchitecture(id);
     } finally {
@@ -278,6 +295,7 @@ const EditorNavContent: FC = function () {
             color={"purple"}
             className="mr-2 flex gap-1"
             onClick={onClickNewArchitecture}
+            disabled={!isAuthenticated}
           >
             <FaFileCirclePlus className="mr-1" />
             <p>New Architecture</p>
@@ -288,7 +306,7 @@ const EditorNavContent: FC = function () {
           className="flex"
           onClick={onClickExportIac}
           isProcessing={isExporting}
-          disabled={hidden}
+          disabled={hidden || !isAuthenticated}
           processingSpinner={<AiOutlineLoading className="animate-spin" />}
         >
           {!isExporting && <TbFileExport className="mr-1" />}

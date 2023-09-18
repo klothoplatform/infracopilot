@@ -18,6 +18,8 @@ import ContextMenu from "./ContextMenu";
 import { WorkingOverlay } from "../../components/WorkingOverlay";
 import { getIconMapping } from "../../shared/reactflow/ResourceMappings";
 
+let id = 0;
+
 export default function EditorPane() {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);

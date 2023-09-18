@@ -8,10 +8,11 @@ const LoginButton = () => {
   return (
     <Button
       color={"purple"}
+      style={{ width: "100px" }}
       className="mr-2 flex gap-1"
       onClick={async () => {
         await loginWithRedirect({
-          appState: { returnTo: window.location.origin },
+          appState: { returnTo: window.location.pathname },
         });
       }}
     >

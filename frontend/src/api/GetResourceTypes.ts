@@ -7,9 +7,15 @@ import { ResourceTypeKB } from "../shared/resources/ResourceTypeKB";
 
 export async function getResourceTypes(
   architectureId: string,
+  idToken: string,
 ): Promise<ResourceTypeKB> {
   const { data } = await axios.get(
     `/architecture/${architectureId}/resource_types`,
+    {
+      headers: {
+        ...(idToken && { Authorization: `Bearer ${idToken}` }),
+      },
+    },
   );
 
   const resourceTypes = new ResourceTypeKB();

@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
-import type { FC, PropsWithChildren } from "react";
+import { useEffect, type FC, type PropsWithChildren } from "react";
 import { Avatar, DarkThemeToggle, Dropdown, Navbar } from "flowbite-react";
 import {
   HiArchive,
@@ -17,39 +17,33 @@ import {
   HiViewGrid,
 } from "react-icons/hi";
 import { useSidebarContext } from "../context/SidebarContext";
+import LoginButton from "../auth/Login";
+import { useAuth0 } from "@auth0/auth0-react";
+import type { User } from "@auth0/auth0-react";
+import LogoutButton from "../auth/Logout";
 
 interface NavbarProps {}
 
 const NavBar: FC<PropsWithChildren<NavbarProps>> = function ({ children }) {
   const { isOpenOnSmallScreens, isPageWithSidebar, setOpenOnSmallScreens } =
     useSidebarContext();
+  const {
+    user,
+    isAuthenticated,
+    isLoading,
+    logout,
+    loginWithRedirect,
+    getAccessTokenSilently,
+    getIdTokenClaims,
+  } = useAuth0();
+  console.log(user, isAuthenticated, isLoading);
 
   return (
     <Navbar fluid>
       <div className="w-full p-3 lg:px-5 lg:pl-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center pr-20">
-            {/* TODO: consider enabling sidebar toggle? */}
-            {/*{isPageWithSidebar && (*/}
-            {/*  <button*/}
-            {/*    onClick={() => setOpenOnSmallScreens(!isOpenOnSmallScreens)}*/}
-            {/*    className="mr-3 cursor-pointer rounded p-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white lg:inline"*/}
-            {/*  >*/}
-            {/*    <span className="sr-only">Toggle sidebar</span>*/}
-            {/*    {isOpenOnSmallScreens && isSmallScreen() ? (*/}
-            {/*      <HiX className="h-6 w-6" />*/}
-            {/*    ) : (*/}
-            {/*      <HiMenuAlt1 className="h-6 w-6" />*/}
-            {/*    )}*/}
-            {/*  </button>*/}
-            {/*)}*/}
             <Navbar.Brand href="/">
-              {/* TODO: replace with logo */}
-              {/*<img*/}
-              {/*  alt=""*/}
-              {/*  src="https://flowbite.com/docs/images/logo.svg"*/}
-              {/*  className="mr-3 h-6 sm:h-8"*/}
-              {/*/>*/}
               <span className="mr-6 pr-2"></span>
               <span className="self-center whitespace-nowrap text-2xl font-semibold dark:text-white">
                 InfraCopilot
@@ -60,20 +54,24 @@ const NavBar: FC<PropsWithChildren<NavbarProps>> = function ({ children }) {
           <div className="w-full items-start">{children}</div>
           <div className="flex items-center lg:gap-3">
             <div className="flex items-center">
-              {/*<button*/}
-              {/*  onClick={() => setOpenOnSmallScreens(!isOpenOnSmallScreens)}*/}
-              {/*  className="cursor-pointer rounded p-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900 focus:bg-gray-100 focus:ring-2 focus:ring-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:bg-gray-700 dark:focus:ring-gray-700 lg:hidden"*/}
-              {/*>*/}
-              {/*  <span className="sr-only">Search</span>*/}
-              {/*  <HiSearch className="h-6 w-6" />*/}
-              {/*</button>*/}
-              {/*<NotificationBellDropdown />*/}
-              {/*<AppDrawerDropdown />*/}
+              <button
+                onClick={() => setOpenOnSmallScreens(!isOpenOnSmallScreens)}
+                className="cursor-pointer rounded p-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900 focus:bg-gray-100 focus:ring-2 focus:ring-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:bg-gray-700 dark:focus:ring-gray-700 lg:hidden"
+              >
+                <span className="sr-only">Search</span>
+                <HiSearch className="h-6 w-6" />
+              </button>
               <DarkThemeToggle />
+              {isAuthenticated && user ? (
+                <>
+                  <NotificationBellDropdown />
+                  <AppDrawerDropdown />
+                </>
+              ) : null}
             </div>
-            {/*<div className="hidden lg:block">*/}
-            {/*  <UserDropdown />*/}
-            {/*</div>*/}
+            <div className="hidden lg:block">
+              {isAuthenticated && user ? <UserDropdown /> : <LoginButton />}
+            </div>
           </div>
         </div>
       </div>
@@ -96,152 +94,6 @@ const NotificationBellDropdown: FC = function () {
       <div className="max-w-[24rem]">
         <div className="block rounded-t-xl bg-gray-50 px-4 py-2 text-center text-base font-medium text-gray-700 dark:bg-gray-700 dark:text-gray-400">
           Notifications
-        </div>
-        <div>
-          <a
-            href="#"
-            className="flex border-y px-4 py-3 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-600"
-          >
-            <div className="shrink-0">
-              <img
-                alt=""
-                src="../images/users/bonnie-green.png"
-                className="h-11 w-11 rounded-full"
-              />
-              <div className="absolute -mt-5 ml-6 flex h-5 w-5 items-center justify-center rounded-full border border-white bg-primary-700 dark:border-gray-700">
-                <NewMessageIcon />
-              </div>
-            </div>
-            <div className="w-full pl-3">
-              <div className="mb-1.5 text-sm font-normal text-gray-500 dark:text-gray-400">
-                New message from&nbsp;
-                <span className="font-semibold text-gray-900 dark:text-white">
-                  Bonnie Green
-                </span>
-                : "Hey, what's up? All set for the presentation?"
-              </div>
-              <div className="text-xs font-medium text-primary-700 dark:text-primary-400">
-                a few moments ago
-              </div>
-            </div>
-          </a>
-          <a
-            href="#"
-            className="flex border-b px-4 py-3 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-600"
-          >
-            <div className="shrink-0">
-              <img
-                alt=""
-                src="../images/users/jese-leos.png"
-                className="h-11 w-11 rounded-full"
-              />
-              <div className="absolute -mt-5 ml-6 flex h-5 w-5 items-center justify-center rounded-full border border-white bg-gray-900 dark:border-gray-700">
-                <NewFollowIcon />
-              </div>
-            </div>
-            <div className="w-full pl-3">
-              <div className="mb-1.5 text-sm font-normal text-gray-500 dark:text-gray-400">
-                <span className="font-semibold text-gray-900 dark:text-white">
-                  Jese Leos
-                </span>
-                &nbsp;and&nbsp;
-                <span className="font-medium text-gray-900 dark:text-white">
-                  5 others
-                </span>
-                &nbsp;started following you.
-              </div>
-              <div className="text-xs font-medium text-primary-700 dark:text-primary-400">
-                10 minutes ago
-              </div>
-            </div>
-          </a>
-          <a
-            href="#"
-            className="flex border-b px-4 py-3 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-600"
-          >
-            <div className="shrink-0">
-              <img
-                alt=""
-                src="../images/users/joseph-mcfall.png"
-                className="h-11 w-11 rounded-full"
-              />
-              <div className="absolute -mt-5 ml-6 flex h-5 w-5 items-center justify-center rounded-full border border-white bg-red-600 dark:border-gray-700">
-                <NewLoveIcon />
-              </div>
-            </div>
-            <div className="w-full pl-3">
-              <div className="mb-1.5 text-sm font-normal text-gray-500 dark:text-gray-400">
-                <span className="font-semibold text-gray-900 dark:text-white">
-                  Joseph Mcfall
-                </span>
-                &nbsp;and&nbsp;
-                <span className="font-medium text-gray-900 dark:text-white">
-                  141 others
-                </span>
-                &nbsp;love your story. See it and view more stories.
-              </div>
-              <div className="text-xs font-medium text-primary-700 dark:text-primary-400">
-                44 minutes ago
-              </div>
-            </div>
-          </a>
-          <a
-            href="#"
-            className="flex border-b px-4 py-3 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-600"
-          >
-            <div className="shrink-0">
-              <img
-                alt=""
-                src="../images/users/leslie-livingston.png"
-                className="h-11 w-11 rounded-full"
-              />
-              <div className="absolute -mt-5 ml-6 flex h-5 w-5 items-center justify-center rounded-full border border-white bg-green-400 dark:border-gray-700">
-                <NewMentionIcon />
-              </div>
-            </div>
-            <div className="w-full pl-3">
-              <div className="mb-1.5 text-sm font-normal text-gray-500 dark:text-gray-400">
-                <span className="font-semibold text-gray-900 dark:text-white">
-                  Leslie Livingston
-                </span>
-                &nbsp;mentioned you in a comment:&nbsp;
-                <span className="font-medium text-primary-700 dark:text-primary-500">
-                  @bonnie.green
-                </span>
-                &nbsp;what do you say?
-              </div>
-              <div className="text-xs font-medium text-primary-700 dark:text-primary-400">
-                1 hour ago
-              </div>
-            </div>
-          </a>
-          <a
-            href="#"
-            className="flex px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-600"
-          >
-            <div className="shrink-0">
-              <img
-                alt=""
-                src="../images/users/robert-brown.png"
-                className="h-11 w-11 rounded-full"
-              />
-              <div className="absolute -mt-5 ml-6 flex h-5 w-5 items-center justify-center rounded-full border border-white bg-primary-500 dark:border-gray-700">
-                <NewVideoIcon />
-              </div>
-            </div>
-            <div className="w-full pl-3">
-              <div className="mb-1.5 text-sm font-normal text-gray-500 dark:text-gray-400">
-                <span className="font-semibold text-gray-900 dark:text-white">
-                  Robert Brown
-                </span>
-                &nbsp;posted a new video: Glassmorphism - learn how to implement
-                the new design trend.
-              </div>
-              <div className="text-xs font-medium text-primary-700 dark:text-primary-400">
-                3 hours ago
-              </div>
-            </div>
-          </a>
         </div>
         <a
           href="#"
@@ -434,6 +286,12 @@ const AppDrawerDropdown: FC = function () {
 };
 
 const UserDropdown: FC = function () {
+  const { user, logout } = useAuth0();
+
+  if (!user) {
+    return null;
+  }
+
   return (
     <Dropdown
       arrowIcon={false}
@@ -441,26 +299,28 @@ const UserDropdown: FC = function () {
       label={
         <span>
           <span className="sr-only">User menu</span>
-          <Avatar
-            alt=""
-            img="../images/users/neil-sims.png"
-            rounded
-            size="sm"
-          />
+          <img src={user.picture} alt={user.name} />
         </span>
       }
     >
       <Dropdown.Header>
-        <span className="block text-sm">Neil Sims</span>
-        <span className="block truncate text-sm font-medium">
-          neil.sims@flowbite.com
-        </span>
+        <div>
+          <img src={user.picture} alt={user.name} />
+          <h2>{user.name}</h2>
+          <p>{user.email}</p>
+        </div>
       </Dropdown.Header>
       <Dropdown.Item>Dashboard</Dropdown.Item>
       <Dropdown.Item>Settings</Dropdown.Item>
       <Dropdown.Item>Earnings</Dropdown.Item>
       <Dropdown.Divider />
-      <Dropdown.Item>Sign out</Dropdown.Item>
+      <Dropdown.Item
+        onClick={() =>
+          logout({ logoutParams: { returnTo: window.location.origin } })
+        }
+      >
+        Log Out
+      </Dropdown.Item>
     </Dropdown>
   );
 };

@@ -291,7 +291,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
   architecture: {} as Architecture,
   loadArchitecture: async (id: string, version?: number) => {
     console.log(get().failures);
-    const architecture = await getArchitecture(id, version);
+    const architecture = await getArchitecture(id, get().idToken, version);
     const elements = toReactFlowElements(
       architecture,
       ArchitectureView.DataFlow,
@@ -431,6 +431,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
         architecture.id,
         architecture.version,
         get().unappliedConstraints,
+        get().idToken,
       );
       if (newArchitecture.failures.length > 0) {
         console.log(newArchitecture.failures);
@@ -595,7 +596,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
   loadResourceTypeKB: async (architectureId: string) => {
     // TODO: remove this sample cross-slice logging statement
     console.log("idtoken", get().idToken);
-    const types = await getResourceTypes(architectureId);
+    const types = await getResourceTypes(architectureId, get().idToken);
     set(
       {
         resourceTypeKB: types,

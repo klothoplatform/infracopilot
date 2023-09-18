@@ -6,6 +6,7 @@ from fastapi import HTTPException, Response
 from fastapi.responses import JSONResponse
 from typing import List, Optional
 from pydantic import BaseModel
+from src.auth_service.main import add_architecture_owner
 from src.engine_service.engine_commands.get_resource_types import (
     GetResourceTypesRequest,
     get_resource_types,
@@ -21,6 +22,7 @@ from src.state_manager.architecture_storage import (
     get_state_from_fs,
     ArchitectureStateDoesNotExistError,
 )
+from src.util.entity import User
 
 
 log = logging.getLogger(__name__)
@@ -32,25 +34,29 @@ class ArchitecutreStateNotLatestError(Exception):
 
 class CreateArchitectureRequest(BaseModel):
     name: str
-    owner: str
     engine_version: float
+    owner: str = None
 
 
-async def copilot_new_architecture(body: CreateArchitectureRequest):
+async def copilot_new_architecture(
+    body: CreateArchitectureRequest, user_id: str = None
+):
     try:
+        owner = User(user_id) if body.owner is None else User(body.owner)
         id = str(uuid.uuid4())
         architecture = Architecture(
             id=id,
             name=body.name,
             state=0,
             constraints=[],
-            owner=body.owner,
+            owner=owner.to_auth_string(),
             created_at=int(time.time()),
-            updated_by=body.owner,
+            updated_by=owner.to_auth_string(),
             engine_version=body.engine_version,
             decisions=[],
         )
         await add_architecture(architecture)
+        await add_architecture_owner(owner, id)
         return JSONResponse(content={"id": id})
     except Exception:
         log.error("Error creating new architecture", exc_info=True)

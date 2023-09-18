@@ -33,6 +33,9 @@ class Architecture(Base):
             and self.engine_version == __value.engine_version
         )
 
+    def __str__(self):
+        return f"architecture:{self.id}"
+
 
 async def get_architecture_latest(id: str) -> Architecture:
     stmt = (
