@@ -96,13 +96,13 @@
           "callees": [
             "classnames"
           ],
-          "config": "tailwind.config.cjs"
+          "config": "./tailwind.config.js"
         }
       ],
       "tailwindcss/no-custom-classname": [
         "warn",
         {
-          "config": "tailwind.config.cjs"
+          "config": "./tailwind.config.js"
         }
       ]
     },
