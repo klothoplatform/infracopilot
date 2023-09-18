@@ -198,6 +198,10 @@ const EditorNavContent: FC = function () {
         try {
           setIsLoadingArchitecture(true);
           await loadArchitecture(architectureId);
+        } catch (e) {
+          //TODO: update the store to trigger a notification
+          console.error(e);
+          navigate("/editor");
         } finally {
           setIsLoadingArchitecture(false);
         }
