@@ -161,7 +161,7 @@ export class Cloudfront {
         cloudfrontDefaultCertificate: process.env.STAGE !== "dev",
         acmCertificateArn:
           process.env.STAGE === "dev"
-            ? "arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012"
+            ? "arn:aws:acm:us-east-1:338991950301:certificate/7dd16501-4926-4db3-95f8-fdb0f955d3ee"
             : undefined,
       },
       aliases:
