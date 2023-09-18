@@ -1,6 +1,7 @@
 import type { FC } from "react";
 import React, {
   memo,
+  useContext,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -22,6 +23,7 @@ import {
   RightSidebarTabs,
 } from "../../shared/sidebar-nav";
 import { TbDotsCircleHorizontal } from "react-icons/tb";
+import { ThemeContext } from "flowbite-react/lib/esm/components/Flowbite/ThemeContext";
 
 interface ResourceNodeProps {
   id: string;
@@ -41,6 +43,7 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
     navigateRightSidebar,
   } = useApplicationStore();
 
+  const { mode } = useContext(ThemeContext);
   const connectionNodeId = useStore(connectionNodeIdSelector);
   const isConnecting = !!connectionNodeId;
   const isTarget = connectionNodeId && connectionNodeId !== id;
@@ -87,6 +90,7 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
             key: element.name,
           },
           data,
+          mode,
         );
         const clone = React.cloneElement(icon, {
           key: element.toKlothoIdString(),
@@ -164,6 +168,7 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
               },
             },
             data,
+            mode,
           )}
           {/* eslint-disable-next-line jsx-a11y/mouse-events-have-key-events */}
           <div

@@ -45,7 +45,7 @@ export const NoIcon = (props: IconProps | undefined) => {
   return <></>;
 };
 
-export const Helm = (props: IconProps) => {
+export const HelmColor = (props: IconProps) => {
   return (
     <img
       height="100px"
@@ -53,6 +53,18 @@ export const Helm = (props: IconProps) => {
       alt="helm"
       {...props}
       src="/other_icons/helm-icon-color.svg"
+    />
+  );
+};
+
+export const HelmWhite = (props: IconProps) => {
+  return (
+    <img
+      height="100px"
+      width="100px"
+      alt="helm"
+      {...props}
+      src="/other_icons/helm-icon-white.svg"
     />
   );
 };

@@ -1,16 +1,17 @@
 import type { MouseEventHandler } from "react";
 import * as React from "react";
-import { useEffect } from "react";
+import { isValidElement, useContext, useEffect } from "react";
 import { Accordion, Badge, Card } from "flowbite-react";
-import { typeMappings } from "../shared/reactflow/ResourceMappings";
+import { getIcon, typeMappings } from "../shared/reactflow/ResourceMappings";
 
 import "./ResourceAccordion.scss";
 import classNames from "classnames";
 import { FaAngleUp } from "react-icons/fa";
+import { ThemeContext } from "flowbite-react/lib/esm/components/Flowbite/ThemeContext";
 
 interface ResourceAccordionOptions {
   name: string;
-  icon: React.ReactElement;
+  icon: React.JSX.Element;
   open?: boolean;
   filter?: FilterFunction;
   layout?: "grid" | "list";
@@ -20,7 +21,7 @@ interface ResourceOption {
   provider: string;
   type: string;
   name: string;
-  icon: CallableFunction;
+  icon: React.JSX.Element;
 }
 
 type ResourceCardProps = {
@@ -38,28 +39,10 @@ export default function ResourceAccordion({
   filter,
   layout,
 }: ResourceAccordionOptions) {
+  const { mode } = useContext(ThemeContext);
   const provider = name.toLowerCase();
   const mappings = typeMappings.get(provider);
-  const [options, setOptions] = React.useState<ResourceOption[]>(() => {
-    return mappings
-      ? Array.from(mappings.entries())
-          .filter(([type, mapping]) => filter?.(type) ?? true)
-          .map(([type, mapping]) => {
-            return {
-              provider: provider,
-              type: type,
-              name: type
-                .split("_")
-                .map(
-                  ([firstChar, ...rest]) =>
-                    firstChar.toUpperCase() + rest.join("").toLowerCase(),
-                )
-                .join(" "),
-              icon: mapping instanceof Function ? mapping : mapping.nodeIcon,
-            };
-          })
-      : [];
-  });
+  const [options, setOptions] = React.useState<ResourceOption[]>([]);
 
   useEffect(() => {
     setOptions(
@@ -76,11 +59,11 @@ export default function ResourceAccordion({
                   firstChar.toUpperCase() + rest.join("").toLowerCase(),
               )
               .join(" "),
-            icon: mapping instanceof Function ? mapping : mapping.nodeIcon,
+            icon: getIcon(provider, type, undefined, undefined, mode),
           };
         }),
     );
-  }, [filter, mappings, provider, setOptions]);
+  }, [filter, mappings, provider, setOptions, mode]);
 
   const [isOpen, setIsOpen] = React.useState(open);
   const [showResourceCount, setShowResourceCount] = React.useState(false);
@@ -132,7 +115,7 @@ export default function ResourceAccordion({
       <Accordion.Content className="px-1 py-2">
         <div
           className={classNames(
-            "mb-4 flex w-full flex-wrap content-start gap-2 px-2",
+            "flex w-full flex-wrap content-start gap-2 px-2",
             {
               "flex-col": layout === "list",
             },
@@ -179,7 +162,9 @@ const ResourceCard = ({
     >
       {orientation !== "horizontal" && (
         <div className={"flex flex-col justify-center gap-2"}>
-          <option.icon className="fixed-image mx-auto h-[50px] w-[50px]" />
+          {React.cloneElement(option.icon, {
+            className: "fixed-image mx-auto h-[50px] w-[50px]",
+          })}
           <div className={"mx-auto max-w-[85%] truncate text-center text-xs"}>
             {option.name}
           </div>
@@ -187,7 +172,9 @@ const ResourceCard = ({
       )}
       {orientation === "horizontal" && (
         <div className="mx-2 flex h-full max-w-full items-center gap-3">
-          <option.icon className="fixed-image mx-auto h-[30px] w-[30px] shrink-0 grow-0" />
+          {React.cloneElement(option.icon, {
+            className: "fixed-image mx-auto h-[30px] w-[30px] shrink-0 grow-0",
+          })}
           <div className={"mx-auto truncate text-start text-xs"}>
             {option.name}
           </div>

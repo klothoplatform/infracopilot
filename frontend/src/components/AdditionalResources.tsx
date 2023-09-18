@@ -1,14 +1,16 @@
 import { Card, Table, Tooltip } from "flowbite-react";
 import type { FC, ReactNode } from "react";
 import * as React from "react";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import useApplicationStore from "../views/store/store";
 import { getIcon } from "../shared/reactflow/ResourceMappings";
 import type { NodeId } from "../shared/architecture/TopologyNode";
 import { UnknownIcon } from "./Icon";
 import { getDownstreamResources } from "../shared/architecture/Architecture";
+import { ThemeContext } from "flowbite-react/lib/esm/components/Flowbite/ThemeContext";
 
 function AdditionalResources() {
+  const { mode } = useContext(ThemeContext);
   const [resourceRows, setResourceRows] = useState<ReactNode[]>([]);
   const { architecture, nodes, edges, selectedResource, selectedEdge } =
     useApplicationStore();
@@ -40,9 +42,15 @@ function AdditionalResources() {
       connectedNodes
         .map((nodeId) => {
           const icon = nodeId
-            ? getIcon(nodeId.provider, nodeId.type, {
-                className: "w-full h-full",
-              })
+            ? getIcon(
+                nodeId.provider,
+                nodeId.type,
+                {
+                  className: "w-full h-full",
+                },
+                undefined,
+                mode,
+              )
             : UnknownIcon({ className: "w-full h-full" });
           return (
             <ResourceItem

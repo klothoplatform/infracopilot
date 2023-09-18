@@ -2,7 +2,8 @@ import type { IconProps } from "../../components/Icon";
 import {
   Docker,
   ErrorIcon,
-  Helm,
+  HelmColor,
+  HelmWhite,
   NoIcon,
   UnknownIcon,
   WarningIcon,
@@ -360,7 +361,15 @@ export const typeMappings = new Map<
           nodeIcon: Deploy,
         },
       ],
-      ["helm_chart", Helm],
+      [
+        "helm_chart",
+        {
+          nodeIcon: HelmColor,
+          variants: new Map<string, IconMapping>([
+            ["dark", { nodeIcon: HelmWhite }],
+          ]),
+        },
+      ],
       ["kubeconfig", LogoWithBorder],
       ["kustomize_directory", LogoWithBorder],
       ["manifest", LogoWithBorder],
