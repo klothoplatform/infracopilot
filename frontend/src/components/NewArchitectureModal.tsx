@@ -13,7 +13,7 @@ export interface NewArchitectureFormState {
 }
 
 const initialState = {
-  name: "",
+  name: "Untitled Architecture",
 };
 
 export default function NewArchitectureModal({
@@ -27,7 +27,7 @@ export default function NewArchitectureModal({
 
   useEffect(() => {
     if (reset) {
-      dispatch({ field: "name", value: "" });
+      dispatch({ field: "name", value: initialState.name });
       setReset(false);
     }
   }, [reset]);
