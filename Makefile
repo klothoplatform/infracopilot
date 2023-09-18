@@ -42,4 +42,5 @@ clean:
 	npm --prefix frontend run clean
 
 post-compile:
-	mv ./compiled/web-ui/frontend/build/* ./compiled/web-ui && rm -rf ./compiled/web-ui/frontend
+	mv ./compiled/web-ui/frontend/build/* ./compiled/web-ui && rm -rf ./compiled/web-ui/frontend; \
+	cp -v -a custom_iac/. compiled/iac;

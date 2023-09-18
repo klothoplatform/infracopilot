@@ -99,6 +99,8 @@ jobs:
           chmod +x ./klotho
           ./klotho . --app infracopilot --config klotho_config/${STAGE}.yaml --provider aws
       - name: fix static unit directory
+        env:
+          STAGE: ${{ inputs.stage }}
         run: |
           make post-compile
       - name: Configure AWS Credentials
