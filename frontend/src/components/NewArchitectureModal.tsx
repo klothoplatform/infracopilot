@@ -1,10 +1,9 @@
 import { Button, Label, Modal, TextInput } from "flowbite-react";
-import { useEffect, useReducer, useState } from "react";
-import fieldsReducer from "../helpers/reducer";
+import { useForm } from "react-hook-form";
 
 interface NewArchitectureModalProps {
   onClose?: () => void;
-  onSubmit?: (event: SubmitEvent, state: NewArchitectureFormState) => void;
+  onSubmit?: (state: NewArchitectureFormState) => void;
   show: boolean;
 }
 
@@ -12,41 +11,33 @@ export interface NewArchitectureFormState {
   name: string;
 }
 
-const initialState = {
-  name: "Untitled Architecture",
-};
-
 export default function NewArchitectureModal({
   onClose,
   onSubmit,
   show,
 }: NewArchitectureModalProps) {
-  const [state, dispatch] = useReducer(fieldsReducer, initialState);
-
-  const [reset, setReset] = useState(false);
-
-  useEffect(() => {
-    if (reset) {
-      dispatch({ field: "name", value: initialState.name });
-      setReset(false);
-    }
-  }, [reset]);
-
-  const onChange = (e: any) => {
-    dispatch({ field: e.target.id, value: e.target.value });
-  };
-
-  const { name } = state;
+  const {
+    reset,
+    register,
+    handleSubmit,
+    trigger,
+    formState: { errors },
+  } = useForm<NewArchitectureFormState>();
 
   return (
     <Modal
       show={show}
       onClose={() => {
-        setReset(true);
+        reset();
         onClose?.();
       }}
     >
-      <form>
+      <form
+        onSubmit={handleSubmit((state) => {
+          onSubmit?.(state);
+          reset();
+        })}
+      >
         <Modal.Header>Create a New Architecture</Modal.Header>
         <Modal.Body>
           <div>
@@ -55,23 +46,25 @@ export default function NewArchitectureModal({
             </div>
             <TextInput
               id="name"
-              value={name}
-              onChange={onChange}
-              placeholder="New Architecture"
-              required
+              {...register("name", {
+                required: "Name is required",
+                maxLength: {
+                  value: 80,
+                  message: "Name must be at most 80 characters long",
+                },
+                onChange: async () => {
+                  await trigger("name");
+                },
+              })}
+              defaultValue="Untitled Architecture"
               type="text"
+              color={errors.name ? "failure" : undefined}
+              helperText={errors.name?.message}
             />
           </div>
         </Modal.Body>
         <Modal.Footer>
-          <Button
-            type="submit"
-            color="purple"
-            onClick={(e: SubmitEvent) => {
-              onSubmit?.(e, state);
-              setReset(true);
-            }}
-          >
+          <Button type="submit" color="purple">
             Create
           </Button>
         </Modal.Footer>

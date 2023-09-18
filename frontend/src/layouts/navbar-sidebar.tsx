@@ -197,10 +197,8 @@ const EditorNavContent: FC = function () {
   };
 
   let onSubmitCreateArchitectureModal = async (
-    event: SubmitEvent,
     state: NewArchitectureFormState,
   ) => {
-    event.preventDefault();
     setShowCreateArchitectureModal(false);
     const { id } = await createArchitecture({
       name: state.name,
