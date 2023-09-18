@@ -325,7 +325,7 @@ export const typeMappings = new Map<
       ],
       ["ses_email_identity", AmazonSimpleEmailService],
       ["sns_topic", AmazonSimpleNotificationServiceTopic],
-      ["sns_topic_subscription", AmazonSimpleNotificationService],
+      ["sns_subscription", AmazonSimpleNotificationService],
       ["sqs_queue", AmazonSimpleQueueServiceQueue],
       ["sqs_queue_policy", AmazonSimpleQueueService],
       ["target_group", ElasticLoadBalancing],
