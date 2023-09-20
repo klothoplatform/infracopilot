@@ -300,7 +300,10 @@ const EditorNavContent: FC = function () {
         show={showCreateArchitectureModal}
         onSubmit={onSubmitCreateArchitectureModal}
       />
-      <WorkingOverlay show={isLoadingArchitecture} />
+      <WorkingOverlay
+        show={isLoadingArchitecture}
+        message={"Loading Architecture..."}
+      />
     </div>
   );
 };

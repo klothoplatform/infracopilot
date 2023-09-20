@@ -43,6 +43,18 @@ export default function EditorPane() {
   const [oldNodeCount, setOldNodeCount] = useState<number>(nodes.length);
   const [oldEdgeCount, setOldEdgeCount] = useState<number>(edges.length);
 
+  const [showSpinner, setShowSpinner] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!canApplyConstraints) {
+      setShowSpinner(true);
+    } else {
+      setTimeout(() => {
+        setShowSpinner(false);
+      }, 1000);
+    }
+  }, [canApplyConstraints, setShowSpinner]);
+
   const getId = () => `${id++}`;
 
   const onDragOver = useCallback((event: any) => {
@@ -213,7 +225,7 @@ export default function EditorPane() {
           {menu && <ContextMenu {...menu} />}
           <Controls />
         </ReactFlow>
-        <WorkingOverlay show={!canApplyConstraints} />
+        <WorkingOverlay show={showSpinner} message={"Autocompleting..."} />
       </div>
     </>
   );
