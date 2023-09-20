@@ -25,18 +25,14 @@ const cardTheme: CustomFlowbiteTheme["card"] = {
 };
 
 export default function ConfigTable() {
-  const {
-    nodes,
-    architecture,
-    selectedNode,
-    selectedResource,
-    selectResource,
-    configureResources,
-  } = useApplicationStore();
+  const { architecture, selectedResource, configureResources } =
+    useApplicationStore();
 
-  const metadata = (architecture.resourceMetadata as any[])?.find((e) => {
-    return e.id === selectedResource?.toKlothoIdString();
-  })?.metadata;
+  const metadata = ((architecture?.resourceMetadata as any[]) ?? [])?.find(
+    (e) => {
+      return e.id === selectedResource?.toKlothoIdString();
+    },
+  )?.metadata;
 
   let initialState = {} as any;
   if (metadata) {

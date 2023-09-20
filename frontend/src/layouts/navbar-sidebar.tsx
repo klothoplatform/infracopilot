@@ -65,7 +65,7 @@ const NavbarSidebarLayout: FC<PropsWithChildren<NavbarSidebarLayoutProps>> =
               >
                 <div
                   ref={leftSidebarRef}
-                  className="mr-2 box-border flex min-w-[280px] max-w-[29%] shrink-0 grow-0 basis-[383px]"
+                  className="mr-2 box-border flex min-w-[280px] max-w-[29%] shrink-0 grow-0 basis-[388px]"
                 >
                   <EditorSidebarLeft resourceLayout={resourceLayout} />
                 </div>

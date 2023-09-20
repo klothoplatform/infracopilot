@@ -5,6 +5,7 @@ import { BaseEdge, BezierEdge, EdgeLabelRenderer } from "reactflow";
 import type { ElkEdgeSection } from "elkjs/lib/elk.bundled";
 import type { SVGDrawFunction } from "./drawSvgPath";
 import { svgDrawSmoothLinePath } from "./drawSvgPath";
+import { Markers } from "../Markers";
 
 export interface SmartEdgeSection extends ElkEdgeSection {
   minX: number;
@@ -288,14 +289,36 @@ export function SmartElkEdge<EdgeDataType = unknown, NodeDataType = unknown>({
   }
 
   const { svgPathString, labelX, labelY } = smartResponse;
-
+  const uid = (data as any)?.edgeSection?.id ?? Math.random().toString();
+  let resolvedMarkerStart = markerStart;
+  let resolvedMarkerEnd = markerEnd;
+  if (markerStart === "url(#arrow-closed)") {
+    resolvedMarkerStart = `url(#arrow-closed-${uid})`;
+  }
+  if (markerEnd === "url(#arrow-closed)") {
+    resolvedMarkerEnd = `url(#arrow-closed-${uid})`;
+  }
+  console.log(
+    "resolvedMarkerStart",
+    [markerStart, markerEnd]
+      .map((m) => m?.replaceAll(/(url\(#|\))/g, ""))
+      .filter((m) => m) as string[],
+  );
   return (
     <>
+      <Markers
+        types={
+          [markerStart, markerEnd]
+            .map((m) => m?.replaceAll(/(url\(#|\))/g, ""))
+            .filter((m) => m) as string[]
+        }
+        uid={uid}
+      />
       <BaseEdge
         path={svgPathString}
         style={style}
-        markerStart={markerStart}
-        markerEnd={markerEnd}
+        markerStart={resolvedMarkerStart}
+        markerEnd={resolvedMarkerEnd}
         interactionWidth={interactionWidth}
       />
 
@@ -306,7 +329,7 @@ export function SmartElkEdge<EdgeDataType = unknown, NodeDataType = unknown>({
               transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
               ...labelStyle,
             }}
-            className="absolute z-20 overflow-hidden text-ellipsis  rounded-lg border-[1px] border-gray-700 bg-gray-100 p-[10px] text-center text-xs dark:border-gray-200 dark:bg-gray-800 dark:text-gray-200"
+            className="overflow-hidden text-ellipsis  rounded-lg border-[1px] border-gray-700 bg-gray-100 p-[10px] text-center text-xs dark:border-gray-200 dark:bg-gray-800 dark:text-gray-200"
           >
             {label}
           </div>

@@ -232,19 +232,43 @@ const useApplicationStoreBase = createWithEqualityFn<EditorState>()(
       console.log("selected node", nodeId);
     },
     deselectNode: (nodeId: string) => {
-      console.log("deselect ", nodeId);
       if (!nodeId) {
         return;
       }
-      set({
-        nodes: get().nodes.map((node) => {
-          if (node.id === nodeId) {
-            node.data = { ...node.data, isSelected: false };
-          }
-          return node;
-        }),
-        selectedNode: undefined,
-      });
+      let resourceId: NodeId | undefined;
+      set(
+        {
+          nodes: get().nodes.map((node) => {
+            if (node.id === nodeId) {
+              node.data = { ...node.data, isSelected: false };
+              resourceId = node.data.resourceId;
+            }
+            return node;
+          }),
+          selectedNode: undefined,
+        },
+        undefined,
+        "editor/deselectNode:deselectNode",
+      );
+      if (
+        get().selectedResource &&
+        get().selectedResource?.toKlothoIdString() ===
+          resourceId?.toKlothoIdString()
+      ) {
+        set(
+          {
+            selectedResource: undefined,
+          },
+          undefined,
+          "editor/deselectNode:deselectResource",
+        );
+      }
+
+      get().navigateRightSidebar([
+        RightSidebarTabs.Changes,
+        get().rightSidebarSelector[1],
+      ]);
+
       console.log("deselected node", nodeId);
     },
     selectResource: (resourceId: NodeId) => {

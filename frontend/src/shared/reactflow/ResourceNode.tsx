@@ -16,7 +16,6 @@ import useApplicationStore from "../../views/store/store";
 import "./NodeStyles.scss";
 import reducer from "../../helpers/reducer";
 import { NodeId } from "../architecture/TopologyNode";
-import { BiEdit } from "react-icons/bi";
 import classNames from "classnames";
 import {
   RightSidebarDetailsTabs,
@@ -24,6 +23,7 @@ import {
 } from "../../shared/sidebar-nav";
 import { TbDotsCircleHorizontal } from "react-icons/tb";
 import { ThemeContext } from "flowbite-react/lib/esm/components/Flowbite/ThemeContext";
+import type { IconProps } from "../../components/Icon";
 
 interface ResourceNodeProps {
   id: string;
@@ -43,16 +43,24 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
     navigateRightSidebar,
   } = useApplicationStore();
 
-  const { mode } = useContext(ThemeContext);
   const connectionNodeId = useStore(connectionNodeIdSelector);
   const isConnecting = !!connectionNodeId;
-  const isTarget = connectionNodeId && connectionNodeId !== id;
   const isSelected = selectedResource === data.resourceId;
   const [mouseOverNode, setMouseOverNode] = useState(false);
   // this could be a map by handle id
   const [mouseOverHandle, setMouseOverHandle] = useState(false);
   const showSourceHandle = !isConnecting && (mouseOverNode || mouseOverHandle);
   const updateNodeInternals = useUpdateNodeInternals();
+
+  const onClickResourceIcon = () => {
+    selectResource(data.resourceId);
+    selectNode(id);
+    navigateRightSidebar([
+      RightSidebarTabs.Details,
+      RightSidebarDetailsTabs.Config,
+    ]);
+  };
+
   const handles = useMemo(() => {
     updateNodeInternals(id);
 
@@ -68,7 +76,6 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
             background: "#545B64",
             visibility: "hidden",
           }}
-          onConnect={(params) => console.log("handle onConnect", params)}
           isConnectable={isConnectable}
         />
       );
@@ -79,47 +86,36 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
     if (data.vizMetadata?.children === undefined) {
       return;
     }
-    const quickIconComponents = data.vizMetadata?.children.map(
-      (element: NodeId) => {
-        let icon = getIcon(
-          element.provider,
-          element.type,
-          {
+
+    const onClickQuickAction = (element: NodeId) => {
+      selectResource(element);
+      navigateRightSidebar([
+        RightSidebarTabs.Details,
+        RightSidebarDetailsTabs.Config,
+      ]);
+    };
+
+    const quickActions = data.vizMetadata?.children.map((element: NodeId) => {
+      return (
+        <ResourceIcon
+          key={`${data.resourceId.toKlothoIdString()}-nav-to-${element.toKlothoIdString()}`}
+          data={data}
+          resourceId={element}
+          iconProps={{
             height: "25px",
             width: "25px",
-            key: element.name,
-          },
-          data,
-          mode,
-        );
-        const clone = React.cloneElement(icon, {
-          key: element.toKlothoIdString(),
-        });
-        return (
-          <div key={element.name} title={element.toKlothoIdString()}>
-            <button
-              type="button"
-              onClick={() => {
-                selectResource(element);
-                navigateRightSidebar([
-                  RightSidebarTabs.Details,
-                  RightSidebarDetailsTabs.Config,
-                ]);
-              }}
-            >
-              {clone}
-            </button>
-          </div>
-        );
-      },
-    );
+          }}
+          onClick={onClickQuickAction}
+        />
+      );
+    });
 
-    if (quickIconComponents === undefined) {
+    if (quickActions === undefined) {
       return;
     }
     return [
-      ...quickIconComponents.slice(0, 2),
-      <DotsHorizontal
+      ...quickActions.slice(0, 2),
+      <AdditionalResourcesAction
         key={`${data.resourceId.toKlothoIdString()}-dots`}
         resourceId={data.resourceId}
       />,
@@ -130,10 +126,7 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
     <>
       {/* eslint-disable-next-line jsx-a11y/mouse-events-have-key-events,tailwindcss/no-custom-classname */}
       <div
-        className={classNames("resource-node", {
-          "border-2 rounded-md border-primary-700 shadow-md bg-white dark:bg-gray-900 dark:border-primary-200 w-fit p-2 transform-[translateY(-8px)]":
-            false, //isSelected, -- TODO: enable this once styling is fixed to ensure that this div properly wraps the node's contents
-        })}
+        className="resource-node pointer-events-none absolute flex h-fit w-fit flex-col justify-center"
         onMouseOver={(e) => {
           setMouseOverNode(true);
         }}
@@ -141,6 +134,25 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
           setMouseOverNode(false);
         }}
       >
+        <div
+          className={classNames(
+            "p-1 border-2 w-[100px] h-[100px] mx-auto rounded-md bg-transparent pointer-events-auto",
+            {
+              "border-primary-600/100 dark:border-primary-500/100": isSelected,
+              "border-primary-600/[0]": !isSelected,
+            },
+          )}
+        >
+          <ResourceIcon
+            data={data}
+            resourceId={data.resourceId}
+            iconProps={{
+              height: "100px",
+              width: "100px",
+            }}
+            onClick={onClickResourceIcon}
+          />
+        </div>
         {handles}
         {isConnecting && (
           <Handle
@@ -151,75 +163,37 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
             type="target"
           />
         )}
-        <div className="flex max-h-[200px] w-[100px] flex-col justify-center gap-1">
-          {getIcon(
-            data.resourceId.provider,
-            data.resourceId.type,
-            {
-              height: "100%",
-              width: "100%",
-              onClick: () => {
-                selectNode(id);
-                selectResource(data.resourceId);
-                navigateRightSidebar([
-                  RightSidebarTabs.Details,
-                  RightSidebarDetailsTabs.Config,
-                ]);
-              },
-            },
-            data,
-            mode,
-          )}
-          {/* eslint-disable-next-line jsx-a11y/mouse-events-have-key-events */}
-          <div
-            className="absolute left-[100px] top-0 h-full w-[20px] px-4 py-[40px]"
-            onMouseOver={() => setMouseOverHandle(true)}
-            onMouseLeave={() => setMouseOverHandle(false)}
-          >
-            <Handle
-              className={classNames(
-                "node-handle mr-7 border-2 border-red-500",
-                showSourceHandle ? "opacity-85" : "opacity-0",
-              )}
-              id={`${id}-dnd-source`}
-              position={Position.Right}
-              type="source"
-            >
-              <div className="handle-source handle-right pointer-events-none">
-                &nbsp;
-              </div>
-            </Handle>
+        <Handle
+          className={classNames("node-handle", {
+            "opacity-0": !showSourceHandle,
+          })}
+          id={`${id}-dnd-source`}
+          position={Position.Right}
+          type="source"
+        >
+          <div className="handle-source handle-right pointer-events-none">
+            &nbsp;
           </div>
+        </Handle>
 
-          <div className="flex flex-col text-center dark:text-gray-200">
-            <EditableLabel
-              label={data.label}
-              onSubmit={async (newValue) => {
-                const { provider, type, namespace } = data.resourceId;
-                await replaceResource(
-                  data.resourceId,
-                  new NodeId(type, namespace, newValue, provider),
-                );
-              }}
-            ></EditableLabel>
-            <div
-              style={{
-                position: "relative",
-                width: "200%",
-                left: "-50px",
-                overflowWrap: "anywhere",
-                fontSize: "smaller",
-              }}
-            >
-              <i>
-                {data.resourceId.provider === architecture.provider
-                  ? data.resourceId.type
-                  : `${data.resourceId.provider}:${data.resourceId.type}`}
-              </i>
-            </div>
-          </div>
+        <EditableLabel
+          label={data.label}
+          onSubmit={async (newValue) => {
+            const { provider, type, namespace } = data.resourceId;
+            await replaceResource(
+              data.resourceId,
+              new NodeId(type, namespace, newValue, provider),
+            );
+          }}
+        ></EditableLabel>
+        <div className={"text-center dark:text-gray-200"}>
+          <i>
+            {data.resourceId.provider === architecture.provider
+              ? data.resourceId.type
+              : `${data.resourceId.provider}:${data.resourceId.type}`}
+          </i>
         </div>
-        <div className="flex flex-row justify-center gap-2 pt-1">
+        <div className="pointer-events-auto flex flex-row justify-center gap-2 pt-1">
           {quickIcons}
         </div>
       </div>
@@ -227,6 +201,36 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
   );
 });
 ResourceNode.displayName = "ResourceNode";
+
+type ResourceIconProps = {
+  resourceId: NodeId;
+  data: any;
+  iconProps?: IconProps;
+  onClick?: (resourceId: NodeId) => void;
+  className?: string;
+  key?: string;
+};
+
+const ResourceIcon: FC<ResourceIconProps> = ({
+  className,
+  data,
+  resourceId,
+  onClick,
+  iconProps,
+  key,
+}) => {
+  const { mode } = useContext(ThemeContext);
+  return (
+    <button
+      key={key}
+      className={className}
+      onClick={() => onClick?.(resourceId)}
+      type="button"
+    >
+      {getIcon(resourceId.provider, resourceId.type, iconProps, data, mode)}
+    </button>
+  );
+};
 
 type EditableLabelProps = {
   label: string;
@@ -257,18 +261,12 @@ const EditableLabel: FC<EditableLabelProps> = ({ label, onSubmit }) => {
   return (
     <button
       onClick={() => (isEditingRef.current = true)}
-      style={{
-        position: "relative",
-        width: "200%",
-        left: "-50px",
-        overflowWrap: "anywhere",
-        paddingBottom: "2px",
-      }}
+      className="pointer-events-auto flex w-full justify-center dark:text-gray-200"
     >
-      <div className="font-semibold">
+      <>
         {!isEditingRef.current && (
           <div
-            className="flex justify-center hover:border-[1px] hover:border-gray-500 hover:bg-gray-100/50"
+            className="flex w-[210px] cursor-text justify-center border-[1px] border-gray-500/[0] border-opacity-0 px-1 hover:rounded-sm hover:border-gray-500 hover:bg-gray-100/20 dark:hover:bg-gray-700/20"
             onMouseEnter={(e) => {
               setShowEditIcon(true);
             }}
@@ -276,29 +274,32 @@ const EditableLabel: FC<EditableLabelProps> = ({ label, onSubmit }) => {
               setShowEditIcon(false);
             }}
           >
-            <div
-              className={classNames(
-                "text-center",
-                showEditIcon ? "ml-auto" : undefined,
-              )}
-            >
+            <div className={"h-fit w-[196px] truncate break-all font-semibold"}>
               {label}
             </div>
-            {!isEditingRef.current && showEditIcon && (
-              <>
-                <div className="ml-1"></div>
-                <div className="mr-auto">
-                  <BiEdit />
-                </div>
-              </>
-            )}
+            {/*{!isEditingRef.current && showEditIcon && (*/}
+            {/*  <>*/}
+            {/*    <div className="ml-1"></div>*/}
+            {/*    <div className="mr-auto">*/}
+            {/*      <BiEdit />*/}
+            {/*    </div>*/}
+            {/*  </>*/}
+            {/*)}*/}
           </div>
         )}
         {isEditingRef.current && (
-          <form>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (state.label !== label) {
+                onSubmit?.(state.label);
+              }
+              isEditingRef.current = false;
+            }}
+          >
             <input
               ref={inputRef}
-              className="border-[1px] border-gray-50 bg-gray-300/[.25] px-1 py-0.5 text-center"
+              className="w-fit overflow-x-visible rounded-sm border-[1px] bg-gray-50 p-1 text-center focus:border-gray-50 dark:bg-gray-900"
               id="label"
               required
               value={state.label}
@@ -307,28 +308,19 @@ const EditableLabel: FC<EditableLabelProps> = ({ label, onSubmit }) => {
                 dispatch({ field: e.target.id, value: e.target.value })
               }
             />
-            <input
-              hidden
-              type="submit"
-              onClick={(e) => {
-                e.preventDefault();
-                if (state.label !== label) {
-                  onSubmit?.(state.label);
-                }
-                isEditingRef.current = false;
-              }}
-            />
           </form>
         )}
-      </div>
+      </>
     </button>
   );
 };
 
-type DotsHorizontalProps = {
+type AdditionalResourcesProps = {
   resourceId: NodeId;
 };
-const DotsHorizontal: FC<DotsHorizontalProps> = ({ resourceId }) => {
+const AdditionalResourcesAction: FC<AdditionalResourcesProps> = ({
+  resourceId,
+}) => {
   const { selectResource, navigateRightSidebar } = useApplicationStore();
   return (
     <button

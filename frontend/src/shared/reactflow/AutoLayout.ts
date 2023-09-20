@@ -390,20 +390,9 @@ export async function autoLayout(
             },
             hidden: false, // we're currently hiding all edges until after they're all laid out with elk
             type: layoutOptions.flowEdgeType,
-            style: { stroke: "#545B64", strokeWidth: "2" },
             sourceHandle: `${edge.id}:${source?.id ?? ""}:s`,
             targetHandle: `${edge.id}:${target?.id ?? ""}:t`,
-            zIndex: 1,
-            markerEnd:
-              nodes.find((e) => e.id === edge.target)?.data?.resourceId
-                .provider !== "indicators"
-                ? {
-                    type: MarkerType.ArrowClosed,
-                    color: "#545B64",
-                    width: 220,
-                    height: 10,
-                  }
-                : undefined,
+            markerEnd: "arrow-closed",
           };
         }) ?? [],
     };

@@ -40,6 +40,9 @@ export default function EditorPane() {
     deselectEdge,
   } = useApplicationStore();
 
+  const [oldNodeCount, setOldNodeCount] = useState<number>(nodes.length);
+  const [oldEdgeCount, setOldEdgeCount] = useState<number>(edges.length);
+
   const getId = () => `${id++}`;
 
   const onDragOver = useCallback((event: any) => {
@@ -163,49 +166,55 @@ export default function EditorPane() {
   const { fitView } = useReactFlow();
 
   useEffect(() => {
-    fitView({ padding: 0.1, nodes: nodes, maxZoom: 1 });
-  }, [fitView, nodes, edges]);
+    if (edges.length !== oldEdgeCount || nodes.length !== oldNodeCount) {
+      setOldEdgeCount(edges.length);
+      setOldNodeCount(nodes.length);
+      fitView({ padding: 0.1, nodes: nodes, maxZoom: 1 });
+    }
+  }, [fitView, nodes, edges, oldEdgeCount, oldNodeCount]);
 
   return (
-    <div
-      className={"mx-2 block h-full w-full bg-gray-50 dark:bg-gray-900"}
-      ref={reactFlowWrapper}
-    >
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onNodeContextMenu={onNodeContextMenu}
-        onEdgeContextMenu={onEdgeContextMenu}
-        onConnect={onConnect}
-        onDrop={onDrop}
-        onDragOver={onDragOver}
-        onInit={setReactFlowInstance}
-        nodeTypes={NodesTypes}
-        edgeTypes={EdgeTypes}
-        defaultEdgeOptions={defaultEdgeOptions}
-        connectionLineType={ConnectionLineType.Straight}
-        connectionLineStyle={{
-          stroke: "#545B64",
-          strokeWidth: 2,
-          strokeLinecap: "square",
-          zIndex: 1000,
-        }}
-        elevateNodesOnSelect={false}
-        fitView
-        proOptions={{
-          hideAttribution: true,
-        }}
-        onNodeClick={onNodeClick}
-        onEdgeClick={onEdgeClick}
-        onPaneClick={onPaneClick}
+    <>
+      <div
+        className={"mx-2 block h-full w-full bg-gray-50 dark:bg-gray-900"}
+        ref={reactFlowWrapper}
       >
-        <Background variant={BackgroundVariant.Dots} gap={25} size={1} />
-        {menu && <ContextMenu {...menu} />}
-        <Controls />
-      </ReactFlow>
-      <WorkingOverlay show={!canApplyConstraints} />
-    </div>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onNodeContextMenu={onNodeContextMenu}
+          onEdgeContextMenu={onEdgeContextMenu}
+          onConnect={onConnect}
+          onDrop={onDrop}
+          onDragOver={onDragOver}
+          onInit={setReactFlowInstance}
+          nodeTypes={NodesTypes}
+          edgeTypes={EdgeTypes}
+          defaultEdgeOptions={defaultEdgeOptions}
+          connectionLineType={ConnectionLineType.Straight}
+          connectionLineStyle={{
+            stroke: "#545B64",
+            strokeWidth: 2,
+            strokeLinecap: "square",
+            zIndex: 1000,
+          }}
+          elevateNodesOnSelect={false}
+          fitView
+          proOptions={{
+            hideAttribution: true,
+          }}
+          onNodeClick={onNodeClick}
+          onEdgeClick={onEdgeClick}
+          onPaneClick={onPaneClick}
+        >
+          <Background variant={BackgroundVariant.Dots} gap={25} size={1} />
+          {menu && <ContextMenu {...menu} />}
+          <Controls />
+        </ReactFlow>
+        <WorkingOverlay show={!canApplyConstraints} />
+      </div>
+    </>
   );
 }

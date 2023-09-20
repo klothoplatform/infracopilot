@@ -9,8 +9,7 @@ const EdgeTypes = {
 };
 
 export const defaultEdgeOptions = {
-  type: "floating",
-  style: { zIndex: 30 },
+  type: "smartstep",
   hidden: true,
 };
 
