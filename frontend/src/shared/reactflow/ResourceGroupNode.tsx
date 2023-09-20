@@ -60,9 +60,11 @@ const ResourceGroupNode = memo(
       <>
         {handles}
         <div
-          className="flex h-full w-full bg-white dark:bg-gray-800"
+          className={classNames("flex h-full w-full border-gray-600", {
+            "bg-white dark:bg-gray-800": !data.isHighlighted,
+            "bg-gray-200 dark:bg-gray-700": data.isHighlighted,
+          })}
           style={{
-            borderColor: "gray",
             boxShadow: `0px 0px 0px 2px ${
               iconMapping?.groupStyle?.borderColor ?? "gray"
             } inset`,

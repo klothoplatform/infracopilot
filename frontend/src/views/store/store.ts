@@ -377,13 +377,29 @@ const useApplicationStoreBase = createWithEqualityFn<EditorState>()(
         return;
       }
       const nodeConstraints =
-        elements.nodes?.map(
-          (node) =>
-            new ApplicationConstraint(
-              ConstraintOperator.Add,
-              node.data.resourceId,
-            ),
-        ) ?? [];
+        elements.nodes
+          ?.map((node) => {
+            const nodeConstraints: Constraint[] = [
+              new ApplicationConstraint(
+                ConstraintOperator.Add,
+                node.data.resourceId,
+              ),
+            ];
+            if (node.parentNode) {
+              nodeConstraints.push(
+                new EdgeConstraint(
+                  ConstraintOperator.MustExist,
+                  new TopologyEdge(
+                    node.data.resourceId,
+                    nodes.find((n) => n.id === node.parentNode)?.data
+                      ?.resourceId,
+                  ),
+                ),
+              );
+            }
+            return nodeConstraints;
+          })
+          .flat() ?? [];
       let edgeConstraints: EdgeConstraint[] = [];
       if (elements.edges?.length) {
         const nodes = get().nodes;

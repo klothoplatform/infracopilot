@@ -298,12 +298,7 @@ export function SmartElkEdge<EdgeDataType = unknown, NodeDataType = unknown>({
   if (markerEnd === "url(#arrow-closed)") {
     resolvedMarkerEnd = `url(#arrow-closed-${uid})`;
   }
-  console.log(
-    "resolvedMarkerStart",
-    [markerStart, markerEnd]
-      .map((m) => m?.replaceAll(/(url\(#|\))/g, ""))
-      .filter((m) => m) as string[],
-  );
+
   return (
     <>
       <Markers

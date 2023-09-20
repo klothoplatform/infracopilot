@@ -16,8 +16,7 @@ import { NodeId } from "../../shared/architecture/TopologyNode";
 import useApplicationStore from "../store/store";
 import ContextMenu from "./ContextMenu";
 import { WorkingOverlay } from "../../components/WorkingOverlay";
-
-let id = 0;
+import { getIconMapping } from "../../shared/reactflow/ResourceMappings";
 
 export default function EditorPane() {
   const reactFlowWrapper = useRef<any>(null);
@@ -40,6 +39,8 @@ export default function EditorPane() {
     deselectEdge,
   } = useApplicationStore();
 
+  const { fitView, getIntersectingNodes } = useReactFlow();
+
   const [oldNodeCount, setOldNodeCount] = useState<number>(nodes.length);
   const [oldEdgeCount, setOldEdgeCount] = useState<number>(edges.length);
 
@@ -54,8 +55,6 @@ export default function EditorPane() {
       }, 1000);
     }
   }, [canApplyConstraints, setShowSpinner]);
-
-  const getId = () => `${id++}`;
 
   const onDragOver = useCallback((event: any) => {
     event.preventDefault();
@@ -80,12 +79,36 @@ export default function EditorPane() {
         x: event.clientX - reactFlowBounds.left,
         y: event.clientY - reactFlowBounds.top,
       });
-      const id = NodeId.fromString(`${type}/${getId()}`);
+
+      const intersectingNodes = getIntersectingNodes({
+        ...position,
+        width: 20,
+        height: 20,
+      }).reverse();
+      console.log("intersectingNodes", intersectingNodes);
+
+      const nearestGroup = intersectingNodes.find((n) => {
+        if (n.type === NodeType.ResourceGroup) {
+          return true;
+        }
+        const iconMapping = getIconMapping(
+          n.data.resourceId.provider,
+          n.data.resourceId.type,
+        );
+        return (
+          (iconMapping?.groupIcon ?? iconMapping?.groupStyle) !== undefined
+        );
+      });
+      console.log("nearestGroup", nearestGroup);
+
+      const id = NodeId.fromString(`${type}/${nodes.length}`);
       id.name = `${id.type}_${id.name}`;
       const newNode: Node = {
         id: id.toTopologyString(),
         type: NodeType.Resource,
         draggable: false,
+        parentNode: nearestGroup?.id,
+        extent: nearestGroup ? "parent" : undefined,
         data: {
           label: id.name,
           resourceId: id,
@@ -97,13 +120,7 @@ export default function EditorPane() {
         nodes: [newNode],
       });
     },
-    [
-      unappliedConstraints,
-      selectNode,
-      applyConstraints,
-      addGraphElements,
-      reactFlowInstance,
-    ],
+    [reactFlowInstance, getIntersectingNodes, nodes.length, addGraphElements],
   );
 
   const onNodeClick = (event: ReactMouseEvent, node: Node) => {
@@ -174,8 +191,6 @@ export default function EditorPane() {
     deselectEdge(selectedEdge ?? "");
     console.log("clicked pane");
   }, [setMenu, selectedNode, selectedEdge, deselectNode, deselectEdge]);
-
-  const { fitView } = useReactFlow();
 
   useEffect(() => {
     if (edges.length !== oldEdgeCount || nodes.length !== oldNodeCount) {

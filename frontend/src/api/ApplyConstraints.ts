@@ -32,7 +32,7 @@ export async function applyConstraints(
   );
   data = response.data;
 
-  console.log("resoibse frin apply constraints", response);
+  console.log("response from apply constraints", response);
   if (response.status === 400) {
     console.log(new TextDecoder().decode(data));
     const architectureJSON = JSON.parse(new TextDecoder().decode(data));
