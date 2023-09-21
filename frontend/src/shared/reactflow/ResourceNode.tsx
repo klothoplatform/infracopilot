@@ -126,7 +126,7 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
     <>
       {/* eslint-disable-next-line jsx-a11y/mouse-events-have-key-events,tailwindcss/no-custom-classname */}
       <div
-        className="resource-node pointer-events-none absolute flex h-fit w-fit flex-col justify-center"
+        className="resource-node pointer-events-none absolute flex h-fit w-[210px] flex-col justify-center"
         onMouseOver={(e) => {
           setMouseOverNode(true);
         }}
@@ -238,72 +238,62 @@ type EditableLabelProps = {
 };
 
 const EditableLabel: FC<EditableLabelProps> = ({ label, onSubmit }) => {
-  const isEditingRef = useRef(false);
-  const [state, dispatch] = useReducer(reducer, { label });
+  const [isEditing, setIsEditing] = useState(false);
+  const [state, dispatch] = useReducer(reducer, {
+    label,
+  });
   const inputRef = useRef<HTMLInputElement>(null);
-  const [showEditIcon, setShowEditIcon] = useState(false);
 
-  useEffect(() => {
-    if (isEditingRef.current && document.activeElement !== inputRef.current) {
+  const onBlur = (e: any) => {
+    console.log("onBlur", e);
+    if (e.relatedTarget !== inputRef.current) {
       if (state.label !== label) {
         onSubmit?.(state.label);
       }
-      isEditingRef.current = false;
+      setIsEditing(false);
     }
-  }, [onSubmit, state.label]);
+  };
 
-  useLayoutEffect(() => {
-    if (isEditingRef.current) {
+  useEffect(() => {
+    if (isEditing) {
       inputRef.current?.focus();
     }
-  }, [inputRef.current, isEditingRef.current]);
+  }, [isEditing]);
 
   return (
     <button
-      onClick={() => (isEditingRef.current = true)}
+      onClick={() => setIsEditing(true)}
       className="pointer-events-auto flex w-full justify-center dark:text-gray-200"
     >
       <>
-        {!isEditingRef.current && (
-          <div
-            className="flex w-[210px] cursor-text justify-center border-[1px] border-gray-500/[0] border-opacity-0 px-1 hover:rounded-sm hover:border-gray-500 hover:bg-gray-100/20 dark:hover:bg-gray-700/20"
-            onMouseEnter={(e) => {
-              setShowEditIcon(true);
-            }}
-            onMouseLeave={(e) => {
-              setShowEditIcon(false);
-            }}
-          >
-            <div className={"h-fit w-[196px] truncate break-all font-semibold"}>
+        {!isEditing && (
+          <div className="flex w-fit max-w-[210px] cursor-text justify-center border-[1px] border-gray-500/[0] border-opacity-0 px-1 hover:rounded-sm hover:border-gray-500 hover:bg-gray-100/20 dark:hover:bg-gray-700/20">
+            <div
+              className={"h-fit max-w-[196px] truncate break-all font-semibold"}
+            >
               {label}
             </div>
-            {/*{!isEditingRef.current && showEditIcon && (*/}
-            {/*  <>*/}
-            {/*    <div className="ml-1"></div>*/}
-            {/*    <div className="mr-auto">*/}
-            {/*      <BiEdit />*/}
-            {/*    </div>*/}
-            {/*  </>*/}
-            {/*)}*/}
           </div>
         )}
-        {isEditingRef.current && (
+        {isEditing && (
           <form
             onSubmit={(e) => {
               e.preventDefault();
               if (state.label !== label) {
                 onSubmit?.(state.label);
               }
-              isEditingRef.current = false;
+              setIsEditing(false);
             }}
           >
             <input
               ref={inputRef}
-              className="w-fit overflow-x-visible rounded-sm border-[1px] bg-gray-50 p-1 text-center focus:border-gray-50 dark:bg-gray-900"
+              className="max-w-[196px] overflow-x-visible rounded-sm border-[1px] bg-gray-50 p-1 text-center focus:border-gray-50 dark:bg-gray-900"
+              style={{ width: `${state.label.length}ch` }}
               id="label"
               required
               value={state.label}
               type="text"
+              onBlur={onBlur}
               onChange={(e) =>
                 dispatch({ field: e.target.id, value: e.target.value })
               }
