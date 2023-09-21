@@ -164,6 +164,10 @@ export async function autoLayout(
   }
   try {
     const elk = new ELK({
+      workerFactory: function (url) {
+        const { Worker } = require("elkjs/lib/elk-worker.js"); // non-minified
+        return new Worker(url);
+      },
       defaultLayoutOptions: {
         ...elkConfig.defaultLayout,
         "elk.edgeRouting": getKeyByValue(

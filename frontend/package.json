@@ -58,7 +58,8 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-tailwindcss": "^3.13.0",
     "flowbite-typography": "^1.0.3",
-    "prettier": "^3.0.3"
+    "prettier": "^3.0.3",
+    "web-worker": "^1.2.0"
   },
   "scripts": {
     "start": "PORT=3100 react-scripts start",
