@@ -52,7 +52,7 @@ export default function EditorPane() {
     } else {
       setTimeout(() => {
         setShowSpinner(false);
-      }, 1000);
+      }, 200);
     }
   }, [canApplyConstraints, setShowSpinner]);
 
