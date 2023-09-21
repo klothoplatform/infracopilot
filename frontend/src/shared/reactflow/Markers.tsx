@@ -9,6 +9,7 @@ type MarkersProps = {
 const markers: { [key: string]: (uid: string) => React.JSX.Element } = {
   "arrow-closed": (uid: string) => (
     <marker
+      key={`arrow-closed-${uid}`}
       /* eslint-disable-next-line tailwindcss/no-custom-classname */
       className="arrow-closed"
       id={`arrow-closed-${uid}`}

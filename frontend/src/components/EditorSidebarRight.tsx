@@ -240,8 +240,8 @@ const EventNotification: FC<EventProps> = function ({ type, title, details }) {
 
       {details && (
         <div className="mx-2 break-all border-[1px] border-t-0 border-gray-300 bg-white py-2 pl-4 pr-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-          {details.split(/\n/).map((line) => (
-            <React.Fragment key={line}>
+          {details.split(/\n/).map((line, index) => (
+            <React.Fragment key={index}>
               {line}
               <br />
             </React.Fragment>

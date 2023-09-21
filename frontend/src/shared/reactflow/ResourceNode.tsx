@@ -208,7 +208,6 @@ type ResourceIconProps = {
   iconProps?: IconProps;
   onClick?: (resourceId: NodeId) => void;
   className?: string;
-  key?: string;
 };
 
 const ResourceIcon: FC<ResourceIconProps> = ({
@@ -217,12 +216,10 @@ const ResourceIcon: FC<ResourceIconProps> = ({
   resourceId,
   onClick,
   iconProps,
-  key,
 }) => {
   const { mode } = useContext(ThemeContext);
   return (
     <button
-      key={key}
       className={className}
       onClick={() => onClick?.(resourceId)}
       type="button"
