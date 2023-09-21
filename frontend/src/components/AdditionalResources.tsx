@@ -21,7 +21,6 @@ function AdditionalResources() {
       return;
     }
 
-    // TODO: use edges from the backend instead of the react flow graph
     let connectedNodes: NodeId[] = [];
     if (selectedResource !== undefined) {
       const downstreamNodes = getDownstreamResources(

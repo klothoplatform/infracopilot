@@ -168,7 +168,7 @@ const EditableLabel: FC<EditableLabelProps> = ({
                 "text-center overflow-x-visible rounded-sm border-[1px] bg-gray-50 p-1 text-left focus:border-gray-50 dark:bg-gray-900 p-0",
               )}
               style={{
-                width: `${state.label.length}ch`,
+                width: `${Math.max(8, state.label.length)}ch`,
               }}
               id="label"
               required

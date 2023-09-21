@@ -288,7 +288,7 @@ const EditableLabel: FC<EditableLabelProps> = ({ label, onSubmit }) => {
             <input
               ref={inputRef}
               className="max-w-[196px] overflow-x-visible rounded-sm border-[1px] bg-gray-50 p-1 text-center focus:border-gray-50 dark:bg-gray-900"
-              style={{ width: `${state.label.length}ch` }}
+              style={{ width: `${Math.max(8, state.label.length)}ch` }}
               id="label"
               required
               value={state.label}
