@@ -60,20 +60,20 @@ const NavBar: FC<PropsWithChildren<NavbarProps>> = function ({ children }) {
           <div className="w-full items-start">{children}</div>
           <div className="flex items-center lg:gap-3">
             <div className="flex items-center">
-              <button
-                onClick={() => setOpenOnSmallScreens(!isOpenOnSmallScreens)}
-                className="cursor-pointer rounded p-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900 focus:bg-gray-100 focus:ring-2 focus:ring-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:bg-gray-700 dark:focus:ring-gray-700 lg:hidden"
-              >
-                <span className="sr-only">Search</span>
-                <HiSearch className="h-6 w-6" />
-              </button>
-              <NotificationBellDropdown />
-              <AppDrawerDropdown />
+              {/*<button*/}
+              {/*  onClick={() => setOpenOnSmallScreens(!isOpenOnSmallScreens)}*/}
+              {/*  className="cursor-pointer rounded p-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900 focus:bg-gray-100 focus:ring-2 focus:ring-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:bg-gray-700 dark:focus:ring-gray-700 lg:hidden"*/}
+              {/*>*/}
+              {/*  <span className="sr-only">Search</span>*/}
+              {/*  <HiSearch className="h-6 w-6" />*/}
+              {/*</button>*/}
+              {/*<NotificationBellDropdown />*/}
+              {/*<AppDrawerDropdown />*/}
               <DarkThemeToggle />
             </div>
-            <div className="hidden lg:block">
-              <UserDropdown />
-            </div>
+            {/*<div className="hidden lg:block">*/}
+            {/*  <UserDropdown />*/}
+            {/*</div>*/}
           </div>
         </div>
       </div>
