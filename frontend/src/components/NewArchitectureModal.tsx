@@ -1,6 +1,6 @@
 import { Button, Label, Modal, TextInput } from "flowbite-react";
 import { useForm } from "react-hook-form";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 interface NewArchitectureModalProps {
   onClose?: () => void;
@@ -69,12 +69,11 @@ export default function NewArchitectureModal({
             <TextInput
               id="name"
               ref={(e) => {
+                ref(e);
                 if (shouldSelectDefaultValue) {
-                  e?.focus();
-                  e?.setSelectionRange(0, e?.value.length);
+                  e?.select();
                   setShouldSelectDefaultValue(false);
                 }
-                ref(e);
               }}
               {...rest}
               defaultValue="Untitled Architecture"

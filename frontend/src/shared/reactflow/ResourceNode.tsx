@@ -3,7 +3,6 @@ import React, {
   memo,
   useContext,
   useEffect,
-  useLayoutEffect,
   useMemo,
   useReducer,
   useRef,
@@ -239,10 +238,10 @@ const EditableLabel: FC<EditableLabelProps> = ({ label, onSubmit }) => {
   const [state, dispatch] = useReducer(reducer, {
     label,
   });
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const [shouldSelectContent, setShouldSelectContent] = useState(true);
 
   const onBlur = (e: any) => {
-    console.log("onBlur", e);
     if (e.relatedTarget !== inputRef.current) {
       if (state.label !== label) {
         onSubmit?.(state.label);
@@ -252,14 +251,25 @@ const EditableLabel: FC<EditableLabelProps> = ({ label, onSubmit }) => {
   };
 
   useEffect(() => {
-    if (isEditing) {
-      inputRef.current?.focus();
-    }
-  }, [isEditing]);
+    const handleEsc = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsEditing(false);
+        dispatch({ field: "label", value: label });
+      }
+    };
+    window.addEventListener("keydown", handleEsc);
+
+    return () => {
+      window.removeEventListener("keydown", handleEsc);
+    };
+  }, [isEditing, label]);
 
   return (
     <button
-      onClick={() => setIsEditing(true)}
+      onClick={() => {
+        setIsEditing(true);
+        setShouldSelectContent(true);
+      }}
       className="pointer-events-auto flex w-full justify-center dark:text-gray-200"
     >
       <>
@@ -283,7 +293,13 @@ const EditableLabel: FC<EditableLabelProps> = ({ label, onSubmit }) => {
             }}
           >
             <input
-              ref={inputRef}
+              ref={(e) => {
+                inputRef.current = e;
+                if (e && shouldSelectContent) {
+                  e.select();
+                  setShouldSelectContent(false);
+                }
+              }}
               className="max-w-[196px] overflow-x-visible rounded-sm border-[1px] bg-gray-50 p-1 text-center focus:border-gray-50 dark:bg-gray-900"
               style={{ width: `${Math.max(8, state.label.length)}ch` }}
               id="label"

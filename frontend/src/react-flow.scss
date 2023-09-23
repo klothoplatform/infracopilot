@@ -9,12 +9,12 @@
 
 .react-flow__edge-path {
   stroke-width: 2px !important;
-  stroke: #545B64 !important;
+  stroke: #545b64 !important;
 }
 
 .react-flow__edge {
   marker.arrow-closed {
-    fill: #545B64;
+    fill: #545b64;
   }
 }
 
@@ -29,7 +29,7 @@
 }
 
 /* styling for the markers on the ends of edges */
-.react-flow__edge:focus  marker {
+.react-flow__edge:focus marker {
   fill: rgb(124 58 237 / 1);
 }
 
@@ -43,8 +43,7 @@
     stroke: rgb(139 92 246) !important;
   }
 
-
-  .react-flow__edge:focus  marker {
+  .react-flow__edge:focus marker {
     fill: rgb(139 92 246);
   }
 
@@ -54,4 +53,3 @@
   //  border-bottom-color: #252525 !important;
   //}
 }
-

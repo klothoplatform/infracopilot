@@ -2,7 +2,6 @@ import type { FC } from "react";
 import React, {
   memo,
   useEffect,
-  useLayoutEffect,
   useMemo,
   useReducer,
   useRef,
@@ -119,13 +118,13 @@ const EditableLabel: FC<EditableLabelProps> = ({
   onSubmit,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [shouldSelectContent, setShouldSelectContent] = useState(true);
   const [state, dispatch] = useReducer(reducer, {
     label: initialValue ?? label,
   });
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   const onBlur = (e: any) => {
-    console.log("onBlur", e);
     if (e.relatedTarget !== inputRef.current) {
       if (state.label !== (initialValue ?? label)) {
         onSubmit?.(state.label);
@@ -135,15 +134,26 @@ const EditableLabel: FC<EditableLabelProps> = ({
   };
 
   useEffect(() => {
-    if (isEditing) {
-      inputRef.current?.focus();
-    }
-  }, [isEditing]);
+    const handleEsc = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsEditing(false);
+        dispatch({ field: "label", value: initialValue ?? label });
+      }
+    };
+    window.addEventListener("keydown", handleEsc);
+
+    return () => {
+      window.removeEventListener("keydown", handleEsc);
+    };
+  }, [initialValue, isEditing, label]);
 
   return (
     // eslint-disable-next-line jsx-a11y/click-events-have-key-events,jsx-a11y/no-static-element-interactions
     <button
-      onClick={() => setIsEditing(true)}
+      onClick={() => {
+        setIsEditing(true);
+        setShouldSelectContent(true);
+      }}
       className="h-fit max-w-[calc(100%-36px)] justify-start break-all text-start dark:text-gray-200"
     >
       <>
@@ -163,9 +173,15 @@ const EditableLabel: FC<EditableLabelProps> = ({
             }}
           >
             <input
-              ref={inputRef}
+              ref={(e) => {
+                inputRef.current = e;
+                if (e && shouldSelectContent) {
+                  e.select();
+                  setShouldSelectContent(false);
+                }
+              }}
               className={classNames(
-                "text-center overflow-x-visible rounded-sm border-[1px] bg-gray-50 p-1 text-left focus:border-gray-50 dark:bg-gray-900 p-0",
+                "text-center overflow-x-visible rounded-sm border-[1px] bg-gray-50 p-1 focus:border-gray-50 dark:bg-gray-900",
               )}
               style={{
                 width: `${Math.max(8, state.label.length)}ch`,
