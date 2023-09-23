@@ -5,7 +5,7 @@ import {
   Button,
   Card,
   Checkbox,
-  Table,
+  Label,
   Textarea,
   TextInput,
 } from "flowbite-react";
@@ -24,7 +24,7 @@ const cardTheme: CustomFlowbiteTheme["card"] = {
   },
 };
 
-export default function ConfigTable() {
+export default function ConfigForm() {
   const { architecture, selectedResource, configureResources } =
     useApplicationStore();
 
@@ -54,7 +54,7 @@ export default function ConfigTable() {
 
   const [state, dispatch] = useReducer(fieldsReducer, initialState);
 
-  const rows = Object.entries(metadata ?? {}).map(([key, value]) => {
+  const rows = Object.entries(metadata ?? {}).map(([key, value], i) => {
     let inputType: ConfigFieldType = "textarea";
     switch (state[key]?.type) {
       case "boolean":
@@ -69,7 +69,6 @@ export default function ConfigTable() {
     }
 
     const onChange = (e: any) => {
-      console.log("changed!!");
       dispatch({
         field: key,
         value: {
@@ -79,24 +78,20 @@ export default function ConfigTable() {
         },
       });
     };
+    const id = `config-field-${i}`;
     return (
-      <Table.Row
-        key={key}
-        className="bg-white dark:border-gray-700 dark:bg-gray-800"
-      >
-        <Table.Cell className="max-w-fit whitespace-break-spaces font-medium text-gray-900 dark:text-gray-200">
-          {key}
-        </Table.Cell>
-        <Table.Cell className="w-full">
-          <ConfigField
-            type={inputType}
-            id={`config-${key}`}
-            value={state[key]?.value}
-            onChange={onChange}
-            readOnly
-          />
-        </Table.Cell>
-      </Table.Row>
+      <div key={id} className="h-fit max-w-full px-2">
+        <div className="mb-2 block">
+          <Label htmlFor={id} value={key} />
+        </div>
+        <ConfigField
+          type={inputType}
+          id={id}
+          value={state[key]?.value}
+          onChange={onChange}
+          readOnly
+        />
+      </div>
     );
   });
 
@@ -129,10 +124,13 @@ export default function ConfigTable() {
       {rows.length > 0 && (
         <div className={"w-full"}>
           <form>
-            <Card theme={cardTheme} className="max-h-[50vh] overflow-auto">
-              <Table striped>
-                <Table.Body className="divide-y">{rows}</Table.Body>
-              </Table>
+            <Card
+              theme={cardTheme}
+              className="max-h-[50vh]] overflow-auto py-2"
+            >
+              <div className="max-h-[50vh] overflow-auto [&>*:not(:last-child)]:mb-2">
+                {rows}
+              </div>
             </Card>
             <Button
               type="submit"
@@ -181,7 +179,8 @@ const ConfigField: FC<ConfigFieldProps> = ({
       return (
         <Textarea
           className={classNames({
-            "border-primary-400 border-2 rounded-lg": isModified,
+            "border-primary-500 border-2 rounded-lg dark:border-primary-400 dark:border-2 dark:rounded-lg":
+              isModified,
           })}
           id={id}
           value={value}
@@ -192,7 +191,8 @@ const ConfigField: FC<ConfigFieldProps> = ({
       return (
         <Checkbox
           className={classNames({
-            "border-primary-400 border-2 rounded-lg": isModified,
+            "accent-primary-500 text-primary-500 dark:accent-primary-400 dark:text-primary-400":
+              isModified,
           })}
           id={id}
           value={value}
@@ -205,7 +205,8 @@ const ConfigField: FC<ConfigFieldProps> = ({
       return (
         <TextInput
           className={classNames({
-            "border-primary-400 border-2 rounded-lg": isModified,
+            "border-primary-500 dark:border-primary-400 border-2 rounded-lg dark:[&_input]:border-transparent [&_input]:border-transparent":
+              isModified,
           })}
           id={id}
           value={value}

@@ -18,7 +18,7 @@ import {
   HiXCircle,
 } from "react-icons/hi";
 import { HiBars3, HiCog6Tooth } from "react-icons/hi2";
-import ConfigTable from "./ConfigTable";
+import ConfigForm from "./ConfigForm";
 import AdditionalResources from "./AdditionalResources";
 import useApplicationStore from "../views/store/store";
 import {
@@ -148,7 +148,7 @@ const Details: FC = function () {
             edgeId={selectedEdge}
           />
           {selectedResource && (
-            <ConfigTable
+            <ConfigForm
               key={`config-table-${selectedResource.toKlothoIdString()}`}
             />
           )}
