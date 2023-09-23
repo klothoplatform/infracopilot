@@ -1,10 +1,8 @@
 import "./ArchitectureEditor.scss";
 
-import React, { useEffect } from "react";
+import React from "react";
 import { ReactFlowProvider } from "reactflow";
 import "reactflow/dist/style.css";
-
-import { useNavigate, useParams } from "react-router-dom";
 import EditorPane from "./EditorPane";
 import useApplicationStore from "../store/store";
 import NavbarSidebarLayout from "../../layouts/navbar-sidebar";

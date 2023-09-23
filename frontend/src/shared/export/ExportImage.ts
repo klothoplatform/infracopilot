@@ -1,9 +1,21 @@
 import type { Edge, Node, Rect } from "reactflow";
 import type { Options } from "html-to-image/src/types";
-import { Watermark } from "../VizState";
 import { addInfraCopilotWatermark } from "./AddInfraCopilotWatermark";
 import { toPng, toSvg } from "html-to-image";
 import { allGroupTypes, allNodeTypes } from "../reactflow/NodesTypes";
+
+// Watermark defines valid watermark types
+export enum Watermark {
+  InfraCopilot = "infracopilot",
+}
+
+function downloadImage(dataUrl: string, format: string) {
+  const a = document.createElement("a");
+
+  a.setAttribute("download", `reactflow.${format.toLowerCase()}`);
+  a.setAttribute("href", dataUrl);
+  a.click();
+}
 
 export async function exportImage(
   nodes: Node[],
@@ -14,7 +26,6 @@ export async function exportImage(
   const boundingElements = getBoundingElements(nodes, edges);
   const nodesBounds = getDiagramSize(boundingElements);
   const exportSettings: Options = {
-    backgroundColor: "#ffffff",
     width: nodesBounds.width,
     height: nodesBounds.height,
     canvasHeight: nodesBounds.height,

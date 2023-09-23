@@ -19,7 +19,7 @@ import { WorkingOverlay } from "../../components/WorkingOverlay";
 import { getIconMapping } from "../../shared/reactflow/ResourceMappings";
 
 export default function EditorPane() {
-  const reactFlowWrapper = useRef<any>(null);
+  const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
   const {
     nodes,
@@ -76,8 +76,8 @@ export default function EditorPane() {
 
       // TODO: use position to determine parent/child relationships (groupings)
       const position = reactFlowInstance?.project({
-        x: event.clientX - reactFlowBounds.left,
-        y: event.clientY - reactFlowBounds.top,
+        x: event.clientX - (reactFlowBounds?.left ?? 0),
+        y: event.clientY - (reactFlowBounds?.top ?? 0),
       });
 
       const intersectingNodes = getIntersectingNodes({
@@ -141,15 +141,24 @@ export default function EditorPane() {
 
       // Calculate position of the context menu. We want to make sure it
       // doesn't get positioned off-screen.
-      // TODO: consider an alternate positioning strategy (maybe based on node position?)
-      const pane = reactFlowWrapper.current.getBoundingClientRect();
+      const pane = reactFlowWrapper.current?.getBoundingClientRect();
+      if (!pane) {
+        return;
+      }
+
+      const boundLeft = event.clientX < pane.left + pane.width - 250;
+      const boundTop = event.clientY < pane.top + pane.height - 200;
+
+      const position = {
+        top: boundTop && event.clientY - pane.top,
+        left: boundLeft && event.clientX - pane.left,
+        right: !boundLeft && pane.right - event.clientX,
+        bottom: !boundTop && pane.bottom - event.clientY,
+      };
+
       setMenu({
         node,
-        top: event.clientY < pane.height - 200 && event.clientY,
-        left: event.clientX < pane.width - 200 && event.clientX - pane.left,
-        right: event.clientX >= pane.width - 200 && pane.width - event.clientX,
-        bottom:
-          event.clientY >= pane.height - 200 && pane.height - event.clientY,
+        ...position,
         onAction: () => {
           setMenu(null);
         },
@@ -165,15 +174,23 @@ export default function EditorPane() {
 
       // Calculate position of the context menu. We want to make sure it
       // doesn't get positioned off-screen.
-      // TODO: consider an alternate positioning strategy (maybe based on node position?)
-      const pane = reactFlowWrapper.current.getBoundingClientRect();
+      const pane = reactFlowWrapper.current?.getBoundingClientRect();
+      if (!pane) {
+        return;
+      }
+      const boundLeft = event.clientX < pane.left + pane.width - 250;
+      const boundTop = event.clientY < pane.top + pane.height - 200;
+
+      const position = {
+        top: boundTop && event.clientY - pane.top,
+        left: boundLeft && event.clientX - pane.left,
+        right: !boundLeft && pane.right - event.clientX,
+        bottom: !boundTop && pane.bottom - event.clientY,
+      };
+
       setMenu({
         edge,
-        top: event.clientY < pane.height - 200 && event.clientY,
-        left: event.clientX < pane.width - 200 && event.clientX - pane.left,
-        right: event.clientX >= pane.width - 200 && pane.width - event.clientX,
-        bottom:
-          event.clientY >= pane.height - 200 && pane.height - event.clientY,
+        ...position,
         onAction: () => {
           setMenu(null);
         },
