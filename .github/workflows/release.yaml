@@ -87,6 +87,7 @@ jobs:
           make build-frontend
         env:
           CI: false
+          NODE_OPTIONS: "--max-old-space-size=4096"
       - name: download klotho
         uses: actions/download-artifact@v3
         with:
