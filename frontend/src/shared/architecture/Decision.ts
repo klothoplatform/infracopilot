@@ -8,9 +8,9 @@ export class Decision {
   constructor(constraints: Constraint[], json: any[]) {
     this.constraints = constraints;
     let res: any[] = [];
-    if (json !== undefined) {
+    if (json != undefined) {
       json.forEach((j) => {
-        if (j.Resources === undefined) {
+        if (j.Resources == undefined) {
           return;
         }
         res = res.concat(j.Resources);
@@ -54,9 +54,9 @@ export class Failure {
   constructor(constraints: Constraint[], json: any[]) {
     this.constraints = constraints;
     let cause: string[] = [];
-    if (json !== undefined) {
+    if (json != undefined) {
       json.forEach((j) => {
-        if (j.cause === undefined) {
+        if (j.cause == undefined) {
           return;
         }
         cause.push(j.cause);
