@@ -87,19 +87,18 @@ const EditorSidebarLeft = forwardRef(
                   name={"AWS"}
                   icon={<AwsLogo width={"20px"} height={"20px"} />}
                   open
-                  filter={filterFunction}
+                  resourceFilter={{
+                    providers: ["aws"],
+                    excludedTypes: ["ecr_image"],
+                  }}
+                  userFilter={filterFunction}
                   layout={resourceLayout}
                 />
                 <ResourceAccordion
                   name={"Kubernetes"}
                   icon={<Logo width={"20px"} height={"20px"} />}
-                  filter={filterFunction}
-                  layout={resourceLayout}
-                />
-                <ResourceAccordion
-                  name={"Docker"}
-                  icon={<Docker width={"20px"} height={"20px"} />}
-                  filter={filterFunction}
+                  resourceFilter={{ providers: ["kubernetes"] }}
+                  userFilter={filterFunction}
                   layout={resourceLayout}
                 />
               </Accordion>

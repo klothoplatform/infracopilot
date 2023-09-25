@@ -149,7 +149,7 @@ class TestListResourceTypes(aiounittest.AsyncTestCase):
         mock_latest: mock.Mock,
     ):
         mock_latest.return_value = self.test_architecture
-        mock_get_resource_types.return_value = ["test-resource"]
+        mock_get_resource_types.return_value = '{"test-resource": ["classification"]}'
         mock_guardrails.return_value = None
         result = await copilot_get_resource_types(self.test_id)
         mock_guardrails.assert_called_once_with(self.test_architecture.owner)
@@ -160,4 +160,9 @@ class TestListResourceTypes(aiounittest.AsyncTestCase):
             GetResourceTypesRequest(guardrails=None),
         )
         response = jsons.loads(result.body.decode("utf-8"))
-        self.assertEqual(response, ["test-resource"])
+        self.assertEqual(
+            {
+                "test-resource": ["classification"],
+            },
+            response,
+        )

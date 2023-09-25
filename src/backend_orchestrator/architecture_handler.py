@@ -110,7 +110,7 @@ async def copilot_get_resource_types(id):
         guardrails = await get_guardrails(architecture.owner)
         request = GetResourceTypesRequest(guardrails=guardrails)
         response = await get_resource_types(request)
-        return JSONResponse(content=response, status_code=200)
+        return Response(content=response, media_type="application/json")
     except ArchitectureStateDoesNotExistError as e:
         raise HTTPException(
             status_code=404, detail=f"No architecture exists for id {id}"

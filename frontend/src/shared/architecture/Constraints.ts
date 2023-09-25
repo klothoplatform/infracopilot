@@ -203,6 +203,8 @@ export function formatConstraints(constraints: Constraint[]): string {
               ).target.targetId.toKlothoIdString(),
             },
           };
+        default:
+          throw new Error(`Unknown constraint scope: ${constraint.scope}`);
       }
     }),
   );

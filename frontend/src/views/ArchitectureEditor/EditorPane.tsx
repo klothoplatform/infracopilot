@@ -28,13 +28,10 @@ export default function EditorPane() {
     onEdgesChange,
     onConnect,
     addGraphElements,
-    applyConstraints,
     canApplyConstraints,
-    selectNode,
     selectEdge,
     selectedNode,
     selectedEdge,
-    unappliedConstraints,
     deselectNode,
     deselectEdge,
   } = useApplicationStore();

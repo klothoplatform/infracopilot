@@ -1,6 +1,6 @@
 import type { MouseEventHandler } from "react";
 import * as React from "react";
-import { isValidElement, useContext, useEffect } from "react";
+import { useContext, useEffect } from "react";
 import { Accordion, Badge, Card } from "flowbite-react";
 import { getIcon, typeMappings } from "../shared/reactflow/ResourceMappings";
 
@@ -8,13 +8,16 @@ import "./ResourceAccordion.scss";
 import classNames from "classnames";
 import { FaAngleUp } from "react-icons/fa";
 import { ThemeContext } from "flowbite-react/lib/esm/components/Flowbite/ThemeContext";
+import type { ResourceTypeFilter } from "../api/GetResourceTypes";
+import useApplicationStore from "../views/store/store";
 
 interface ResourceAccordionOptions {
   name: string;
   icon: React.JSX.Element;
   open?: boolean;
-  filter?: FilterFunction;
+  userFilter?: FilterFunction;
   layout?: "grid" | "list";
+  resourceFilter?: ResourceTypeFilter;
 }
 
 interface ResourceOption {
@@ -36,18 +39,27 @@ export default function ResourceAccordion({
   name,
   icon,
   open,
-  filter,
+  userFilter,
   layout,
+  resourceFilter,
 }: ResourceAccordionOptions) {
   const { mode } = useContext(ThemeContext);
   const provider = name.toLowerCase();
   const mappings = typeMappings.get(provider);
   const [options, setOptions] = React.useState<ResourceOption[]>([]);
+  const { resourceTypeKB } = useApplicationStore();
 
   useEffect(() => {
+    const filteredTypes = resourceTypeKB.getResourceTypes(resourceFilter);
     setOptions(
       Array.from(mappings?.entries() ?? [])
-        .filter(([type, mapping]) => filter?.(type) ?? true)
+        .filter(
+          ([type, mapping]) =>
+            filteredTypes.find(
+              (t) => t.provider === provider && t.type === type,
+            )?.classifications?.length &&
+            (userFilter?.(type) ?? true),
+        )
         .map(([type, mapping]) => {
           return {
             provider: provider,
@@ -63,7 +75,15 @@ export default function ResourceAccordion({
           };
         }),
     );
-  }, [filter, mappings, provider, setOptions, mode]);
+  }, [
+    resourceTypeKB,
+    resourceFilter,
+    userFilter,
+    mappings,
+    provider,
+    setOptions,
+    mode,
+  ]);
 
   const [isOpen, setIsOpen] = React.useState(open);
   const [showResourceCount, setShowResourceCount] = React.useState(false);
@@ -78,7 +98,7 @@ export default function ResourceAccordion({
   };
 
   useEffect(() => {
-    if (filter) {
+    if (userFilter) {
       setShowResourceCount(true);
       if (options?.length) {
         if (isOpen === undefined) setIsOpen(true);
@@ -88,7 +108,7 @@ export default function ResourceAccordion({
     } else {
       setShowResourceCount(false);
     }
-  }, [setIsOpen, setShowResourceCount, filter, options, isOpen]);
+  }, [setIsOpen, setShowResourceCount, userFilter, options, isOpen]);
 
   return (
     <Accordion.Panel isOpen={isOpen} arrowIcon={FaAngleUp}>

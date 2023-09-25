@@ -1,5 +1,6 @@
 from dataclasses import dataclass
-from typing import List
+
+from src.engine_service.binaries.fetcher import Binary, write_binary_to_disk
 from src.engine_service.engine_commands.util import run_engine_command, EngineException
 
 
@@ -8,14 +9,11 @@ class GetResourceTypesRequest:
     guardrails: str
 
 
-async def get_resource_types(request: GetResourceTypesRequest) -> List[str]:
+async def get_resource_types(request: GetResourceTypesRequest) -> str:
     out = None
     err_logs = None
     try:
-        args = [
-            "--provider",
-            "aws",
-        ]
+        args = []
 
         if request.guardrails is not None:
             with open(dir / "guardrails.yaml", "w") as file:
@@ -23,16 +21,17 @@ async def get_resource_types(request: GetResourceTypesRequest) -> List[str]:
             args.append("--guardrails")
             args.append("guardrails.yaml")
 
+        await write_binary_to_disk(Binary.ENGINE)
         out, err_logs = await run_engine_command(
             "ListResourceTypes",
             *args,
         )
-        return out.strip().splitlines()
+        return out
     except EngineException:
         raise
     except Exception as e:
         raise EngineException(
             message=f"Error running engine: {e}",
-            out=out,
-            err_logs=err_logs,
+            stdout=out,
+            stderr=err_logs,
         )

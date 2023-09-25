@@ -44,6 +44,7 @@ import {
 } from "../../shared/sidebar-nav";
 import { shallow } from "zustand/shallow";
 import { Decision, Failure } from "../../shared/architecture/Decision";
+import { getResourceTypes, ResourceTypeKB } from "../../api/GetResourceTypes";
 
 type WithSelectors<S> = S extends {
   getState: () => infer T;
@@ -112,6 +113,8 @@ export interface EditorState {
   configureResources: (
     requests: ResourceConfigurationRequest[],
   ) => Promise<void>;
+  resourceTypeKB: ResourceTypeKB;
+  loadResourceTypeKB: (architectureId: string) => Promise<void>;
 }
 
 const useApplicationStoreBase = createWithEqualityFn<EditorState>()(
@@ -127,6 +130,7 @@ const useApplicationStoreBase = createWithEqualityFn<EditorState>()(
     layoutRefreshing: false,
     deletingNodes: false,
     layoutOptions: DefaultLayoutOptions,
+    resourceTypeKB: new ResourceTypeKB(),
     deleteElements: async (elements) => {
       const nodes = get().nodes;
       const nodeConstraints =
@@ -326,6 +330,7 @@ const useApplicationStoreBase = createWithEqualityFn<EditorState>()(
         "editor/loadArchitecture",
       );
       console.log("architecture loaded");
+      await get().loadResourceTypeKB(id);
     },
     refreshLayout: async () => {
       try {
@@ -607,6 +612,16 @@ const useApplicationStoreBase = createWithEqualityFn<EditorState>()(
       );
       await get().applyConstraints();
       console.log("configured resources");
+    },
+    loadResourceTypeKB: async (architectureId: string) => {
+      const types = await getResourceTypes(architectureId);
+      set(
+        {
+          resourceTypeKB: types,
+        },
+        false,
+        "editor/loadResourceTypes",
+      );
     },
   })),
   shallow,

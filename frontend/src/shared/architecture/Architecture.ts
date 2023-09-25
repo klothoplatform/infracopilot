@@ -1,6 +1,4 @@
 import type { TopologyGraph } from "./TopologyGraph";
-import { parse } from "./TopologyGraph";
-import { sampleGraphYaml } from "./Samples";
 import type { Edge, Node } from "reactflow";
 import type { TopologyNode } from "./TopologyNode";
 import { NodeId } from "./TopologyNode";

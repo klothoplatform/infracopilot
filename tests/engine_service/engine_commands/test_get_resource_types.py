@@ -1,3 +1,4 @@
+import json
 from pathlib import PosixPath
 import aiounittest
 import tempfile
@@ -28,9 +29,15 @@ class TestRunEngine(aiounittest.AsyncTestCase):
         )
 
         mock_eng_cmd.return_value = (
-            "aws:lambda_function\naws:rest_api",
+            '{"aws:lambda_function": ["serverless", "compute"], "aws:rest_api": ["serverless", "api"]}',
             "",
         )
         result = await get_resource_types(request)
-        mock_eng_cmd.assert_called_once_with("ListResourceTypes", "--provider", "aws")
-        self.assertEqual(result, ["aws:lambda_function", "aws:rest_api"])
+        mock_eng_cmd.assert_called_once_with("ListResourceTypes")
+        self.assertEqual(
+            {
+                "aws:lambda_function": ["serverless", "compute"],
+                "aws:rest_api": ["serverless", "api"],
+            },
+            json.loads(result),
+        )

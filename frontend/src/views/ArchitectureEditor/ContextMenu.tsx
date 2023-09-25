@@ -3,7 +3,7 @@ import type { Edge, Node } from "reactflow";
 
 import useApplicationStore from "../store/store";
 import { BiImage, BiX } from "react-icons/bi";
-import { exportImage, Watermark } from "../../shared/export/ExportImage";
+import { exportImage } from "../../shared/export/ExportImage";
 import { downloadFile } from "../../helpers/download-file";
 
 interface ContextMenuProps {

@@ -1,5 +1,5 @@
 import type { Edge, Node } from "reactflow";
-import { MarkerType, Position } from "reactflow";
+import { Position } from "reactflow";
 import type { ElkExtendedEdge, ElkLabel, ElkNode } from "elkjs/lib/elk.bundled";
 import ELK from "elkjs/lib/elk.bundled";
 
