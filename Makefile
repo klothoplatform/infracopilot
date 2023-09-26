@@ -6,12 +6,15 @@ else
 KLOTHO_CONFIG_FILE := klothoconfig/dev.yaml
 endif
 
+export ENGINE_PATH ?= $(shell which engine)
+export IAC_CLI_PATH ?= $(shell which iac)
+
 # Backend commands
 
 run:
 	rm -f /tmp/engine && rm -f /tmp/iac && \
 	PYTHONPATH=. \
-	pipenv run uvicorn src.backend_orchestrator.main:app --port=$(PORT)
+	pipenv run uvicorn src.backend_orchestrator.main:app --port=3000
 
 
 test:
