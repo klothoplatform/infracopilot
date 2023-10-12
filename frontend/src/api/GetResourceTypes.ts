@@ -1,4 +1,5 @@
 import axios from "axios";
+import type { IconMapping } from "../shared/reactflow/ResourceMappings";
 
 export async function getResourceTypes(
   architectureId: string,
@@ -10,13 +11,27 @@ export async function getResourceTypes(
   const resourceTypes = new ResourceTypeKB();
   for (const resourceType of Object.keys(data)) {
     const [provider, type] = resourceType.split(":", 2);
+    const resourceInfo = data[resourceType];
     resourceTypes.addResourceType({
       provider: provider,
       type: type,
-      classifications: data[resourceType],
+      classifications: resourceInfo.classifications,
+      displayName: resourceInfo.displayName
+        ? resourceInfo.displayName
+        : deriveDisplayName(type),
     });
   }
   return resourceTypes;
+}
+
+function deriveDisplayName(type: string): string {
+  return type
+    .split("_")
+    .map(
+      ([firstChar, ...rest]) =>
+        firstChar.toUpperCase() + rest.join("").toLowerCase(),
+    )
+    .join(" ");
 }
 
 export class ResourceTypeKB {
@@ -80,6 +95,8 @@ export interface ResourceType {
   provider: string;
   type: string;
   classifications?: string[];
+  displayName: string;
+  iconMapping?: IconMapping;
 }
 
 export interface ResourceTypeFilter {

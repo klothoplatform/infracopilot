@@ -12,27 +12,16 @@ export class TopologyGraph {
     this.Edges = [];
     this.Provider = "";
   }
-}
 
-export const parse = (content: string): Map<string, TopologyGraph> => {
-  const apps = new Map<string, TopologyGraph>();
-  const parsed_yaml = yaml.parse(content) as object;
-  if (!parsed_yaml) {
-    return apps;
-  }
-
-  Object.keys(parsed_yaml).forEach((k: string) =>
-    apps.set(k, new TopologyGraph()),
-  );
-
-  apps.forEach((graph: TopologyGraph, appName: string) => {
-    const app = parsed_yaml[appName as keyof object];
-    if (!app) {
-      console.log(`no nodes found for app: ${appName}`);
-      return apps;
+  static parse(content: string): TopologyGraph {
+    const parsed_yaml = yaml.parse(content) as object;
+    const graph = new TopologyGraph();
+    if (!parsed_yaml) {
+      return graph;
     }
-    const resources = (app as any).resources as any;
-    graph.Provider = (app as any).provider as string;
+
+    const resources = (parsed_yaml as any).resources as any;
+    graph.Provider = (parsed_yaml as any).provider as string;
     const edgeDefinedNodes: NodeId[] = [];
     if (resources) {
       Object.keys(resources).forEach((k: string) => {
@@ -72,17 +61,17 @@ export const parse = (content: string): Map<string, TopologyGraph> => {
             }),
           );
         }
+        edgeDefinedNodes.forEach((r) => {
+          if (
+            !graph.Nodes.find(
+              (n: TopologyNode) => n.id.toString() === r.toTopologyString(),
+            )
+          ) {
+            graph.Nodes.push(new TopologyNode(r, {}));
+          }
+        });
       });
     }
-    edgeDefinedNodes.forEach((r) => {
-      if (
-        !graph.Nodes.find(
-          (n: TopologyNode) => n.id.toString() === r.toTopologyString(),
-        )
-      ) {
-        graph.Nodes.push(new TopologyNode(r, {}));
-      }
-    });
-  });
-  return apps;
-};
+    return graph;
+  }
+}

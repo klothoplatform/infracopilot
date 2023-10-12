@@ -1,10 +1,10 @@
-import type { TopologyGraph } from "./TopologyGraph";
 import type { Edge, Node } from "reactflow";
-import type { TopologyNode } from "./TopologyNode";
-import { NodeId } from "./TopologyNode";
 import { NodeType } from "../reactflow/NodesTypes";
 import type TopologyEdge from "./TopologyEdge";
 import yaml from "yaml";
+import { TopologyGraph } from "./TopologyGraph";
+import type { TopologyNode } from "./TopologyNode";
+import { NodeId } from "./TopologyNode";
 
 export enum ArchitectureView {
   DataFlow = "DataFlow",
@@ -20,7 +20,7 @@ export interface Architecture {
   provider: string;
   id: string;
   engineVersion: number;
-  state: {
+  raw_state: {
     resources_yaml: string;
     topology_yaml: string;
   };
@@ -30,12 +30,14 @@ export interface Architecture {
   name: string;
   owner: string;
   views: Map<ArchitectureView, TopologyGraph>;
-  resourceMetadata: object;
+  resources: Map<string, object>;
+  edges: GraphEdge[];
 }
 
 export interface GraphEdge {
-  source: string;
-  destination: string;
+  source: NodeId;
+  destination: NodeId;
+  metadata: object;
 }
 
 export function getDownstreamResources(
@@ -43,16 +45,13 @@ export function getDownstreamResources(
   resourceId: NodeId,
 ): NodeId[] {
   const result: NodeId[] = [];
-  if (architecture.state?.resources_yaml === undefined) {
+  if (architecture.raw_state?.resources_yaml === undefined) {
     return [];
   }
-  const edges = yaml.parse(architecture.state.resources_yaml).edges;
-  if (!edges) {
-    return [];
-  }
-  edges.forEach((edge: GraphEdge) => {
-    if (edge.source === resourceId.toKlothoIdString()) {
-      result.push(NodeId.fromId(edge.destination));
+
+  architecture.edges.forEach((edge: GraphEdge) => {
+    if (edge.source.toKlothoIdString() === resourceId.toKlothoIdString()) {
+      result.push(edge.destination);
     }
   });
   return result;
@@ -62,10 +61,7 @@ export function getDownstreamResources(
  * getNodesFromGraph converts a ResourceGraph's nodes to ReactFlow nodes and sorts them
  * to ensure that groups are rendered before their children.
  */
-function getNodesFromGraph(
-  topology: TopologyGraph,
-  resourceMetadata: {},
-): Node[] {
+function getNodesFromGraph(topology: TopologyGraph): Node[] {
   return topology.Nodes.map((node: TopologyNode) => {
     return {
       id: node.id,
@@ -77,8 +73,6 @@ function getNodesFromGraph(
           ? `${node.resourceId.namespace}:${node.resourceId.name}`
           : node.resourceId.name,
         resourceId: node.resourceId,
-        resourceMetadata:
-          (resourceMetadata as any)?.[node.resourceId.toKlothoIdString()] ?? {},
         vizMetadata: node.vizMetadata,
       },
       type:
@@ -158,7 +152,62 @@ export function toReactFlowElements(
     return { nodes: [], edges: [] };
   }
   return {
-    nodes: getNodesFromGraph(topology, architecture.resourceMetadata),
+    nodes: getNodesFromGraph(topology),
     edges: getEdgesFromGraph(topology),
   };
+}
+
+export function parseArchitecture(data: ArrayBuffer): Architecture {
+  const architectureJSON = JSON.parse(new TextDecoder().decode(data));
+
+  const architecture: Architecture = {
+    provider: architectureJSON.provider,
+    id: architectureJSON.id,
+    engineVersion: architectureJSON.engineVersion,
+    raw_state: {
+      resources_yaml: architectureJSON.state?.resources_yaml,
+      topology_yaml: architectureJSON.state?.topology_yaml,
+    },
+    decisions: architectureJSON.decisions,
+    failures: architectureJSON.failures,
+    version: architectureJSON.version,
+    name: architectureJSON.name,
+    owner: architectureJSON.owner,
+    resources: new Map<string, object>(),
+    edges: [],
+    views: new Map<ArchitectureView, TopologyGraph>(),
+  };
+
+  if (architectureJSON.state?.topology_yaml) {
+    architecture.views.set(
+      ArchitectureView.DataFlow,
+      TopologyGraph.parse(
+        (architectureJSON.state?.topology_yaml as string) ?? "",
+      ),
+    );
+  }
+
+  if (architectureJSON.state?.resources_yaml) {
+    const parsedState = yaml.parse(architectureJSON.state?.resources_yaml);
+    if (parsedState?.resources) {
+      architecture.resources = new Map<string, object>(
+        Object.keys(parsedState.resources).map((key) => [
+          key,
+          parsedState.resources[key],
+        ]),
+      );
+    }
+    if (parsedState?.edges) {
+      architecture.edges = Object.keys(parsedState.edges).map((key) => {
+        const [source, destination] = key.split("->").map((id) => id.trim());
+        return {
+          source: NodeId.fromId(source),
+          destination: NodeId.fromId(destination),
+          metadata: parsedState.edges[key],
+        } as GraphEdge;
+      });
+    }
+  }
+  console.log("architecture: ", architecture);
+  return architecture;
 }

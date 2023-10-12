@@ -91,20 +91,20 @@ async def run_engine(request: RunEngineRequest) -> RunEngineResult:
             with open(dir / "resources.yaml") as file:
                 resources_yaml = file.read()
 
-            with open(dir / "decisions.json") as file:
-                raw_str = file.read()
-                decisions_json = jsons.loads(raw_str)
-
-            with open(dir / "failures.json") as file:
-                raw_str = file.read()
-                failures_json = jsons.loads(raw_str)
+            # with open(dir / "decisions.json") as file:
+            #     raw_str = file.read()
+            #     decisions_json = jsons.loads(raw_str)
+            #
+            # with open(dir / "failures.json") as file:
+            #     raw_str = file.read()
+            #     failures_json = jsons.loads(raw_str)
 
             return RunEngineResult(
                 resources_yaml=resources_yaml,
                 topology_yaml=topology_yaml,
                 iac_topology=iac_topology,
-                decisions_json=decisions_json,
-                failures_json=failures_json,
+                # decisions_json=decisions_json,
+                # failures_json=failures_json,
             )
         except EngineException:
             if "failures.json" in os.listdir(tmp_dir):

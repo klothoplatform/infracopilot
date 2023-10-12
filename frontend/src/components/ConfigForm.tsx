@@ -28,11 +28,9 @@ export default function ConfigForm() {
   const { architecture, selectedResource, configureResources } =
     useApplicationStore();
 
-  const metadata = ((architecture?.resourceMetadata as any[]) ?? [])?.find(
-    (e) => {
-      return e.id === selectedResource?.toKlothoIdString();
-    },
-  )?.metadata;
+  const metadata = selectedResource
+    ? architecture?.resources?.get(selectedResource.toKlothoIdString())
+    : {};
 
   let initialState = {} as any;
   if (metadata) {

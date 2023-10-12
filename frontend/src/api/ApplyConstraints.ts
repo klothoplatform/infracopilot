@@ -1,11 +1,8 @@
 import type { Constraint } from "../shared/architecture/Constraints";
 import { formatConstraints } from "../shared/architecture/Constraints";
 import type { Architecture } from "../shared/architecture/Architecture";
-import { ArchitectureView } from "../shared/architecture/Architecture";
+import { parseArchitecture } from "../shared/architecture/Architecture";
 import axios from "axios";
-import type { TopologyGraph } from "../shared/architecture/TopologyGraph";
-import { parse } from "../shared/architecture/TopologyGraph";
-import yaml from "yaml";
 
 export async function applyConstraints(
   architectureId: string,
@@ -32,26 +29,9 @@ export async function applyConstraints(
   );
   data = response.data;
 
-  console.log("response from apply constraints", response);
+  console.debug("response from apply constraints", response);
   if (response.status === 400) {
-    console.log(new TextDecoder().decode(data));
-    const architectureJSON = JSON.parse(new TextDecoder().decode(data));
-    return architectureJSON as Architecture;
+    console.error(new TextDecoder().decode(data));
   }
-
-  const architectureJSON = JSON.parse(new TextDecoder().decode(data));
-  architectureJSON.views = new Map<ArchitectureView, TopologyGraph>([
-    [
-      ArchitectureView.DataFlow,
-      parse(architectureJSON.state.topology_yaml as string)
-        .values()
-        .next().value,
-    ],
-  ]);
-  architectureJSON.resourceMetadata = architectureJSON.state.resources_yaml
-    ? yaml.parse(architectureJSON.state.resources_yaml).resourceMetadata
-    : {};
-  console.log("architectureJSON: ", architectureJSON);
-
-  return architectureJSON as Architecture;
+  return parseArchitecture(data);
 }

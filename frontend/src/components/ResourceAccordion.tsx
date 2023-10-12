@@ -2,7 +2,7 @@ import type { MouseEventHandler } from "react";
 import * as React from "react";
 import { useContext, useEffect } from "react";
 import { Accordion, Badge, Card } from "flowbite-react";
-import { getIcon, typeMappings } from "../shared/reactflow/ResourceMappings";
+import { getIcon } from "../shared/reactflow/ResourceMappings";
 
 import "./ResourceAccordion.scss";
 import classNames from "classnames";
@@ -45,45 +45,34 @@ export default function ResourceAccordion({
 }: ResourceAccordionOptions) {
   const { mode } = useContext(ThemeContext);
   const provider = name.toLowerCase();
-  const mappings = typeMappings.get(provider);
   const [options, setOptions] = React.useState<ResourceOption[]>([]);
   const { resourceTypeKB } = useApplicationStore();
 
   useEffect(() => {
     const filteredTypes = resourceTypeKB.getResourceTypes(resourceFilter);
     setOptions(
-      Array.from(mappings?.entries() ?? [])
+      Array.from(filteredTypes?.values() ?? [])
         .filter(
-          ([type, mapping]) =>
-            filteredTypes.find(
-              (t) => t.provider === provider && t.type === type,
-            )?.classifications?.length &&
-            (userFilter?.(type) ?? true),
+          (r) =>
+            r.classifications?.length &&
+            (userFilter === undefined || userFilter(r.type)),
         )
-        .map(([type, mapping]) => {
+        .map((resourceType) => {
           return {
-            provider: provider,
-            type: type,
-            name: type
-              .split("_")
-              .map(
-                ([firstChar, ...rest]) =>
-                  firstChar.toUpperCase() + rest.join("").toLowerCase(),
-              )
-              .join(" "),
-            icon: getIcon(provider, type, undefined, undefined, mode),
+            provider: resourceType.provider,
+            type: resourceType.type,
+            name: resourceType.displayName,
+            icon: getIcon(
+              provider,
+              resourceType.type,
+              undefined,
+              undefined,
+              mode,
+            ),
           };
         }),
     );
-  }, [
-    resourceTypeKB,
-    resourceFilter,
-    userFilter,
-    mappings,
-    provider,
-    setOptions,
-    mode,
-  ]);
+  }, [resourceTypeKB, resourceFilter, userFilter, provider, setOptions, mode]);
 
   const [isOpen, setIsOpen] = React.useState(open);
   const [showResourceCount, setShowResourceCount] = React.useState(false);
