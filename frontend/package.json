@@ -21,7 +21,7 @@
     "d3-hierarchy": "^3.1.2",
     "elkjs": "^0.8.2",
     "flowbite": "^1.8.1",
-    "flowbite-react": "^0.5.0",
+    "flowbite-react": "^0.6.4",
     "html-to-image": "^1.11.11",
     "immer": "^10.0.2",
     "lodash.debounce": "^4.0.8",

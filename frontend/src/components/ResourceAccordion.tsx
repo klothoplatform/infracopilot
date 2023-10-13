@@ -6,9 +6,9 @@ import { getIcon } from "../shared/reactflow/ResourceMappings";
 
 import "./ResourceAccordion.scss";
 import classNames from "classnames";
-import { FaAngleUp } from "react-icons/fa";
+import { FaAngleDown } from "react-icons/fa";
 import { ThemeContext } from "flowbite-react/lib/esm/components/Flowbite/ThemeContext";
-import type { ResourceTypeFilter } from "../api/GetResourceTypes";
+import type { ResourceTypeFilter } from "../shared/resources/ResourceTypes";
 import useApplicationStore from "../views/store/ApplicationStore";
 
 interface ResourceAccordionOptions {
@@ -100,7 +100,7 @@ export default function ResourceAccordion({
   }, [setIsOpen, setShowResourceCount, userFilter, options, isOpen]);
 
   return (
-    <Accordion.Panel isOpen={isOpen} arrowIcon={FaAngleUp}>
+    <Accordion.Panel isOpen={isOpen} arrowIcon={FaAngleDown}>
       <Accordion.Title
         aria-controls="panel1bh-content"
         id="panel1bh-header"

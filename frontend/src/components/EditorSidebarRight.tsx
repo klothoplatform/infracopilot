@@ -8,7 +8,13 @@ import {
   type TabsRef,
 } from "flowbite-react";
 import type { FC, ForwardedRef } from "react";
-import React, { forwardRef, useEffect, useRef, useState } from "react";
+import React, {
+  forwardRef,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   HiCheck,
   HiCheckCircle,
@@ -26,7 +32,8 @@ import {
   RightSidebarTabs,
 } from "../shared/sidebar-nav";
 import type { NodeId } from "../shared/architecture/TopologyNode";
-import debounce from "lodash.debounce";
+import { getIcon } from "../shared/reactflow/ResourceMappings";
+import { ThemeContext } from "flowbite-react/lib/esm/components/Flowbite/ThemeContext";
 
 const sidebarTheme: CustomFlowbiteTheme["sidebar"] = {
   root: {
@@ -174,8 +181,7 @@ const ResourceIdHeader: FC<ResourceIdHeaderProps> = function ({
   resourceId,
   edgeId,
 }) {
-  const text =
-    resourceId?.toKlothoIdString() ?? edgeId ?? "No resource selected";
+  const { mode } = useContext(ThemeContext);
 
   const [copied, setCopied] = useState(false);
 
@@ -191,18 +197,34 @@ const ResourceIdHeader: FC<ResourceIdHeaderProps> = function ({
   };
 
   return (
-    <Button.Group
-      color="gray"
-      className="mb-2 w-full max-w-full overflow-hidden truncate"
+    <div
+      className={
+        "mb-2 flex flex-row items-center gap-2 border-b-2 pb-1 dark:border-gray-700"
+      }
     >
-      <Button
-        title={text}
-        color="gray"
-        className="h-14 w-[calc(100%-2.5rem)] max-w-[calc(100%-2.5rem)] justify-start truncate disabled:cursor-default"
-        disabled
-      >
-        {text}
-      </Button>
+      {resourceId &&
+        getIcon(
+          resourceId.provider,
+          resourceId.type,
+          {
+            style: { maxWidth: "50px", maxHeight: "50px" },
+          },
+          undefined,
+          mode,
+        )}
+      <div className="inline-block w-full">
+        <div className={"text-md text-ellipsis font-semibold dark:text-white"}>
+          {resourceId
+            ? `${resourceId.namespace ? resourceId.namespace + ":" : ""}${
+                resourceId.name
+              }`
+            : edgeId}
+          <div />
+          <div className="text-ellipsis text-xs font-medium dark:text-white">
+            {resourceId ? `${resourceId.provider}:${resourceId.type}` : ""}
+          </div>
+        </div>
+      </div>
       <Button
         color="gray"
         className="h-14 w-10 focus:ring-0"
@@ -214,7 +236,7 @@ const ResourceIdHeader: FC<ResourceIdHeaderProps> = function ({
         )}
         {copied && <HiCheck color="green" />}
       </Button>
-    </Button.Group>
+    </div>
   );
 };
 

@@ -41,8 +41,9 @@ import {
   RightSidebarTabs,
 } from "../../shared/sidebar-nav";
 import { Decision, Failure } from "../../shared/architecture/Decision";
-import { getResourceTypes, ResourceTypeKB } from "../../api/GetResourceTypes";
+import { getResourceTypes } from "../../api/GetResourceTypes";
 import type { UserStore } from "./UserStore";
+import { ResourceTypeKB } from "../../shared/resources/ResourceTypeKB";
 
 export interface ResourceConfigurationRequest {
   resourceId: NodeId;

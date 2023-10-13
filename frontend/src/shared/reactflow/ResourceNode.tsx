@@ -183,6 +183,12 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
               data.resourceId,
               new NodeId(type, namespace, newValue, provider),
             );
+            if (
+              selectedResource?.toKlothoIdString() ===
+              data.resourceId.toKlothoIdString()
+            ) {
+              selectResource(new NodeId(type, namespace, newValue, provider));
+            }
           }}
         ></EditableLabel>
         <div className={"text-center dark:text-gray-200"}>

@@ -61,10 +61,10 @@ export class NodeId {
 
   public static fromId(input: string): NodeId {
     const chunks = input.split(":");
-    if (chunks.length == 4) {
+    if (chunks.length === 4) {
       const [provider, type, namespace, name] = chunks;
       return new NodeId(type, namespace, name, provider);
-    } else if (chunks.length == 3) {
+    } else if (chunks.length === 3) {
       const [provider, type, name] = chunks;
       return new NodeId(type, "", name, provider);
     } else {

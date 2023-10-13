@@ -23,7 +23,8 @@ interface GroupNodeProps {
 
 const ResourceGroupNode = memo(
   ({ id, data, isConnectable }: GroupNodeProps) => {
-    const { architecture, replaceResource } = useApplicationStore();
+    const { architecture, replaceResource, selectedResource, selectResource } =
+      useApplicationStore();
 
     const iconMapping = getIconMapping(
       data.resourceId.provider,
@@ -97,6 +98,12 @@ const ResourceGroupNode = memo(
                 data.resourceId,
                 new NodeId(type, namespace, newValue, provider),
               );
+              if (
+                selectedResource?.toKlothoIdString() ===
+                data.resourceId.toKlothoIdString()
+              ) {
+                selectResource(new NodeId(type, namespace, newValue, provider));
+              }
             }}
             initialValue={data.resourceId.name}
           />
