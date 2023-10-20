@@ -231,10 +231,26 @@ const eventIconMap = {
   info: HiInformationCircle,
 };
 
+const alertTheme: CustomFlowbiteTheme["alert"] = {
+  color: {
+    success:
+      "bg-green-200 dark:bg-green-800 text-green-800 dark:text-green-100",
+    failure: "bg-red-200 dark:bg-red-800 text-red-800 dark:text-red-100",
+    warning:
+      "bg-yellow-200 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-100",
+    info: "bg-blue-200 dark:bg-blue-800 text-blue-800 dark:text-blue-100",
+  },
+};
+
 const EventNotification: FC<EventProps> = function ({ type, title, details }) {
   return (
     <div className="flex flex-col">
-      <Alert color={type} icon={eventIconMap[type]} title={title}>
+      <Alert
+        theme={alertTheme}
+        color={type}
+        icon={eventIconMap[type]}
+        title={title}
+      >
         <div className="text-ellipsis">{title}</div>
       </Alert>
 
