@@ -9,7 +9,7 @@ import classNames from "classnames";
 import { FaAngleUp } from "react-icons/fa";
 import { ThemeContext } from "flowbite-react/lib/esm/components/Flowbite/ThemeContext";
 import type { ResourceTypeFilter } from "../api/GetResourceTypes";
-import useApplicationStore from "../views/store/store";
+import useApplicationStore from "../views/store/ApplicationStore";
 
 interface ResourceAccordionOptions {
   name: string;

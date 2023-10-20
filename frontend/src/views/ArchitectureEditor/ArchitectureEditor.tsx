@@ -4,7 +4,7 @@ import React from "react";
 import { ReactFlowProvider } from "reactflow";
 import "reactflow/dist/style.css";
 import EditorPane from "./EditorPane";
-import useApplicationStore from "../store/store";
+import useApplicationStore from "../store/ApplicationStore";
 import NavbarSidebarLayout from "../../layouts/navbar-sidebar";
 
 function ArchitectureEditor() {

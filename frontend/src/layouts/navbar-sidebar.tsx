@@ -14,7 +14,7 @@ import { MdFacebook } from "react-icons/md";
 import { FaDribbble, FaGithub, FaInstagram, FaTwitter } from "react-icons/fa";
 import { SidebarProvider } from "../context/SidebarContext";
 import EditorSidebarRight from "../components/EditorSidebarRight";
-import useApplicationStore from "../views/store/store";
+import useApplicationStore from "../views/store/ApplicationStore";
 import { TbFileExport } from "react-icons/tb";
 import { FaFileCirclePlus } from "react-icons/fa6";
 import type { NewArchitectureFormState } from "../components/NewArchitectureModal";

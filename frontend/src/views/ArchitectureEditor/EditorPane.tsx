@@ -13,7 +13,7 @@ import EdgeTypes, {
 import type { MouseEvent as ReactMouseEvent } from "react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { NodeId } from "../../shared/architecture/TopologyNode";
-import useApplicationStore from "../store/store";
+import useApplicationStore from "../store/ApplicationStore";
 import ContextMenu from "./ContextMenu";
 import { WorkingOverlay } from "../../components/WorkingOverlay";
 import { getIconMapping } from "../../shared/reactflow/ResourceMappings";

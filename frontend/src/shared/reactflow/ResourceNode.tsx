@@ -10,7 +10,7 @@ import React, {
 } from "react";
 import { Handle, Position, useStore, useUpdateNodeInternals } from "reactflow";
 import { getIcon } from "./ResourceMappings";
-import useApplicationStore from "../../views/store/store";
+import useApplicationStore from "../../views/store/ApplicationStore";
 
 import "./NodeStyles.scss";
 import reducer from "../../helpers/reducer";

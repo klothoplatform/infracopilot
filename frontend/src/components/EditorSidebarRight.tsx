@@ -20,7 +20,7 @@ import {
 import { HiBars3, HiCog6Tooth } from "react-icons/hi2";
 import ConfigForm from "./ConfigForm";
 import AdditionalResources from "./AdditionalResources";
-import useApplicationStore from "../views/store/store";
+import useApplicationStore from "../views/store/ApplicationStore";
 import {
   RightSidebarDetailsTabs,
   RightSidebarTabs,

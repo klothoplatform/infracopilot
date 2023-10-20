@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef } from "react";
 import type { Edge, Node } from "reactflow";
 
-import useApplicationStore from "../store/store";
+import useApplicationStore from "../store/ApplicationStore";
 import { BiImage, BiX } from "react-icons/bi";
 import { exportImage } from "../../shared/export/ExportImage";
 import { downloadFile } from "../../helpers/download-file";

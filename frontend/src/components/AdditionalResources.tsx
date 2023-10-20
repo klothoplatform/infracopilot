@@ -2,7 +2,7 @@ import { Card, Table, Tooltip } from "flowbite-react";
 import type { FC, ReactNode } from "react";
 import * as React from "react";
 import { useContext, useEffect, useState } from "react";
-import useApplicationStore from "../views/store/store";
+import useApplicationStore from "../views/store/ApplicationStore";
 import { getIcon } from "../shared/reactflow/ResourceMappings";
 import type { NodeId } from "../shared/architecture/TopologyNode";
 import { UnknownIcon } from "./Icon";

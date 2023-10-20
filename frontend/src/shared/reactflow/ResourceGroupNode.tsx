@@ -10,7 +10,7 @@ import React, {
 import { getGroupIcon, getIconMapping } from "./ResourceMappings";
 import { Handle, useUpdateNodeInternals } from "reactflow";
 import reducer from "../../helpers/reducer";
-import useApplicationStore from "../../views/store/store";
+import useApplicationStore from "../../views/store/ApplicationStore";
 import classNames from "classnames";
 import { NodeId } from "../architecture/TopologyNode";
 

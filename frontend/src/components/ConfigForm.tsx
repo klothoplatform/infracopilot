@@ -9,8 +9,8 @@ import {
   Textarea,
   TextInput,
 } from "flowbite-react";
-import type { ResourceConfigurationRequest } from "../views/store/store";
-import useApplicationStore from "../views/store/store";
+import type { ResourceConfigurationRequest } from "../views/store/EditorStore";
+import useApplicationStore from "../views/store/ApplicationStore";
 import type { FC } from "react";
 import React, { useReducer, useState } from "react";
 import fieldsReducer from "../helpers/reducer";
