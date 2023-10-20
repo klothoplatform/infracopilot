@@ -11,7 +11,7 @@ import {
   CollectionTypes,
   isCollection,
 } from "../shared/resources/ResourceTypes";
-import { Button, Card } from "flowbite-react";
+import { Button } from "flowbite-react";
 import type { SubmitHandler } from "react-hook-form";
 import { FormProvider, useForm } from "react-hook-form";
 import React, { useCallback } from "react";
@@ -31,7 +31,6 @@ export default function ConfigForm() {
     );
   }
 
-  // todo: configure default values -- needs all properties, not just those from the architecture file
   const methods = useForm({
     defaultValues: selectedResource
       ? toFormState(
@@ -41,15 +40,12 @@ export default function ConfigForm() {
       : {},
   });
   const formState = methods.formState;
-  const getFieldState = methods.getFieldState;
 
-  const { dirtyFields, touchedFields, isDirty, defaultValues } = formState;
+  const { dirtyFields, touchedFields } = formState;
 
   const submitConfigChanges: SubmitHandler<any> = useCallback(
     async (e: any) => {
       console.log(e);
-      console.log(getFieldState("Image"));
-      console.log(formState);
       console.log(dirtyFields);
       console.log(touchedFields);
       const configRequests = Object.entries(
@@ -77,13 +73,11 @@ export default function ConfigForm() {
       await configureResources(configRequests);
     },
     [
-      formState,
       configureResources,
       dirtyFields,
       resourceType,
       selectedResource,
       touchedFields,
-      getFieldState,
     ],
   );
 
@@ -91,13 +85,11 @@ export default function ConfigForm() {
     <>
       {resourceType?.properties?.length && (
         <FormProvider {...methods}>
-          <div className={"w-full"}>
+          <div className={"w-full pt-2"}>
             <form onSubmit={methods.handleSubmit(submitConfigChanges)}>
-              <Card className="max-h-[50vh]] overflow-auto py-2">
-                <div className="max-h-[50vh] overflow-auto [&>*:not(:last-child)]:mb-2">
-                  <ConfigGroup fields={resourceType.properties} />
-                </div>
-              </Card>
+              <div className="h-[50vh] max-h-[50vh] overflow-auto [&>*:not(:last-child)]:mb-2">
+                <ConfigGroup fields={resourceType.properties} />
+              </div>
               <Button type="submit" color="purple" className="my-2 w-full">
                 Apply Changes
               </Button>
@@ -129,12 +121,20 @@ function toFormState(metadata: any, fields: Property[] = []) {
             return { key, value };
           });
         }
-      } else if (field.type === CollectionTypes.List) {
-        formState[key] = value.map((item: any) => {
-          if ((field as ListProperty).itemType === CollectionTypes.Map) {
-            return toFormState(item, field.properties);
+      } else if (
+        field.type === CollectionTypes.List ||
+        field.type === CollectionTypes.Set
+      ) {
+        formState[key] = value.map((value: any) => {
+          switch ((field as ListProperty).itemType) {
+            case CollectionTypes.Map:
+              return toFormState(value, field.properties);
+            case CollectionTypes.Set:
+            case CollectionTypes.List:
+              return toFormState(value, field.properties);
+            default:
+              return { value };
           }
-          return item;
         });
       } else {
         formState[key] = value;
@@ -167,12 +167,15 @@ function toMetadata(formState: any, fields: Property[] = []) {
             }),
           );
         }
-      } else if (field.type === CollectionTypes.List) {
+      } else if (
+        field.type === CollectionTypes.List ||
+        field.type === CollectionTypes.Set
+      ) {
         metadata[key] = value.map((item: any) => {
           if ((field as ListProperty).itemType === CollectionTypes.Map) {
             return toMetadata(item, field.properties);
           }
-          return item;
+          return item.value;
         });
       } else {
         metadata[key] = value;

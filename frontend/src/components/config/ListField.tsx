@@ -1,7 +1,10 @@
 import type { FC } from "react";
 import React from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
-import type { ListProperty } from "../../shared/resources/ResourceTypes";
+import type {
+  ListProperty,
+  ResourceListProperty,
+} from "../../shared/resources/ResourceTypes";
 import {
   CollectionTypes,
   isPrimitive,
@@ -36,7 +39,7 @@ export const ListField: FC<ListProps> = ({ id, field }) => {
           <TextInput
             className={"w-full"}
             id={`${id}[${index}]`}
-            {...register(`${id}[${index}]`)}
+            {...register(`${id}[${index}].value`)}
           />
         );
         break;
@@ -46,7 +49,7 @@ export const ListField: FC<ListProps> = ({ id, field }) => {
           <TextInput
             className={"w-full"}
             id={`${id}[${index}]`}
-            {...register(`${id}[${index}]`)}
+            {...register(`${id}[${index}].value`)}
             type={"number"}
             {...(itemType === PrimitiveTypes.Integer ? { step: "1" } : {})}
           />
@@ -57,7 +60,7 @@ export const ListField: FC<ListProps> = ({ id, field }) => {
           <Checkbox
             id={`${id}[${index}]`}
             readOnly={configurationDisabled}
-            {...register(`${id}[${index}]`)}
+            {...register(`${id}[${index}].value`)}
           />
         );
         break;
@@ -66,7 +69,7 @@ export const ListField: FC<ListProps> = ({ id, field }) => {
           <ResourceField
             id={`${id}[${index}]`}
             readonly={configurationDisabled}
-            resourceTypes={[]}
+            resourceTypes={(field as ResourceListProperty).resourceTypes}
           />
         );
         break;
@@ -122,7 +125,7 @@ export const ListField: FC<ListProps> = ({ id, field }) => {
           className={"mt-1 w-fit"}
           color="purple"
           onClick={() => {
-            append({});
+            append({ value: "" });
           }}
         >
           <HiPlusCircle />

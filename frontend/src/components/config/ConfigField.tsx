@@ -75,7 +75,7 @@ export const ConfigField: FC<ConfigFieldProps> = ({
         <ResourceField
           id={qualifiedName}
           readonly={configurationDisabled}
-          resourceTypes={[(field as ResourceProperty).resourceType]}
+          resourceTypes={(field as ResourceProperty).resourceTypes}
           {...props}
         />
       );

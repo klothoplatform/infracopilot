@@ -21,10 +21,16 @@ export interface ListProperty extends Property {
   properties?: Property[];
 }
 
-export interface SetProperty extends Property {
+export interface ResourceListProperty extends ListProperty {
   itemType: PropertyType;
   properties?: Property[];
 }
+
+export interface ResourceListProperty extends ListProperty {
+  resourceTypes?: string[];
+}
+
+export interface SetProperty extends ListProperty {}
 
 export interface MapProperty extends Property {
   keyType: PropertyType;
@@ -33,7 +39,7 @@ export interface MapProperty extends Property {
 }
 
 export interface ResourceProperty extends Property {
-  resourceType: string;
+  resourceTypes?: string[];
 }
 
 export enum PrimitiveTypes {
@@ -109,6 +115,13 @@ export function parseProperties(
   return properties.sort((a, b) => a.name.localeCompare(b.name));
 }
 
+function extractInnerTypes(rawType: string): string[] {
+  const index = rawType.indexOf("(") + 1;
+  return index < 1
+    ? []
+    : [rawType.substring(index, rawType?.length - 1).trim()];
+}
+
 export function parseProperty(
   rawProperty: RawProperty,
   parentQualifiedName?: string,
@@ -142,13 +155,16 @@ export function parseProperty(
 
   switch (type) {
     case CollectionTypes.List: {
-      const itemType = parseType(
-        rawType?.replace("list(", "").replace(")", ""),
-      );
+      const rawItemType = extractInnerTypes(rawType)[0] ?? "map";
+      const itemType = parseType(rawItemType);
       const listProperty = property as ListProperty;
       listProperty.itemType = itemType;
       if (isCollection(itemType)) {
         listProperty.properties = parseProperties(children, qualifiedName);
+      }
+      if (itemType === PrimitiveTypes.Resource) {
+        (listProperty as ResourceListProperty).resourceTypes =
+          extractInnerTypes(rawItemType);
       }
       break;
     }
@@ -183,12 +199,8 @@ export function parseProperty(
       break;
     }
     case PrimitiveTypes.Resource: {
-      const resourceType =
-        rawType === "resource"
-          ? ""
-          : rawType?.replace("resource(", "").replace(")", "");
       const resourceProperty = property as ResourceProperty;
-      resourceProperty.resourceType = resourceType;
+      resourceProperty.resourceTypes = extractInnerTypes(rawType);
       break;
     }
   }

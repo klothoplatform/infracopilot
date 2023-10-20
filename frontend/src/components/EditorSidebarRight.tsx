@@ -199,7 +199,7 @@ const ResourceIdHeader: FC<ResourceIdHeaderProps> = function ({
   return (
     <div
       className={
-        "mb-2 flex flex-row items-center gap-2 border-b-2 pb-1 dark:border-gray-700"
+        "mb-2 flex flex-row items-center gap-2 border-b-2 border-gray-200 pb-1 dark:border-gray-700"
       }
     >
       {resourceId &&
@@ -212,7 +212,10 @@ const ResourceIdHeader: FC<ResourceIdHeaderProps> = function ({
           undefined,
           mode,
         )}
-      <div className="inline-block w-full">
+      <div className="inline-block w-full align-middle">
+        <div className="text-ellipsis text-xs font-medium text-gray-500 dark:text-gray-400">
+          {resourceId ? `${resourceId.provider}:${resourceId.type}` : ""}
+        </div>
         <div className={"text-md text-ellipsis font-semibold dark:text-white"}>
           {resourceId
             ? `${resourceId.namespace ? resourceId.namespace + ":" : ""}${
@@ -220,9 +223,6 @@ const ResourceIdHeader: FC<ResourceIdHeaderProps> = function ({
               }`
             : edgeId}
           <div />
-          <div className="text-ellipsis text-xs font-medium dark:text-white">
-            {resourceId ? `${resourceId.provider}:${resourceId.type}` : ""}
-          </div>
         </div>
       </div>
       <Button
