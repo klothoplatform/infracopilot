@@ -50,6 +50,8 @@ export const ConfigGroup: FC<ConfigGroupProps> = ({
                 ? property.qualifiedName.substring(parentLength + 1)
                 : property.qualifiedName
             }
+            required={property.required}
+            readOnly={property.configurationDisabled}
           />
         </div>,
       );

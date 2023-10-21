@@ -20,9 +20,15 @@ type MapProps = ConfigFieldProps & {
 export const MapField: FC<MapProps> = ({ id, field, removable }) => {
   id = id ?? field.qualifiedName;
 
-  const { register } = useFormContext();
+  const { register, control } = useFormContext();
 
   const { configurationDisabled, keyType, valueType } = field as MapProperty;
+
+  useFieldArray({
+    control,
+    name: id,
+    rules: { required: field.required, minLength: field.required ? 1 : 0 },
+  });
 
   if (
     keyType === PrimitiveTypes.String &&
@@ -64,6 +70,7 @@ const PrimitiveMapEntry: FC<PrimitiveMapEntryProps> = ({ id }) => {
   const { fields, append, remove } = useFieldArray({
     control,
     name: id,
+    rules: { required: true, minLength: 1 },
   });
   return (
     <div className="flex w-full flex-col gap-1">
@@ -81,8 +88,9 @@ const PrimitiveMapEntry: FC<PrimitiveMapEntryProps> = ({ id }) => {
               {...register(`${id}[${index}].value`)}
             />
             <Button
-              color={"purple"}
-              size={"xs"}
+              className={"h-full w-8"}
+              color={"red"}
+              size={"lg"}
               onClick={() => {
                 remove(index);
               }}

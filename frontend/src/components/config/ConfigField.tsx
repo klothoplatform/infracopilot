@@ -27,6 +27,8 @@ export interface ConfigFieldProps {
   id?: string;
   field: Property;
   title?: string;
+  required?: boolean;
+  readOnly?: boolean;
 }
 
 type InputProps = {
@@ -38,14 +40,16 @@ type TextProps = TextInputProps & ConfigFieldProps;
 type BooleanProps = CheckboxProps & ConfigFieldProps;
 type ResourceProps = {
   id: string;
-  readonly?: boolean;
   resourceTypes?: string[];
+  readOnly?: boolean;
   required?: boolean;
 };
 
 export const ConfigField: FC<ConfigFieldProps> = ({
   field,
   title,
+  required,
+  readOnly,
   ...props
 }) => {
   const { type, qualifiedName, configurationDisabled } = field;
@@ -74,7 +78,7 @@ export const ConfigField: FC<ConfigFieldProps> = ({
       element = (
         <ResourceField
           id={qualifiedName}
-          readonly={configurationDisabled}
+          readOnly={configurationDisabled}
           resourceTypes={(field as ResourceProperty).resourceTypes}
           {...props}
         />
@@ -112,6 +116,7 @@ export const StringField: FC<TextProps> = ({ id, field, ...rest }) => {
       inputMode="text"
       type="text"
       required={field.required}
+      readOnly={field.configurationDisabled}
       {...rest}
     />
   );
@@ -124,6 +129,7 @@ export const NumberField: FC<TextProps> = ({ id, field, ...rest }) => {
       inputMode="numeric"
       type="number"
       required={field.required}
+      readOnly={field.configurationDisabled}
       {...rest}
     />
   );
@@ -137,6 +143,7 @@ export const IntField: FC<TextProps> = ({ id, field, ...rest }) => {
       type="number"
       step="1"
       required={field.required}
+      readOnly={field.configurationDisabled}
       {...rest}
     />
   );
@@ -149,6 +156,7 @@ const InputField: FC<InputProps> = ({ id, required, ...rest }) => {
     <TextInput
       id={id}
       required={required}
+      disabled={rest.readOnly}
       {...rest}
       {...register(id, { required })}
     />
@@ -172,11 +180,11 @@ export const BooleanField: FC<BooleanProps> = ({ id, field, ...props }) => {
 
 export const ResourceField: FC<ResourceProps> = ({
   id,
-  readonly,
+  readOnly,
   resourceTypes,
   required,
 }) => {
-  const { register, setValue, watch, formState } = useFormContext();
+  const { register, setValue, watch } = useFormContext();
   const { architecture } = useApplicationStore();
   const onClick = (value: string) => {
     setValue(id, value, {
@@ -215,7 +223,7 @@ export const ResourceField: FC<ResourceProps> = ({
       className="max-h-[50vh] overflow-y-auto"
       id={id}
       color={"purple"}
-      disabled={readonly}
+      disabled={readOnly}
       label={
         watchValue?.length
           ? NodeId.fromId(watchValue).name

@@ -192,7 +192,7 @@ function toMetadata(formState: any, fields: Property[] = []) {
         field.type === CollectionTypes.List ||
         field.type === CollectionTypes.Set
       ) {
-        metadata[key] = value.map((item: any) => {
+        metadata[key] = value?.map((item: any) => {
           if ((field as ListProperty).itemType === CollectionTypes.Map) {
             return toMetadata(item, field.properties);
           }
