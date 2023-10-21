@@ -14,10 +14,11 @@ import {
 import { Button } from "flowbite-react";
 import type { SubmitHandler } from "react-hook-form";
 import { FormProvider, useForm } from "react-hook-form";
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect } from "react";
 import useApplicationStore from "../views/store/ApplicationStore";
 import { ConfigGroup } from "./config/ConfigGroup";
 import type { NodeId } from "../shared/architecture/TopologyNode";
+import { WorkingOverlay } from "./WorkingOverlay";
 
 export default function ConfigForm() {
   const { selectedResource, resourceTypeKB, architecture, configureResources } =
@@ -40,8 +41,28 @@ export default function ConfigForm() {
       : {},
   });
   const formState = methods.formState;
+  const { dirtyFields, touchedFields, isSubmitSuccessful } = formState;
 
-  const { dirtyFields, touchedFields } = formState;
+  useEffect(() => {
+    if (!isSubmitSuccessful) {
+      return;
+    }
+
+    methods.reset(
+      selectedResource
+        ? toFormState(
+            architecture.resources.get(selectedResource.toKlothoIdString()),
+            resourceType?.properties,
+          )
+        : {},
+    );
+  }, [
+    architecture,
+    isSubmitSuccessful,
+    methods,
+    resourceType,
+    selectedResource,
+  ]);
 
   const submitConfigChanges: SubmitHandler<any> = useCallback(
     async (e: any) => {
