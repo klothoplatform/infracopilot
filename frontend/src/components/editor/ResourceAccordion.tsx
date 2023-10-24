@@ -2,14 +2,14 @@ import type { MouseEventHandler } from "react";
 import * as React from "react";
 import { useContext, useEffect } from "react";
 import { Accordion, Badge, Card } from "flowbite-react";
-import { getIcon } from "../shared/reactflow/ResourceMappings";
+import { getIcon } from "../../shared/reactflow/ResourceMappings";
 
 import "./ResourceAccordion.scss";
 import classNames from "classnames";
 import { FaAngleDown } from "react-icons/fa";
 import { ThemeContext } from "flowbite-react/lib/esm/components/Flowbite/ThemeContext";
-import type { ResourceTypeFilter } from "../shared/resources/ResourceTypes";
-import useApplicationStore from "../views/store/ApplicationStore";
+import type { ResourceTypeFilter } from "../../shared/resources/ResourceTypes";
+import useApplicationStore from "../../views/store/ApplicationStore";
 
 interface ResourceAccordionOptions {
   name: string;

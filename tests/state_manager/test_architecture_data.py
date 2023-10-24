@@ -1,3 +1,4 @@
+from src.util.entity import User
 from src.util.orm import Base, engine, session
 from src.state_manager.architecture_data import (
     Architecture,
@@ -27,7 +28,7 @@ class TestArchitectureData(aiounittest.AsyncTestCase):
             Architecture(
                 id="test",
                 state=1,
-                owner="bob",
+                owner="user:bob",
                 engine_version=1.0,
                 constraints={},
                 created_at=1,
@@ -39,7 +40,7 @@ class TestArchitectureData(aiounittest.AsyncTestCase):
             Architecture(
                 id="test",
                 state=2,
-                owner="bob",
+                owner="user:bob",
                 engine_version=1.0,
                 constraints={},
                 created_at=1,
@@ -62,7 +63,7 @@ class TestArchitectureData(aiounittest.AsyncTestCase):
             Architecture(
                 id="test",
                 state=2,
-                owner="bob",
+                owner="user:bob",
                 engine_version=1.0,
                 constraints={},
                 created_at=1,
@@ -78,7 +79,8 @@ class TestArchitectureData(aiounittest.AsyncTestCase):
                 Architecture(
                     id="test",
                     state=1,
-                    owner="bob",
+                    owner="user:bob",
+                    decisions=[{"id": "test"}],
                     engine_version=1.0,
                     constraints={},
                     created_at=1,
@@ -87,7 +89,8 @@ class TestArchitectureData(aiounittest.AsyncTestCase):
                 Architecture(
                     id="test",
                     state=2,
-                    owner="bob",
+                    owner="user:bob",
+                    decisions=[{"id": "another test"}],
                     engine_version=1.0,
                     constraints={},
                     created_at=1,
@@ -101,18 +104,18 @@ class TestArchitectureData(aiounittest.AsyncTestCase):
         self.assertEqual(result, [])
 
     async def test_can_get_architectures_by_owner(self):
-        result = await get_architectures_by_owner("bob")
-        self.assertEqual(result, {"test"})
+        result = await get_architectures_by_owner(User("bob"))
+        self.assertEqual(len(result), 2)
 
     async def test_can_get_architectures_by_owner_none_exist(self):
-        result = await get_architectures_by_owner("unknown")
-        self.assertEqual(result, set())
+        result = await get_architectures_by_owner(User("unknown"))
+        self.assertEqual(result, [])
 
     async def test_can_add_architecture(self):
         architecture = Architecture(
             id="test",
             state=3,
-            owner="bob",
+            owner="user:bob",
             engine_version=1.0,
             constraints={},
             created_at=1,
@@ -126,17 +129,19 @@ class TestArchitectureData(aiounittest.AsyncTestCase):
                 Architecture(
                     id="test",
                     state=1,
-                    owner="bob",
+                    owner="user:bob",
                     engine_version=1.0,
                     constraints={},
+                    decisions=[{"id": "test"}],
                     created_at=1,
                     updated_by="bob",
                 ),
                 Architecture(
                     id="test",
                     state=2,
-                    owner="bob",
+                    owner="user:bob",
                     engine_version=1.0,
+                    decisions=[{"id": "another test"}],
                     constraints={},
                     created_at=1,
                     updated_by="bob",
@@ -144,7 +149,7 @@ class TestArchitectureData(aiounittest.AsyncTestCase):
                 Architecture(
                     id="test",
                     state=3,
-                    owner="bob",
+                    owner="user:bob",
                     engine_version=1.0,
                     constraints={},
                     created_at=1,

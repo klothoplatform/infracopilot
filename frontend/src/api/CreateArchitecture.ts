@@ -5,6 +5,7 @@ export interface CreateArchitectureRequest {
   name: string;
   owner: string;
   engineVersion: number;
+  idToken: string;
 }
 
 export default async function createArchitecture(
@@ -21,14 +22,18 @@ export default async function createArchitecture(
     {
       headers: {
         "Content-Type": "application/json",
+        ...(request.idToken && { Authorization: `Bearer ${request.idToken}` }),
       },
     },
   );
   if (response.status !== 200) {
     throw new Error("CreateArchitecture failed");
   }
+
   return {
-    ...request,
+    name: request.name,
+    owner: request.owner,
+    engineVersion: request.engineVersion,
     id: response.data.id,
     version: 0,
   } as Architecture;

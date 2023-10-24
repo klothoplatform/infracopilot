@@ -8,6 +8,7 @@ export async function applyConstraints(
   architectureId: string,
   latestState: number,
   constraints: Constraint[],
+  idToken: string,
 ): Promise<Architecture> {
   console.log("applyConstraints", architectureId);
   let data;
@@ -23,6 +24,7 @@ export async function applyConstraints(
       decompress: true,
       headers: {
         accept: "application/octet-stream",
+        ...(idToken && { Authorization: `Bearer ${idToken}` }),
       },
       validateStatus: (status) => status === 200 || status === 400,
     },

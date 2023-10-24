@@ -19,16 +19,21 @@ from src.engine_service.engine_commands.run import RunEngineResult
 from src.engine_service.engine_commands.get_resource_types import (
     GetResourceTypesRequest,
 )
+from src.util.entity import User
 
 
 class TestNewArchitecture(aiounittest.AsyncTestCase):
+    @mock.patch(
+        "src.backend_orchestrator.architecture_handler.add_architecture_owner",
+        new_callable=mock.AsyncMock,
+    )
     @mock.patch("uuid.uuid4")
     @mock.patch(
         "src.backend_orchestrator.architecture_handler.add_architecture",
         new_callable=mock.AsyncMock,
     )
     async def test_copilot_new_architecture(
-        self, mock_add: mock.Mock, mock_uuid: mock.Mock
+        self, mock_add: mock.Mock, mock_uuid: mock.Mock, mock_add_owner: mock.Mock
     ):
         request = CreateArchitectureRequest(
             name="test-new",
@@ -36,7 +41,7 @@ class TestNewArchitecture(aiounittest.AsyncTestCase):
             engine_version=0.0,
         )
         mock_uuid.return_value = "test-uuid"
-
+        mock_add_owner.return_value = None
         result = await copilot_new_architecture(request)
         mock_add.assert_called_once()
         self.assertEqual(
@@ -46,12 +51,13 @@ class TestNewArchitecture(aiounittest.AsyncTestCase):
                 name="test-new",
                 state=0,
                 constraints=[],
-                owner="test-owner",
+                owner="user:test-owner",
                 created_at=mock.ANY,
-                updated_by="test-owner",
+                updated_by="user:test-owner",
                 engine_version=0.0,
             ),
         )
+        mock_add_owner.assert_called_once_with(User(id="test-owner"), "test-uuid")
         self.assertEqual(result.body, JSONResponse(content={"id": "test-uuid"}).body)
         self.assertEqual(result.status_code, 200)
 

@@ -1,6 +1,7 @@
 from sqlite3 import IntegrityError
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import select, JSON
+from src.util.entity import Entity
 from src.util.orm import Base, session
 from typing import Any, List
 
@@ -14,11 +15,13 @@ class Architecture(Base):
     constraints: Mapped[List[dict[str, Any]]] = mapped_column(type_=JSON)
     owner: Mapped[str]
     created_at: Mapped[int]
+    updated_at: Mapped[int] = mapped_column(nullable=True)
     updated_by: Mapped[str]
     engine_version: Mapped[float]
     decisions: Mapped[List[dict[str, Any]]] = mapped_column(nullable=True, type_=JSON)
     state_location: Mapped[str] = mapped_column(nullable=True)
     iac_location: Mapped[str] = mapped_column(nullable=True)
+    extraFields: Mapped[dict] = mapped_column(nullable=True, type_=JSON)
 
     def __eq__(self, __value: object) -> bool:
         if not isinstance(__value, Architecture):
@@ -32,6 +35,9 @@ class Architecture(Base):
             and self.updated_by == __value.updated_by
             and self.engine_version == __value.engine_version
         )
+
+    def __str__(self):
+        return f"architecture:{self.id}"
 
 
 async def get_architecture_latest(id: str) -> Architecture:
@@ -51,14 +57,13 @@ async def get_architecture_history(id: str) -> List[Architecture]:
     return [result[0] for result in results]
 
 
-async def get_architectures_by_owner(owner: str) -> List[str]:
+async def get_architectures_by_owner(owner: Entity) -> List[Architecture]:
     stmt = (
-        select(Architecture).where(Architecture.owner == owner)
+        select(Architecture).where(Architecture.owner == owner.to_auth_string())
         # distinct only works with postgress, so it breaks the local story. Instead finding distinct entries in code
     )
     results = session.execute(statement=stmt).fetchall()
-
-    return {result[0].id for result in results}
+    return [result[0] for result in results]
 
 
 class ArchitectureAlreadyExistsError(Exception):

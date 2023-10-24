@@ -12,6 +12,11 @@ botocore = "*"
 jsons = "*"
 sqlalchemy = "*"
 pyyaml = "*"
+openfga-sdk = "*"
+pyjwt = "*"
+pem = "*"
+cryptography = "*"
+
 [dev-packages]
 black = "*"
 pre-commit = "*"
