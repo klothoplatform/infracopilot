@@ -28,6 +28,9 @@ export interface Architecture {
   failures: any[];
   version: number;
   name: string;
+  created_at?: number;
+  updated_at?: number;
+  updated_by?: string;
   owner: string;
   views: Map<ArchitectureView, TopologyGraph>;
   resources: Map<string, object>;

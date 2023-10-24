@@ -5,11 +5,11 @@ import type { ChangeEvent, FC, ForwardedRef } from "react";
 import React, { forwardRef, useCallback, useState } from "react";
 import { HiFilter } from "react-icons/hi";
 
-import { useSidebarContext } from "../context/SidebarContext";
+import { useSidebarContext } from "../../context/SidebarContext";
 import type { FilterFunction } from "./ResourceAccordion";
 import ResourceAccordion from "./ResourceAccordion";
 import { AwsLogo, Docker } from "./Icon";
-import { Logo } from "./icons/K8SLogo/Unlabeled";
+import { Logo } from "../icons/K8SLogo/Unlabeled";
 import debounce from "lodash.debounce";
 
 const sidebarTheme: CustomFlowbiteTheme["sidebar"] = {

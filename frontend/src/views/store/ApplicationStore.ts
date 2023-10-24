@@ -5,7 +5,7 @@ import type { EditorStore } from "./EditorStore";
 import { editorStore } from "./EditorStore";
 import type { UserStore } from "./UserStore";
 import { apiStore } from "./UserStore";
-import { devtools } from "zustand/middleware";
+import { devtools, persist } from "zustand/middleware";
 
 type WithSelectors<S> = S extends {
   getState: () => infer T;
@@ -30,11 +30,22 @@ const createSelectors = <S extends UseBoundStore<StoreApi<object>>>(
 type ApplicationStore = EditorStore & UserStore;
 
 const useApplicationStoreBase = createWithEqualityFn<ApplicationStore>()(
-  devtools((...all) => ({
-    ...editorStore(...all),
-    ...apiStore(...all),
-  })),
-  shallow,
+  devtools(
+    persist(
+      (...all) => ({
+        ...editorStore(...all),
+        ...apiStore(...all),
+      }),
+      {
+        name: "user-storage", // name of the item in the storage (must be unique)
+        partialize: (state: ApplicationStore) => ({
+          idToken: state.idToken,
+          architectures: state.architectures,
+        }),
+      },
+    ),
+    shallow,
+  ),
 );
 
 // wraps the store with selectors for all state properties

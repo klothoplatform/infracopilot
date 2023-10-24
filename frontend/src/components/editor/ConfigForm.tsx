@@ -1,24 +1,24 @@
 "use client";
 
-import type { ResourceConfigurationRequest } from "../views/store/EditorStore";
+import type { ResourceConfigurationRequest } from "../../views/store/EditorStore";
 import type {
   ListProperty,
   MapProperty,
   Property,
   ResourceType,
-} from "../shared/resources/ResourceTypes";
+} from "../../shared/resources/ResourceTypes";
 import {
   CollectionTypes,
   isCollection,
-} from "../shared/resources/ResourceTypes";
+} from "../../shared/resources/ResourceTypes";
 import { Button } from "flowbite-react";
 import type { SubmitHandler } from "react-hook-form";
 import { FormProvider, useForm } from "react-hook-form";
 import React, { useCallback, useEffect } from "react";
-import useApplicationStore from "../views/store/ApplicationStore";
-import { ConfigGroup } from "./config/ConfigGroup";
-import type { NodeId } from "../shared/architecture/TopologyNode";
-import { WorkingOverlay } from "./WorkingOverlay";
+import useApplicationStore from "../../views/store/ApplicationStore";
+import { ConfigGroup } from "../config/ConfigGroup";
+import type { NodeId } from "../../shared/architecture/TopologyNode";
+import { WorkingOverlay } from "../WorkingOverlay";
 
 export default function ConfigForm() {
   const { selectedResource, resourceTypeKB, architecture, configureResources } =

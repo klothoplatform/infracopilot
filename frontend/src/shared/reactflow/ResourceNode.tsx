@@ -22,7 +22,7 @@ import {
 } from "../../shared/sidebar-nav";
 import { TbDotsCircleHorizontal } from "react-icons/tb";
 import { ThemeContext } from "flowbite-react/lib/esm/components/Flowbite/ThemeContext";
-import type { IconProps } from "../../components/Icon";
+import type { IconProps } from "../../components/editor/Icon";
 
 interface ResourceNodeProps {
   id: string;

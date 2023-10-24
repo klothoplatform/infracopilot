@@ -3,13 +3,9 @@ import React from "react";
 import { Button } from "flowbite-react";
 
 export const SignupButton: React.FC = () => {
-  const { loginWithRedirect } = useAuth0();
-
+  const { loginWithPopup } = useAuth0();
   const handleSignUp = async () => {
-    await loginWithRedirect({
-      appState: {
-        returnTo: window.location.pathname,
-      },
+    await loginWithPopup({
       authorizationParams: {
         prompt: "login",
         screen_hint: "signup",
@@ -17,5 +13,9 @@ export const SignupButton: React.FC = () => {
     });
   };
 
-  return <Button onClick={handleSignUp}>Sign Up</Button>;
+  return (
+    <Button color={"purple"} className="mr-2 flex gap-1" onClick={handleSignUp}>
+      Sign Up
+    </Button>
+  );
 };

@@ -1,4 +1,4 @@
-import type { IconProps } from "../../components/Icon";
+import type { IconProps } from "../../components/editor/Icon";
 import {
   Docker,
   ErrorIcon,
@@ -7,7 +7,7 @@ import {
   NoIcon,
   UnknownIcon,
   WarningIcon,
-} from "../../components/Icon";
+} from "../../components/editor/Icon";
 import {
   AwsIdentityAccessManagementAwsSts,
   AwsIdentityAccessManagementPermissions,

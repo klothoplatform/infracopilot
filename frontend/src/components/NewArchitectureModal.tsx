@@ -1,10 +1,14 @@
 import { Button, Label, Modal, TextInput } from "flowbite-react";
 import { useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
+import createArchitecture from "../api/CreateArchitecture";
+import useApplicationStore from "../views/store/ApplicationStore";
+import { useNavigate } from "react-router-dom";
+import { useAuth0 } from "@auth0/auth0-react";
 
 interface NewArchitectureModalProps {
-  onClose?: () => void;
-  onSubmit?: (state: NewArchitectureFormState) => void;
+  onClose: () => void;
+  setIsLoadingArchitecture?: (isLoading: boolean) => void;
   show: boolean;
 }
 
@@ -14,7 +18,7 @@ export interface NewArchitectureFormState {
 
 export default function NewArchitectureModal({
   onClose,
-  onSubmit,
+  setIsLoadingArchitecture,
   show,
 }: NewArchitectureModalProps) {
   const {
@@ -24,6 +28,31 @@ export default function NewArchitectureModal({
     trigger,
     formState: { errors },
   } = useForm<NewArchitectureFormState>();
+
+  const { idToken, loadArchitecture } = useApplicationStore();
+  const navigate = useNavigate();
+  const { user } = useAuth0();
+
+  let onSubmit = async (state: NewArchitectureFormState) => {
+    onClose();
+    try {
+      if (setIsLoadingArchitecture) {
+        setIsLoadingArchitecture(true);
+      }
+      const { id } = await createArchitecture({
+        name: state.name,
+        owner: user?.sub ?? "public",
+        engineVersion: 1,
+        idToken: idToken,
+      });
+      await loadArchitecture(id);
+      navigate(`/editor/${id}`);
+    } finally {
+      if (setIsLoadingArchitecture) {
+        setIsLoadingArchitecture(false);
+      }
+    }
+  };
 
   // required for ref sharing with react-hook-form: https://www.react-hook-form.com/faqs/#Howtosharerefusage
   const { ref, ...rest } = register("name", {
@@ -56,7 +85,7 @@ export default function NewArchitectureModal({
     >
       <form
         onSubmit={handleSubmit((state) => {
-          onSubmit?.(state);
+          onSubmit(state);
           reset();
         })}
       >

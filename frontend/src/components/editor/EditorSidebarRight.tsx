@@ -26,13 +26,13 @@ import {
 import { HiBars3, HiCog6Tooth } from "react-icons/hi2";
 import ConfigForm from "./ConfigForm";
 import AdditionalResources from "./AdditionalResources";
-import useApplicationStore from "../views/store/ApplicationStore";
+import useApplicationStore from "../../views/store/ApplicationStore";
 import {
   RightSidebarDetailsTabs,
   RightSidebarTabs,
-} from "../shared/sidebar-nav";
-import type { NodeId } from "../shared/architecture/TopologyNode";
-import { getIcon } from "../shared/reactflow/ResourceMappings";
+} from "../../shared/sidebar-nav";
+import type { NodeId } from "../../shared/architecture/TopologyNode";
+import { getIcon } from "../../shared/reactflow/ResourceMappings";
 import { ThemeContext } from "flowbite-react/lib/esm/components/Flowbite/ThemeContext";
 
 const sidebarTheme: CustomFlowbiteTheme["sidebar"] = {

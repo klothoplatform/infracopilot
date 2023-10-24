@@ -9,11 +9,11 @@ import React, {
   useState,
 } from "react";
 import Navbar from "../components/navbar";
-import EditorSidebarLeft from "../components/EditorSidebarLeft";
+import EditorSidebarLeft from "../components/editor/EditorSidebarLeft";
 import { MdFacebook } from "react-icons/md";
 import { FaDribbble, FaGithub, FaInstagram, FaTwitter } from "react-icons/fa";
 import { SidebarProvider } from "../context/SidebarContext";
-import EditorSidebarRight from "../components/EditorSidebarRight";
+import EditorSidebarRight from "../components/editor/EditorSidebarRight";
 import useApplicationStore from "../views/store/ApplicationStore";
 import { TbFileExport } from "react-icons/tb";
 import { FaFileCirclePlus } from "react-icons/fa6";
@@ -21,13 +21,14 @@ import type { NewArchitectureFormState } from "../components/NewArchitectureModa
 import NewArchitectureModal from "../components/NewArchitectureModal";
 import { AiOutlineLoading } from "react-icons/ai";
 import ExportIaC from "../api/ExportIaC";
-import { downloadFile } from "../helpers/download-file";
 import createArchitecture from "../api/CreateArchitecture";
 import classNames from "classnames";
 import { useNavigate, useParams } from "react-router-dom";
 import { WorkingOverlay } from "../components/WorkingOverlay";
 import { PiArrowElbowLeftUpBold } from "react-icons/pi";
 import { useAuth0 } from "@auth0/auth0-react";
+import { ExportIacButton } from "../components/ExportIacButton";
+import { ArchitectureButtonAndModal } from "../components/NewArchitectureButton";
 
 interface NavbarSidebarLayoutProps {
   isFooter?: boolean;
@@ -184,6 +185,7 @@ const EditorNavContent: FC = function () {
 
   let { architectureId } = useParams();
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth0();
 
   useLayoutEffect(() => {
     (async () => {
@@ -215,74 +217,10 @@ const EditorNavContent: FC = function () {
     architectureId,
     loadArchitecture,
     setIsLoadingArchitecture,
+    isAuthenticated,
   ]);
 
-  const [showCreateArchitectureModal, setShowCreateArchitectureModal] =
-    useState(false);
-  const { getIdTokenClaims } = useAuth0();
-
-  useEffect(() => {
-    setShowCreateArchitectureModal(!architecture?.id && !isLoadingArchitecture);
-  }, [
-    architecture,
-    isLoadingArchitecture,
-    setIsLoadingArchitecture,
-    setShowCreateArchitectureModal,
-  ]);
-
-  const { isAuthenticated, isLoading } = useAuth0();
   const hidden = architecture.id === undefined;
-
-  let onClickExportIac = async () => {
-    setIsExporting(true);
-    try {
-      const idToken = await getIdTokenClaims();
-      if (!idToken) {
-        return;
-      }
-      const iacZip = await ExportIaC(
-        architecture.id,
-        architecture.version,
-        idToken.__raw,
-      );
-      const url = URL.createObjectURL(iacZip);
-      downloadFile(architecture.name + ".zip", url);
-    } finally {
-      setTimeout(() => {
-        // reduce flickering for fast requests
-        setIsExporting(false);
-      }, 200);
-    }
-  };
-
-  let onClickNewArchitecture = () => {
-    setShowCreateArchitectureModal(true);
-  };
-  let onCloseCreateArchitectureModal = () => {
-    setShowCreateArchitectureModal(false);
-  };
-
-  let onSubmitCreateArchitectureModal = async (
-    state: NewArchitectureFormState,
-  ) => {
-    setShowCreateArchitectureModal(false);
-    try {
-      const idToken = await getIdTokenClaims();
-      if (!idToken) {
-        return;
-      }
-      setIsLoadingArchitecture(true);
-      const { id } = await createArchitecture({
-        name: state.name,
-        owner: "user",
-        engineVersion: 1,
-        idToken: idToken.__raw,
-      });
-      await loadArchitecture(id);
-    } finally {
-      setIsLoadingArchitecture(false);
-    }
-  };
 
   return (
     <div className="inline-block align-middle dark:text-white">
@@ -291,37 +229,10 @@ const EditorNavContent: FC = function () {
           {architecture.name}
         </div>
         <div className="flex">
-          <Button
-            color={"purple"}
-            className="mr-2 flex gap-1"
-            onClick={onClickNewArchitecture}
-            disabled={!isAuthenticated}
-          >
-            <FaFileCirclePlus className="mr-1" />
-            <p>New Architecture</p>
-          </Button>
+          <ArchitectureButtonAndModal disabled={!isAuthenticated} />
         </div>
-        <Button
-          color={"purple"}
-          className="flex"
-          onClick={onClickExportIac}
-          isProcessing={isExporting}
-          disabled={hidden || !isAuthenticated}
-          processingSpinner={<AiOutlineLoading className="animate-spin" />}
-        >
-          {!isExporting && <TbFileExport className="mr-1" />}
-          <p>{isExporting ? "Exporting..." : "Export IaC"}</p>
-        </Button>
+        <ExportIacButton setIsExporting={setIsExporting} disabled={hidden} />
       </div>
-      <NewArchitectureModal
-        onClose={onCloseCreateArchitectureModal}
-        show={showCreateArchitectureModal}
-        onSubmit={onSubmitCreateArchitectureModal}
-      />
-      <WorkingOverlay
-        show={isLoadingArchitecture}
-        message={"Loading Architecture..."}
-      />
     </div>
   );
 };

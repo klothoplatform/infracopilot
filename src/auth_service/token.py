@@ -11,9 +11,12 @@ from jwt import PyJWKClient
 domain = os.getenv("AUTH0_DOMAIN", "klotho-dev.us.auth0.com")
 key_url = os.getenv("AUTH0_PEM_URL", f"https://{domain}/.well-known/jwks.json")
 
+PUBLIC_USER = "public"
+
 
 class AuthError(HTTPException):
     detail: str
+
     def __init__(self, error, detail, status_code=401):
         self.error = error
         self.status_code = status_code
@@ -22,11 +25,12 @@ class AuthError(HTTPException):
 
 def is_public_user(request: Request) -> bool:
     auth = request.headers.get("Authorization", None)
-    return auth is None
+    return auth is None or auth == "Bearer default"
+
 
 def get_user_id(request: Request) -> str:
     if is_public_user(request):
-        return "public"
+        return PUBLIC_USER
     return get_id_token(request)["sub"]
 
 

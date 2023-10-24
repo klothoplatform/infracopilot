@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import logging
 import jsons
 import uuid
@@ -23,6 +24,7 @@ from src.state_manager.architecture_storage import (
     ArchitectureStateDoesNotExistError,
 )
 from src.util.entity import User
+from src.state_manager.architecture_data import Architecture, get_architectures_by_owner
 
 
 log = logging.getLogger(__name__)
@@ -43,6 +45,7 @@ async def copilot_new_architecture(
 ):
     try:
         owner = User(user_id) if body.owner is None else User(body.owner)
+        print(owner.to_auth_string())
         id = str(uuid.uuid4())
         architecture = Architecture(
             id=id,
@@ -123,4 +126,48 @@ async def copilot_get_resource_types(id):
         )
     except Exception:
         log.error("Error getting resource types", exc_info=True)
+        raise HTTPException(status_code=500, detail="internal server error")
+
+
+@dataclass
+class CleanedArchitectures:
+    id: str
+    name: str
+    version: int
+    owner: str
+    created_at: int
+    updated_at: int
+    updated_by: str
+
+
+class ListArchitecturesResponse(BaseModel):
+    architectures: List[CleanedArchitectures]
+
+
+async def copilot_list_architectures(user_id: str):
+    print(User(user_id).to_auth_string())
+    try:
+        architectures = await get_architectures_by_owner(User(user_id))
+        print(architectures)
+        cleaned_architectures = []
+        for arch in architectures:
+            if arch.id in [arch.id for arch in cleaned_architectures]:
+                continue
+            arch = await get_architecture_latest(arch.id)
+            cleaned_architectures.append(
+                CleanedArchitectures(
+                    id=arch.id,
+                    name=arch.name,
+                    owner=arch.owner,
+                    version=arch.state,
+                    created_at=arch.created_at,
+                    updated_at=arch.updated_at,
+                    updated_by=arch.updated_by,
+                )
+            )
+        return JSONResponse(
+            content=jsons.dumps({"architectures": cleaned_architectures})
+        )
+    except Exception:
+        log.error("Error listing architectures", exc_info=True)
         raise HTTPException(status_code=500, detail="internal server error")
