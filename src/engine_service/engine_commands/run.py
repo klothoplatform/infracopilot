@@ -1,17 +1,17 @@
 import jsons
 import os
-import re
-import subprocess
 import tempfile
-from io import BytesIO
 from pathlib import Path
 from typing import List, NamedTuple, Dict
 import logging
 import yaml
+import contextlib
 
 from src.engine_service.engine_commands.util import run_engine_command, EngineException
 
 log = logging.getLogger(__name__)
+
+KEEP_TMP = os.environ.get("KEEP_TMP", False)
 
 
 class RunEngineRequest(NamedTuple):
@@ -39,11 +39,19 @@ class FailedRunException(Exception):
         self.failures_json = failures_json
 
 
+@contextlib.contextmanager
+def tempdir():
+    if KEEP_TMP:
+        yield tempfile.mkdtemp()
+    else:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            yield tmp_dir
+
 async def run_engine(request: RunEngineRequest) -> RunEngineResult:
     print(request.constraints)
     out_logs = None
     err_logs = None
-    with tempfile.TemporaryDirectory() as tmp_dir:
+    with tempdir() as tmp_dir:
         try:
             dir = Path(tmp_dir)
 

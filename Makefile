@@ -14,6 +14,7 @@ export IAC_CLI_PATH ?= $(shell which iac)
 run:
 	rm -f /tmp/engine && rm -f /tmp/iac && \
 	PYTHONPATH=. \
+	KEEP_TMP="True" \
 	pipenv run uvicorn src.backend_orchestrator.main:app --port=3000
 
 
