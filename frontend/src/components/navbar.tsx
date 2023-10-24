@@ -1,32 +1,17 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
-import { useEffect, type FC, type PropsWithChildren } from "react";
-import { Avatar, DarkThemeToggle, Dropdown, Navbar } from "flowbite-react";
-import {
-  HiArchive,
-  HiBell,
-  HiCog,
-  HiCurrencyDollar,
-  HiEye,
-  HiInbox,
-  HiLogout,
-  HiOutlineTicket,
-  HiSearch,
-  HiShoppingBag,
-  HiUserCircle,
-  HiUsers,
-  HiViewGrid,
-} from "react-icons/hi";
+import { type FC, type PropsWithChildren } from "react";
+import { DarkThemeToggle, Dropdown, Navbar } from "flowbite-react";
+import { HiSearch } from "react-icons/hi";
 import { useSidebarContext } from "../context/SidebarContext";
 import LoginButton from "../auth/Login";
-import { useAuth0 } from "@auth0/auth0-react";
-import LogoutButton from "../auth/Logout";
+import useApplicationStore from "../views/store/ApplicationStore";
 
 interface NavbarProps {}
 
 const NavBar: FC<PropsWithChildren<NavbarProps>> = function ({ children }) {
   const { isOpenOnSmallScreens, setOpenOnSmallScreens } = useSidebarContext();
 
-  const { user, isAuthenticated } = useAuth0();
+  const { user, isAuthenticated } = useApplicationStore();
 
   return (
     <Navbar fluid>
@@ -64,7 +49,7 @@ const NavBar: FC<PropsWithChildren<NavbarProps>> = function ({ children }) {
 };
 
 const UserDropdown: FC = function () {
-  const { user, logout } = useAuth0();
+  const { user, logout } = useApplicationStore();
 
   if (!user) {
     return null;
@@ -88,13 +73,7 @@ const UserDropdown: FC = function () {
           <p>{user.email}</p>
         </div>
       </Dropdown.Header>
-      <Dropdown.Item>Dashboard</Dropdown.Item>
-      <Dropdown.Item>Settings</Dropdown.Item>
-      <Dropdown.Item>Earnings</Dropdown.Item>
-      <Dropdown.Divider />
-      <div className="flex items-center justify-center bg-gray-200 p-2">
-        <LogoutButton />
-      </div>
+      <Dropdown.Item onClick={logout}>Log Out</Dropdown.Item>
     </Dropdown>
   );
 };

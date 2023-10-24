@@ -78,11 +78,13 @@ const PrimitiveMapEntry: FC<PrimitiveMapEntryProps> = ({ id }) => {
         return (
           <div key={field.id} className="my-[.1rem] flex flex-row gap-1">
             <TextInput
+              sizing={"sm"}
               className={"w-[50%]"}
               id={`${id}[${index}].key`}
               {...register(`${id}[${index}].key`)}
             />
             <TextInput
+              sizing={"sm"}
               className={"w-[50%]"}
               id={`${id}[${index}].value`}
               {...register(`${id}[${index}].value`)}
@@ -90,7 +92,7 @@ const PrimitiveMapEntry: FC<PrimitiveMapEntryProps> = ({ id }) => {
             <Button
               className={"h-full w-8"}
               color={"red"}
-              size={"lg"}
+              size={"md"}
               onClick={() => {
                 remove(index);
               }}
@@ -101,6 +103,7 @@ const PrimitiveMapEntry: FC<PrimitiveMapEntryProps> = ({ id }) => {
         );
       })}
       <Button
+        size={"sm"}
         className={"mt-1 w-fit"}
         color="purple"
         onClick={() => {

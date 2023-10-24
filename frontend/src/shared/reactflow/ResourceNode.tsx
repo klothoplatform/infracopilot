@@ -9,7 +9,7 @@ import React, {
   useState,
 } from "react";
 import { Handle, Position, useStore, useUpdateNodeInternals } from "reactflow";
-import { getIcon } from "./ResourceMappings";
+import { getIcon } from "../resources/ResourceMappings";
 import useApplicationStore from "../../views/store/ApplicationStore";
 
 import "./NodeStyles.scss";
@@ -192,7 +192,7 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
           }}
         ></EditableLabel>
         <div className={"text-center dark:text-gray-200"}>
-          <i>
+          <i className="pointer-events-auto">
             {data.resourceId.provider === architecture.provider
               ? data.resourceId.type
               : `${data.resourceId.provider}:${data.resourceId.type}`}
@@ -271,22 +271,22 @@ const EditableLabel: FC<EditableLabelProps> = ({ label, onSubmit }) => {
   }, [isEditing, label]);
 
   return (
-    <button
-      onClick={() => {
-        setIsEditing(true);
-        setShouldSelectContent(true);
-      }}
-      className="pointer-events-auto flex w-full justify-center dark:text-gray-200"
-    >
+    <div className="flex w-full justify-center dark:text-gray-200">
       <>
         {!isEditing && (
-          <div className="flex w-fit max-w-[210px] cursor-text justify-center border-[1px] border-gray-500/[0] border-opacity-0 px-1 hover:rounded-sm hover:border-gray-500 hover:bg-gray-100/20 dark:hover:bg-gray-700/20">
+          <button
+            className="pointer-events-auto flex w-fit max-w-[210px] cursor-text justify-center border-[1px] border-gray-500/[0] border-opacity-0 px-1 hover:rounded-sm hover:border-gray-500 hover:bg-gray-100/20 dark:hover:bg-gray-700/20"
+            onClick={() => {
+              setIsEditing(true);
+              setShouldSelectContent(true);
+            }}
+          >
             <div
               className={"h-fit max-w-[196px] truncate break-all font-semibold"}
             >
               {label}
             </div>
-          </div>
+          </button>
         )}
         {isEditing && (
           <form
@@ -320,7 +320,7 @@ const EditableLabel: FC<EditableLabelProps> = ({ label, onSubmit }) => {
           </form>
         )}
       </>
-    </button>
+    </div>
   );
 };
 

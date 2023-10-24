@@ -5,11 +5,6 @@ import { Button } from "flowbite-react";
 const LoginButton = () => {
   const { loginWithPopup } = useAuth0();
 
-  const returnTo =
-    window.location.pathname === "/" || window.location.pathname === "/home"
-      ? "/architectures"
-      : window.location.pathname;
-
   return (
     <Button
       color={"purple"}

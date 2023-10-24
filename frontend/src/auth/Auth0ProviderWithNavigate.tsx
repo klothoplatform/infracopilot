@@ -1,7 +1,6 @@
-import { Auth0Provider, type AppState, useAuth0 } from "@auth0/auth0-react";
-import React, { useEffect, type PropsWithChildren } from "react";
+import { type AppState, Auth0Provider } from "@auth0/auth0-react";
+import React, { type PropsWithChildren } from "react";
 import { useNavigate } from "react-router-dom";
-import useApplicationStore from "../views/store/ApplicationStore";
 
 interface Auth0ProviderWithNavigateProps {
   children: React.ReactNode;
@@ -9,7 +8,7 @@ interface Auth0ProviderWithNavigateProps {
 
 export const Auth0ProviderWithNavigate = ({
   children,
-}: PropsWithChildren<Auth0ProviderWithNavigateProps>): JSX.Element | null => {
+}: PropsWithChildren<Auth0ProviderWithNavigateProps>): React.JSX.Element | null => {
   const navigate = useNavigate();
 
   const domain = process.env.REACT_APP_AUTH0_DOMAIN;

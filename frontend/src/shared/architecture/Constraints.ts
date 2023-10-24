@@ -220,22 +220,22 @@ export function parseConstraints(constraints: any[]): Constraint[] {
       case ConstraintScope.Application:
         return new ApplicationConstraint(
           constraint.operator,
-          NodeId.fromString(constraint.node),
+          NodeId.fromTopologyId(constraint.node),
           constraint.replacement_node
-            ? NodeId.fromString(constraint.replacement_node)
+            ? NodeId.fromTopologyId(constraint.replacement_node)
             : undefined,
         );
       case ConstraintScope.Construct:
         return new ConstructConstraint(
           constraint.operator,
-          NodeId.fromString(constraint.target),
+          NodeId.fromTopologyId(constraint.target),
           constraint.type,
           constraint.attributes,
         );
       case ConstraintScope.Resource:
         return new ResourceConstraint(
           constraint.operator,
-          NodeId.fromString(constraint.target),
+          NodeId.fromTopologyId(constraint.target),
           constraint.property,
           constraint.value,
         );
@@ -243,10 +243,10 @@ export function parseConstraints(constraints: any[]): Constraint[] {
         return new EdgeConstraint(
           constraint.operator,
           new TopologyEdge(
-            NodeId.fromString(constraint.target.source),
-            NodeId.fromString(constraint.target.target),
+            NodeId.fromTopologyId(constraint.target.source),
+            NodeId.fromTopologyId(constraint.target.target),
           ),
-          constraint.node ? NodeId.fromString(constraint.node) : undefined,
+          constraint.node ? NodeId.fromTopologyId(constraint.node) : undefined,
           constraint.attributes,
         );
       default:

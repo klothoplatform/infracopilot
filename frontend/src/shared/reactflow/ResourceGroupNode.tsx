@@ -7,12 +7,13 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { getGroupIcon, getIconMapping } from "./ResourceMappings";
+import { getGroupIcon, getIconMapping } from "../resources/ResourceMappings";
 import { Handle, useUpdateNodeInternals } from "reactflow";
 import reducer from "../../helpers/reducer";
 import useApplicationStore from "../../views/store/ApplicationStore";
 import classNames from "classnames";
 import { NodeId } from "../architecture/TopologyNode";
+import { RightSidebarDetailsTabs, RightSidebarTabs } from "../sidebar-nav";
 
 interface GroupNodeProps {
   id: string;
@@ -23,8 +24,26 @@ interface GroupNodeProps {
 
 const ResourceGroupNode = memo(
   ({ id, data, isConnectable }: GroupNodeProps) => {
-    const { architecture, replaceResource, selectedResource, selectResource } =
-      useApplicationStore();
+    const {
+      architecture,
+      selectedResource,
+      replaceResource,
+      selectNode,
+      selectResource,
+      navigateRightSidebar,
+    } = useApplicationStore();
+
+    const isSelected = selectedResource === data.resourceId;
+
+    const onSelect = () => {
+      console.log("onSelect", data.resourceId);
+      selectResource(data.resourceId);
+      selectNode(id);
+      navigateRightSidebar([
+        RightSidebarTabs.Details,
+        RightSidebarDetailsTabs.Config,
+      ]);
+    };
 
     const iconMapping = getIconMapping(
       data.resourceId.provider,
@@ -55,14 +74,25 @@ const ResourceGroupNode = memo(
     }, [updateNodeInternals, id, data, isConnectable]);
 
     return (
-      <>
+      <button
+        onClick={onSelect}
+        className={classNames(
+          "relative border-2 rounded-md bg-transparent pointer-events-auto",
+          {
+            "left-[-4px] top-[-4px] border-primary-600/100 dark:border-primary-500/100 h-[calc(100%+8px)] w-[calc(100%+8px)]":
+              isSelected,
+            "border-primary-600/[0] w-full h-full": !isSelected,
+          },
+        )}
+      >
         {handles}
         <div
           className={classNames(
             "flex h-full w-full border-gray-600 justify-start gap-1",
             {
-              "bg-white dark:bg-gray-800": !data.isHighlighted,
-              "bg-gray-200 dark:bg-gray-700": data.isHighlighted,
+              "w-full h-full": !isSelected,
+              "w-[calc(100%-8px)] h-[calc(100%-8px)] mx-auto my-auto":
+                isSelected,
             },
           )}
           style={{
@@ -108,7 +138,7 @@ const ResourceGroupNode = memo(
             initialValue={data.resourceId.name}
           />
         </div>
-      </>
+      </button>
     );
   },
 );

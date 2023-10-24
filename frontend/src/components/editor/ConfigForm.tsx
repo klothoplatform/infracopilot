@@ -1,6 +1,5 @@
 "use client";
 
-import type { ResourceConfigurationRequest } from "../../views/store/EditorStore";
 import type {
   ListProperty,
   MapProperty,
@@ -15,13 +14,22 @@ import { Button } from "flowbite-react";
 import type { SubmitHandler } from "react-hook-form";
 import { FormProvider, useForm } from "react-hook-form";
 import React, { useCallback, useEffect } from "react";
+
 import useApplicationStore from "../../views/store/ApplicationStore";
+import {
+  getCustomConfigSections,
+  getCustomConfigState,
+} from "../../views/ArchitectureEditor/config/CustomConfigMappings";
+import type { Constraint } from "../../shared/architecture/Constraints";
+import {
+  ConstraintOperator,
+  ResourceConstraint,
+} from "../../shared/architecture/Constraints";
 import { ConfigGroup } from "../config/ConfigGroup";
 import type { NodeId } from "../../shared/architecture/TopologyNode";
-import { WorkingOverlay } from "../WorkingOverlay";
 
 export default function ConfigForm() {
-  const { selectedResource, resourceTypeKB, architecture, configureResources } =
+  const { selectedResource, resourceTypeKB, architecture, applyConstraints } =
     useApplicationStore();
 
   let resourceType: ResourceType | undefined;
@@ -34,10 +42,13 @@ export default function ConfigForm() {
 
   const methods = useForm({
     defaultValues: selectedResource
-      ? toFormState(
-          architecture.resources.get(selectedResource.toKlothoIdString()),
-          resourceType?.properties,
-        )
+      ? {
+          ...toFormState(
+            architecture.resources.get(selectedResource.toKlothoIdString()),
+            resourceType?.properties,
+          ),
+          ...getCustomConfigState(selectedResource, architecture),
+        }
       : {},
   });
   const formState = methods.formState;
@@ -50,10 +61,13 @@ export default function ConfigForm() {
 
     methods.reset(
       selectedResource
-        ? toFormState(
-            architecture.resources.get(selectedResource.toKlothoIdString()),
-            resourceType?.properties,
-          )
+        ? {
+            ...toFormState(
+              architecture.resources.get(selectedResource.toKlothoIdString()),
+              resourceType?.properties,
+            ),
+            ...getCustomConfigState(selectedResource, architecture),
+          }
         : {},
     );
   }, [
@@ -65,12 +79,16 @@ export default function ConfigForm() {
   ]);
 
   const submitConfigChanges: SubmitHandler<any> = useCallback(
-    async (e: any) => {
-      console.log(e);
+    async (submittedValues: any) => {
+      console.log(submittedValues);
       console.log(dirtyFields);
       console.log(touchedFields);
-      const configRequests = Object.entries(
-        toMetadata(e, resourceType?.properties) as any,
+      if (!selectedResource) {
+        return;
+      }
+
+      const constraints: Constraint[] = Object.entries(
+        toMetadata(submittedValues, resourceType?.properties) as any,
       )
         .map(([key, value]) => {
           return {
@@ -80,26 +98,24 @@ export default function ConfigForm() {
           };
         })
         .filter((prop) => prop.modified)
-        .map((prop): ResourceConfigurationRequest => {
-          return {
-            resourceId: selectedResource as NodeId,
-            property: prop.property,
-            value: prop.value,
-          };
+        .map((prop): ResourceConstraint => {
+          return new ResourceConstraint(
+            ConstraintOperator.Equals,
+            selectedResource,
+            prop.property,
+            prop.value,
+          );
         });
-      console.log(configRequests);
-      if (!configRequests.length) {
+
+      constraints.push(...applyCustomizers(selectedResource, submittedValues));
+
+      console.log(constraints);
+      if (!constraints.length) {
         return;
       }
-      await configureResources(configRequests);
+      await applyConstraints(constraints);
     },
-    [
-      configureResources,
-      dirtyFields,
-      resourceType,
-      selectedResource,
-      touchedFields,
-    ],
+    [architecture, dirtyFields, resourceType, selectedResource, touchedFields],
   );
 
   return (
@@ -110,6 +126,16 @@ export default function ConfigForm() {
             <form onSubmit={methods.handleSubmit(submitConfigChanges)}>
               <div className="h-[50vh] max-h-[50vh] overflow-auto [&>*:not(:last-child)]:mb-2">
                 <ConfigGroup fields={resourceType.properties} />
+                {selectedResource &&
+                  Object.entries(
+                    getCustomConfigSections(
+                      selectedResource.provider,
+                      selectedResource.type,
+                    ),
+                  ).map((entry, index) => {
+                    const Component = entry[1].component;
+                    return Component ? <Component key={index} /> : null;
+                  })}
               </div>
               <Button type="submit" color="purple" className="my-2 w-full">
                 Apply Changes
@@ -204,4 +230,25 @@ function toMetadata(formState: any, fields: Property[] = []) {
     }
   });
   return metadata;
+}
+
+function applyCustomizers(resourceId: NodeId, state: any): Constraint[] {
+  const sections = getCustomConfigSections(
+    resourceId.provider,
+    resourceId.type,
+  );
+
+  if (!sections) {
+    return [];
+  }
+
+  const constraints: Constraint[] = [];
+  Object.entries(state).forEach(([key, value]) => {
+    if (sections[key]?.stateHandler) {
+      constraints.push(
+        ...(sections[key]?.stateHandler?.(value, resourceId) ?? []),
+      );
+    }
+  });
+  return constraints;
 }

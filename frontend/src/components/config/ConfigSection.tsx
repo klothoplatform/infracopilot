@@ -23,12 +23,12 @@ export const ConfigSection: FC<PropsWithChildren<ConfigSectionProps>> = ({
     unregister(getKeys(values, id));
     console.log(values);
     console.log(getKeys(values, id));
-  }, [getValues, unregister]);
+  }, [getValues, id, unregister]);
 
   return (
     <Accordion>
       <Accordion.Panel isOpen>
-        <Accordion.Title className={"text-sm"}>
+        <Accordion.Title className={"px-2 py-1 text-sm"}>
           <div className={"flex flex-row justify-between"}>
             <div>{title ?? id}</div>
           </div>
@@ -40,7 +40,9 @@ export const ConfigSection: FC<PropsWithChildren<ConfigSectionProps>> = ({
             </Button>
           )}
         </>
-        <Accordion.Content className={"px-0"}>{children}</Accordion.Content>
+        <Accordion.Content className={"px-0 py-2"}>
+          {children}
+        </Accordion.Content>
       </Accordion.Panel>
     </Accordion>
   );

@@ -16,7 +16,7 @@ import { NodeId } from "../../shared/architecture/TopologyNode";
 import useApplicationStore from "../store/ApplicationStore";
 import ContextMenu from "./ContextMenu";
 import { WorkingOverlay } from "../../components/WorkingOverlay";
-import { getIconMapping } from "../../shared/reactflow/ResourceMappings";
+import { getIconMapping } from "../../shared/resources/ResourceMappings";
 
 let id = 0;
 
@@ -100,7 +100,7 @@ export default function EditorPane() {
       });
       console.log("nearestGroup", nearestGroup);
 
-      const id = NodeId.fromString(`${type}/${nodes.length}`);
+      const id = NodeId.fromTopologyId(`${type}/${nodes.length}`);
       id.name = `${id.type}_${id.name}`;
       const newNode: Node = {
         id: id.toTopologyString(),

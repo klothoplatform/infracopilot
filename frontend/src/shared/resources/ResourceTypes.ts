@@ -1,9 +1,13 @@
+import type { ArchitectureView } from "../architecture/Architecture";
+import type { ViewNodeType } from "../architecture/Architecture";
+
 export interface ResourceType {
   provider: string;
   type: string;
   classifications?: string[];
   displayName: string;
   properties?: Property[];
+  views: Map<ArchitectureView, ViewNodeType>;
 }
 
 export interface Property {
@@ -42,12 +46,17 @@ export interface ResourceProperty extends Property {
   resourceTypes?: string[];
 }
 
+export interface EnumProperty extends Property {
+  allowedValues: string[];
+}
+
 export enum PrimitiveTypes {
-  String = "string",
-  Number = "number",
-  Integer = "integer",
   Boolean = "boolean",
+  Enum = "enum",
+  Integer = "integer",
+  Number = "number",
   Resource = "resource",
+  String = "string",
 }
 
 export enum CollectionTypes {

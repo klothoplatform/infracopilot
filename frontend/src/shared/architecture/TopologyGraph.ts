@@ -32,8 +32,8 @@ export class TopologyGraph {
           } else {
             [target, source] = k.split("<-");
           }
-          const sourceId = NodeId.fromString(source, graph.Provider);
-          const targetId = NodeId.fromString(target, graph.Provider);
+          const sourceId = NodeId.fromTopologyId(source, graph.Provider);
+          const targetId = NodeId.fromTopologyId(target, graph.Provider);
           console.log("resources of k ", resources[k], k, sourceId, targetId);
           graph.Edges.push(
             new TopologyEdge(sourceId, targetId, {
@@ -48,10 +48,10 @@ export class TopologyGraph {
           edgeDefinedNodes.push(sourceId, targetId);
         } else {
           graph.Nodes.push(
-            new TopologyNode(NodeId.fromString(k, graph.Provider), {
+            new TopologyNode(NodeId.fromTopologyId(k, graph.Provider), {
               ...resources[k],
               parent: resources[k]?.parent
-                ? NodeId.fromString(resources[k]?.parent, graph.Provider)
+                ? NodeId.fromTopologyId(resources[k]?.parent, graph.Provider)
                 : undefined,
               children: resources[k]?.children
                 ? resources[k]?.children

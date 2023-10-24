@@ -1,4 +1,4 @@
-import { useEffect, type FC } from "react";
+import { useEffect, type FC, useState } from "react";
 import { Route, Routes } from "react-router";
 import FlowbiteWrapper from "./components/flowbite-wrapper";
 import ArchitectureEditor from "./views/ArchitectureEditor/ArchitectureEditor";
@@ -8,33 +8,26 @@ import { useAuth0 } from "@auth0/auth0-react";
 import { Navigate } from "react-router-dom";
 import { CallbackPage } from "./pages/CallbackPage";
 
-import { AnalyticsBrowser } from '@segment/analytics-next'
+import { AnalyticsBrowser } from "@segment/analytics-next";
 
-export const analytics = AnalyticsBrowser.load({ writeKey: 'GKCsKtwCdTQO75tRzBPKAw82xVPYPqEz' })
-
+export const analytics = AnalyticsBrowser.load({
+  writeKey: "GKCsKtwCdTQO75tRzBPKAw82xVPYPqEz",
+});
 
 const App: FC = function () {
-  const { idToken, setIdToken } = useApplicationStore();
-  const { user, error, isAuthenticated, getIdTokenClaims } = useAuth0();
+  const { updateAuthentication, user } = useApplicationStore();
+  const authContext = useAuth0();
 
   useEffect(() => {
-    (async () => {
-      console.log(idToken, isAuthenticated, user, error);
-      const claims = await getIdTokenClaims();
-      if (!claims) {
-        setIdToken("default");
-        return;
-      }
-  
-      analytics.identify(user?.sub, {
-        name: user?.name,
-        email: user?.email,
-      });
-      
-      setIdToken(claims.__raw);
-    })();
-  }, [idToken, isAuthenticated, user, error, getIdTokenClaims, setIdToken]);
-  console.log(idToken, isAuthenticated, user, error);
+    (async () => await updateAuthentication(authContext))();
+  }, [authContext, updateAuthentication]);
+
+  useEffect(() => {
+    analytics.identify(user?.sub, {
+      name: user?.name,
+      email: user?.email,
+    });
+  }, [user]);
 
   return (
     <Routes>

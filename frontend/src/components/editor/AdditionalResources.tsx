@@ -2,12 +2,12 @@ import { Card, Table, Tooltip } from "flowbite-react";
 import type { FC, ReactNode } from "react";
 import * as React from "react";
 import { useContext, useEffect, useState } from "react";
-import useApplicationStore from "../../views/store/ApplicationStore";
-import { getIcon } from "../../shared/reactflow/ResourceMappings";
-import type { NodeId } from "../../shared/architecture/TopologyNode";
 import { UnknownIcon } from "./Icon";
 import { getDownstreamResources } from "../../shared/architecture/Architecture";
 import { ThemeContext } from "flowbite-react/lib/esm/components/Flowbite/ThemeContext";
+import useApplicationStore from "../../views/store/ApplicationStore";
+import { getIcon } from "../../shared/resources/ResourceMappings";
+import type { NodeId } from "../../shared/architecture/TopologyNode";
 
 function AdditionalResources() {
   const { mode } = useContext(ThemeContext);
@@ -31,7 +31,7 @@ function AdditionalResources() {
     } else {
       edges
         .filter((edge) => edge.id === selectedEdge)
-        .map((edge) => {
+        .forEach((edge) => {
           if (edge.data.vizMetadata?.path !== undefined) {
             connectedNodes = connectedNodes.concat(edge.data.vizMetadata.path);
           }

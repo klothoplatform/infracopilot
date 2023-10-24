@@ -55,6 +55,7 @@ const flowbiteTheme: CustomFlowbiteTheme = {
     },
   },
   button: {
+    base: "group flex items-stretch items-center justify-center p-0.5 text-center relative focus:z-10 focus:outline-none",
     color: {
       red: "text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800",
       gray: "text-gray-900 bg-white border border-gray-200 enabled:hover:bg-gray-100 enabled:hover:text-blue-700 :ring-blue-700 focus:text-blue-700 dark:bg-transparent dark:text-gray-400 dark:border-gray-600 dark:enabled:hover:text-white dark:enabled:hover:bg-gray-700 focus:ring-2",

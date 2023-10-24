@@ -85,6 +85,7 @@ const elkConfig = {
   },
   groupLayout: {
     "elk.nodeLabels.placement": "[H_CENTER, V_BOTTOM, OUTSIDE]",
+    "org.eclipse.elk.nodeSize.minimum": "(200,200)",
     "elk.padding": ElkMap({
       top: 40,
       left: 10,
@@ -187,8 +188,8 @@ export async function autoLayout(
           node.id,
           {
             id: node.id,
-            width: 100,
-            height: 100,
+            width: node.type === "resourceGroup" ? 200 : 100,
+            height: node.type === "resourceGroup" ? 200 : 100,
             labels: [
               sizedLabel({ text: node.data?.resourceId?.type ?? "UNKNOWN" }),
               sizedLabel({ text: node.data?.resourceId?.name ?? "UNKNOWN" }),
@@ -202,36 +203,40 @@ export async function autoLayout(
         ];
       }),
     );
-    for (const n of nodes) {
-      const parentNode = elkNodesById.get(n.parentNode ?? "");
-      if (parentNode) {
-        parentNode.children = parentNode.children ? parentNode.children : [];
-        parentNode.children.push(elkNodesById.get(n.id) as any);
 
-        parentNode.labels = [
-          sizedLabel(
-            {
-              text:
-                parentNode.labels?.map((l) => l.text)?.join("/") ?? "UNKNOWN",
-            },
-            16,
-            32,
-            600,
-            140,
-            30,
-          ),
-        ];
-        parentNode.layoutOptions = {
-          ...elkConfig.groupLayout,
-          "elk.padding": ElkMap({
-            top: 28 + (parentNode.labels[0].height ?? 0),
-            left: 20,
-            bottom: 0,
-            right: 20,
-          }),
-        };
-      }
-    }
+    const elkParentNodes = nodes
+      .filter((node) => node.type === "resourceGroup")
+      .map((p) => elkNodesById.get(p.id) as ElkNode)
+      .filter((p) => p);
+
+    elkParentNodes.forEach((parent) => {
+      parent.children = nodes
+        .filter((n) => n.parentNode === parent.id)
+        .map((n) => elkNodesById.get(n.id) as ElkNode);
+      parent.labels = [
+        sizedLabel(
+          {
+            text: parent.labels?.map((l) => l.text)?.join("/") ?? "UNKNOWN",
+          },
+          16,
+          32,
+          600,
+          140,
+          30,
+        ),
+      ];
+
+      parent.layoutOptions = {
+        ...elkConfig.groupLayout,
+        "elk.padding": ElkMap({
+          top: 28 + (parent.labels[0].height ?? 0),
+          left: 20,
+          bottom: 0,
+          right: 20,
+        }),
+      };
+    });
+
     const nodeHierarchyForElk = [...elkNodesById.values()].filter(
       (n) => !nonRoots.has(n.id),
     );

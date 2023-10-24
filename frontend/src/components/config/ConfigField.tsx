@@ -14,6 +14,7 @@ import { NodeId } from "../../shared/architecture/TopologyNode";
 import { ListField } from "./ListField";
 import { MapField } from "./MapField";
 import type {
+  EnumProperty,
   MapProperty,
   Property,
   ResourceProperty,
@@ -37,10 +38,18 @@ type InputProps = {
 } & TextInputProps;
 
 type TextProps = TextInputProps & ConfigFieldProps;
+
 type BooleanProps = CheckboxProps & ConfigFieldProps;
 type ResourceProps = {
   id: string;
   resourceTypes?: string[];
+  readOnly?: boolean;
+  required?: boolean;
+};
+
+type EnumProps = {
+  id: string;
+  allowedValues?: string[];
   readOnly?: boolean;
   required?: boolean;
 };
@@ -80,6 +89,16 @@ export const ConfigField: FC<ConfigFieldProps> = ({
           id={qualifiedName}
           readOnly={configurationDisabled}
           resourceTypes={(field as ResourceProperty).resourceTypes}
+          {...props}
+        />
+      );
+      break;
+    case PrimitiveTypes.Enum:
+      element = (
+        <EnumField
+          id={qualifiedName}
+          allowedValues={(field as EnumProperty).allowedValues}
+          readOnly={configurationDisabled}
           {...props}
         />
       );
@@ -154,6 +173,7 @@ const InputField: FC<InputProps> = ({ id, required, ...rest }) => {
 
   return (
     <TextInput
+      sizing={"sm"}
       id={id}
       required={required}
       disabled={rest.readOnly}
@@ -220,6 +240,7 @@ export const ResourceField: FC<ResourceProps> = ({
 
   return (
     <Dropdown
+      size={"xs"}
       className="max-h-[50vh] overflow-y-auto"
       id={id}
       color={"purple"}
@@ -248,6 +269,47 @@ export const ResourceField: FC<ResourceProps> = ({
           available
         </Dropdown.Item>
       )}
+    </Dropdown>
+  );
+};
+
+export const EnumField: FC<EnumProps> = ({
+  id,
+  allowedValues,
+  readOnly,
+  required,
+}) => {
+  const { register, setValue, watch } = useFormContext();
+  const onClick = (value: string) => {
+    setValue(id, value, {
+      shouldTouch: true,
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  };
+
+  const watchValue = watch(id);
+
+  useLayoutEffect(() => {
+    register(id, { required });
+  });
+
+  return (
+    <Dropdown
+      size={"xs"}
+      className="max-h-[50vh] overflow-y-auto"
+      id={id}
+      color={"purple"}
+      disabled={readOnly}
+      label={watchValue ?? "Select a value"}
+    >
+      {allowedValues?.map((value: string) => {
+        return (
+          <Dropdown.Item key={value} onClick={() => onClick(value)}>
+            {value}
+          </Dropdown.Item>
+        );
+      })}
     </Dropdown>
   );
 };

@@ -2,6 +2,7 @@ import type { FC } from "react";
 import React from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import type {
+  EnumProperty,
   ListProperty,
   Property,
   ResourceProperty,
@@ -15,7 +16,7 @@ import {
 import { Button, Checkbox, Textarea, TextInput } from "flowbite-react";
 import { HiMinusCircle, HiPlusCircle } from "react-icons/hi";
 import type { ConfigFieldProps } from "./ConfigField";
-import { ResourceField } from "./ConfigField";
+import { EnumField, ResourceField } from "./ConfigField";
 import { ConfigSection } from "./ConfigSection";
 import { ConfigGroup } from "./ConfigGroup";
 
@@ -45,6 +46,8 @@ export const ListField: FC<ListProps> = ({ id, field }) => {
               type={itemType}
               required={field.required}
               resourceTypes={(field as ResourceProperty).resourceTypes}
+              allowedValues={(field as EnumProperty).allowedValues}
+              readOnly={configurationDisabled}
               remove={remove}
             />
           );
@@ -52,6 +55,7 @@ export const ListField: FC<ListProps> = ({ id, field }) => {
         {!configurationDisabled && (
           <Button
             className={"mt-1 w-fit"}
+            size="sm"
             color="purple"
             onClick={() => {
               append({ value: "" });
@@ -83,7 +87,8 @@ export const ListField: FC<ListProps> = ({ id, field }) => {
         })}
         {!configurationDisabled && (
           <Button
-            className={"mt-1 h-fit w-fit"}
+            size="sm"
+            className={"ml-2 mt-1 h-fit w-fit"}
             color="purple"
             onClick={() => {
               append({});
@@ -110,21 +115,39 @@ const PrimitiveListItem: FC<{
   index: number;
   id: string;
   type: PrimitiveTypes;
+  allowedValues?: string[];
+  resourceTypes?: string[];
   readOnly?: boolean;
   required?: boolean;
-  resourceTypes?: string[];
   remove: (index: number) => void;
-}> = ({ index, id, type, readOnly, required, resourceTypes, remove }) => {
+}> = ({
+  index,
+  id,
+  type,
+  allowedValues,
+  resourceTypes,
+  required,
+  readOnly,
+  remove,
+}) => {
   const { register } = useFormContext();
   let item: React.ReactNode;
   switch (type) {
     case PrimitiveTypes.String:
-      item = <TextInput className={"w-full"} id={id} {...register(id)} />;
+      item = (
+        <TextInput
+          sizing={"sm"}
+          className={"w-full"}
+          id={id}
+          {...register(id)}
+        />
+      );
       break;
     case PrimitiveTypes.Number:
     case PrimitiveTypes.Integer:
       item = (
         <TextInput
+          sizing={"sm"}
           className={"w-full"}
           id={id}
           {...register(id)}
@@ -146,6 +169,16 @@ const PrimitiveListItem: FC<{
         />
       );
       break;
+    case PrimitiveTypes.Enum:
+      item = (
+        <EnumField
+          id={id}
+          allowedValues={allowedValues}
+          readOnly={readOnly}
+          required={required}
+        />
+      );
+      break;
     default:
       console.warn(`Unknown property type: ${type}`);
   }
@@ -153,8 +186,8 @@ const PrimitiveListItem: FC<{
     <div className="my-[.1rem] flex w-full flex-row gap-1">
       <div className="w-full">{item}</div>
       <Button
-        className={"h-full w-10"}
-        size={"lg"}
+        className={"w-6"}
+        size={"md"}
         color="red"
         onClick={() => {
           remove(index);
@@ -199,9 +232,9 @@ const CollectionListItem: FC<{
     <div className="my-[.1rem] flex w-full flex-row gap-1">
       <div className="w-full">{item}</div>
       <Button
-        className={"mt-2 h-full w-10"}
+        className={"mt-1 w-6"}
         color="red"
-        size={"xl"}
+        size={"sm"}
         onClick={() => {
           remove(index);
         }}

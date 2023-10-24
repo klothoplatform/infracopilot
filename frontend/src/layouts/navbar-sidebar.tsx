@@ -1,10 +1,9 @@
-import { Button, Footer } from "flowbite-react";
+import { Footer } from "flowbite-react";
 import type { FC, ForwardedRef, PropsWithChildren } from "react";
 import React, {
   forwardRef,
   useCallback,
   useEffect,
-  useLayoutEffect,
   useRef,
   useState,
 } from "react";
@@ -15,20 +14,11 @@ import { FaDribbble, FaGithub, FaInstagram, FaTwitter } from "react-icons/fa";
 import { SidebarProvider } from "../context/SidebarContext";
 import EditorSidebarRight from "../components/editor/EditorSidebarRight";
 import useApplicationStore from "../views/store/ApplicationStore";
-import { TbFileExport } from "react-icons/tb";
-import { FaFileCirclePlus } from "react-icons/fa6";
-import type { NewArchitectureFormState } from "../components/NewArchitectureModal";
-import NewArchitectureModal from "../components/NewArchitectureModal";
-import { AiOutlineLoading } from "react-icons/ai";
-import ExportIaC from "../api/ExportIaC";
-import createArchitecture from "../api/CreateArchitecture";
 import classNames from "classnames";
-import { useNavigate, useParams } from "react-router-dom";
-import { WorkingOverlay } from "../components/WorkingOverlay";
-import { PiArrowElbowLeftUpBold } from "react-icons/pi";
-import { useAuth0 } from "@auth0/auth0-react";
 import { ExportIacButton } from "../components/ExportIacButton";
 import { ArchitectureButtonAndModal } from "../components/NewArchitectureButton";
+import { useNavigate, useParams } from "react-router-dom";
+import { WorkingOverlay } from "../components/WorkingOverlay";
 
 interface NavbarSidebarLayoutProps {
   isFooter?: boolean;
@@ -179,48 +169,61 @@ export const Resizable: FC<PropsWithChildren<ResizableProps>> = function ({
 };
 
 const EditorNavContent: FC = function () {
-  const { architecture, loadArchitecture } = useApplicationStore();
-  const [isExporting, setIsExporting] = useState(false);
-  const [isLoadingArchitecture, setIsLoadingArchitecture] = useState(false);
+  const {
+    loadArchitecture,
+    resetEditorState,
+    addError,
+    isAuthenticated,
+    architecture,
+    isEditorInitialized,
+  } = useApplicationStore();
+
+  const isExportButtonHidden = architecture.id === undefined;
 
   let { architectureId } = useParams();
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth0();
+  const [isInitializing, setIsInitializing] = useState(false);
+  const [workingMessage, setWorkingMessage] = useState("");
 
-  useLayoutEffect(() => {
-    (async () => {
-      if (
-        (architectureId === undefined && architecture.id) ||
-        (architectureId &&
-          architecture.id &&
-          architectureId !== architecture.id)
-      ) {
-        navigate(`/editor/${architecture.id}`);
-        return;
-      }
-      if (architectureId && !architecture.id) {
+  useEffect(() => {
+    if (isInitializing) {
+      return;
+    }
+    if (!architectureId) {
+      navigate("/architectures");
+      return;
+    }
+    if (
+      isAuthenticated &&
+      architectureId &&
+      architecture?.id !== architectureId &&
+      !isInitializing
+    ) {
+      setIsInitializing(true);
+      (async () => {
         try {
-          setIsLoadingArchitecture(true);
+          setWorkingMessage("Loading architecture...");
           await loadArchitecture(architectureId);
-        } catch (e) {
-          //TODO: update the store to trigger a notification
-          console.error(e);
-          navigate("/editor");
+        } catch (e: any) {
+          addError(e.message);
+          navigate("/architectures");
         } finally {
-          setIsLoadingArchitecture(false);
+          setIsInitializing(false);
+          setWorkingMessage("");
         }
-      }
-    })();
+      })();
+    }
   }, [
-    navigate,
-    architecture,
-    architectureId,
-    loadArchitecture,
-    setIsLoadingArchitecture,
+    isInitializing,
     isAuthenticated,
+    architectureId,
+    navigate,
+    resetEditorState,
+    loadArchitecture,
+    addError,
+    isEditorInitialized,
+    architecture?.id,
   ]);
-
-  const hidden = architecture.id === undefined;
 
   return (
     <div className="inline-block align-middle dark:text-white">
@@ -231,8 +234,9 @@ const EditorNavContent: FC = function () {
         <div className="flex">
           <ArchitectureButtonAndModal disabled={!isAuthenticated} />
         </div>
-        <ExportIacButton setIsExporting={setIsExporting} disabled={hidden} />
+        <ExportIacButton disabled={isExportButtonHidden} />
       </div>
+      <WorkingOverlay show={!!workingMessage} message={workingMessage} />
     </div>
   );
 };

@@ -1,53 +1,28 @@
-import React, { type FC, useEffect, useState } from "react";
-import NavbarSidebarLayout from "../layouts/navbar-sidebar";
-import { useAuth0, withAuthenticationRequired } from "@auth0/auth0-react";
+import React, { useEffect, useState } from "react";
+import { withAuthenticationRequired } from "@auth0/auth0-react";
 import Navbar from "../components/navbar";
 import { SidebarProvider } from "../context/SidebarContext";
 import useApplicationStore from "../views/store/ApplicationStore";
-import { Checkbox, Sidebar, Table } from "flowbite-react";
-import {
-  HiChartPie,
-  HiViewBoards,
-  HiInbox,
-  HiUser,
-  HiShoppingBag,
-  HiArrowSmRight,
-  HiTable,
-} from "react-icons/hi";
-import { listArchitectures } from "../api/ListArchitectures";
-import LogoutButton from "../auth/Logout";
 import ArchitecturesTable from "../components/architectures/ArchitecturesTable";
 import { ArchitectureButtonAndModal } from "../components/NewArchitectureButton";
-import NewArchitectureModal from "../components/NewArchitectureModal";
 import { WorkingOverlay } from "../components/WorkingOverlay";
 import LeftSideBar from "../components/architectures/LeftSideBar";
 
 function ArchitectureListPage() {
-  const { setArchitectures, architectures, idToken, setIdToken } =
-    useApplicationStore();
-  const [loaded, setLoaded] = useState(false);
-  const { user, isAuthenticated, isLoading, loginWithRedirect } = useAuth0();
-
+  const { isAuthenticated, loadArchitectures } = useApplicationStore();
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [isLoadingArchitectures, setIsLoadingArchitectures] = useState(false);
   useEffect(() => {
-    async function fetchArchitectures() {
-      const usersArchitectures = await listArchitectures(idToken);
-      setArchitectures(usersArchitectures);
-      setLoaded(true);
+    if (!isAuthenticated || isLoaded || isLoadingArchitectures) {
+      return;
     }
-    if (!loaded) {
-      fetchArchitectures();
-    }
-  }, [idToken, loaded]);
-
-  useEffect(() => {
+    setIsLoadingArchitectures(true);
     (async () => {
-      if (!isAuthenticated && !isLoading) {
-        await loginWithRedirect({
-          appState: { returnTo: window.location.pathname },
-        });
-      }
+      await loadArchitectures();
+      setIsLoaded(true);
+      setIsLoadingArchitectures(false);
     })();
-  }, [isAuthenticated, isLoading, loginWithRedirect]);
+  }, [isAuthenticated, isLoaded, isLoadingArchitectures, loadArchitectures]);
 
   return (
     <>
@@ -58,7 +33,7 @@ function ArchitectureListPage() {
         <div className="flex h-[calc(100vh-5rem)] w-full gap-0 overflow-hidden bg-white dark:bg-gray-800">
           <LeftSideBar />
           <div className="grow-1 shrink-1 box-border flex w-full min-w-[30%] basis-10/12">
-            <ArchitecturesTable architectures={architectures} />
+            <ArchitecturesTable />
           </div>
         </div>
       </SidebarProvider>

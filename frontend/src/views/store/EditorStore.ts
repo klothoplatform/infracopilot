@@ -42,8 +42,9 @@ import {
 } from "../../shared/sidebar-nav";
 import { Decision, Failure } from "../../shared/architecture/Decision";
 import { getResourceTypes } from "../../api/GetResourceTypes";
-import type { UserStore } from "./UserStore";
+import type { UserStoreBase } from "./UserStore";
 import { ResourceTypeKB } from "../../shared/resources/ResourceTypeKB";
+import type { ErrorStore } from "./ErrorStore";
 
 import { analytics } from "../../App";
 
@@ -53,61 +54,31 @@ export interface ResourceConfigurationRequest {
   value: any;
 }
 
-interface EditorStoreBase {
-  layoutOptions: LayoutOptions;
-  nodes: Node[];
-  edges: Edge[];
-  decisions: Decision[];
-  failures: Failure[];
-  onNodesChange: OnNodesChange;
-  onEdgesChange: OnEdgesChange;
-  deletingNodes: boolean; // used for skipping layout refresh on a node's dependent edges
-  onConnect: OnConnect;
-  selectedNode?: string;
-  selectedResource?: NodeId;
-  selectedEdge?: string;
-  selectNode: (nodeId: string) => void;
-  deselectNode: (nodeId: string) => void;
-  selectResource: (resourceId: NodeId) => void;
-  deselectResource: (resourceId: NodeId) => void;
+interface EditorStoreState {
   architecture: Architecture;
-  loadArchitecture: (id: string, version?: number) => Promise<void>;
-  refreshLayout: () => Promise<void>;
-  layoutRefreshing: boolean;
-  addGraphElements: (
-    elements: Partial<ReactFlowElements>,
-    generateConstraints?: boolean,
-  ) => Promise<void>;
-  unappliedConstraints: Constraint[];
-  applyConstraints: () => Promise<void>;
   canApplyConstraints: boolean;
   connectionSourceId?: string;
-  selectEdge: (edgeId: string) => void;
-  deselectEdge: (edgeId: string) => void;
-  deleteElements: (elements: Partial<ReactFlowElements>) => Promise<void>;
-  errors: Error[];
-  replaceResource: (oldId: NodeId, newId: NodeId) => Promise<void>;
-  rightSidebarSelector: RightSidebarTabSelector;
-
-  navigateRightSidebar(selector: RightSidebarTabSelector): void;
-
-  configureResources: (
-    requests: ResourceConfigurationRequest[],
-  ) => Promise<void>;
+  decisions: Decision[];
+  deletingNodes: boolean;
+  edges: Edge[];
+  isEditorInitialized: boolean;
+  failures: Failure[];
+  layoutOptions: LayoutOptions;
+  layoutRefreshing: boolean;
+  nodes: Node[];
   resourceTypeKB: ResourceTypeKB;
-  loadResourceTypeKB: (architectureId: string) => Promise<void>;
+  rightSidebarSelector: RightSidebarTabSelector;
+  selectedEdge?: string;
+  selectedNode?: string;
+  selectedResource?: NodeId;
+  unappliedConstraints: Constraint[];
 }
 
-export type EditorStore = EditorStoreBase & UserStore;
-
-export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
-  set: (state: object, replace?: boolean, id?: string) => any,
-  get,
-) => ({
-  errors: [],
+const initialState: () => EditorStoreState = () => ({
   nodes: [],
   edges: [],
   decisions: [],
+  isEditorInitialized: false,
   failures: [],
   selectedNode: undefined,
   selectedEdge: undefined,
@@ -116,6 +87,64 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
   deletingNodes: false,
   layoutOptions: DefaultLayoutOptions,
   resourceTypeKB: new ResourceTypeKB(),
+  architecture: {} as Architecture,
+  unappliedConstraints: [],
+  canApplyConstraints: true,
+  connectionSourceId: undefined,
+  rightSidebarSelector: [
+    RightSidebarTabs.Changes,
+    RightSidebarDetailsTabs.Config,
+  ],
+});
+
+interface EditorStoreActions {
+  onNodesChange: OnNodesChange;
+  onEdgesChange: OnEdgesChange;
+  onConnect: OnConnect;
+  selectNode: (nodeId: string) => void;
+  deselectNode: (nodeId: string) => void;
+  selectResource: (resourceId: NodeId) => void;
+  deselectResource: (resourceId: NodeId) => void;
+  loadArchitecture: (id: string, version?: number) => Promise<void>;
+  refreshLayout: () => Promise<void>;
+  addGraphElements: (
+    elements: Partial<ReactFlowElements>,
+    generateConstraints?: boolean,
+  ) => Promise<void>;
+  applyConstraints: (constraints?: Constraint[]) => Promise<void>;
+  selectEdge: (edgeId: string) => void;
+  deselectEdge: (edgeId: string) => void;
+  deleteElements: (elements: Partial<ReactFlowElements>) => Promise<void>;
+  replaceResource: (oldId: NodeId, newId: NodeId) => Promise<void>;
+
+  navigateRightSidebar(selector: RightSidebarTabSelector): void;
+
+  configureResources: (
+    requests: ResourceConfigurationRequest[],
+  ) => Promise<void>;
+  getResourceTypeKB: (
+    architectureId: string,
+    refresh?: boolean,
+  ) => Promise<ResourceTypeKB>;
+
+  resetEditorState(newState?: Partial<EditorStoreState>): void;
+
+  setIsEditorInitialized(isEditorInitialized: boolean): void;
+}
+
+type EditorStoreBase = EditorStoreState & EditorStoreActions;
+
+export type EditorStore = EditorStoreBase & UserStoreBase & ErrorStore;
+
+export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
+  set: (state: object, replace?: boolean, id?: string) => any,
+  get,
+) => ({
+  ...initialState(),
+  resetEditorState: (newState?: Partial<EditorStoreState>) => {
+    set({ ...initialState(), ...(newState ?? {}) }, false, "editor/reset");
+    console.log("editor state reset");
+  },
   deleteElements: async (elements) => {
     const nodes = get().nodes;
     const nodeConstraints =
@@ -148,30 +177,29 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       edges: get().edges.filter(
         (edge) => elements.edges?.find((e) => e.id === edge.id) ?? true,
       ),
-
       unappliedConstraints: [
         ...get().unappliedConstraints,
         ...nodeConstraints,
         ...edgeConstraints,
       ],
     });
-    get().applyConstraints();
-    get().refreshLayout();
-    if (nodeConstraints.length > 0) {
-      analytics.track("deleteNodes", {
-        nodes: nodeConstraints.map(c => c.node)
-      })
-    }
-    if (edgeConstraints.length > 0) {
-      analytics.track("deleteEdges", {
-        edges: edgeConstraints.map(c => {
-          return {
-            source: c.target.sourceId,
-            target: c.target.targetId,
-          }
-        })
-      })
-    }
+    await get().applyConstraints();
+    await get().refreshLayout();
+      if (nodeConstraints.length > 0) {
+          analytics.track("deleteNodes", {
+              nodes: nodeConstraints.map(c => c.node)
+          })
+      }
+      if (edgeConstraints.length > 0) {
+          analytics.track("deleteEdges", {
+              edges: edgeConstraints.map(c => {
+                  return {
+                      source: c.target.sourceId,
+                      target: c.target.targetId,
+                  }
+              })
+          })
+      }
   },
   onNodesChange: (changes: NodeChange[]) => {
     set({
@@ -186,17 +214,21 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     if (connection.source === connection.target) {
       return;
     }
-    if (!connection.source || !connection.target) {
-      return
-    }
-    const edge = new TopologyEdge(
-      NodeId.fromString(connection.source),
-      NodeId.fromString(connection.target),
-    )
-    const newConstraint = new EdgeConstraint(
-      ConstraintOperator.MustExist,
-      edge,
-    )
+      if (!connection.source || !connection.target) {
+          return
+      }
+      const edge = new TopologyEdge(
+          NodeId.fromTopologyId(connection.source),
+          NodeId.fromTopologyId(connection.target),
+      )
+      const newConstraint = new EdgeConstraint(
+          ConstraintOperator.MustExist,
+          edge,
+      )
+      const newConstraint = new EdgeConstraint(
+          ConstraintOperator.MustExist,
+          edge,
+      )
     set({
       edges: addEdge(connection, get().edges),
       unappliedConstraints: [...get().unappliedConstraints, newConstraint],
@@ -311,11 +343,14 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       );
     }
   },
-  architecture: {} as Architecture,
   loadArchitecture: async (id: string, version?: number) => {
+    get().resetEditorState();
     const architecture = await getArchitecture(id, get().idToken, version);
+    //TODO: handle errors loading arch or resource kb
+    const resourceTypeKB = await get().getResourceTypeKB(id, true);
     const elements = toReactFlowElements(
       architecture,
+      resourceTypeKB,
       ArchitectureView.DataFlow,
     );
     const { nodes, edges } = await autoLayout(elements.nodes, elements.edges);
@@ -327,12 +362,12 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
         decisions: architecture.decisions.map(
           (d) => new Decision(parseConstraints(d.constraints), d.decisions),
         ),
+        isEditorInitialized: true,
       },
       false,
       "editor/loadArchitecture",
     );
     console.log("architecture loaded");
-    await get().loadResourceTypeKB(id);
   },
   refreshLayout: async () => {
     try {
@@ -445,9 +480,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     }
     await get().applyConstraints();
   },
-  unappliedConstraints: [],
-  canApplyConstraints: true,
-  applyConstraints: async () => {
+  applyConstraints: async (constraints?: Constraint[]) => {
     if (!get().canApplyConstraints) {
       throw new Error("cannot apply constraints, already applying");
     }
@@ -468,7 +501,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       const newArchitecture = await applyConstraints(
         architecture.id,
         architecture.version,
-        get().unappliedConstraints,
+        [...get().unappliedConstraints, ...(constraints ?? [])],
         get().idToken,
       );
       if (newArchitecture.failures.length > 0) {
@@ -492,6 +525,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       console.log("new architecture", newArchitecture);
       const elements = toReactFlowElements(
         newArchitecture,
+        await get().getResourceTypeKB(newArchitecture.id),
         ArchitectureView.DataFlow,
       );
       const result = await autoLayout(
@@ -545,7 +579,6 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       ]);
     }
   },
-  connectionSourceId: undefined,
   deselectEdge: (edgeId: string) => {
     if (!edgeId) {
       return;
@@ -563,7 +596,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
   selectEdge: (edgeId: string) => {
     get().deselectEdge(get().selectedEdge ?? "");
     get().deselectNode(get().selectedNode ?? "");
-    get().deselectResource(get().selectedResource ?? NodeId.fromString(""));
+    get().deselectResource(get().selectedResource ?? NodeId.fromTopologyId(""));
     get().navigateRightSidebar([
       RightSidebarTabs.Details,
       RightSidebarDetailsTabs.AdditionalResources,
@@ -579,8 +612,8 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     });
     const edge = get().edges.find((e) => e.data.isSelected)?.data?.edgeSection;
     analytics.track("selectEdge", {
-      source: NodeId.fromString(edge?.incomingShape),
-      target: NodeId.fromString(edge?.outgoingShape),
+      source: NodeId.fromToplogyId(edge?.incomingShape),
+      target: NodeId.fromToplogyId(edge?.outgoingShape),
     })
   },
   replaceResource: async (oldId: NodeId, newId: NodeId) => {
@@ -607,10 +640,6 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     })
     await get().applyConstraints();
   },
-  rightSidebarSelector: [
-    RightSidebarTabs.Changes,
-    RightSidebarDetailsTabs.Config,
-  ],
   navigateRightSidebar: (selector: RightSidebarTabSelector) => {
     set(
       {
@@ -651,15 +680,31 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     await get().applyConstraints();
     console.log("configured resources");
   },
-  loadResourceTypeKB: async (architectureId: string) => {
-    // TODO: remove this sample cross-slice logging statement
+  getResourceTypeKB: async (architectureId: string, refresh?: boolean) => {
+    if (
+      get().resourceTypeKB.getResourceTypes().length !== 0 &&
+      !(refresh ?? false)
+    ) {
+      return get().resourceTypeKB;
+    }
+
     const types = await getResourceTypes(architectureId, get().idToken);
     set(
       {
         resourceTypeKB: types,
       },
       false,
-      "editor/loadResourceTypes",
+      "editor/getResourceTypeKB",
+    );
+    return types;
+  },
+  setIsEditorInitialized: (isEditorInitialized: boolean) => {
+    set(
+      {
+        isEditorInitialized,
+      },
+      false,
+      "editor/setIsEditorInitialized",
     );
   },
 });

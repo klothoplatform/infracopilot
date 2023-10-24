@@ -1,16 +1,10 @@
 import React, { type FC } from "react";
-import { type Architecture } from "../../shared/architecture/Architecture";
 import { Checkbox, Table } from "flowbite-react";
-import { useAuth0 } from "@auth0/auth0-react";
+import useApplicationStore from "../../views/store/ApplicationStore";
 
-interface ArchitecturesTableProps {
-  architectures: Architecture[];
-}
-const ArchitecturesTable: FC<ArchitecturesTableProps> = (
-  props: ArchitecturesTableProps,
-) => {
-  const { user } = useAuth0();
-  const architectureCells = props.architectures.map((architecture) => {
+const ArchitecturesTable: FC = () => {
+  const { user, architectures } = useApplicationStore();
+  const architectureCells = architectures.map((architecture) => {
     return (
       <Table.Row
         key={architecture.id}

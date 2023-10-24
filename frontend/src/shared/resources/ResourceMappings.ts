@@ -131,6 +131,7 @@ export interface IconMapping {
 const AWS_COMPUTE_PRIMARY_COLOR = "#ED7100";
 const AWS_NETWORKING_PRIMARY_COLOR = "#8C4FFF";
 const AWS_STORAGE_PRIMARY_COLOR = "#7AA116";
+const AWS_APP_INTEGRATION_PRIMARY_COLOR = "#E7157B";
 
 const kubernetesDefaults: Partial<IconMapping> = {
   nodeIcon: LogoWithBorder,
@@ -288,7 +289,15 @@ export const typeMappings = new Map<
       ["rds_proxy_target_group", AmazonRds],
       ["rds_subnet_group", AmazonRds],
       ["region", AmazonEc2],
-      ["rest_api", AmazonApiGateway],
+      [
+        "rest_api",
+        {
+          nodeIcon: AmazonApiGateway,
+          groupStyle: {
+            borderColor: AWS_APP_INTEGRATION_PRIMARY_COLOR,
+          },
+        },
+      ],
       ["route_table", AmazonRoute_53RouteTable],
       ["route53_hosted_zone", AmazonRoute_53HostedZone],
       ["route53_record", AmazonRoute_53],

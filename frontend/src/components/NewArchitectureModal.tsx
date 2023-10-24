@@ -1,10 +1,9 @@
 import { Button, Label, Modal, TextInput } from "flowbite-react";
 import { useForm } from "react-hook-form";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import createArchitecture from "../api/CreateArchitecture";
 import useApplicationStore from "../views/store/ApplicationStore";
 import { useNavigate } from "react-router-dom";
-import { useAuth0 } from "@auth0/auth0-react";
 
 interface NewArchitectureModalProps {
   onClose: () => void;
@@ -18,7 +17,6 @@ export interface NewArchitectureFormState {
 
 export default function NewArchitectureModal({
   onClose,
-  setIsLoadingArchitecture,
   show,
 }: NewArchitectureModalProps) {
   const {
@@ -29,30 +27,22 @@ export default function NewArchitectureModal({
     formState: { errors },
   } = useForm<NewArchitectureFormState>();
 
-  const { idToken, loadArchitecture } = useApplicationStore();
+  const { idToken, user } = useApplicationStore();
   const navigate = useNavigate();
-  const { user } = useAuth0();
 
-  let onSubmit = async (state: NewArchitectureFormState) => {
-    onClose();
-    try {
-      if (setIsLoadingArchitecture) {
-        setIsLoadingArchitecture(true);
-      }
+  let onSubmit = useCallback(
+    async (state: NewArchitectureFormState) => {
+      onClose();
       const { id } = await createArchitecture({
         name: state.name,
         owner: user?.sub ?? "public",
         engineVersion: 1,
         idToken: idToken,
       });
-      await loadArchitecture(id);
       navigate(`/editor/${id}`);
-    } finally {
-      if (setIsLoadingArchitecture) {
-        setIsLoadingArchitecture(false);
-      }
-    }
-  };
+    },
+    [idToken, navigate, onClose, user],
+  );
 
   // required for ref sharing with react-hook-form: https://www.react-hook-form.com/faqs/#Howtosharerefusage
   const { ref, ...rest } = register("name", {

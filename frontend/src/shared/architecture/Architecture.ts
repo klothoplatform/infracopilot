@@ -1,14 +1,21 @@
 import type { Edge, Node } from "reactflow";
-import { NodeType } from "../reactflow/NodesTypes";
 import type TopologyEdge from "./TopologyEdge";
 import yaml from "yaml";
 import { TopologyGraph } from "./TopologyGraph";
 import type { TopologyNode } from "./TopologyNode";
 import { NodeId } from "./TopologyNode";
+import type { ResourceTypeKB } from "../resources/ResourceTypeKB";
+import { customNodeMappings, NodeType } from "../reactflow/NodesTypes";
 
 export enum ArchitectureView {
-  DataFlow = "DataFlow",
-  IaC = "IaC",
+  DataFlow = "dataflow",
+  IaC = "iac",
+}
+
+export enum ViewNodeType {
+  Parent = "parent",
+  Big = "big",
+  Small = "small",
 }
 
 export interface ReactFlowElements {
@@ -33,7 +40,7 @@ export interface Architecture {
   updated_by?: string;
   owner: string;
   views: Map<ArchitectureView, TopologyGraph>;
-  resources: Map<string, object>;
+  resources: Map<string, any>;
   edges: GraphEdge[];
 }
 
@@ -60,11 +67,38 @@ export function getDownstreamResources(
   return result;
 }
 
+function resolveNodeType(
+  node: TopologyNode,
+  resourceTypes: ResourceTypeKB,
+  view: ArchitectureView,
+): NodeType {
+  if (node.resourceId.provider === "indicators") {
+    return NodeType.Indicator;
+  }
+  const customNode = customNodeMappings.get(node.resourceId.qualifiedType);
+  if (customNode) {
+    return customNode;
+  }
+
+  if (
+    resourceTypes
+      .getResourceType(node.resourceId.provider, node.resourceId.type)
+      ?.views.get(view) === ViewNodeType.Parent
+  ) {
+    return NodeType.ResourceGroup;
+  }
+  return NodeType.Resource;
+}
+
 /**
  * getNodesFromGraph converts a ResourceGraph's nodes to ReactFlow nodes and sorts them
  * to ensure that groups are rendered before their children.
  */
-function getNodesFromGraph(topology: TopologyGraph): Node[] {
+function getNodesFromGraph(
+  topology: TopologyGraph,
+  resourceTypes: ResourceTypeKB,
+  view: ArchitectureView,
+): Node[] {
   return topology.Nodes.map((node: TopologyNode) => {
     return {
       id: node.id,
@@ -78,16 +112,7 @@ function getNodesFromGraph(topology: TopologyGraph): Node[] {
         resourceId: node.resourceId,
         vizMetadata: node.vizMetadata,
       },
-      type:
-        node.resourceId.provider === "indicators"
-          ? NodeType.Indicator
-          : topology.Nodes.find(
-              (n) =>
-                n.vizMetadata.parent?.toTopologyString() ===
-                node.resourceId.toTopologyString(),
-            )
-          ? NodeType.ResourceGroup
-          : NodeType.Resource,
+      type: resolveNodeType(node, resourceTypes, view),
       parentNode: topology.Nodes.find(
         (n) =>
           n.resourceId.toTopologyString() ===
@@ -95,39 +120,35 @@ function getNodesFromGraph(topology: TopologyGraph): Node[] {
       )?.id,
       extent: node.vizMetadata.parent ? "parent" : undefined,
     } as Node;
-  }).sort((a: Node, b: Node) => {
-    // groups first
-    if (
-      a.type !== NodeType.ResourceGroup &&
-      b.type === NodeType.ResourceGroup
-    ) {
+  }).sort(compareNodes);
+}
+
+function compareNodes(a: Node, b: Node): number {
+  // groups first
+  if (a.type !== NodeType.ResourceGroup && b.type === NodeType.ResourceGroup) {
+    return 1;
+  }
+  if (a.type === NodeType.ResourceGroup && b.type !== NodeType.ResourceGroup) {
+    return -1;
+  }
+  // children of groups next
+  if (a.parentNode && !b.parentNode) {
+    return 1;
+  }
+  if (!a.parentNode && b.parentNode) {
+    return -1;
+  }
+  // parent groups before their children
+  if (a.type === NodeType.ResourceGroup && b.type === a.type) {
+    if (a.parentNode === b.id) {
       return 1;
     }
-    if (
-      a.type === NodeType.ResourceGroup &&
-      b.type !== NodeType.ResourceGroup
-    ) {
+    if (b.parentNode === a.id) {
       return -1;
     }
-    // children of groups next
-    if (a.parentNode && !b.parentNode) {
-      return 1;
-    }
-    if (!a.parentNode && b.parentNode) {
-      return -1;
-    }
-    // parent groups before their children
-    if (a.type === NodeType.ResourceGroup && b.type === a.type) {
-      if (a.parentNode === b.id) {
-        return 1;
-      }
-      if (b.parentNode === a.id) {
-        return -1;
-      }
-    }
-    // sort by id otherwise
-    return a.id.localeCompare(b.id);
-  });
+  }
+  // sort by id otherwise
+  return a.id.localeCompare(b.id);
 }
 
 function getEdgesFromGraph(graph: TopologyGraph): Edge[] {
@@ -148,6 +169,7 @@ function getEdgesFromGraph(graph: TopologyGraph): Edge[] {
 
 export function toReactFlowElements(
   architecture: Architecture,
+  resourceTypes: ResourceTypeKB,
   view: ArchitectureView,
 ): ReactFlowElements {
   const topology = architecture.views?.get(view);
@@ -155,7 +177,7 @@ export function toReactFlowElements(
     return { nodes: [], edges: [] };
   }
   return {
-    nodes: getNodesFromGraph(topology),
+    nodes: getNodesFromGraph(topology, resourceTypes, view),
     edges: getEdgesFromGraph(topology),
   };
 }
@@ -176,7 +198,7 @@ export function parseArchitecture(data: ArrayBuffer): Architecture {
     version: architectureJSON.version,
     name: architectureJSON.name,
     owner: architectureJSON.owner,
-    resources: new Map<string, object>(),
+    resources: new Map<string, any>(),
     edges: [],
     views: new Map<ArchitectureView, TopologyGraph>(),
   };
@@ -193,7 +215,7 @@ export function parseArchitecture(data: ArrayBuffer): Architecture {
   if (architectureJSON.state?.resources_yaml) {
     const parsedState = yaml.parse(architectureJSON.state?.resources_yaml);
     if (parsedState?.resources) {
-      architecture.resources = new Map<string, object>(
+      architecture.resources = new Map<string, any>(
         Object.keys(parsedState.resources).map((key) => [
           key,
           parsedState.resources[key],

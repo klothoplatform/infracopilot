@@ -1,6 +1,6 @@
 import React from "react";
 import { Handle, Position } from "reactflow";
-import { getIcon } from "./ResourceMappings";
+import { getIcon } from "../resources/ResourceMappings";
 
 interface IndicatorNodeProps {
   data: any;

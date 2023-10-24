@@ -1,8 +1,7 @@
-import { useState, type FC } from "react";
+import { type FC, useState } from "react";
 import { Button } from "flowbite-react";
 import { FaFileCirclePlus } from "react-icons/fa6";
 import NewArchitectureModal from "./NewArchitectureModal";
-import { WorkingOverlay } from "./WorkingOverlay";
 
 interface NewArchitectureButtonProprs {
   disabled?: boolean;
@@ -36,8 +35,6 @@ export const ArchitectureButtonAndModal: FC<ArchitectureButtonAndModalProps> = (
 ) => {
   const [showCreateArchitectureModal, setShowCreateArchitectureModal] =
     useState(false);
-  const [isLoadingArchitecture, setIsLoadingArchitecture] = useState(false);
-
   return (
     <>
       <NewArchitectureButton
@@ -51,11 +48,6 @@ export const ArchitectureButtonAndModal: FC<ArchitectureButtonAndModalProps> = (
           setShowCreateArchitectureModal(false);
         }}
         show={showCreateArchitectureModal}
-        setIsLoadingArchitecture={setIsLoadingArchitecture}
-      />
-      <WorkingOverlay
-        show={isLoadingArchitecture}
-        message={"Loading Architecture..."}
       />
     </>
   );

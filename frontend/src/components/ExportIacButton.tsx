@@ -8,18 +8,17 @@ import { TbFileExport } from "react-icons/tb";
 
 interface ExportIacButtonProps {
   disabled?: boolean;
-  setIsExporting?: (isExporting: boolean) => void;
 }
 
 export const ExportIacButton: FC<ExportIacButtonProps> = (
   props: ExportIacButtonProps,
 ) => {
   const { idToken, architecture } = useApplicationStore();
-  const [isExporting] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   let onClickExportIac = async () => {
-    if (props.setIsExporting) {
-      props.setIsExporting(true);
+    if (setIsExporting) {
+      setIsExporting(true);
     }
     try {
       const iacZip = await ExportIaC(
@@ -32,8 +31,8 @@ export const ExportIacButton: FC<ExportIacButtonProps> = (
     } finally {
       setTimeout(() => {
         // reduce flickering for fast requests
-        if (props.setIsExporting) {
-          props.setIsExporting(false);
+        if (setIsExporting) {
+          setIsExporting(false);
         }
       }, 200);
     }

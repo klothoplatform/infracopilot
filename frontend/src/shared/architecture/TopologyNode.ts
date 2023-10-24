@@ -37,7 +37,14 @@ export class NodeId {
     }:${this.name}`;
   }
 
-  public static fromString(input: string, defaultProvider?: string): NodeId {
+  get qualifiedType(): string {
+    return `${this.provider}:${this.type}`;
+  }
+
+  public static fromTopologyId(
+    input: string,
+    defaultProvider?: string,
+  ): NodeId {
     const nodeParts = input.split("/");
     let nodeType = nodeParts[0].trim();
     let provider: string | undefined = undefined;
