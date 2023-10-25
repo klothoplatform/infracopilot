@@ -8,7 +8,8 @@ from fastapi import HTTPException, Request
 import json
 from jwt import PyJWKClient
 
-domain = os.getenv("AUTH0_DOMAIN", "klotho-dev.us.auth0.com")
+# for dev change this to klotho-dev.us.auth0.com
+domain = os.getenv("AUTH0_DOMAIN", "klotho.us.auth0.com")
 key_url = os.getenv("AUTH0_PEM_URL", f"https://{domain}/.well-known/jwks.json")
 
 PUBLIC_USER = "public"

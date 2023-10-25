@@ -8,6 +8,14 @@ git config --local core.hooksPath .githooks/
 
 ### Run service
 
+Change the auth0 domain in `/src/auth_service/token` to our dev domain
+
+ensure the following files/keys exist:
+- fga_client_id.key
+- fga_model_id.key
+- fga_secret.key
+- fga_store_id.key
+
 ```sh
 PORT=3000 ENGINE_PATH=/Path/to/klotho/engine/binary IAC_CLI_PATH=/Path/to/klotho/iac/binary  make run
 ```
