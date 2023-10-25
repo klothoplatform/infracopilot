@@ -5,27 +5,40 @@ from openfga_sdk.client.models.tuple import ClientTuple
 from openfga_sdk.client import OpenFgaClient, ClientCheckRequest, ClientConfiguration
 from openfga_sdk.credentials import Credentials, CredentialConfiguration
 from openfga_sdk.client.models.write_request import ClientWriteRequest
-
+import os
 from src.util.entity import Entity
+from src.util.secrets import (
+    get_fga_secret,
+    get_fga_client,
+    get_fga_model,
+    get_fga_store,
+)
 
 
-# Step 02. Initialize the SDK
-credentials = Credentials(
-    method="client_credentials",
-    configuration=CredentialConfiguration(
-        api_issuer="fga.us.auth0.com",
-        api_audience="https://api.us1.fga.dev/",
-        client_id="sVMtx5cMzyMHGNTovKK1mBALYxrMb4h6",
-        client_secret="lCyWmq2Q9Nvg02uo9AtoNivpS3dz_qZpT8Qyp-hZHiVJFZDwW3S3cN3fB9D9rryw",  # Secret you got from this page
-    ),
-)
-configuration = ClientConfiguration(
-    api_scheme="https",
-    api_host="api.us1.fga.dev",
-    store_id="01HA2PX1KANG03C3FG4V20QZ4J",
-    authorization_model_id="01HA2W026NZDHB69AJ3B472EN7",  # Optionally, you can specify a model id to target, which can improve latency, this will need to be changed every time we update the model, so in the future lets bootstrap this
-    credentials=credentials,
-)
+async def get_client_configuration():
+    secret = await get_fga_secret()
+    client_id = await get_fga_client()
+    store_id = await get_fga_store()
+    authorization_model_id = await get_fga_model()
+
+    # Step 02. Initialize the SDK
+    credentials = Credentials(
+        method="client_credentials",
+        configuration=CredentialConfiguration(
+            api_issuer="fga.us.auth0.com",
+            api_audience="https://api.us1.fga.dev/",
+            client_id=client_id,
+            client_secret=secret,  # Secret you got from this page
+        ),
+    )
+    return ClientConfiguration(
+        api_scheme="https",
+        api_host="api.us1.fga.dev",
+        store_id=store_id,
+        # TODO: Dont use secrets for this in case it updates
+        authorization_model_id=authorization_model_id,  # Optionally, you can specify a model id to target, which can improve latency, this will need to be changed every time we update the model, so in the future lets bootstrap this
+        credentials=credentials,
+    )
 
 
 class ArchitecturePermissions(Enum):
@@ -36,6 +49,7 @@ class ArchitecturePermissions(Enum):
 
 
 async def add_architecture_owner(entity: Entity, architecture_id: str) -> None:
+    configuration = await get_client_configuration()
     async with OpenFgaClient(configuration) as fga_client:
         request = ClientWriteRequest(
             writes=[
@@ -52,6 +66,7 @@ async def add_architecture_owner(entity: Entity, architecture_id: str) -> None:
 
 
 async def can_write_to_architecture(entity: Entity, architecture_id: str) -> bool:
+    configuration = await get_client_configuration()
     async with OpenFgaClient(configuration) as fga_client:
         body = ClientCheckRequest(
             user=entity.to_auth_string(),
@@ -64,7 +79,9 @@ async def can_write_to_architecture(entity: Entity, architecture_id: str) -> boo
 
 
 async def can_read_architecture(entity: Entity, architecture_id: str) -> bool:
+    configuration = await get_client_configuration()
     async with OpenFgaClient(configuration) as fga_client:
+        models = await fga_client.read_authorization_models()
         body = ClientCheckRequest(
             user=entity.to_auth_string(),
             relation=ArchitecturePermissions.CAN_READ.value,
@@ -76,6 +93,7 @@ async def can_read_architecture(entity: Entity, architecture_id: str) -> bool:
 
 
 async def can_change_architecture_owner(entity: Entity, architecture_id: str) -> bool:
+    configuration = await get_client_configuration()
     async with OpenFgaClient(configuration) as fga_client:
         body = ClientCheckRequest(
             user=entity.to_auth_string(),
@@ -88,6 +106,7 @@ async def can_change_architecture_owner(entity: Entity, architecture_id: str) ->
 
 
 async def can_share_architecture(entity: Entity, architecture_id: str) -> bool:
+    configuration = await get_client_configuration()
     async with OpenFgaClient(configuration) as fga_client:
         body = ClientCheckRequest(
             user=entity.to_auth_string(),

@@ -131,6 +131,17 @@ jobs:
       - name: npm install
         run: npm install
         working-directory: ./compiled
+      - name: Load Secrets
+        env:
+          FGA_SECRET_KEY: "${{ secrets.FGA_SECRET_KEY }}"
+          FGA_CLIENT_ID: "${{ secrets.FGA_CLIENT_ID }}"
+          FGA_STORE_ID: "${{ secrets.FGA_STORE_ID }}"
+          FGA_AUTHORIZATION_MODEL_ID: "${{ secrets.FGA_AUTHORIZATION_MODEL_ID }}"
+        run: |
+          echo -n "${FGA_SECRET_KEY}" > ./compiled/fga_secret.key
+          echo -n "${FGA_CLIENT_ID}" > ./compiled/fga_client_id.key
+          echo -n "${FGA_STORE_ID}" > ./compiled/fga_store_id.key
+          echo -n "${FGA_AUTHORIZATION_MODEL_ID}" > ./compiled/fga_model_id.key
       - name: pulumi - up
         uses: pulumi/actions@v4
         with:
