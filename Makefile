@@ -6,8 +6,17 @@ else
 KLOTHO_CONFIG_FILE := klothoconfig/dev.yaml
 endif
 
-export ENGINE_PATH ?= $(shell which engine)
-export IAC_CLI_PATH ?= $(shell which iac)
+engineCliPath := $(shell command -v engine)
+ifdef engineCliPath
+export ENGINE_PATH ?= $(engineCliPath)
+else
+endif
+
+iacCliPath := $(shell command -v iac)
+ifdef iacCliPath
+export IAC_CLI_PATH ?= $(iacCliPath)
+else
+endif
 
 # Backend commands
 
