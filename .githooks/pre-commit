@@ -1,0 +1,31 @@
+#!/bin/sh
+
+# make sure black is available
+if ! command -v black >/dev/null 2>&1 ; then
+    echo "⚠️  Couldn't find black"
+    echo "   To install it: pip install black"
+    exit 1
+fi
+
+# find any staged py files
+files="$(git diff --name-only --cached | grep '.*\.py$' | paste -sd ' ' -)"
+if [ "$files" == "" ]; then
+    echo "ℹ️ No files to reformat, skipping"
+    exit 0
+fi
+
+# run the autoformatting, your settings from pyproject.toml will be picked up.
+echo '╭────────────────────────╮'
+echo '│ Reformatting .py files │'
+echo '╰────────────────────────╯'
+black $files
+echo '✅'
+
+
+# re-stage
+echo '╭──────────────────╮'
+echo '│ Re-staging files │'
+echo '╰──────────────────╯'
+git add $files
+echo "✅"
+
