@@ -131,6 +131,22 @@ jobs:
       - name: npm install
         run: npm install
         working-directory: ./compiled
+      - name: Unprotect Secret Versions
+        env:
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+          PULUMI_CONFIG_PASSPHRASE: ""
+          AWS_REGION: ${{ inputs.region }}
+          STAGE: ${{ inputs.stage }}
+        run: |
+          set +e
+          set -x
+          pulumi stack select "cloudcompilerrr/infracopilot/infracopilot-ui-${STAGE}-${AWS_REGION}"
+          pulumi stack export > /tmp/stack.json
+          for secret in "fga_secret.key" "fga_client_id.key" "fga_store_id.key" "fga_model_id.key"; do
+            if grep "aws:secretsmanager/secretVersion:SecretVersion::${secret}" /tmp/stack.json ; then
+              pulumi state unprotect "urn:pulumi:infracopilot-ui-${STAGE}-${AWS_REGION}::infracopilot::aws:secretsmanager/secretVersion:SecretVersion::${secret}"
+            fi
+          done
       - name: Load Secrets
         env:
           FGA_SECRET_KEY: "${{ secrets.FGA_SECRET_KEY }}"
