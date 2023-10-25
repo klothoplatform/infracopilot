@@ -7,7 +7,7 @@ export async function listArchitectures(
   console.log("listingArchitectures");
   let data;
 
-  const response = await axios.get(`/architectures`, {
+  const response = await axios.get(`/api/architectures`, {
     headers: {
       ...(idToken && { Authorization: `Bearer ${idToken}` }),
     },

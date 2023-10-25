@@ -181,7 +181,7 @@ export class Cloudfront {
       ],
       orderedCacheBehaviors: [
         {
-          pathPattern: "/architecture**",
+          pathPattern: "/api**",
           allowedMethods: [
             "GET",
             "HEAD",

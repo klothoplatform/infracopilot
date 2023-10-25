@@ -14,7 +14,7 @@ export async function applyConstraints(
   let data;
 
   const response = await axios.post(
-    `/architecture/${architectureId}/run`,
+    `/api/architecture/${architectureId}/run`,
     { constraints: JSON.parse(formatConstraints(constraints)) },
     {
       params: {

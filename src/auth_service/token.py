@@ -8,7 +8,6 @@ from fastapi import HTTPException, Request
 import json
 from jwt import PyJWKClient
 
-# for dev change this to klotho-dev.us.auth0.com
 domain = os.getenv("AUTH0_DOMAIN", "klotho.us.auth0.com")
 key_url = os.getenv("AUTH0_PEM_URL", f"https://{domain}/.well-known/jwks.json")
 
@@ -58,7 +57,7 @@ def get_id_token(request: Request):
             {"code": "token_expired", "description": "token is expired"}, 401
         )
     except Exception as e:
-        print(e)
+        print("error getting id token", e)
         raise AuthError(
             {
                 "code": "invalid_header",

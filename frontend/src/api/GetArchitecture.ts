@@ -7,7 +7,7 @@ export async function getArchitecture(
   idToken: string,
   version?: number,
 ): Promise<Architecture> {
-  const { data } = await axios.get(`/architecture/${id}`, {
+  const { data } = await axios.get(`/api/architecture/${id}`, {
     responseType: "arraybuffer",
     decompress: true,
     headers: {

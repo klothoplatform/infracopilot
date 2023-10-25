@@ -35,12 +35,12 @@ log = logging.getLogger(__name__)
 Base.metadata.create_all(engine)
 
 
-@app.get("/ping")
+@app.get("/api/ping")
 async def ping():
     return Response(status_code=204)
 
 
-@app.get("/architecture/{id}/iac")
+@app.get("/api/architecture/{id}/iac")
 async def export_iac(
     request: Request, id, state: int, accept: Annotated[Optional[str], Header()] = None
 ):
@@ -57,7 +57,7 @@ async def export_iac(
     return await copilot_get_iac(id, state, accept)
 
 
-@app.post("/architecture/{id}/run")
+@app.post("/api/architecture/{id}/run")
 async def run(
     request: Request,
     id,
@@ -78,7 +78,7 @@ async def run(
     return await copilot_run(id, state, body, accept)
 
 
-@app.post("/architecture")
+@app.post("/api/architecture")
 async def new_architecture(request: Request, body: CreateArchitectureRequest):
     user_id = get_user_id(request)
     if user_id == PUBLIC_USER:
@@ -92,7 +92,7 @@ async def new_architecture(request: Request, body: CreateArchitectureRequest):
     return await copilot_new_architecture(body, user_id)
 
 
-@app.get("/architecture/{id}")
+@app.get("/api/architecture/{id}")
 async def get_state(request: Request, id: str):
     user_id = get_user_id(request)
     authorized = await can_read_architecture(User(id=user_id), id)
@@ -108,7 +108,7 @@ async def get_state(request: Request, id: str):
     return await copilot_get_state(id, accept)
 
 
-@app.get("/architecture/{id}/resource_types")
+@app.get("/api/architecture/{id}/resource_types")
 async def get_resource_types(request: Request, id: str):
     user_id = get_user_id(request)
     authorized = await can_read_architecture(User(id=user_id), id)
@@ -123,7 +123,7 @@ async def get_resource_types(request: Request, id: str):
     return await copilot_get_resource_types(id)
 
 
-@app.get("/architectures")
+@app.get("/api/architectures")
 async def list_architectures(request: Request):
     user_id = get_user_id(request)
     return await copilot_list_architectures(user_id)

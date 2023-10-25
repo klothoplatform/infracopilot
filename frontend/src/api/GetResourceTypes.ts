@@ -10,7 +10,7 @@ export async function getResourceTypes(
   idToken: string,
 ): Promise<ResourceTypeKB> {
   const { data } = await axios.get(
-    `/architecture/${architectureId}/resource_types`,
+    `/api/architecture/${architectureId}/resource_types`,
     {
       headers: {
         ...(idToken && { Authorization: `Bearer ${idToken}` }),

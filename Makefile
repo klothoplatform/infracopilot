@@ -24,6 +24,7 @@ run:
 	rm -f /tmp/engine && rm -f /tmp/iac && \
 	PYTHONPATH=. \
 	KEEP_TMP="True" \
+	AUTH0_DOMAIN="klotho-dev.us.auth0.com" \
 	pipenv run uvicorn src.backend_orchestrator.main:app --port=3000
 
 

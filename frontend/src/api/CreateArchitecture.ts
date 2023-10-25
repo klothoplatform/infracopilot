@@ -13,7 +13,7 @@ export default async function createArchitecture(
 ): Promise<Architecture> {
   console.log("CreateArchitecture called");
   const response = await axios.post(
-    `/architecture`,
+    `/api/architecture`,
     {
       name: request.name,
       owner: request.owner,

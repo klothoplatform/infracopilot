@@ -6,7 +6,7 @@ export default async function ExportIaC(
   idToken: string,
 ): Promise<any> {
   const { data, status } = await axios.get(
-    `/architecture/${architectureId}/iac`,
+    `/api/architecture/${architectureId}/iac`,
     {
       params: {
         state: `${state}`,
