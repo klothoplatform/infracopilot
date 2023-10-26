@@ -85,6 +85,12 @@ export const userStore: StateCreator<UserStore, [], [], UserStoreBase> = (
       false,
       "updateAuthentication/authenticated",
     );
+    if (user?.email) {
+      (window as any).sessionRewind?.identifyUser({
+        userId: user.email,
+        userName: user.name,
+      });
+    }
   },
   resetUserState: () => set(initialState(), false, "resetUserState"),
 });
