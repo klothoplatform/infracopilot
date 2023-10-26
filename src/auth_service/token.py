@@ -10,6 +10,7 @@ from jwt import PyJWKClient
 
 domain = os.getenv("AUTH0_DOMAIN", "klotho.us.auth0.com")
 key_url = os.getenv("AUTH0_PEM_URL", f"https://{domain}/.well-known/jwks.json")
+audience = os.getenv("AUTH0_AUDIENCE", "AeIvquQVLg9jy2V6Jq5Bz48cKQOmIPDw")
 
 PUBLIC_USER = "public"
 
@@ -36,7 +37,6 @@ def get_user_id(request: Request) -> str:
 
 def get_id_token(request: Request):
     token = get_token_auth_header(request)
-
     # The client will read the JWT header to get the kid field,
     # then download token signing public keys and return that matching the kid.
     # This key will then be cached for future JWTs with the same kid.
@@ -49,7 +49,7 @@ def get_id_token(request: Request):
             key=signing_key.key,
             issuer="https://" + domain + "/",
             algorithms=["RS256"],
-            audience="A0sIE3wvh8LpG8mtJEjWPnBqZgBs5cNM",  # This is our auth0 frontend client id
+            audience=audience,  # This is our auth0 frontend client id
         )
         return payload
     except jwt.ExpiredSignatureError:

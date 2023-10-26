@@ -45,7 +45,6 @@ async def copilot_new_architecture(
 ):
     try:
         owner = User(user_id) if body.owner is None else User(body.owner)
-        print(owner.to_auth_string())
         id = str(uuid.uuid4())
         architecture = Architecture(
             id=id,
@@ -145,10 +144,8 @@ class ListArchitecturesResponse(BaseModel):
 
 
 async def copilot_list_architectures(user_id: str):
-    print(User(user_id).to_auth_string())
     try:
         architectures = await get_architectures_by_owner(User(user_id))
-        print(architectures)
         cleaned_architectures = []
         for arch in architectures:
             if arch.id in [arch.id for arch in cleaned_architectures]:

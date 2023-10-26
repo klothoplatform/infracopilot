@@ -25,6 +25,7 @@ run:
 	PYTHONPATH=. \
 	KEEP_TMP="True" \
 	AUTH0_DOMAIN="klotho-dev.us.auth0.com" \
+	AUTH0_AUDIENCE="A0sIE3wvh8LpG8mtJEjWPnBqZgBs5cNM" \
 	pipenv run uvicorn src.backend_orchestrator.main:app --port=3000
 
 
