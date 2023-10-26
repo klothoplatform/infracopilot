@@ -232,7 +232,7 @@ const CollectionListItem: FC<{
     <div className="my-[.1rem] flex w-full flex-row gap-1">
       <div className="w-full">{item}</div>
       <Button
-        className={"mt-1 w-6"}
+        className={"h-8 w-6"}
         color="red"
         size={"sm"}
         onClick={() => {
