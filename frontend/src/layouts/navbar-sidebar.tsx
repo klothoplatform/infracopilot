@@ -170,7 +170,7 @@ export const Resizable: FC<PropsWithChildren<ResizableProps>> = function ({
 
 const EditorNavContent: FC = function () {
   const {
-    loadArchitecture,
+    initializeEditor,
     resetEditorState,
     addError,
     isAuthenticated,
@@ -203,7 +203,7 @@ const EditorNavContent: FC = function () {
       (async () => {
         try {
           setWorkingMessage("Loading architecture...");
-          await loadArchitecture(architectureId);
+          await initializeEditor(architectureId);
         } catch (e: any) {
           addError(e.message);
           navigate("/architectures");
@@ -219,7 +219,7 @@ const EditorNavContent: FC = function () {
     architectureId,
     navigate,
     resetEditorState,
-    loadArchitecture,
+    initializeEditor,
     addError,
     isEditorInitialized,
     architecture?.id,

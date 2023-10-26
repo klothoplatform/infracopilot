@@ -98,38 +98,38 @@ const initialState: () => EditorStoreState = () => ({
 });
 
 interface EditorStoreActions {
-  onNodesChange: OnNodesChange;
-  onEdgesChange: OnEdgesChange;
-  onConnect: OnConnect;
-  selectNode: (nodeId: string) => void;
-  deselectNode: (nodeId: string) => void;
-  selectResource: (resourceId: NodeId) => void;
-  deselectResource: (resourceId: NodeId) => void;
-  loadArchitecture: (id: string, version?: number) => Promise<void>;
-  refreshLayout: () => Promise<void>;
   addGraphElements: (
     elements: Partial<ReactFlowElements>,
     generateConstraints?: boolean,
   ) => Promise<void>;
   applyConstraints: (constraints?: Constraint[]) => Promise<void>;
-  selectEdge: (edgeId: string) => void;
-  deselectEdge: (edgeId: string) => void;
-  deleteElements: (elements: Partial<ReactFlowElements>) => Promise<void>;
-  replaceResource: (oldId: NodeId, newId: NodeId) => Promise<void>;
-
-  navigateRightSidebar(selector: RightSidebarTabSelector): void;
-
   configureResources: (
     requests: ResourceConfigurationRequest[],
   ) => Promise<void>;
+  deleteElements: (elements: Partial<ReactFlowElements>) => Promise<void>;
+  deselectEdge: (edgeId: string) => void;
+  deselectNode: (nodeId: string) => void;
+  deselectResource: (resourceId: NodeId) => void;
   getResourceTypeKB: (
     architectureId: string,
     refresh?: boolean,
   ) => Promise<ResourceTypeKB>;
-
-  resetEditorState(newState?: Partial<EditorStoreState>): void;
-
-  setIsEditorInitialized(isEditorInitialized: boolean): void;
+  initializeEditor: (id: string, version?: number) => Promise<void>;
+  navigateRightSidebar: (selector: RightSidebarTabSelector) => void;
+  onNodesChange: OnNodesChange;
+  onEdgesChange: OnEdgesChange;
+  onConnect: OnConnect;
+  selectNode: (nodeId: string) => void;
+  selectResource: (resourceId: NodeId) => void;
+  refreshLayout: () => Promise<void>;
+  refreshArchitecture: (
+    architectureId?: string,
+    version?: number,
+  ) => Promise<void>;
+  replaceResource: (oldId: NodeId, newId: NodeId) => Promise<void>;
+  resetEditorState: (newState?: Partial<EditorStoreState>) => void;
+  selectEdge: (edgeId: string) => void;
+  setIsEditorInitialized: (isEditorInitialized: boolean) => void;
 }
 
 type EditorStoreBase = EditorStoreState & EditorStoreActions;
@@ -343,11 +343,18 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       );
     }
   },
-  loadArchitecture: async (id: string, version?: number) => {
-    get().resetEditorState();
-    const architecture = await getArchitecture(id, get().idToken, version);
-    //TODO: handle errors loading arch or resource kb
-    const resourceTypeKB = await get().getResourceTypeKB(id, true);
+  refreshArchitecture: async (architectureId?: string, version?: number) => {
+    architectureId = architectureId ?? get().architecture?.id;
+    version = version ?? get().architecture?.version;
+    if (!architectureId) {
+      throw new Error("no architecture id");
+    }
+    const architecture = await getArchitecture(
+      architectureId,
+      get().idToken,
+      version,
+    );
+    const resourceTypeKB = await get().getResourceTypeKB(architectureId, true);
     const elements = toReactFlowElements(
       architecture,
       resourceTypeKB,
@@ -362,12 +369,23 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
         decisions: architecture.decisions.map(
           (d) => new Decision(parseConstraints(d.constraints), d.decisions),
         ),
+      },
+      false,
+      "editor/refreshArchitecture",
+    );
+    console.log("architecture refreshed");
+  },
+  initializeEditor: async (architectureId: string, version?: number) => {
+    get().resetEditorState();
+    await get().refreshArchitecture(architectureId, version);
+    set(
+      {
         isEditorInitialized: true,
       },
       false,
-      "editor/loadArchitecture",
+      "editor/initializeEditor",
     );
-    console.log("architecture loaded");
+    console.log("editor initialized");
   },
   refreshLayout: async () => {
     try {
@@ -510,7 +528,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
           new Failure(get().unappliedConstraints, newArchitecture.failures),
         ];
         console.log("failures that we should be setting", failures);
-        await get().loadArchitecture(get().architecture.id);
+        await get().refreshArchitecture(get().architecture.id);
         set(
           {
             unappliedConstraints: [],
@@ -555,7 +573,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       console.log("new nodes", elements.nodes);
     } catch (e) {
       console.error("error applying constraints", e);
-      await get().loadArchitecture(get().architecture.id);
+      await get().refreshArchitecture(get().architecture.id);
       set(
         {
           unappliedConstraints: [],
