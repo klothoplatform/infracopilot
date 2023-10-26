@@ -7,6 +7,7 @@ from cryptography import x509
 from fastapi import HTTPException, Request
 import json
 from jwt import PyJWKClient
+import logging
 
 domain = os.getenv("AUTH0_DOMAIN", "klotho.us.auth0.com")
 key_url = os.getenv("AUTH0_PEM_URL", f"https://{domain}/.well-known/jwks.json")
@@ -30,9 +31,13 @@ def is_public_user(request: Request) -> bool:
 
 
 def get_user_id(request: Request) -> str:
-    if is_public_user(request):
-        return PUBLIC_USER
-    return get_id_token(request)["sub"]
+    try:
+        if is_public_user(request):
+            return PUBLIC_USER
+        return get_id_token(request)["sub"]
+    except:
+        logging.error("Error getting user id", exc_info=True)
+        raise
 
 
 def get_id_token(request: Request):
@@ -50,6 +55,7 @@ def get_id_token(request: Request):
             issuer="https://" + domain + "/",
             algorithms=["RS256"],
             audience=audience,  # This is our auth0 frontend client id
+            leeway=10,
         )
         return payload
     except jwt.ExpiredSignatureError:

@@ -21,6 +21,7 @@ export enum ConstraintScope {
 
 export interface Constraint {
   scope: ConstraintScope;
+  operator: ConstraintOperator;
   toIntent: () => string;
   tofailureMessage: () => string;
 }

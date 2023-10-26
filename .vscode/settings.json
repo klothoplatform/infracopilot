@@ -1,0 +1,8 @@
+{
+  "githubPullRequests.ignoredPullRequestBranches": [
+    "integration"
+  ],
+  "eslint.workingDirectories": [
+    "./frontend"
+  ]
+}

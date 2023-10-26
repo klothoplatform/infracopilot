@@ -1,4 +1,5 @@
 import axios from "axios";
+import { analytics } from "../App";
 
 export default async function ExportIaC(
   architectureId: string,
@@ -18,6 +19,12 @@ export default async function ExportIaC(
       },
     },
   );
+  analytics.track("ExportIaC", {
+    id: architectureId,
+    state: state,
+    status: status,
+    hasData: !!data,
+  })
   if (status !== 200 || !data) {
     throw new Error(`Failed to export IaC`);
   }

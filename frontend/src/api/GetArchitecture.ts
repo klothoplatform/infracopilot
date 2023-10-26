@@ -1,3 +1,4 @@
+import { analytics } from "../App";
 import type { Architecture } from "../shared/architecture/Architecture";
 import { parseArchitecture } from "../shared/architecture/Architecture";
 import axios from "axios";
@@ -7,7 +8,7 @@ export async function getArchitecture(
   idToken: string,
   version?: number,
 ): Promise<Architecture> {
-  const { data } = await axios.get(`/api/architecture/${id}`, {
+  const response = await axios.get(`/api/architecture/${id}`, {
     responseType: "arraybuffer",
     decompress: true,
     headers: {
@@ -15,6 +16,10 @@ export async function getArchitecture(
       ...(idToken && { Authorization: `Bearer ${idToken}` }),
     },
   });
+  analytics.track("GetArchitecture", {status: response.status, id })
+  if (response.status !== 200) {
+    throw new Error("GetArchitecture failed");
+  }
 
-  return parseArchitecture(data);
+  return parseArchitecture(response.data);
 }

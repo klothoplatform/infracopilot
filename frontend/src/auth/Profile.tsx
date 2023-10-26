@@ -8,15 +8,15 @@ const Profile = () => {
     return <div>Loading ...</div>;
   }
 
-  return isAuthenticated && user ? (
-    <div>
+  if (!isAuthenticated || !user) {
+    return  <div>Please login here</div>;
+  }
+
+  return <div>
       <img src={user.picture} alt={user.name} />
       <h2>{user.name}</h2>
       <p>{user.email}</p>
     </div>
-  ) : (
-    <div>Please login here</div>
-  );
 };
 
 export default Profile;

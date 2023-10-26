@@ -1,8 +1,9 @@
-import type { Constraint } from "../shared/architecture/Constraints";
+import type { Constraint, ConstraintScope } from "../shared/architecture/Constraints";
 import { formatConstraints } from "../shared/architecture/Constraints";
 import type { Architecture } from "../shared/architecture/Architecture";
 import { parseArchitecture } from "../shared/architecture/Architecture";
 import axios from "axios";
+import { analytics } from "../App";
 
 export async function applyConstraints(
   architectureId: string,
@@ -12,6 +13,12 @@ export async function applyConstraints(
 ): Promise<Architecture> {
   console.log("applyConstraints", architectureId);
   let data;
+
+  const constraintCount: Record<string, number> = {}
+  for (const c of constraints) {
+    const key = `${c.scope}:${c.operator}`
+    constraintCount[key] = (constraintCount[key] ?? 0) + 1
+  }
 
   const response = await axios.post(
     `/api/architecture/${architectureId}/run`,
@@ -33,6 +40,9 @@ export async function applyConstraints(
 
   console.debug("response from apply constraints", response);
   if (response.status === 400) {
+    analytics.track("ApplyConstraints", {
+      constraints: constraintCount,
+    })
     console.error(new TextDecoder().decode(data));
   }
   return parseArchitecture(data);

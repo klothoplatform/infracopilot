@@ -1,5 +1,6 @@
 import axios from "axios";
 import type { Architecture } from "../shared/architecture/Architecture";
+import { analytics } from "../App";
 
 export interface CreateArchitectureRequest {
   name: string;
@@ -27,8 +28,10 @@ export default async function createArchitecture(
     },
   );
   if (response.status !== 200) {
+    analytics.track("CreateArchitecture", {status: response.status})
     throw new Error("CreateArchitecture failed");
   }
+  analytics.track("CreateArchitecture", {status: response.status, id: response.data.id})
 
   return {
     name: request.name,
@@ -36,5 +39,5 @@ export default async function createArchitecture(
     engineVersion: request.engineVersion,
     id: response.data.id,
     version: 0,
-  } as Architecture;
+  } as Architecture
 }
