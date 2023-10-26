@@ -137,7 +137,8 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
           className={classNames(
             "p-1 border-2 w-[100px] h-[100px] mx-auto rounded-md bg-transparent pointer-events-auto",
             {
-              "border-primary-600/100 dark:border-primary-500/100": isSelected,
+              "border-primary-600/100 dark:border-primary-500/100 shadow-md shadow-primary-100 dark:shadow-primary-900":
+                isSelected,
               "border-primary-600/[0]": !isSelected,
             },
           )}

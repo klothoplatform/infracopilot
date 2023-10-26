@@ -74,12 +74,13 @@ const ResourceGroupNode = memo(
     }, [updateNodeInternals, id, data, isConnectable]);
 
     return (
-      <button
+      // eslint-disable-next-line jsx-a11y/click-events-have-key-events,jsx-a11y/no-static-element-interactions
+      <div
         onClick={onSelect}
         className={classNames(
-          "relative border-2 rounded-md bg-transparent pointer-events-auto",
+          "relative border-2 rounded-md bg-transparent pointer-events-auto flex",
           {
-            "left-[-4px] top-[-4px] border-primary-600/100 dark:border-primary-500/100 h-[calc(100%+8px)] w-[calc(100%+8px)]":
+            "left-[-5px] top-[-5px] border-primary-600/100 dark:border-primary-500/100 h-[calc(100%+10px)] w-[calc(100%+10px)] shadow-md shadow-primary-100 dark:shadow-primary-900":
               isSelected,
             "border-primary-600/[0] w-full h-full": !isSelected,
           },
@@ -88,10 +89,10 @@ const ResourceGroupNode = memo(
         {handles}
         <div
           className={classNames(
-            "flex h-full w-full border-gray-600 justify-start gap-1",
+            "flex h-full w-full border-gray-600 justify-start gap-1 bg-white dark:bg-gray-800",
             {
               "w-full h-full": !isSelected,
-              "w-[calc(100%-8px)] h-[calc(100%-8px)] mx-auto my-auto":
+              "w-[calc(100%-10px)] h-[calc(100%-10px)] mx-auto my-auto":
                 isSelected,
             },
           )}
@@ -138,7 +139,7 @@ const ResourceGroupNode = memo(
             initialValue={data.resourceId.name}
           />
         </div>
-      </button>
+      </div>
     );
   },
 );

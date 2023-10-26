@@ -18,8 +18,6 @@ import ContextMenu from "./ContextMenu";
 import { WorkingOverlay } from "../../components/WorkingOverlay";
 import { getIconMapping } from "../../shared/resources/ResourceMappings";
 
-let id = 0;
-
 export default function EditorPane() {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
@@ -36,6 +34,7 @@ export default function EditorPane() {
     selectedEdge,
     deselectNode,
     deselectEdge,
+    addError,
   } = useApplicationStore();
 
   const { fitView, getIntersectingNodes } = useReactFlow();
@@ -115,11 +114,21 @@ export default function EditorPane() {
         position,
       };
 
-      await addGraphElements({
-        nodes: [newNode],
-      });
+      try {
+        await addGraphElements({
+          nodes: [newNode],
+        });
+      } catch (e: any) {
+        addError(e.message);
+      }
     },
-    [reactFlowInstance, getIntersectingNodes, nodes.length, addGraphElements],
+    [
+      reactFlowInstance,
+      getIntersectingNodes,
+      nodes,
+      addGraphElements,
+      addError,
+    ],
   );
 
   const onNodeClick = (event: ReactMouseEvent, node: Node) => {
