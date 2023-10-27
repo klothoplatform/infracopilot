@@ -1,4 +1,4 @@
-import { useEffect, type FC, useState } from "react";
+import { type FC, useEffect } from "react";
 import { Route, Routes } from "react-router";
 import FlowbiteWrapper from "./components/flowbite-wrapper";
 import ArchitectureEditor from "./views/ArchitectureEditor/ArchitectureEditor";
@@ -15,19 +15,12 @@ export const analytics = AnalyticsBrowser.load({
 });
 
 const App: FC = function () {
-  const { updateAuthentication, user } = useApplicationStore();
+  const { updateAuthentication } = useApplicationStore();
   const authContext = useAuth0();
 
   useEffect(() => {
     (async () => await updateAuthentication(authContext))();
   }, [authContext, updateAuthentication]);
-
-  useEffect(() => {
-    analytics.identify(user?.sub, {
-      name: user?.name,
-      email: user?.email,
-    });
-  }, [user]);
 
   return (
     <Routes>

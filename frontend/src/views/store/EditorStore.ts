@@ -187,21 +187,21 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     });
     await get().applyConstraints();
     await get().refreshLayout();
-      if (nodeConstraints.length > 0) {
-          analytics.track("deleteNodes", {
-              nodes: nodeConstraints.map(c => c.node)
-          })
-      }
-      if (edgeConstraints.length > 0) {
-          analytics.track("deleteEdges", {
-              edges: edgeConstraints.map(c => {
-                  return {
-                      source: c.target.sourceId,
-                      target: c.target.targetId,
-                  }
-              })
-          })
-      }
+    if (nodeConstraints.length > 0) {
+      analytics.track("deleteNodes", {
+        nodes: nodeConstraints.map((c) => c.node),
+      });
+    }
+    if (edgeConstraints.length > 0) {
+      analytics.track("deleteEdges", {
+        edges: edgeConstraints.map((c) => {
+          return {
+            source: c.target.sourceId,
+            target: c.target.targetId,
+          };
+        }),
+      });
+    }
   },
   onNodesChange: (changes: NodeChange[]) => {
     set({
@@ -216,21 +216,17 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     if (connection.source === connection.target) {
       return;
     }
-      if (!connection.source || !connection.target) {
-          return
-      }
-      const edge = new TopologyEdge(
-          NodeId.fromTopologyId(connection.source),
-          NodeId.fromTopologyId(connection.target),
-      )
-      const newConstraint = new EdgeConstraint(
-          ConstraintOperator.MustExist,
-          edge,
-      )
-      const newConstraint = new EdgeConstraint(
-          ConstraintOperator.MustExist,
-          edge,
-      )
+    if (!connection.source || !connection.target) {
+      return;
+    }
+    const edge = new TopologyEdge(
+      NodeId.fromTopologyId(connection.source),
+      NodeId.fromTopologyId(connection.target),
+    );
+    const newConstraint = new EdgeConstraint(
+      ConstraintOperator.MustExist,
+      edge,
+    );
     set({
       edges: addEdge(connection, get().edges),
       unappliedConstraints: [...get().unappliedConstraints, newConstraint],
@@ -240,7 +236,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     analytics.track("onConnect", {
       source: edge.sourceId,
       target: edge.targetId,
-    })
+    });
     console.log("connected", connection);
   },
   selectNode: (nodeId: string) => {
@@ -328,7 +324,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     );
     analytics.track("selectResource", {
       ...resourceId,
-    })
+    });
   },
   deselectResource: (resourceId: NodeId) => {
     if (
@@ -378,7 +374,6 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
   },
   initializeEditor: async (architectureId: string, version?: number) => {
     if (get().isEditorInitializing) {
-      console.log("editor already initializing, aborting");
       return;
     }
     set(
@@ -495,19 +490,23 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     });
     if (nodeConstraints.length > 0) {
       analytics.track("addNodes", {
-        nodes: nodeConstraints.filter(c => c instanceof ApplicationConstraint).map(c => (c as ApplicationConstraint).node),
-      })
+        nodes: nodeConstraints
+          .filter((c) => c instanceof ApplicationConstraint)
+          .map((c) => (c as ApplicationConstraint).node),
+      });
     }
     const newEdges = [
-      ...nodeConstraints.filter(c => c instanceof EdgeConstraint).map(c => (c as EdgeConstraint).target),
-      ...edgeConstraints.map(c => c.target),
-    ].map(e => {
-      return {source: e.sourceId, target: e.targetId}
-    })
+      ...nodeConstraints
+        .filter((c) => c instanceof EdgeConstraint)
+        .map((c) => (c as EdgeConstraint).target),
+      ...edgeConstraints.map((c) => c.target),
+    ].map((e) => {
+      return { source: e.sourceId, target: e.targetId };
+    });
     if (newEdges.length > 0) {
       analytics.track("addEdges", {
         edges: newEdges,
-      })
+      });
     }
     await get().applyConstraints();
   },
@@ -643,9 +642,9 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     });
     const edge = get().edges.find((e) => e.data.isSelected)?.data?.edgeSection;
     analytics.track("selectEdge", {
-      source: NodeId.fromToplogyId(edge?.incomingShape),
-      target: NodeId.fromToplogyId(edge?.outgoingShape),
-    })
+      source: NodeId.fromTopologyId(edge?.incomingShape),
+      target: NodeId.fromTopologyId(edge?.outgoingShape),
+    });
   },
   replaceResource: async (oldId: NodeId, newId: NodeId) => {
     if (oldId.toKlothoIdString() === newId.toKlothoIdString()) {
@@ -668,7 +667,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     analytics.track("replaceResource", {
       old: oldId,
       new: newId,
-    })
+    });
     await get().applyConstraints();
   },
   navigateRightSidebar: (selector: RightSidebarTabSelector) => {
@@ -698,16 +697,19 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       "editor/configureResources",
     );
     analytics.track("configureResources", {
-      configure: requests.reduce((acc: Record<string, Record<string, any>>, request) => {
-        const id = request.resourceId.toKlothoIdString();
-        if (id in acc) {
-          acc[id][request.property] = request.value;
-        } else {
-          acc[id] = {[request.property]: request.value}
-        }
-        return acc
-      }, {})
-    })
+      configure: requests.reduce(
+        (acc: Record<string, Record<string, any>>, request) => {
+          const id = request.resourceId.toKlothoIdString();
+          if (id in acc) {
+            acc[id][request.property] = request.value;
+          } else {
+            acc[id] = { [request.property]: request.value };
+          }
+          return acc;
+        },
+        {},
+      ),
+    });
     await get().applyConstraints();
     console.log("configured resources");
   },

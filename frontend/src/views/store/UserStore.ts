@@ -3,6 +3,7 @@ import { type Architecture } from "../../shared/architecture/Architecture";
 import type { Auth0ContextInterface, User } from "@auth0/auth0-react";
 import type { ErrorStore } from "./ErrorStore";
 import { listArchitectures } from "../../api/ListArchitectures";
+import { analytics } from "../../App";
 
 const logoutUrl = process.env.REACT_APP_AUTH0_LOGOUT_URL;
 
@@ -126,6 +127,20 @@ export const userStore: StateCreator<UserStore, [], [], UserStoreBase> = (
       );
       return;
     }
+
+    const oldUser = get().user;
+    if (oldUser?.sub !== user?.sub) {
+      if (user?.email) {
+        (window as any).sessionRewind?.identifyUser({
+          userId: user.email,
+          userName: user.name,
+        });
+      }
+      analytics.identify(user?.sub, {
+        name: user?.name,
+        email: user?.email,
+      });
+    }
     set(
       {
         currentIdToken: {
@@ -139,12 +154,6 @@ export const userStore: StateCreator<UserStore, [], [], UserStoreBase> = (
       false,
       "updateAuthentication/authenticated",
     );
-    if (user?.email) {
-      (window as any).sessionRewind?.identifyUser({
-        userId: user.email,
-        userName: user.name,
-      });
-    }
   },
   resetUserState: () => set(initialState(), false, "resetUserState"),
 });
