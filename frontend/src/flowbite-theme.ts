@@ -77,6 +77,14 @@ const flowbiteTheme: CustomFlowbiteTheme = {
       children: "flex h-full flex-col justify-center gap-4",
     },
   },
+  checkbox: {
+    root: {
+      color: {
+        default:
+          "focus:ring-primary-600 dark:ring-offset-primary-600 dark:focus:ring-primary-600 text-primary-600 dark:focus:border-white",
+      },
+    },
+  },
   dropdown: {
     floating: {
       base: "z-10 w-fit rounded-xl divide-y divide-gray-100 shadow",
