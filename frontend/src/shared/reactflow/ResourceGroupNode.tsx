@@ -109,7 +109,7 @@ const ResourceGroupNode = memo(
         {handles}
         <div
           className={classNames(
-            "flex flex-col h-full w-full border-gray-600 justify-start gap-1 bg-white dark:bg-gray-800",
+            "flex flex-col border-gray-600 justify-start gap-1 bg-white dark:bg-gray-800",
             {
               "w-full h-full": !isSelected,
               "w-[calc(100%-10px)] h-[calc(100%-10px)] mx-auto my-auto":
