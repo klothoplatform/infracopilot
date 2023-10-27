@@ -4,10 +4,7 @@ import useApplicationStore from "../../views/store/ApplicationStore";
 
 import "./NodeStyles.scss";
 import classNames from "classnames";
-import {
-  RightSidebarDetailsTabs,
-  RightSidebarTabs,
-} from "../../shared/sidebar-nav";
+import { RightSidebarDetailsTabs, RightSidebarTabs } from "../sidebar-nav";
 
 interface RouteNodeProps {
   id: string;
@@ -49,7 +46,7 @@ const ApiRouteNode = memo(({ id, data, isConnectable }: RouteNodeProps) => {
   });
 
   useEffect(() => {
-    const resource = architecture.resources.get(
+    const resource = architecture.resources?.get(
       data.resourceId.toKlothoIdString(),
     );
     if (!resource) {
@@ -57,7 +54,7 @@ const ApiRouteNode = memo(({ id, data, isConnectable }: RouteNodeProps) => {
       return;
     }
     const path = resource["Route"];
-    const method = (architecture.resources.get(resource["Method"]) ?? {})[
+    const method = (architecture.resources?.get(resource["Method"]) ?? {})[
       "HttpMethod"
     ];
     setRouteInfo({ method, path });
@@ -88,7 +85,7 @@ const ApiRouteNode = memo(({ id, data, isConnectable }: RouteNodeProps) => {
     // eslint-disable-next-line jsx-a11y/mouse-events-have-key-events
     <div
       className={classNames(
-        "resource-node pointer-events-none absolute flex h-fit w-[210px] flex-col justify-center border-2",
+        "resource-node api-route-node pointer-events-none flex h-full w-full flex-col justify-center border-2",
         {
           "border-primary-600/100 dark:border-primary-500/100": isSelected,
           "border-primary-600/[0]": !isSelected,
@@ -102,10 +99,10 @@ const ApiRouteNode = memo(({ id, data, isConnectable }: RouteNodeProps) => {
       }}
     >
       <button
-        className="pointer-events-auto border-2 border-gray-300 bg-gray-100 p-1 dark:border-gray-700  dark:bg-gray-700"
+        className="pointer-events-auto h-full w-full border-2 border-gray-300 bg-gray-100 p-1 dark:border-gray-900 dark:bg-gray-700"
         onClick={onSelect}
       >
-        <div className="flex items-center justify-center gap-2 text-ellipsis dark:text-white">
+        <div className="flex items-center justify-start gap-2 text-ellipsis px-4 dark:text-white">
           <div className={"font-semibold"}>{routeInfo.method}</div>
           <div>{routeInfo.path}</div>
         </div>

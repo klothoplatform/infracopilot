@@ -24,7 +24,7 @@ export default async function ExportIaC(
     state: state,
     status: status,
     hasData: !!data,
-  })
+  });
   if (status !== 200 || !data) {
     throw new Error(`Failed to export IaC`);
   }

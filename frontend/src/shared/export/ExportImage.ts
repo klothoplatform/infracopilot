@@ -2,7 +2,7 @@ import type { Edge, Node, Rect } from "reactflow";
 import type { Options } from "html-to-image/src/types";
 import { addInfraCopilotWatermark } from "./AddInfraCopilotWatermark";
 import { toPng, toSvg } from "html-to-image";
-import { allGroupTypes, allNodeTypes } from "../reactflow/NodesTypes";
+import { allGroupTypes, allNodeTypes } from "../reactflow/NodeTypes";
 
 // Watermark defines valid watermark types
 export enum Watermark {

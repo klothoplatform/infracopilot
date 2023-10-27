@@ -2,6 +2,7 @@ import type { Edge, Node } from "reactflow";
 import { Position } from "reactflow";
 import type { ElkExtendedEdge, ElkLabel, ElkNode } from "elkjs/lib/elk.bundled";
 import ELK from "elkjs/lib/elk.bundled";
+import { customConfigMappings } from "../../views/ArchitectureEditor/config/CustomConfigMappings";
 
 export enum NodePlacementStrategy {
   NETWORK_SIMPLEX = "Network Simplex",
@@ -63,9 +64,11 @@ const elkConfig = {
     "spacing.nodeNode": "40",
     "spacing.componentComponent": "50",
     "spacing.edgeEdge": "25",
+    "elk.separateConnectedComponents": "false",
+    "elk.spacing.componentComponent": "0",
     "elk.layered.spacing.edgeEdgeBetweenLayers": "25",
     "elk.layered.spacing.edgeNodeBetweenLayers": "25",
-    "org.eclipse.elk.nodeSize.minimum": "(100,100)",
+    "org.eclipse.elk.nodeSize.minimum": ElkSize(100, 100),
     "elk.layered.unnecessaryBendpoints": "true",
     "org.eclipse.elk.nodeSize.constraints": `[${[
       // "NODE_LABELS",
@@ -84,8 +87,8 @@ const elkConfig = {
     "elk.layered.feedbackEdges": "true",
   },
   groupLayout: {
-    "elk.nodeLabels.placement": "[H_CENTER, V_BOTTOM, OUTSIDE]",
-    "org.eclipse.elk.nodeSize.minimum": "(200,200)",
+    "elk.nodeLabels.placement": "[H_CENTER, V_TOP, INSIDE]",
+    "org.eclipse.elk.nodeSize.minimum": ElkSize(200, 200),
     "elk.padding": ElkMap({
       top: 40,
       left: 10,
@@ -95,10 +98,14 @@ const elkConfig = {
   },
 };
 
-function ElkMap(input: object): string {
+export function ElkMap(input: object): string {
   return `[${Object.keys(input)
     .map((k) => `${k}=${input[k as keyof object]}`)
     .join(",")}]`;
+}
+
+export function ElkSize(width: number, height: number): string {
+  return `(${width},${height})`;
 }
 
 function sizedLabel(
@@ -204,19 +211,19 @@ export async function autoLayout(
       }),
     );
 
-    const elkParentNodes = nodes
+    const elkGroupNodes = nodes
       .filter((node) => node.type === "resourceGroup")
       .map((p) => elkNodesById.get(p.id) as ElkNode)
       .filter((p) => p);
 
-    elkParentNodes.forEach((parent) => {
-      parent.children = nodes
-        .filter((n) => n.parentNode === parent.id)
+    elkGroupNodes.forEach((group) => {
+      group.children = nodes
+        .filter((n) => n.parentNode === group.id)
         .map((n) => elkNodesById.get(n.id) as ElkNode);
-      parent.labels = [
+      group.labels = [
         sizedLabel(
           {
-            text: parent.labels?.map((l) => l.text)?.join("/") ?? "UNKNOWN",
+            text: group.labels?.map((l) => l.text)?.join("/") ?? "UNKNOWN",
           },
           16,
           32,
@@ -226,10 +233,10 @@ export async function autoLayout(
         ),
       ];
 
-      parent.layoutOptions = {
+      group.layoutOptions = {
         ...elkConfig.groupLayout,
         "elk.padding": ElkMap({
-          top: 28 + (parent.labels[0].height ?? 0),
+          top: 28 + (group.labels[0].height ?? 0),
           left: 20,
           bottom: 0,
           right: 20,
@@ -263,6 +270,7 @@ export async function autoLayout(
           : undefined,
       };
     });
+
     const elkGraph = {
       id: "root",
       layoutOptions: {
@@ -279,18 +287,18 @@ export async function autoLayout(
       children: nodeHierarchyForElk,
       edges: edgesForElk,
     };
-    const root = await elk.layout(elkGraph, {});
 
-    const flattenHierarchy = (n: ElkNode) => {
-      const q = [n];
-      const output: ElkNode[] = [];
-      while (q.length) {
-        const currentNode = q.pop()!;
-        output.push(currentNode);
-        q.push(...(currentNode.children ?? []));
-      }
-      return output;
-    };
+    // apply any custom layout modifiers
+    const resourceTypes = [
+      ...new Set(nodes.map((node) => node.data.resourceId.qualifiedType)),
+    ];
+    resourceTypes.forEach((type) => {
+      customConfigMappings[type]?.layoutModifier?.({
+        elkGraph: elkGraph,
+        reactFlow: { nodes: nodes ?? [], edges: edges ?? [] },
+      });
+    });
+    const root = await elk.layout(elkGraph, {});
     const elkNodes = flattenHierarchy(root);
 
     const handlesByNode = new Map<string, any>();
@@ -411,4 +419,15 @@ export async function autoLayout(
     console.error(e);
     return { nodes, edges: edges ?? [] };
   }
+}
+
+export function flattenHierarchy(n: ElkNode) {
+  const q = [n];
+  const output: ElkNode[] = [];
+  while (q.length) {
+    const currentNode = q.pop()!;
+    output.push(currentNode);
+    q.push(...(currentNode.children ?? []));
+  }
+  return output;
 }

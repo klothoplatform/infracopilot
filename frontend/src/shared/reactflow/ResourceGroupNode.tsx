@@ -8,7 +8,7 @@ import React, {
   useState,
 } from "react";
 import { getGroupIcon, getIconMapping } from "../resources/ResourceMappings";
-import { Handle, useUpdateNodeInternals } from "reactflow";
+import { Handle, Position, useStore, useUpdateNodeInternals } from "reactflow";
 import reducer from "../../helpers/reducer";
 import useApplicationStore from "../../views/store/ApplicationStore";
 import classNames from "classnames";
@@ -22,6 +22,8 @@ interface GroupNodeProps {
   isConnectable: boolean;
 }
 
+const connectionNodeIdSelector = (state: any) => state.connectionNodeId;
+
 const ResourceGroupNode = memo(
   ({ id, data, isConnectable }: GroupNodeProps) => {
     const {
@@ -31,9 +33,14 @@ const ResourceGroupNode = memo(
       selectNode,
       selectResource,
       navigateRightSidebar,
+      nodes,
+      resourceTypeKB,
     } = useApplicationStore();
 
+    const connectionNodeId = useStore(connectionNodeIdSelector);
+    const isConnecting = !!connectionNodeId;
     const isSelected = selectedResource === data.resourceId;
+    const hasChildren = !!nodes.find((node) => node.parentNode === id);
 
     const onSelect = () => {
       console.log("onSelect", data.resourceId);
@@ -73,12 +80,17 @@ const ResourceGroupNode = memo(
       });
     }, [updateNodeInternals, id, data, isConnectable]);
 
+    const resourceType = resourceTypeKB.getResourceType(
+      data.resourceId.provider,
+      data.resourceId.type,
+    );
+
     return (
       // eslint-disable-next-line jsx-a11y/click-events-have-key-events,jsx-a11y/no-static-element-interactions
       <div
         onClick={onSelect}
         className={classNames(
-          "relative border-2 rounded-md bg-transparent pointer-events-auto flex",
+          "group-node relative border-2 rounded-md bg-transparent pointer-events-auto flex",
           {
             "left-[-5px] top-[-5px] border-primary-600/100 dark:border-primary-500/100 h-[calc(100%+10px)] w-[calc(100%+10px)] shadow-md shadow-primary-100 dark:shadow-primary-900":
               isSelected,
@@ -86,10 +98,18 @@ const ResourceGroupNode = memo(
           },
         )}
       >
+        {iconMapping?.groupEnableDragTarget && isConnecting && (
+          <Handle
+            className="group-target-handle"
+            id={`${id}-dnd-target`}
+            position={Position.Left}
+            type="target"
+          />
+        )}
         {handles}
         <div
           className={classNames(
-            "flex h-full w-full border-gray-600 justify-start gap-1 bg-white dark:bg-gray-800",
+            "flex flex-col h-full w-full border-gray-600 justify-start gap-1 bg-white dark:bg-gray-800",
             {
               "w-full h-full": !isSelected,
               "w-[calc(100%-10px)] h-[calc(100%-10px)] mx-auto my-auto":
@@ -103,41 +123,61 @@ const ResourceGroupNode = memo(
             ...iconMapping?.groupStyle,
           }}
         >
-          <div className="relative min-h-[24px] min-w-[24px]">
-            {getGroupIcon(
-              data.resourceId.provider,
-              data.resourceId.type,
-              {
-                style: {
-                  width: "24px",
-                  height: "24px",
-                  ...iconMapping?.groupIconStyle,
+          <div className="flex h-fit w-full">
+            <div className="min-h-[24px] min-w-[24px]">
+              {getGroupIcon(
+                data.resourceId.provider,
+                data.resourceId.type,
+                {
+                  style: {
+                    width: "24px",
+                    height: "24px",
+                    ...iconMapping?.groupIconStyle,
+                  },
                 },
-              },
-              data,
-            )}
-          </div>
-          <EditableLabel
-            label={
-              data.resourceId.provider === architecture.provider
-                ? `${data.resourceId.type}/${data.resourceId.name}`
-                : data.resourceId.toKlothoIdString()
-            }
-            onSubmit={async (newValue) => {
-              const { provider, type, namespace } = data.resourceId;
-              await replaceResource(
-                data.resourceId,
-                new NodeId(type, namespace, newValue, provider),
-              );
-              if (
-                selectedResource?.toKlothoIdString() ===
-                data.resourceId.toKlothoIdString()
-              ) {
-                selectResource(new NodeId(type, namespace, newValue, provider));
+                data,
+              )}
+            </div>
+            <EditableLabel
+              label={
+                data.resourceId.provider === architecture.provider
+                  ? `${data.resourceId.type}/${data.resourceId.name}`
+                  : data.resourceId.toKlothoIdString()
               }
-            }}
-            initialValue={data.resourceId.name}
-          />
+              onSubmit={async (newValue) => {
+                const { provider, type, namespace } = data.resourceId;
+                await replaceResource(
+                  data.resourceId,
+                  new NodeId(type, namespace, newValue, provider),
+                );
+                if (
+                  selectedResource?.toKlothoIdString() ===
+                  data.resourceId.toKlothoIdString()
+                ) {
+                  selectResource(
+                    new NodeId(type, namespace, newValue, provider),
+                  );
+                }
+              }}
+              initialValue={data.resourceId.name}
+            />
+          </div>
+          {!hasChildren && (
+            <div
+              className={
+                "mx-auto my-2 flex h-full w-[calc(100%-1rem)] items-center justify-center text-ellipsis rounded border-2 border-dashed border-gray-500 text-center text-gray-500 dark:border-gray-300 dark:text-gray-300"
+              }
+            >
+              <p className="p-2">
+                {iconMapping?.emptyGroupMessage ??
+                  `You can drag and drop resources ${
+                    resourceType
+                      ? "into this " + resourceType.displayName
+                      : "here"
+                  }`}
+              </p>
+            </div>
+          )}
         </div>
       </div>
     );

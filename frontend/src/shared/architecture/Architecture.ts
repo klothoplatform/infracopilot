@@ -5,7 +5,7 @@ import { TopologyGraph } from "./TopologyGraph";
 import type { TopologyNode } from "./TopologyNode";
 import { NodeId } from "./TopologyNode";
 import type { ResourceTypeKB } from "../resources/ResourceTypeKB";
-import { customNodeMappings, NodeType } from "../reactflow/NodesTypes";
+import { customNodeMappings, NodeType } from "../reactflow/NodeTypes";
 
 export enum ArchitectureView {
   DataFlow = "dataflow",

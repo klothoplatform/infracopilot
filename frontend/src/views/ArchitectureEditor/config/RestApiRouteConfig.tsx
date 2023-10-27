@@ -19,6 +19,12 @@ import {
 } from "../../../shared/architecture/Constraints";
 import TopologyEdge from "../../../shared/architecture/TopologyEdge";
 import type { Architecture } from "../../../shared/architecture/Architecture";
+import type { LayoutModifier } from "./CustomConfigMappings";
+import {
+  ElkMap,
+  ElkSize,
+  flattenHierarchy,
+} from "../../../shared/reactflow/AutoLayout";
 
 const RoutesField: ListProperty = {
   name: "Routes",
@@ -153,4 +159,34 @@ export const RestApiRouteConfig: FC = (props) => {
       <ListField id="Routes" field={RoutesField} />
     </ConfigSection>
   );
+};
+
+export const restApiLayoutModifier: LayoutModifier = ({
+  elkGraph,
+  reactFlow: { nodes, edges },
+}) => {
+  const allNodes = flattenHierarchy(elkGraph);
+
+  allNodes
+    .filter((node) => node.id.startsWith("aws:rest_api/"))
+    .forEach((restApi) => {
+      restApi.layoutOptions = {
+        ...restApi.layoutOptions,
+        "elk.spacing.nodeNode": "4",
+        "elk.direction": "DOWN",
+        "elk.padding": ElkMap({
+          top: 40,
+          left: 40,
+          bottom: 60,
+          right: 40,
+        }),
+      };
+
+      restApi.children?.forEach((child) => {
+        child.labels = undefined;
+        child.layoutOptions = {
+          "org.eclipse.elk.nodeSize.minimum": ElkSize(400, 50),
+        };
+      });
+    });
 };

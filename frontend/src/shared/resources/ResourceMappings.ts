@@ -38,8 +38,6 @@ import {
   AmazonRoute_53HostedZone,
   AmazonRoute_53ReadinessChecks,
   AmazonRoute_53RouteTable,
-  AmazonVpcCustomerGateway,
-  AmazonVpcElasticNetworkInterface,
   AmazonVpcInternetGateway,
   AmazonVpcNatGateway,
   AmazonVpcVirtualPrivateCloudVpc,
@@ -124,6 +122,8 @@ export interface IconMapping {
   groupIcon?: CallableFunction;
   groupStyle?: Partial<React.CSSProperties>;
   groupIconStyle?: Partial<React.CSSProperties>;
+  groupEnableDragTarget?: boolean;
+  emptyGroupMessage?: string;
   variants?: Map<String, IconMapping>;
   discriminator?: Discriminator;
 }
@@ -296,6 +296,9 @@ export const typeMappings = new Map<
           groupStyle: {
             borderColor: AWS_APP_INTEGRATION_PRIMARY_COLOR,
           },
+          groupEnableDragTarget: true,
+          emptyGroupMessage:
+            "You can add routes to this REST API using the configuration menu",
         },
       ],
       ["route_table", AmazonRoute_53RouteTable],
@@ -348,8 +351,7 @@ export const typeMappings = new Map<
           },
         },
       ],
-      ["vpc_endpoint_gateway", AmazonVpcCustomerGateway],
-      ["vpc_endpoint_interface", AmazonVpcElasticNetworkInterface],
+      ["vpc_endpoint", AmazonVirtualPrivateCloud],
       ["vpc_link", AmazonApiGateway],
     ]),
   ],

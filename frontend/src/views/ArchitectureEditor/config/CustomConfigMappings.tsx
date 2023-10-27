@@ -1,11 +1,17 @@
 import {
   handleRoutesState,
   RestApiFormStateBuilder,
+  restApiLayoutModifier,
   RestApiRouteConfig,
 } from "./RestApiRouteConfig";
 import type { FC } from "react";
 import type { Architecture } from "../../../shared/architecture/Architecture";
 import type { NodeId } from "../../../shared/architecture/TopologyNode";
+import type { ResourceType } from "../../../shared/resources/ResourceTypes";
+import type { Constraint } from "../../../shared/architecture/Constraints";
+import type { NodeType } from "../../../shared/reactflow/NodeTypes";
+import type { Edge, Node } from "reactflow";
+import type { ElkNode } from "elkjs/lib/elk.bundled";
 
 export type ConfigSections = {
   [key: string]: {
@@ -18,9 +24,11 @@ export const customConfigMappings: {
   [key: string]: {
     sections: ConfigSections;
     stateBuilder: (resourceId: NodeId, architecture: Architecture) => any;
+    layoutModifier?: LayoutModifier;
   };
 } = {
   "aws:rest_api": {
+    layoutModifier: restApiLayoutModifier,
     stateBuilder: RestApiFormStateBuilder,
     sections: {
       Routes: {
@@ -45,4 +53,43 @@ export function getCustomConfigState(
   return customConfigMappings[
     `${resourceId.provider}:${resourceId.type}`
   ]?.stateBuilder(resourceId, architecture);
+}
+
+export type ResourceTypeModifier = (resourceType: ResourceType) => ResourceType;
+
+export type FormStateBuilder = (
+  resourceId: NodeId,
+  architecture: Architecture,
+) => object;
+
+export type ConstraintBuilder = (
+  resourceId: NodeId,
+  architecture: Architecture,
+  formState: any,
+) => Constraint[];
+
+export type NodeDataPopulator = (
+  resourceId: NodeId,
+  architecture: Architecture,
+) => any;
+
+export interface LayoutContext {
+  reactFlow: {
+    nodes: Node[];
+    edges: Edge[];
+  };
+  elkGraph: ElkNode;
+}
+export type LayoutModifier = (context: LayoutContext) => void;
+
+export interface CustomResourceType {
+  provider: string;
+  type: string;
+  resourceTypeModifier?: ResourceTypeModifier;
+  formStateBuilder?: FormStateBuilder;
+  constraintBuilder?: ConstraintBuilder;
+  configSections?: ConfigSections;
+  nodeType?: NodeType;
+  nodeDataPopulator?: NodeDataPopulator;
+  layoutModifier?: LayoutModifier;
 }

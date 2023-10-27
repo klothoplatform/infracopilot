@@ -1,13 +1,49 @@
-.resource-node {
-  --handle-color: rgb(126 58 242 / var(--tw-bg-opacity));
+.group-node {
+  .group-target-handle.react-flow__handle-left {
+    left: -6px;
+    width: 14px;
+    height: 14px;
+    background: theme("colors.gray.400");
+    border-color: theme("colors.gray.900");
+  }
+}
+
+.dark > * {
+  .group-target-handle.react-flow__handle-left {
+    background: theme("colors.gray.900");
+    border-color: theme("colors.gray.500");
+  }
+}
+
+.resource-icon-node {
   transform: translateX(-50px);
+
+  .node-handle.react-flow__handle-right {
+    right: 35px;
+    top: 50px;
+  }
 
   .full-icon-handle {
     width: 180px;
     height: 100px;
-    transform: none;
     left: 20px;
     top: 10px;
+  }
+}
+
+.api-route-node {
+  .node-handle.react-flow__handle-right {
+    right: -20px;
+  }
+}
+
+.resource-node {
+  --handle-color: theme("colors.primary.600");
+
+  .full-icon-handle {
+    width: 100%;
+    height: 100%;
+    //transform: none;
     border-radius: 0;
     border: 0;
     opacity: 0;
@@ -22,8 +58,6 @@
     width: 25px;
     height: 40px;
     border: 0;
-    right: 35px;
-    top: 50px;
     display: flex;
     flex-direction: column;
     justify-content: center;

@@ -6,7 +6,7 @@ import ReactFlow, {
   Controls,
   useReactFlow,
 } from "reactflow";
-import NodesTypes, { NodeType } from "../../shared/reactflow/NodesTypes";
+import NodeTypes, { NodeType } from "../../shared/reactflow/NodeTypes";
 import EdgeTypes, {
   defaultEdgeOptions,
 } from "../../shared/reactflow/EdgeTypes";
@@ -242,7 +242,7 @@ export default function EditorPane() {
           onDrop={onDrop}
           onDragOver={onDragOver}
           onInit={setReactFlowInstance}
-          nodeTypes={NodesTypes}
+          nodeTypes={NodeTypes}
           edgeTypes={EdgeTypes}
           defaultEdgeOptions={defaultEdgeOptions}
           connectionLineType={ConnectionLineType.Straight}

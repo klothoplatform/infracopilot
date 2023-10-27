@@ -125,7 +125,7 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
     <>
       {/* eslint-disable-next-line jsx-a11y/mouse-events-have-key-events,tailwindcss/no-custom-classname */}
       <div
-        className="resource-node pointer-events-none absolute flex h-fit w-[210px] flex-col justify-center"
+        className="resource-node resource-icon-node pointer-events-none absolute flex h-fit w-[210px] flex-col justify-center"
         onMouseOver={(e) => {
           setMouseOverNode(true);
         }}

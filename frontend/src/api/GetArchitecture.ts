@@ -16,7 +16,7 @@ export async function getArchitecture(
       ...(idToken && { Authorization: `Bearer ${idToken}` }),
     },
   });
-  analytics.track("GetArchitecture", {status: response.status, id })
+  analytics.track("GetArchitecture", { status: response.status, id });
   if (response.status !== 200) {
     throw new Error("GetArchitecture failed");
   }
