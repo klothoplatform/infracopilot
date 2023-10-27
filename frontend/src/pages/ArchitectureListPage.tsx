@@ -38,6 +38,10 @@ function ArchitectureListPage() {
           </div>
         </div>
       </SidebarProvider>
+      <WorkingOverlay
+        show={isLoadingArchitectures}
+        message={"Loading architectures..."}
+      />
     </>
   );
 }
