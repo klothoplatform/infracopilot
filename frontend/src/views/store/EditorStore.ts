@@ -384,16 +384,28 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       "editor/initializeEditor:start",
     );
     get().resetEditorState({ isEditorInitializing: true });
-    await get().refreshArchitecture(architectureId, version);
-    set(
-      {
-        isEditorInitializing: false,
-        isEditorInitialized: true,
-      },
-      false,
-      "editor/initializeEditor:end",
-    );
-    console.log("editor initialized");
+    try {
+      await get().refreshArchitecture(architectureId, version);
+      set(
+        {
+          isEditorInitializing: false,
+          isEditorInitialized: true,
+        },
+        false,
+        "editor/initializeEditor:end",
+      );
+      console.log("editor initialized");
+    } catch (e: any) {
+      set(
+        {
+          isEditorInitializing: false,
+          isEditorInitialized: false,
+        },
+        false,
+        "editor/initializeEditor:error",
+      );
+      get().addError("Architecture could not be loaded");
+    }
   },
   refreshLayout: async () => {
     try {
