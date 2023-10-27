@@ -1,6 +1,52 @@
 @use "./react-flow.scss";
+@use "./scrollbar.scss";
 
 /* see https://github.com/themesberg/flowbite-admin-dashboard/blob/main/src/css/input.css */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Scroll bar stylings */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: theme('colors.gray.100');
+  border-radius: 5px;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: theme('colors.gray.400');
+  border-radius: 5px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: theme('colors.gray.500');
+}
+
+/* Scrollbar Corner */
+::-webkit-scrollbar-corner {
+  background: theme('colors.gray.100');
+}
+
+.dark > * {
+     ::-webkit-scrollbar-track {
+        background: theme('colors.gray.700');
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: theme('colors.gray.600');
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: theme('colors.gray.500');
+    }
+    ::-webkit-scrollbar-corner {
+        background: theme('colors.gray.700');
+    }
+}
