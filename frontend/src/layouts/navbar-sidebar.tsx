@@ -171,35 +171,33 @@ export const Resizable: FC<PropsWithChildren<ResizableProps>> = function ({
 const EditorNavContent: FC = function () {
   const {
     initializeEditor,
-    resetEditorState,
     addError,
     isAuthenticated,
     architecture,
     isEditorInitialized,
+    isEditorInitializing,
   } = useApplicationStore();
 
   const isExportButtonHidden = architecture.id === undefined;
 
   let { architectureId } = useParams();
   const navigate = useNavigate();
-  const [isInitializing, setIsInitializing] = useState(false);
   const [workingMessage, setWorkingMessage] = useState("");
 
   useEffect(() => {
-    if (isInitializing) {
-      return;
-    }
     if (!architectureId) {
       navigate("/architectures");
+      return;
+    }
+    if (isEditorInitializing) {
       return;
     }
     if (
       isAuthenticated &&
       architectureId &&
       architecture?.id !== architectureId &&
-      !isInitializing
+      !isEditorInitializing
     ) {
-      setIsInitializing(true);
       (async () => {
         try {
           setWorkingMessage("Loading architecture...");
@@ -208,21 +206,19 @@ const EditorNavContent: FC = function () {
           addError(e.message);
           navigate("/architectures");
         } finally {
-          setIsInitializing(false);
           setWorkingMessage("");
         }
       })();
     }
   }, [
-    isInitializing,
     isAuthenticated,
     architectureId,
     navigate,
-    resetEditorState,
     initializeEditor,
     addError,
     isEditorInitialized,
     architecture?.id,
+    isEditorInitializing,
   ]);
 
   return (

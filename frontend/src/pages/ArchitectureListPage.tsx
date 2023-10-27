@@ -9,7 +9,8 @@ import { WorkingOverlay } from "../components/WorkingOverlay";
 import LeftSideBar from "../components/architectures/LeftSideBar";
 
 function ArchitectureListPage() {
-  const { isAuthenticated, loadArchitectures } = useApplicationStore();
+  const { isAuthenticated, getArchitectures, architectures, user } =
+    useApplicationStore();
   const [isLoaded, setIsLoaded] = useState(false);
   const [isLoadingArchitectures, setIsLoadingArchitectures] = useState(false);
   useEffect(() => {
@@ -18,11 +19,11 @@ function ArchitectureListPage() {
     }
     setIsLoadingArchitectures(true);
     (async () => {
-      await loadArchitectures();
+      await getArchitectures(true);
       setIsLoaded(true);
       setIsLoadingArchitectures(false);
     })();
-  }, [isAuthenticated, isLoaded, isLoadingArchitectures, loadArchitectures]);
+  }, [isAuthenticated, isLoaded, isLoadingArchitectures, getArchitectures]);
 
   return (
     <>
@@ -32,8 +33,8 @@ function ArchitectureListPage() {
         </Navbar>
         <div className="flex h-[calc(100vh-5rem)] w-full gap-0 overflow-hidden bg-white dark:bg-gray-800">
           <LeftSideBar />
-          <div className="grow-1 shrink-1 box-border flex w-full min-w-[30%] basis-10/12">
-            <ArchitecturesTable />
+          <div className="grow-1 shrink-1 box-border flex w-full min-w-[30%] basis-10/12 overflow-y-auto">
+            <ArchitecturesTable user={user} architectures={architectures} />
           </div>
         </div>
       </SidebarProvider>

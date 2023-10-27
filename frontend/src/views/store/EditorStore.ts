@@ -62,6 +62,7 @@ interface EditorStoreState {
   deletingNodes: boolean;
   edges: Edge[];
   isEditorInitialized: boolean;
+  isEditorInitializing: boolean;
   failures: Failure[];
   layoutOptions: LayoutOptions;
   layoutRefreshing: boolean;
@@ -79,6 +80,7 @@ const initialState: () => EditorStoreState = () => ({
   edges: [],
   decisions: [],
   isEditorInitialized: false,
+  isEditorInitializing: false,
   failures: [],
   selectedNode: undefined,
   selectedEdge: undefined,
@@ -304,7 +306,6 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       RightSidebarTabs.Changes,
       get().rightSidebarSelector[1],
     ]);
-
     console.log("deselected node", nodeId);
   },
   selectResource: (resourceId: NodeId) => {
@@ -351,7 +352,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     }
     const architecture = await getArchitecture(
       architectureId,
-      get().idToken,
+      await get().getIdToken(),
       version,
     );
     const resourceTypeKB = await get().getResourceTypeKB(architectureId, true);
@@ -376,14 +377,26 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     console.log("architecture refreshed");
   },
   initializeEditor: async (architectureId: string, version?: number) => {
-    get().resetEditorState();
+    if (get().isEditorInitializing) {
+      console.log("editor already initializing, aborting");
+      return;
+    }
+    set(
+      {
+        isEditorInitializing: true,
+      },
+      false,
+      "editor/initializeEditor:start",
+    );
+    get().resetEditorState({ isEditorInitializing: true });
     await get().refreshArchitecture(architectureId, version);
     set(
       {
+        isEditorInitializing: false,
         isEditorInitialized: true,
       },
       false,
-      "editor/initializeEditor",
+      "editor/initializeEditor:end",
     );
     console.log("editor initialized");
   },
@@ -520,7 +533,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
         architecture.id,
         architecture.version,
         [...get().unappliedConstraints, ...(constraints ?? [])],
-        get().idToken,
+        await get().getIdToken(),
       );
       if (newArchitecture.failures.length > 0) {
         console.log(newArchitecture.failures);
@@ -706,7 +719,10 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       return get().resourceTypeKB;
     }
 
-    const types = await getResourceTypes(architectureId, get().idToken);
+    const types = await getResourceTypes(
+      architectureId,
+      await get().getIdToken(),
+    );
     set(
       {
         resourceTypeKB: types,

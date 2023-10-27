@@ -1,34 +1,43 @@
 import React, { type FC } from "react";
 import { Checkbox, Table } from "flowbite-react";
-import useApplicationStore from "../../views/store/ApplicationStore";
+import { format } from "date-fns";
+import { Link } from "react-router-dom";
+import type { User } from "@auth0/auth0-react";
+import type { Architecture } from "../../shared/architecture/Architecture";
 
-const ArchitecturesTable: FC = () => {
-  const { user, architectures } = useApplicationStore();
+const dateFormat = "MM/dd/yyyy hh:mm a z";
+
+const ArchitecturesTable: FC<{
+  user?: User;
+  architectures: Architecture[];
+}> = ({ user, architectures }) => {
   const architectureCells = architectures.map((architecture) => {
     return (
       <Table.Row
         key={architecture.id}
         className="bg-white dark:border-gray-700 dark:bg-gray-800"
       >
-        <Table.Cell className="p-4">
-          <Checkbox />
+        <Table.Cell>
+          <Link to={`/editor/${architecture.id}`}>{architecture.id}</Link>
         </Table.Cell>
         <Table.Cell>
-          <a href={`/editor/${architecture.id}`}>{architecture.id}</a>
+          <Link to={`/editor/${architecture.id}`}>{architecture.name}</Link>
         </Table.Cell>
-        <Table.Cell>{architecture.name}</Table.Cell>
         <Table.Cell>{user?.email}</Table.Cell>
-        <Table.Cell>{architecture.created_at}</Table.Cell>
-        <Table.Cell>{architecture.updated_at}</Table.Cell>
+        <Table.Cell>
+          {architecture.created_at &&
+            format(new Date(architecture.created_at * 1000), dateFormat)}
+        </Table.Cell>
+        <Table.Cell>
+          {architecture.updated_at &&
+            format(new Date(architecture.updated_at * 1000), dateFormat)}
+        </Table.Cell>
       </Table.Row>
     );
   });
   return (
-    <Table>
-      <Table.Head>
-        <Table.HeadCell className="p-4">
-          <Checkbox />
-        </Table.HeadCell>
+    <Table hoverable>
+      <Table.Head className={"rounded-none"}>
         <Table.HeadCell>ID</Table.HeadCell>
         <Table.HeadCell>Name</Table.HeadCell>
         <Table.HeadCell>Owner</Table.HeadCell>

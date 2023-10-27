@@ -41,10 +41,9 @@ const useApplicationStoreBase = createWithEqualityFn<ApplicationStore>()(
       {
         name: "user-storage", // name of the item in the storage (must be unique)
         partialize: (state: ApplicationStore) => ({
-          idToken: state.idToken,
+          currentIdToken: state.currentIdToken,
           user: state.user,
           isAuthenticated: state.isAuthenticated,
-          architectures: state.architectures,
         }),
       },
     ),
