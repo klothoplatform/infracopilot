@@ -2,6 +2,7 @@ import { type FC, type PropsWithChildren } from "react";
 import { DarkThemeToggle, Dropdown, Navbar } from "flowbite-react";
 import LoginButton from "../auth/Login";
 import useApplicationStore from "../views/store/ApplicationStore";
+import { Link } from "react-router-dom";
 
 interface NavbarProps {}
 
@@ -13,7 +14,7 @@ const NavBar: FC<PropsWithChildren<NavbarProps>> = function ({ children }) {
       <div className="w-full p-3 lg:px-5 lg:pl-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center pr-20">
-            <Navbar.Brand href="/architectures">
+            <Navbar.Brand as={Link} to="/architectures">
               <span className="mr-6 pr-2"></span>
               <span className="self-center whitespace-nowrap text-2xl font-semibold dark:text-white">
                 InfraCopilot
@@ -57,7 +58,7 @@ const AccountDropdown: FC = function () {
       <Dropdown.Header>
         <div className="flex items-center gap-2">
           <img
-            className="max-h-[4rem] max-w-[4rem] rounded-full"
+            className="max-h-[3.25rem] max-w-[3.25rem] rounded-full"
             src={user.picture}
             alt="Account"
           />

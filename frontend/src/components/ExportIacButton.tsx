@@ -13,7 +13,7 @@ interface ExportIacButtonProps {
 export const ExportIacButton: FC<ExportIacButtonProps> = (
   props: ExportIacButtonProps,
 ) => {
-  const { idToken, architecture } = useApplicationStore();
+  const { getIdToken, architecture } = useApplicationStore();
   const [isExporting, setIsExporting] = useState(false);
 
   let onClickExportIac = async () => {
@@ -24,7 +24,7 @@ export const ExportIacButton: FC<ExportIacButtonProps> = (
       const iacZip = await ExportIaC(
         architecture.id,
         architecture.version,
-        idToken,
+        await getIdToken(),
       );
       const url = URL.createObjectURL(iacZip);
       downloadFile(architecture.name + ".zip", url);

@@ -27,7 +27,7 @@ export default function NewArchitectureModal({
     formState: { errors },
   } = useForm<NewArchitectureFormState>();
 
-  const { idToken, user } = useApplicationStore();
+  const { getIdToken, user } = useApplicationStore();
   const navigate = useNavigate();
 
   let onSubmit = useCallback(
@@ -37,11 +37,11 @@ export default function NewArchitectureModal({
         name: state.name,
         owner: user?.sub ?? "public",
         engineVersion: 1,
-        idToken: idToken,
+        idToken: await getIdToken(),
       });
       navigate(`/editor/${id}`);
     },
-    [idToken, navigate, onClose, user],
+    [getIdToken, navigate, onClose, user],
   );
 
   // required for ref sharing with react-hook-form: https://www.react-hook-form.com/faqs/#Howtosharerefusage

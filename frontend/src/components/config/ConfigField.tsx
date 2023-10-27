@@ -189,7 +189,6 @@ export const BooleanField: FC<BooleanProps> = ({ id, field, ...props }) => {
 
   return (
     <Checkbox
-      className="checked:text-purple-600"
       id={id}
       readOnly={configurationDisabled}
       {...props}
