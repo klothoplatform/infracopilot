@@ -96,7 +96,11 @@ function createAddRouteConstraints(
     ),
     new EdgeConstraint(
       ConstraintOperator.MustExist,
-      new TopologyEdge(resourceId, integrationId),
+      new TopologyEdge(integrationId, resourceId),
+    ),
+    new EdgeConstraint(
+      ConstraintOperator.MustExist,
+      new TopologyEdge(methodId, integrationId),
     ),
     new ResourceConstraint(
       ConstraintOperator.Equals,
