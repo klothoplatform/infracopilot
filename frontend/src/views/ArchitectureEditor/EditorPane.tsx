@@ -99,10 +99,10 @@ export default function EditorPane() {
       });
       console.log("nearestGroup", nearestGroup);
 
-      const id = NodeId.fromTopologyId(`${type}/${nodes.length}`);
+      const id = NodeId.parse(`${type}:${nodes.length}`);
       id.name = `${id.type}_${id.name}`;
       const newNode: Node = {
-        id: id.toTopologyString(),
+        id: id.toString(),
         type: NodeType.Resource,
         draggable: false,
         parentNode: nearestGroup?.id,

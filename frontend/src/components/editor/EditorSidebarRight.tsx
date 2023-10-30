@@ -156,9 +156,7 @@ const Details: FC = function () {
             edgeId={selectedEdge}
           />
           {selectedResource && (
-            <ConfigForm
-              key={`config-table-${selectedResource.toKlothoIdString()}`}
-            />
+            <ConfigForm key={`config-table-${selectedResource.toString()}`} />
           )}
         </Tabs.Item>
         <Tabs.Item title="Additional Resources">
@@ -188,7 +186,7 @@ const ResourceIdHeader: FC<ResourceIdHeaderProps> = function ({
 
   const onClickCopyButton = async (e: any) => {
     e.target.blur();
-    await navigator.clipboard.writeText(resourceId?.toKlothoIdString() ?? "");
+    await navigator.clipboard.writeText(resourceId?.toString() ?? "");
     setCopied(true);
     e.target.disabled = true;
     setTimeout(() => {

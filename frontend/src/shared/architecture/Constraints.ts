@@ -60,22 +60,22 @@ export class ApplicationConstraint implements Constraint {
   toIntent(): string {
     switch (this.operator) {
       case ConstraintOperator.Add:
-        return `Added ${this.node.toKlothoIdString()}`;
+        return `Added ${this.node.toString()}`;
       case ConstraintOperator.Remove:
-        return `Removed ${this.node.toKlothoIdString()}`;
+        return `Removed ${this.node.toString()}`;
       case ConstraintOperator.Replace:
-        return `Replaced ${this.node.toKlothoIdString()} -> ${this.replacementNode?.toKlothoIdString()}`;
+        return `Replaced ${this.node.toString()} -> ${this.replacementNode?.toString()}`;
     }
   }
 
   tofailureMessage(): string {
     switch (this.operator) {
       case ConstraintOperator.Add:
-        return `Failed to add ${this.node.toKlothoIdString()}`;
+        return `Failed to add ${this.node.toString()}`;
       case ConstraintOperator.Remove:
-        return `Failed to remove ${this.node.toKlothoIdString()}`;
+        return `Failed to remove ${this.node.toString()}`;
       case ConstraintOperator.Replace:
-        return `Failed to replace ${this.node.toKlothoIdString()} -> ${this.replacementNode?.toKlothoIdString()}`;
+        return `Failed to replace ${this.node.toString()} -> ${this.replacementNode?.toString()}`;
     }
   }
 }
@@ -91,11 +91,11 @@ export class ConstructConstraint implements Constraint {
   ) {}
 
   toIntent(): string {
-    return `Expanded construct ${this.target.toKlothoIdString()}`;
+    return `Expanded construct ${this.target.toString()}`;
   }
 
   tofailureMessage(): string {
-    return `Failed to expand construct ${this.target.toKlothoIdString()}`;
+    return `Failed to expand construct ${this.target.toString()}`;
   }
 }
 
@@ -110,11 +110,11 @@ export class ResourceConstraint implements Constraint {
   ) {}
 
   toIntent(): string {
-    return `Configured ${this.target.toKlothoIdString()}`;
+    return `Configured ${this.target.toString()}`;
   }
 
   tofailureMessage(): string {
-    return `Failed to configure ${this.target.toKlothoIdString()}`;
+    return `Failed to configure ${this.target.toString()}`;
   }
 }
 
@@ -135,11 +135,11 @@ export class EdgeConstraint implements Constraint {
       case ConstraintOperator.MustNotExist:
         return `Disconnected ${this.target.sourceId.name} -> ${this.target.targetId.name}`;
       case ConstraintOperator.MustContain:
-        return `Added ${this.node?.toKlothoIdString()} to ${
+        return `Added ${this.node?.toString()} to ${
           this.target.sourceId.name
         } -> ${this.target.targetId.name}`;
       case ConstraintOperator.MustNotContain:
-        return `Removed ${this.node?.toKlothoIdString()} from ${
+        return `Removed ${this.node?.toString()} from ${
           this.target.sourceId.name
         } -> ${this.target.targetId.name}`;
     }
@@ -152,11 +152,11 @@ export class EdgeConstraint implements Constraint {
       case ConstraintOperator.MustNotExist:
         return `Failed to disconnect ${this.target.sourceId.name} -> ${this.target.targetId.name}`;
       case ConstraintOperator.MustContain:
-        return `Failed to add ${this.node?.toKlothoIdString()} to ${
+        return `Failed to add ${this.node?.toString()} to ${
           this.target.sourceId.name
         } -> ${this.target.targetId.name}`;
       case ConstraintOperator.MustNotContain:
-        return `Failed to remove ${this.node?.toKlothoIdString()} from ${
+        return `Failed to remove ${this.node?.toString()} from ${
           this.target.sourceId.name
         } -> ${this.target.targetId.name}`;
     }
@@ -172,36 +172,27 @@ export function formatConstraints(constraints: Constraint[]): string {
           return {
             scope: applicationConstraint.scope,
             operator: applicationConstraint.operator,
-            node: applicationConstraint.node.toKlothoIdString(),
-            replacement_node:
-              applicationConstraint.replacementNode?.toKlothoIdString(),
+            node: applicationConstraint.node.toString(),
+            replacement_node: applicationConstraint.replacementNode?.toString(),
           };
         }
         case ConstraintScope.Construct:
           return {
             ...constraint,
-            target: (
-              constraint as ConstructConstraint
-            ).target.toKlothoIdString(),
+            target: (constraint as ConstructConstraint).target.toString(),
           };
         case ConstraintScope.Resource:
           return {
             ...constraint,
-            target: (
-              constraint as ResourceConstraint
-            ).target.toKlothoIdString(),
+            target: (constraint as ResourceConstraint).target.toString(),
           };
         case ConstraintScope.Edge:
           return {
             ...constraint,
-            node: (constraint as EdgeConstraint).node?.toKlothoIdString(),
+            node: (constraint as EdgeConstraint).node?.toString(),
             target: {
-              source: (
-                constraint as EdgeConstraint
-              ).target.sourceId.toKlothoIdString(),
-              target: (
-                constraint as EdgeConstraint
-              ).target.targetId.toKlothoIdString(),
+              source: (constraint as EdgeConstraint).target.source,
+              target: (constraint as EdgeConstraint).target.target,
             },
           };
         default:
@@ -220,22 +211,22 @@ export function parseConstraints(constraints: any[]): Constraint[] {
       case ConstraintScope.Application:
         return new ApplicationConstraint(
           constraint.operator,
-          NodeId.fromTopologyId(constraint.node),
+          NodeId.parse(constraint.node),
           constraint.replacement_node
-            ? NodeId.fromTopologyId(constraint.replacement_node)
+            ? NodeId.parse(constraint.replacement_node)
             : undefined,
         );
       case ConstraintScope.Construct:
         return new ConstructConstraint(
           constraint.operator,
-          NodeId.fromTopologyId(constraint.target),
+          NodeId.parse(constraint.target),
           constraint.type,
           constraint.attributes,
         );
       case ConstraintScope.Resource:
         return new ResourceConstraint(
           constraint.operator,
-          NodeId.fromTopologyId(constraint.target),
+          NodeId.parse(constraint.target),
           constraint.property,
           constraint.value,
         );
@@ -243,10 +234,10 @@ export function parseConstraints(constraints: any[]): Constraint[] {
         return new EdgeConstraint(
           constraint.operator,
           new TopologyEdge(
-            NodeId.fromTopologyId(constraint.target.source),
-            NodeId.fromTopologyId(constraint.target.target),
+            NodeId.parse(constraint.target.source),
+            NodeId.parse(constraint.target.target),
           ),
-          constraint.node ? NodeId.fromTopologyId(constraint.node) : undefined,
+          constraint.node ? NodeId.parse(constraint.node) : undefined,
           constraint.attributes,
         );
       default:

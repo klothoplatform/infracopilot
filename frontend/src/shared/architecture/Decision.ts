@@ -28,7 +28,7 @@ export class Decision {
 
   formatInfo(): string {
     const resourcesMap = this.resources.map((res) => {
-      const id = NodeId.fromId(res);
+      const id = NodeId.parse(res);
       const resType = id.type
         .split("_")
         .map(

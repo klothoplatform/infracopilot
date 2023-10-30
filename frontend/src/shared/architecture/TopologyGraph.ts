@@ -40,7 +40,7 @@ export class TopologyGraph {
               path: resources[k]?.path
                 ? resources[k]?.path
                     .split(",")
-                    .map((p: string) => NodeId.fromId(p))
+                    .map((p: string) => NodeId.parse(p))
                 : undefined,
             }),
           );
@@ -56,17 +56,13 @@ export class TopologyGraph {
               children: resources[k]?.children
                 ? resources[k]?.children
                     .split(",")
-                    .map((c: string) => NodeId.fromId(c))
+                    .map((c: string) => NodeId.parse(c))
                 : undefined,
             }),
           );
         }
         edgeDefinedNodes.forEach((r) => {
-          if (
-            !graph.Nodes.find(
-              (n: TopologyNode) => n.id.toString() === r.toTopologyString(),
-            )
-          ) {
+          if (!graph.Nodes.find((n: TopologyNode) => n.resourceId.equals(r))) {
             graph.Nodes.push(new TopologyNode(r, {}));
           }
         });

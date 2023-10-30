@@ -109,7 +109,7 @@ function createAddRouteConstraints(
       ConstraintOperator.Equals,
       integrationId,
       "Method",
-      methodId.toKlothoIdString(),
+      methodId.toString(),
     ),
     new ResourceConstraint(
       ConstraintOperator.Equals,
@@ -129,14 +129,14 @@ export const RestApiFormStateBuilder = (
       if (
         edge.source.provider === "aws" &&
         edge.source.type === "api_integration" &&
-        edge.destination.toKlothoIdString() === resourceId.toKlothoIdString()
+        edge.destination.equals(resourceId)
       ) {
         return edge.source;
       }
       if (
         edge.destination.provider === "aws" &&
         edge.destination.type === "api_integration" &&
-        edge.source.toKlothoIdString() === resourceId.toKlothoIdString()
+        edge.source.equals(resourceId)
       ) {
         return edge.destination;
       }
@@ -144,7 +144,7 @@ export const RestApiFormStateBuilder = (
     })
     .filter((edge) => edge) as NodeId[];
   const routes = integrationIds
-    .map((id) => architecture.resources.get(id.toKlothoIdString()) as any)
+    .map((id) => architecture.resources.get(id.toString()) as any)
     .filter((resource) => resource)
     .map((resource) => {
       return {
@@ -249,9 +249,7 @@ export const apiIntegrationNodeModifier = (
   architecture: Architecture,
 ) => {
   let routeInfo = { method: "UNKNOWN", path: "UNKNOWN" };
-  const resource = architecture.resources?.get(
-    node.data.resourceId.toKlothoIdString(),
-  );
+  const resource = architecture.resources?.get(node.data.resourceId.toString());
   if (!resource) {
     node.data.resourceMeta = routeInfo;
     return;

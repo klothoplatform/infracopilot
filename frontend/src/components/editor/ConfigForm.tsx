@@ -44,7 +44,7 @@ export default function ConfigForm() {
     defaultValues: selectedResource
       ? {
           ...toFormState(
-            architecture.resources.get(selectedResource.toKlothoIdString()),
+            architecture.resources.get(selectedResource.toString()),
             resourceType?.properties,
           ),
           ...getCustomConfigState(selectedResource, architecture),
@@ -63,7 +63,7 @@ export default function ConfigForm() {
       selectedResource
         ? {
             ...toFormState(
-              architecture.resources.get(selectedResource.toKlothoIdString()),
+              architecture.resources.get(selectedResource.toString()),
               resourceType?.properties,
             ),
             ...getCustomConfigState(selectedResource, architecture),

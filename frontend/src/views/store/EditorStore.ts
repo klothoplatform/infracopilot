@@ -220,8 +220,8 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       return;
     }
     const edge = new TopologyEdge(
-      NodeId.fromTopologyId(connection.source),
-      NodeId.fromTopologyId(connection.target),
+      NodeId.parse(connection.source),
+      NodeId.parse(connection.target),
     );
     const newConstraint = new EdgeConstraint(
       ConstraintOperator.MustExist,
@@ -286,8 +286,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     );
     if (
       get().selectedResource &&
-      get().selectedResource?.toKlothoIdString() ===
-        resourceId?.toKlothoIdString()
+      get().selectedResource?.toString() === resourceId?.toString()
     ) {
       set(
         {
@@ -306,11 +305,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
   },
   selectResource: (resourceId: NodeId) => {
     const node = resourceId
-      ? get().nodes?.find(
-          (n) =>
-            n.data?.resourceId?.toKlothoIdString() ===
-            resourceId.toKlothoIdString(),
-        )
+      ? get().nodes?.find((n) => n.data?.resourceId?.equals(resourceId))
       : undefined;
     if (node) {
       get().selectNode(node.id);
@@ -327,10 +322,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     });
   },
   deselectResource: (resourceId: NodeId) => {
-    if (
-      get().selectedResource?.toKlothoIdString() ===
-      resourceId.toKlothoIdString()
-    ) {
+    if (get().selectedResource?.equals(resourceId)) {
       set(
         {
           selectedResource: undefined,
@@ -639,7 +631,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
   selectEdge: (edgeId: string) => {
     get().deselectEdge(get().selectedEdge ?? "");
     get().deselectNode(get().selectedNode ?? "");
-    get().deselectResource(get().selectedResource ?? NodeId.fromTopologyId(""));
+    get().deselectResource(get().selectedResource ?? NodeId.parse(""));
     get().navigateRightSidebar([
       RightSidebarTabs.Details,
       RightSidebarDetailsTabs.AdditionalResources,
@@ -655,12 +647,12 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     });
     const edge = get().edges.find((e) => e.data.isSelected)?.data?.edgeSection;
     analytics.track("selectEdge", {
-      source: NodeId.fromTopologyId(edge?.incomingShape),
-      target: NodeId.fromTopologyId(edge?.outgoingShape),
+      source: NodeId.parse(edge?.incomingShape),
+      target: NodeId.parse(edge?.outgoingShape),
     });
   },
   replaceResource: async (oldId: NodeId, newId: NodeId) => {
-    if (oldId.toKlothoIdString() === newId.toKlothoIdString()) {
+    if (oldId.equals(newId)) {
       console.log("skipping replace resource, same id");
       return;
     }
@@ -712,7 +704,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     analytics.track("configureResources", {
       configure: requests.reduce(
         (acc: Record<string, Record<string, any>>, request) => {
-          const id = request.resourceId.toKlothoIdString();
+          const id = request.resourceId.toString();
           if (id in acc) {
             acc[id][request.property] = request.value;
           } else {

@@ -97,7 +97,7 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
     const quickActions = data.vizMetadata?.children.map((element: NodeId) => {
       return (
         <ResourceIcon
-          key={`${data.resourceId.toKlothoIdString()}-nav-to-${element.toKlothoIdString()}`}
+          key={`${data.resourceId.toString()}-nav-to-${element.toString()}`}
           data={data}
           resourceId={element}
           iconProps={{
@@ -115,7 +115,7 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
     return [
       ...quickActions.slice(0, 2),
       <AdditionalResourcesAction
-        key={`${data.resourceId.toKlothoIdString()}-dots`}
+        key={`${data.resourceId.toString()}-dots`}
         resourceId={data.resourceId}
       />,
     ];
@@ -184,10 +184,7 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
               data.resourceId,
               new NodeId(type, namespace, newValue, provider),
             );
-            if (
-              selectedResource?.toKlothoIdString() ===
-              data.resourceId.toKlothoIdString()
-            ) {
+            if (selectedResource?.toString() === data.resourceId.toString()) {
               selectResource(new NodeId(type, namespace, newValue, provider));
             }
           }}

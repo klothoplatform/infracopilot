@@ -141,8 +141,8 @@ const ResourceGroupNode = memo(
             <EditableLabel
               label={
                 data.resourceId.provider === architecture.provider
-                  ? `${data.resourceId.type}/${data.resourceId.name}`
-                  : data.resourceId.toKlothoIdString()
+                  ? `${data.resourceId.type}:${data.resourceId.name}`
+                  : data.resourceId.toString()
               }
               onSubmit={async (newValue) => {
                 const { provider, type, namespace } = data.resourceId;
@@ -151,8 +151,7 @@ const ResourceGroupNode = memo(
                   new NodeId(type, namespace, newValue, provider),
                 );
                 if (
-                  selectedResource?.toKlothoIdString() ===
-                  data.resourceId.toKlothoIdString()
+                  selectedResource?.toString() === data.resourceId.toString()
                 ) {
                   selectResource(
                     new NodeId(type, namespace, newValue, provider),

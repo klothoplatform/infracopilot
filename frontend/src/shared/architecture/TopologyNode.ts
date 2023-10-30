@@ -13,7 +13,7 @@ export class TopologyNode {
   ) {}
 
   public get id(): string {
-    return this.resourceId.toTopologyString();
+    return this.resourceId.toString();
   }
 }
 
@@ -25,13 +25,7 @@ export class NodeId {
     public provider: string = UNKNOWN_PROVIDER,
   ) {}
 
-  public toTopologyString(): string {
-    return `${this.provider}:${this.type}${
-      this.namespace || this.name.includes(":") ? ":" + this.namespace : ""
-    }/${this.name}`;
-  }
-
-  public toKlothoIdString(): string {
+  public toString(): string {
     return `${this.provider}:${this.type}${
       this.namespace || this.name.includes(":") ? ":" + this.namespace : ""
     }:${this.name}`;
@@ -41,6 +35,7 @@ export class NodeId {
     return `${this.provider}:${this.type}`;
   }
 
+  // parse a node id from a topology resource id string: provider:type:namespace/name
   public static fromTopologyId(
     input: string,
     defaultProvider?: string,
@@ -66,7 +61,11 @@ export class NodeId {
     );
   }
 
-  public static fromId(input: string): NodeId {
+  // parse a node id from a klotho resource id string: provider:type:namespace:name
+  public static parse(input: string): NodeId {
+    if (!input) {
+      return new NodeId("", "", "");
+    }
     const chunks = input.split(":");
     if (chunks.length === 4) {
       const [provider, type, namespace, name] = chunks;
@@ -77,5 +76,17 @@ export class NodeId {
     } else {
       throw new Error(`Invalid node id: ${input}`);
     }
+  }
+
+  equals(other?: NodeId): boolean {
+    if (!other) {
+      return false;
+    }
+    return (
+      this.type === other.type &&
+      this.namespace === other.namespace &&
+      this.name === other.name &&
+      this.provider === other.provider
+    );
   }
 }

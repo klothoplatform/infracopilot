@@ -53,7 +53,7 @@ function AdditionalResources() {
             : UnknownIcon({ className: "w-full h-full" });
           return (
             <ResourceItem
-              key={nodeId.toKlothoIdString()}
+              key={nodeId.toString()}
               icon={icon}
               resourceId={nodeId}
             />
@@ -92,7 +92,7 @@ const ResourceItem: FC<ResourceItemProps> = function ({ icon, resourceId }) {
           <div className="block h-5 w-5">{icon}</div>
         </Tooltip>
       </Table.Cell>
-      <Table.Cell className="pl-4">{resourceId.toKlothoIdString()}</Table.Cell>
+      <Table.Cell className="pl-4">{resourceId.toString()}</Table.Cell>
     </Table.Row>
   );
 };

@@ -245,9 +245,7 @@ export const ResourceField: FC<ResourceProps> = ({
       color={"purple"}
       disabled={readOnly}
       label={
-        watchValue?.length
-          ? NodeId.fromId(watchValue).name
-          : "Select a resource"
+        watchValue?.length ? NodeId.parse(watchValue).name : "Select a resource"
       }
     >
       {items.map((resourceId: string) => {

@@ -61,7 +61,7 @@ export function getDownstreamResources(
   }
 
   architecture.edges.forEach((edge: GraphEdge) => {
-    if (edge.source.toKlothoIdString() === resourceId.toKlothoIdString()) {
+    if (edge.source.equals(resourceId)) {
       result.push(edge.destination);
     }
   });
@@ -118,10 +118,8 @@ function getNodesFromGraph(
         vizMetadata: node.vizMetadata,
       },
       type: resolveNodeType(node, resourceTypes, view),
-      parentNode: topology.Nodes.find(
-        (n) =>
-          n.resourceId.toTopologyString() ===
-          node.vizMetadata.parent?.toTopologyString(),
+      parentNode: topology.Nodes.find((n) =>
+        n.resourceId.equals(node.vizMetadata.parent),
       )?.id,
       extent: node.vizMetadata.parent ? "parent" : undefined,
     } as Node;
@@ -239,8 +237,8 @@ export function parseArchitecture(data: ArrayBuffer): Architecture {
       architecture.edges = Object.keys(parsedState.edges).map((key) => {
         const [source, destination] = key.split("->").map((id) => id.trim());
         return {
-          source: NodeId.fromId(source),
-          destination: NodeId.fromId(destination),
+          source: NodeId.parse(source),
+          destination: NodeId.parse(destination),
           metadata: parsedState.edges[key],
         } as GraphEdge;
       });
