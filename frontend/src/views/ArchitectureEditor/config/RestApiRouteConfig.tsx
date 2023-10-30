@@ -69,19 +69,19 @@ export const handleRoutesState = (routes: any, resourceId: NodeId) => {
 };
 
 function createAddRouteConstraints(
-  resourceId: NodeId,
+  restApiId: NodeId,
   method: string,
   route: string,
 ) {
   const integrationId = new NodeId(
     "api_integration",
-    resourceId.name,
-    `${resourceId.name}_integration_${Math.random().toString(36).substr(2, 9)}`,
+    restApiId.name,
+    `${restApiId.name}_integration_${Math.random().toString(36).substr(2, 9)}`,
     "aws",
   );
   const methodId = new NodeId(
     "api_method",
-    resourceId.name,
+    restApiId.name,
     `${integrationId.name}_method`,
     "aws",
   );
@@ -96,7 +96,7 @@ function createAddRouteConstraints(
     ),
     new EdgeConstraint(
       ConstraintOperator.MustExist,
-      new TopologyEdge(integrationId, resourceId),
+      new TopologyEdge(restApiId, integrationId),
     ),
     new EdgeConstraint(
       ConstraintOperator.MustExist,
