@@ -405,6 +405,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
         "editor/initializeEditor:error",
       );
       get().addError("Architecture could not be loaded");
+      throw e;
     }
   },
   refreshLayout: async () => {
