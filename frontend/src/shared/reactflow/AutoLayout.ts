@@ -238,7 +238,7 @@ export async function autoLayout(
         "elk.padding": ElkMap({
           top: 28 + (group.labels[0].height ?? 0),
           left: 20,
-          bottom: 0,
+          bottom: 20,
           right: 20,
         }),
       };

@@ -30,7 +30,7 @@ export const customConfigMappings: {
   };
 } = {
   "aws:rest_api": {
-    // layoutModifier: restApiLayoutModifier,
+    layoutModifier: restApiLayoutModifier,
     stateBuilder: RestApiFormStateBuilder,
     sections: {
       Routes: {

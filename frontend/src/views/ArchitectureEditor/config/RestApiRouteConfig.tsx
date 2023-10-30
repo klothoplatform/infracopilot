@@ -18,8 +18,6 @@ import {
   ElkMap,
   ElkSize,
   flattenHierarchy,
-  NodeLayeringStrategy,
-  NodePlacementStrategy,
 } from "../../../shared/reactflow/AutoLayout";
 import type { Node } from "reactflow";
 import {
@@ -175,7 +173,9 @@ export const restApiLayoutModifier: LayoutModifier = ({
   const allNodes = flattenHierarchy(elkGraph);
 
   allNodes
-    .filter((node) => node.id.startsWith("aws:rest_api/"))
+    .filter(
+      (node) => NodeId.fromTopologyId(node.id).qualifiedType === "aws:rest_api",
+    )
     .forEach((restApi) => {
       restApi.layoutOptions = {
         ...restApi.layoutOptions,
@@ -200,21 +200,21 @@ export const restApiLayoutModifier: LayoutModifier = ({
 
       // sort children by route path and method
       const childRFNodes = nodes.filter((node) => childIds?.includes(node.id));
-      const childPriorities = new Map(
-        childRFNodes
-          .sort((a, b) => {
-            const aRoute = a.data.resourceMeta.path;
-            const bRoute = b.data.resourceMeta.path;
-            const aMethod = a.data.resourceMeta.method;
-            const bMethod = b.data.resourceMeta.method;
-            if (aRoute < bRoute) return -1;
-            if (aRoute > bRoute) return 1;
-            if (aMethod < bMethod) return -1;
-            if (aMethod > bMethod) return 1;
-            return 0;
-          })
-          .map((node, index) => [node.id, index]),
-      );
+      // const childPriorities = new Map(
+      //   childRFNodes
+      //     .sort((a, b) => {
+      //       const aRoute = a.data.resourceMeta.path;
+      //       const bRoute = b.data.resourceMeta.path;
+      //       const aMethod = a.data.resourceMeta.method;
+      //       const bMethod = b.data.resourceMeta.method;
+      //       if (aRoute < bRoute) return -1;
+      //       if (aRoute > bRoute) return 1;
+      //       if (aMethod < bMethod) return -1;
+      //       if (aMethod > bMethod) return 1;
+      //       return 0;
+      //     })
+      //     .map((node, index) => [node.id, index]),
+      // );
 
       // get longest path length
       const maxLength = childRFNodes.reduce((max, node) => {
@@ -232,14 +232,8 @@ export const restApiLayoutModifier: LayoutModifier = ({
           //   childPriorities.get(child.id) ?? 10000
           // }`,
           "org.eclipse.elk.nodeSize.minimum": ElkSize(100 + maxLength * 16, 50),
-          "org.eclipse.elk.partitioning.activate": "true",
+          // "org.eclipse.elk.partitioning.activate": "true",
         };
-      });
-      restApi.children = restApi.children?.sort((a, b) => {
-        const aPriority = childPriorities.get(a.id);
-        const bPriority = childPriorities.get(b.id);
-        if (aPriority === undefined || bPriority === undefined) return 0;
-        return aPriority - bPriority;
       });
     });
 };
