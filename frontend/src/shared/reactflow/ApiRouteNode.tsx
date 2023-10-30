@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useMemo, useState } from "react";
+import React, { memo, useMemo, useState } from "react";
 import { Handle, Position, useStore, useUpdateNodeInternals } from "reactflow";
 import useApplicationStore from "../../views/store/ApplicationStore";
 
@@ -15,13 +15,8 @@ interface RouteNodeProps {
 const connectionNodeIdSelector = (state: any) => state.connectionNodeId;
 
 const ApiRouteNode = memo(({ id, data, isConnectable }: RouteNodeProps) => {
-  const {
-    architecture,
-    selectedResource,
-    selectNode,
-    selectResource,
-    navigateRightSidebar,
-  } = useApplicationStore();
+  const { selectedResource, selectNode, selectResource, navigateRightSidebar } =
+    useApplicationStore();
 
   const connectionNodeId = useStore(connectionNodeIdSelector);
   const isConnecting = !!connectionNodeId;
@@ -39,26 +34,6 @@ const ApiRouteNode = memo(({ id, data, isConnectable }: RouteNodeProps) => {
       RightSidebarDetailsTabs.Config,
     ]);
   };
-
-  const [routeInfo, setRouteInfo] = useState<any>({
-    method: "UNKNOWN",
-    path: "UNKNOWN",
-  });
-
-  useEffect(() => {
-    const resource = architecture.resources?.get(
-      data.resourceId.toKlothoIdString(),
-    );
-    if (!resource) {
-      setRouteInfo({ method: "UNKNOWN", path: "UNKNOWN" });
-      return;
-    }
-    const path = resource["Route"];
-    const method = (architecture.resources?.get(resource["Method"]) ?? {})[
-      "HttpMethod"
-    ];
-    setRouteInfo({ method, path });
-  }, [architecture, data.resourceId]);
 
   const handles = useMemo(() => {
     updateNodeInternals(id);
@@ -103,8 +78,8 @@ const ApiRouteNode = memo(({ id, data, isConnectable }: RouteNodeProps) => {
         onClick={onSelect}
       >
         <div className="flex items-center justify-start gap-2 text-ellipsis px-4 dark:text-white">
-          <div className={"font-semibold"}>{routeInfo.method}</div>
-          <div>{routeInfo.path}</div>
+          <div className={"font-semibold"}>{data.resourceMeta.method}</div>
+          <div>{data.resourceMeta.path}</div>
         </div>
       </button>
       {handles}

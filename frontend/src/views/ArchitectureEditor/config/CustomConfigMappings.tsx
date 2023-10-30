@@ -1,4 +1,5 @@
 import {
+  apiIntegrationNodeModifier,
   handleRoutesState,
   RestApiFormStateBuilder,
   restApiLayoutModifier,
@@ -25,10 +26,11 @@ export const customConfigMappings: {
     sections: ConfigSections;
     stateBuilder: (resourceId: NodeId, architecture: Architecture) => any;
     layoutModifier?: LayoutModifier;
+    nodeModifier?: (node: Node, architecture: Architecture) => void;
   };
 } = {
   "aws:rest_api": {
-    layoutModifier: restApiLayoutModifier,
+    // layoutModifier: restApiLayoutModifier,
     stateBuilder: RestApiFormStateBuilder,
     sections: {
       Routes: {
@@ -36,6 +38,11 @@ export const customConfigMappings: {
         stateHandler: handleRoutesState,
       },
     },
+  },
+  "aws:api_integration": {
+    nodeModifier: apiIntegrationNodeModifier,
+    sections: {},
+    stateBuilder: () => ({}),
   },
 };
 

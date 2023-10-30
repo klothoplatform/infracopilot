@@ -11,12 +11,6 @@ import {
 } from "../../../shared/resources/ResourceTypes";
 import { ListField } from "../../../components/config/ListField";
 import { NodeId } from "../../../shared/architecture/TopologyNode";
-import {
-  ApplicationConstraint,
-  ConstraintOperator,
-  EdgeConstraint,
-  ResourceConstraint,
-} from "../../../shared/architecture/Constraints";
 import TopologyEdge from "../../../shared/architecture/TopologyEdge";
 import type { Architecture } from "../../../shared/architecture/Architecture";
 import type { LayoutModifier } from "./CustomConfigMappings";
@@ -24,7 +18,16 @@ import {
   ElkMap,
   ElkSize,
   flattenHierarchy,
+  NodeLayeringStrategy,
+  NodePlacementStrategy,
 } from "../../../shared/reactflow/AutoLayout";
+import type { Node } from "reactflow";
+import {
+  ApplicationConstraint,
+  ConstraintOperator,
+  EdgeConstraint,
+  ResourceConstraint,
+} from "../../../shared/architecture/Constraints";
 
 const RoutesField: ListProperty = {
   name: "Routes",
@@ -176,21 +179,86 @@ export const restApiLayoutModifier: LayoutModifier = ({
     .forEach((restApi) => {
       restApi.layoutOptions = {
         ...restApi.layoutOptions,
+        // hierarchyHandling: "INCLUDE_CHILDREN",
+        // "elk.algorithm": "layered",
+
+        // "nodePlacement.strategy": NodePlacementStrategy.SIMPLE,
+        // "org.eclipse.elk.layered.layering.strategy":
+        //   NodeLayeringStrategy.INTERACTIVE,
+        // "org.eclipse.elk.partitioning.activate": "true",
         "elk.spacing.nodeNode": "4",
         "elk.direction": "DOWN",
         "elk.padding": ElkMap({
-          top: 40,
+          top: 30,
           left: 40,
-          bottom: 60,
+          bottom: 30,
           right: 40,
         }),
       };
 
+      const childIds = restApi.children?.map((child) => child.id);
+
+      // sort children by route path and method
+      const childRFNodes = nodes.filter((node) => childIds?.includes(node.id));
+      const childPriorities = new Map(
+        childRFNodes
+          .sort((a, b) => {
+            const aRoute = a.data.resourceMeta.path;
+            const bRoute = b.data.resourceMeta.path;
+            const aMethod = a.data.resourceMeta.method;
+            const bMethod = b.data.resourceMeta.method;
+            if (aRoute < bRoute) return -1;
+            if (aRoute > bRoute) return 1;
+            if (aMethod < bMethod) return -1;
+            if (aMethod > bMethod) return 1;
+            return 0;
+          })
+          .map((node, index) => [node.id, index]),
+      );
+
+      // get longest path length
+      const maxLength = childRFNodes.reduce((max, node) => {
+        const pathLength = node.data?.resourceMeta?.path.length;
+        return pathLength > max ? pathLength : max;
+      }, 0);
+
       restApi.children?.forEach((child) => {
         child.labels = undefined;
         child.layoutOptions = {
-          "org.eclipse.elk.nodeSize.minimum": ElkSize(400, 50),
+          // "org.eclipse.elk.partitioning.partition": `${
+          //   childPriorities.get(child.id) ?? 10000
+          // }`,
+          // "org.eclipse.elk.priority": `${
+          //   childPriorities.get(child.id) ?? 10000
+          // }`,
+          "org.eclipse.elk.nodeSize.minimum": ElkSize(100 + maxLength * 16, 50),
+          "org.eclipse.elk.partitioning.activate": "true",
         };
       });
+      restApi.children = restApi.children?.sort((a, b) => {
+        const aPriority = childPriorities.get(a.id);
+        const bPriority = childPriorities.get(b.id);
+        if (aPriority === undefined || bPriority === undefined) return 0;
+        return aPriority - bPriority;
+      });
     });
+};
+
+export const apiIntegrationNodeModifier = (
+  node: Node,
+  architecture: Architecture,
+) => {
+  let routeInfo = { method: "UNKNOWN", path: "UNKNOWN" };
+  const resource = architecture.resources?.get(
+    node.data.resourceId.toKlothoIdString(),
+  );
+  if (!resource) {
+    node.data.resourceMeta = routeInfo;
+    return;
+  }
+  const path = resource["Route"];
+  const method = (architecture.resources?.get(resource["Method"]) ?? {})[
+    "HttpMethod"
+  ];
+  node.data.resourceMeta = { method, path };
 };

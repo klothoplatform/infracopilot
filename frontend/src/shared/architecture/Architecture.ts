@@ -6,6 +6,7 @@ import type { TopologyNode } from "./TopologyNode";
 import { NodeId } from "./TopologyNode";
 import type { ResourceTypeKB } from "../resources/ResourceTypeKB";
 import { customNodeMappings, NodeType } from "../reactflow/NodeTypes";
+import { customConfigMappings } from "../../views/ArchitectureEditor/config/CustomConfigMappings";
 
 export enum ArchitectureView {
   DataFlow = "dataflow",
@@ -95,11 +96,15 @@ function resolveNodeType(
  * to ensure that groups are rendered before their children.
  */
 function getNodesFromGraph(
-  topology: TopologyGraph,
+  architecture: Architecture,
   resourceTypes: ResourceTypeKB,
   view: ArchitectureView,
 ): Node[] {
-  return topology.Nodes.map((node: TopologyNode) => {
+  const topology = architecture.views?.get(view);
+  if (!topology) {
+    return [];
+  }
+  const rfNodes = topology.Nodes.map((node: TopologyNode) => {
     return {
       id: node.id,
       position: { x: 0, y: 0 },
@@ -121,6 +126,14 @@ function getNodesFromGraph(
       extent: node.vizMetadata.parent ? "parent" : undefined,
     } as Node;
   }).sort(compareNodes);
+  rfNodes.map(
+    (node: Node) =>
+      customConfigMappings[node.data.resourceId.qualifiedType]?.nodeModifier?.(
+        node,
+        architecture,
+      ),
+  );
+  return rfNodes;
 }
 
 function compareNodes(a: Node, b: Node): number {
@@ -177,7 +190,7 @@ export function toReactFlowElements(
     return { nodes: [], edges: [] };
   }
   return {
-    nodes: getNodesFromGraph(topology, resourceTypes, view),
+    nodes: getNodesFromGraph(architecture, resourceTypes, view),
     edges: getEdgesFromGraph(topology),
   };
 }
