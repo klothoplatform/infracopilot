@@ -9,21 +9,23 @@ import { ConfigField } from "./ConfigField";
 
 type ConfigGroupProps = {
   qualifiedFieldName?: string;
+  valueSelector?: string;
   fields?: Property[];
   hidePrefix?: boolean;
 };
 
+const fieldDisplayFilter = (field: Property) =>
+  !field.deployTime && !field.configurationDisabled;
+
 export const ConfigGroup: FC<ConfigGroupProps> = ({
   qualifiedFieldName,
+  valueSelector,
   fields,
   hidePrefix,
 }) => {
   const rows: ReactNode[] = [];
 
-  const parentLength = qualifiedFieldName?.substring(
-    0,
-    qualifiedFieldName?.lastIndexOf("["),
-  ).length;
+  const parentLength = qualifiedFieldName?.split(".").length;
   fields
     ?.map((property) =>
       property.type === CollectionTypes.Map &&
@@ -32,22 +34,24 @@ export const ConfigGroup: FC<ConfigGroupProps> = ({
         : property,
     )
     .flat()
-    .filter((property) => !property.deployTime)
+    ?.filter(fieldDisplayFilter)
     .forEach((property: Property, index: number) => {
       rows.push(
-        <div key={index} className="h-fit max-w-full px-2">
+        <div key={index} className="h-fit max-w-full p-1">
           <ConfigField
             field={property}
-            id={
-              qualifiedFieldName?.includes("[")
-                ? `${qualifiedFieldName}.${property.name}`
-                : property.qualifiedName
-            }
+            qualifiedFieldName={`${
+              qualifiedFieldName ? qualifiedFieldName + "." : ""
+            }${property.name}`}
+            valueSelector={valueSelector}
             title={
               parentLength &&
               property.name !== property.qualifiedName &&
               hidePrefix
-                ? property.qualifiedName.substring(parentLength + 1)
+                ? property.qualifiedName
+                    .split(".")
+                    .slice(parentLength)
+                    .join(".")
                 : property.qualifiedName
             }
             required={property.required}

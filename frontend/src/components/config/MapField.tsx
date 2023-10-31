@@ -17,8 +17,12 @@ type MapProps = ConfigFieldProps & {
   removable?: boolean;
 };
 
-export const MapField: FC<MapProps> = ({ id, field, removable }) => {
-  id = id ?? field.qualifiedName;
+export const MapField: FC<MapProps> = ({
+  qualifiedFieldName,
+  field,
+  removable,
+}) => {
+  qualifiedFieldName = qualifiedFieldName ?? field.qualifiedName;
 
   const { register, control } = useFormContext();
 
@@ -26,7 +30,7 @@ export const MapField: FC<MapProps> = ({ id, field, removable }) => {
 
   useFieldArray({
     control,
-    name: id,
+    name: qualifiedFieldName,
     rules: { required: field.required, minLength: field.required ? 1 : 0 },
   });
 
@@ -34,13 +38,17 @@ export const MapField: FC<MapProps> = ({ id, field, removable }) => {
     keyType === PrimitiveTypes.String &&
     valueType === PrimitiveTypes.String
   ) {
-    return <PrimitiveMapEntry id={id} />;
+    return <PrimitiveMapEntry id={qualifiedFieldName} />;
   }
   if (keyType === PrimitiveTypes.String && valueType === CollectionTypes.Map) {
     return (
-      <ConfigSection id={id} title={field.qualifiedName} removable={removable}>
+      <ConfigSection
+        id={qualifiedFieldName}
+        title={field.qualifiedName}
+        removable={removable}
+      >
         <ConfigGroup
-          qualifiedFieldName={id}
+          qualifiedFieldName={qualifiedFieldName}
           fields={field.properties}
           hidePrefix
         />
@@ -54,9 +62,9 @@ export const MapField: FC<MapProps> = ({ id, field, removable }) => {
         "border-primary-500 dark:border-primary-400 border-2 rounded-lg dark:[&_input]:border-transparent [&_input]:border-transparent":
           false, //todo: isModified,
       })}
-      id={id}
+      id={qualifiedFieldName}
       readOnly={configurationDisabled}
-      {...register(id ?? "")}
+      {...register(qualifiedFieldName ?? "")}
     />
   );
 };
@@ -70,7 +78,6 @@ const PrimitiveMapEntry: FC<PrimitiveMapEntryProps> = ({ id }) => {
   const { fields, append, remove } = useFieldArray({
     control,
     name: id,
-    rules: { required: true, minLength: 1 },
   });
   return (
     <div className="flex w-full flex-col gap-1">

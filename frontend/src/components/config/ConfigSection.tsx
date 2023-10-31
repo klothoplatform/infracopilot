@@ -28,10 +28,13 @@ export const ConfigSection: FC<PropsWithChildren<ConfigSectionProps>> = ({
   return (
     <Accordion>
       <Accordion.Panel isOpen>
-        <Accordion.Title className={"px-2 py-1 text-sm"}>
-          <div className={"flex flex-row justify-between"}>
-            <div>{title ?? id}</div>
-          </div>
+        <Accordion.Title
+          title={title}
+          className={
+            "px-2 py-1 text-sm [&>h2]:overflow-hidden [&>h2]:text-ellipsis"
+          }
+        >
+          {title ?? id}
         </Accordion.Title>
         <>
           {removable && (
@@ -40,7 +43,7 @@ export const ConfigSection: FC<PropsWithChildren<ConfigSectionProps>> = ({
             </Button>
           )}
         </>
-        <Accordion.Content className={"px-0 py-2"}>
+        <Accordion.Content className={"px-0 py-2 [&>*:not(:last-child)]:mb-2"}>
           {children}
         </Accordion.Content>
       </Accordion.Panel>

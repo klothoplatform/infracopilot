@@ -1,5 +1,5 @@
 import React, { type FC } from "react";
-import { Checkbox, Table } from "flowbite-react";
+import { Table } from "flowbite-react";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
 import type { User } from "@auth0/auth0-react";

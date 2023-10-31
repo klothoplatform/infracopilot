@@ -46,9 +46,10 @@ export default function ResourceAccordion({
   const { mode } = useContext(ThemeContext);
   const provider = name.toLowerCase();
   const [options, setOptions] = React.useState<ResourceOption[]>([]);
-  const { resourceTypeKB } = useApplicationStore();
+  const { resourceTypeKB, isAuthenticated } = useApplicationStore();
 
   useEffect(() => {
+    if (!isAuthenticated) return;
     const filteredTypes = resourceTypeKB.getResourceTypes(resourceFilter);
     setOptions(
       Array.from(filteredTypes?.values() ?? [])
@@ -72,7 +73,15 @@ export default function ResourceAccordion({
           };
         }),
     );
-  }, [resourceTypeKB, resourceFilter, userFilter, provider, setOptions, mode]);
+  }, [
+    resourceTypeKB,
+    resourceFilter,
+    userFilter,
+    provider,
+    setOptions,
+    mode,
+    isAuthenticated,
+  ]);
 
   const [isOpen, setIsOpen] = React.useState(open);
   const [showResourceCount, setShowResourceCount] = React.useState(false);

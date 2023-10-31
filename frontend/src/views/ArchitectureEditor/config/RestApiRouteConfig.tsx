@@ -38,7 +38,7 @@ const RoutesField: ListProperty = {
   properties: [
     {
       name: "Method",
-      qualifiedName: "Method",
+      qualifiedName: "Routes.Method",
       type: PrimitiveTypes.Enum,
       required: true,
       allowedValues: [
@@ -54,7 +54,7 @@ const RoutesField: ListProperty = {
     } as EnumProperty,
     {
       name: "Path",
-      qualifiedName: "Path",
+      qualifiedName: "Routes.Path",
       type: PrimitiveTypes.String,
       required: true,
     } as Property,
@@ -161,7 +161,7 @@ export const RestApiFormStateBuilder = (
 export const RestApiRouteConfig: FC = (props) => {
   return (
     <ConfigSection id="Routes" title="Routes">
-      <ListField id="Routes" field={RoutesField} />
+      <ListField qualifiedFieldName="Routes" field={RoutesField} />
     </ConfigSection>
   );
 };

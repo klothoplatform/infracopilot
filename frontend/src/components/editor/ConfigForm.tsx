@@ -109,39 +109,45 @@ export default function ConfigForm() {
 
       constraints.push(...applyCustomizers(selectedResource, submittedValues));
 
-      console.log(constraints);
       if (!constraints.length) {
         return;
       }
       await applyConstraints(constraints);
     },
-    [architecture, dirtyFields, resourceType, selectedResource, touchedFields],
+    [
+      applyConstraints,
+      dirtyFields,
+      resourceType?.properties,
+      selectedResource,
+      touchedFields,
+    ],
   );
 
   return (
     <>
-      {resourceType?.properties?.length && (
+      {(resourceType?.properties?.length ?? 0) > 0 && (
         <FormProvider {...methods}>
-          <div className={"w-full pt-2"}>
-            <form onSubmit={methods.handleSubmit(submitConfigChanges)}>
-              <div className="h-[50vh] max-h-[50vh] overflow-auto [&>*:not(:last-child)]:mb-2">
-                <ConfigGroup fields={resourceType.properties} />
-                {selectedResource &&
-                  Object.entries(
-                    getCustomConfigSections(
-                      selectedResource.provider,
-                      selectedResource.type,
-                    ),
-                  ).map((entry, index) => {
-                    const Component = entry[1].component;
-                    return Component ? <Component key={index} /> : null;
-                  })}
-              </div>
-              <Button type="submit" color="purple" className="my-2 w-full">
-                Apply Changes
-              </Button>
-            </form>
-          </div>
+          <form
+            className="flex h-full w-full flex-col"
+            onSubmit={methods.handleSubmit(submitConfigChanges)}
+          >
+            <div className="w-full basis-[calc(100%-3rem)] overflow-auto pb-6 [&>*:not(:last-child)]:mb-2">
+              <ConfigGroup fields={resourceType?.properties} />
+              {selectedResource &&
+                Object.entries(
+                  getCustomConfigSections(
+                    selectedResource.provider,
+                    selectedResource.type,
+                  ),
+                ).map((entry, index) => {
+                  const Component = entry[1].component;
+                  return Component ? <Component key={index} /> : null;
+                })}
+            </div>
+            <Button type="submit" color="purple" className="my-2 w-full">
+              Apply Changes
+            </Button>
+          </form>
         </FormProvider>
       )}
     </>

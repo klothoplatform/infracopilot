@@ -532,11 +532,16 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
         false,
         "editor/applyConstraints:start",
       );
-      console.log("applying constraints", get().unappliedConstraints);
+      const allConstraints = [
+        ...get().unappliedConstraints,
+        ...(constraints ?? []),
+      ];
+      console.log("applying constraints", allConstraints);
+
       const newArchitecture = await applyConstraints(
         architecture.id,
         architecture.version,
-        [...get().unappliedConstraints, ...(constraints ?? [])],
+        allConstraints,
         await get().getIdToken(),
       );
       if (newArchitecture.failures.length > 0) {

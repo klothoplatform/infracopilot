@@ -26,7 +26,7 @@ interface NavbarSidebarLayoutProps {
 
 const NavbarSidebarLayout: FC<PropsWithChildren<NavbarSidebarLayoutProps>> =
   function ({ children, isFooter = true }) {
-    const { architecture } = useApplicationStore();
+    const { architecture, isAuthenticated } = useApplicationStore();
 
     const containerRef = useRef<HTMLDivElement>(null);
     const leftSidebarRef = useRef<HTMLDivElement>(null);
@@ -42,47 +42,51 @@ const NavbarSidebarLayout: FC<PropsWithChildren<NavbarSidebarLayoutProps>> =
 
     return (
       <SidebarProvider>
-        <Navbar>
-          <EditorNavContent />
-        </Navbar>
-        <div
-          className="flex h-[calc(100vh-5rem)] w-full gap-0 overflow-hidden bg-white dark:bg-gray-800"
-          ref={containerRef}
-        >
-          {architecture?.id && (
-            <>
-              <Resizable
-                containerRef={containerRef}
-                childRef={leftSidebarRef}
-                onResize={onResizeLeftSidebar}
-              >
-                <div
-                  ref={leftSidebarRef}
-                  className="mr-2 box-border flex min-w-[280px] max-w-[29%] shrink-0 grow-0 basis-[388px]"
+        <div className="flex h-[100vh] max-h-[100vh] w-[100vw] max-w-[100vw] flex-col">
+          <Navbar>
+            <EditorNavContent />
+          </Navbar>
+          <div
+            className="flex h-full w-full gap-0 overflow-hidden bg-gray-50 dark:bg-gray-800"
+            ref={containerRef}
+          >
+            {architecture?.id && (
+              <>
+                <Resizable
+                  containerRef={containerRef}
+                  childRef={leftSidebarRef}
+                  onResize={onResizeLeftSidebar}
                 >
-                  <EditorSidebarLeft resourceLayout={resourceLayout} />
-                </div>
-              </Resizable>
-              <div
-                className="grow-1 shrink-1 box-border flex w-full min-w-[30%] basis-10/12"
-                ref={rightSidebarRef}
-              >
-                <MainContent isFooter={isFooter}>{children}</MainContent>
-              </div>
-              <Resizable
-                containerRef={containerRef}
-                childRef={rightSidebarRef}
-                handleSide="left"
-              >
+                  <div
+                    ref={leftSidebarRef}
+                    className="box-border flex min-w-[280px] max-w-[29%] shrink-0 grow-0 basis-[388px]"
+                  >
+                    <EditorSidebarLeft resourceLayout={resourceLayout} />
+                  </div>
+                </Resizable>
                 <div
+                  className="grow-1 shrink-1 box-border flex w-full min-w-[30%] basis-10/12"
                   ref={rightSidebarRef}
-                  className="right-0 box-border flex h-full w-[25rem] min-w-[15%] max-w-[39%] shrink-0 grow-0"
                 >
-                  <EditorSidebarRight />
+                  {isAuthenticated && (
+                    <MainContent isFooter={isFooter}>{children}</MainContent>
+                  )}
                 </div>
-              </Resizable>
-            </>
-          )}
+                <Resizable
+                  containerRef={containerRef}
+                  childRef={rightSidebarRef}
+                  handleSide="left"
+                >
+                  <div
+                    ref={rightSidebarRef}
+                    className="right-0 box-border flex h-full w-[25rem] min-w-[15%] max-w-[39%] shrink-0 grow-0"
+                  >
+                    <EditorSidebarRight />
+                  </div>
+                </Resizable>
+              </>
+            )}
+          </div>
         </div>
       </SidebarProvider>
     );
@@ -144,7 +148,7 @@ export const Resizable: FC<PropsWithChildren<ResizableProps>> = function ({
       child.style.flexBasis = "auto";
       onResize?.(width.current);
     },
-    [containerRef, childRef, width, handleSide],
+    [containerRef, childRef, handleSide, onResize],
   );
 
   const handleDiv = (

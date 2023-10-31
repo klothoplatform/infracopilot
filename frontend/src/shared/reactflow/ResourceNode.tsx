@@ -47,8 +47,7 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
   const isSelected = selectedResource === data.resourceId;
   const [mouseOverNode, setMouseOverNode] = useState(false);
   // this could be a map by handle id
-  const [mouseOverHandle, setMouseOverHandle] = useState(false);
-  const showSourceHandle = !isConnecting && (mouseOverNode || mouseOverHandle);
+  const showSourceHandle = !isConnecting && mouseOverNode;
   const updateNodeInternals = useUpdateNodeInternals();
 
   const onClickResourceIcon = () => {
@@ -273,7 +272,7 @@ const EditableLabel: FC<EditableLabelProps> = ({ label, onSubmit }) => {
       <>
         {!isEditing && (
           <button
-            className="pointer-events-auto flex w-fit max-w-[210px] cursor-text justify-center border-[1px] border-gray-500/[0] border-opacity-0 px-1 hover:rounded-sm hover:border-gray-500 hover:bg-gray-100/20 dark:hover:bg-gray-700/20"
+            className="pointer-events-auto flex w-fit max-w-[210px] cursor-text justify-center border-[1px] border-gray-500/[0] px-1 hover:rounded-sm hover:border-gray-500 hover:bg-gray-100/20 dark:hover:bg-gray-700/20"
             onClick={() => {
               setIsEditing(true);
               setShouldSelectContent(true);

@@ -1,5 +1,3 @@
-import "./ArchitectureEditor.scss";
-
 import React from "react";
 import { ReactFlowProvider } from "reactflow";
 import "reactflow/dist/style.css";
@@ -10,10 +8,8 @@ import { ErrorOverlay } from "../../components/ErrorOverlay";
 function ArchitectureEditor() {
   return (
     <NavbarSidebarLayout isFooter={false}>
-      <div className="block items-center justify-between overflow-hidden border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800 sm:flex">
-        <div className={"my-2 h-[calc(100vh-5rem)] w-full"}>
-          {<EditorPane />}
-        </div>
+      <div className="flex h-full w-full flex-col items-center justify-between overflow-hidden border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800 sm:flex">
+        <EditorPane />
       </div>
       <ErrorOverlay />
     </NavbarSidebarLayout>

@@ -1,5 +1,5 @@
 import type { FC } from "react";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import type {
   EnumProperty,
@@ -16,104 +16,123 @@ import {
 import { Button, Checkbox, Textarea, TextInput } from "flowbite-react";
 import { HiMinusCircle, HiPlusCircle } from "react-icons/hi";
 import type { ConfigFieldProps } from "./ConfigField";
-import { EnumField, ResourceField } from "./ConfigField";
+import {
+  EnumField,
+  ErrorHelper,
+  findChildProperty,
+  ResourceField,
+} from "./ConfigField";
 import { ConfigSection } from "./ConfigSection";
 import { ConfigGroup } from "./ConfigGroup";
+import classNames from "classnames";
 
 type ListProps = ConfigFieldProps;
 
-export const ListField: FC<ListProps> = ({ id, field }) => {
-  id = id ?? field.qualifiedName;
+export const ListField: FC<ListProps> = ({ qualifiedFieldName, field }) => {
+  qualifiedFieldName = qualifiedFieldName ?? field.qualifiedName;
 
-  const { register, control } = useFormContext();
+  const { register, control, formState } = useFormContext();
   const { fields, append, remove } = useFieldArray({
     control,
-    name: id,
-    rules: { required: field.required, minLength: field.required ? 1 : 0 },
+    name: qualifiedFieldName,
+    rules: {
+      required:
+        field.required && `${qualifiedFieldName} must have at least one entry.`,
+    },
   });
-
+  const { errors } = formState;
+  const error = findChildProperty(errors, qualifiedFieldName);
   const { configurationDisabled, itemType, properties } = field as ListProperty;
 
   if (isPrimitive(itemType)) {
     return (
-      <div className="flex flex-col gap-1">
-        {fields.map((formField, index) => {
-          return (
-            <PrimitiveListItem
-              key={index}
-              index={index}
-              id={`${id}[${index}].value`}
-              type={itemType}
-              required={field.required}
-              resourceTypes={(field as ResourceProperty).resourceTypes}
-              allowedValues={(field as EnumProperty).allowedValues}
-              readOnly={configurationDisabled}
-              remove={remove}
-            />
-          );
-        })}
-        {!configurationDisabled && (
-          <Button
-            className={"mt-1 w-fit"}
-            size="sm"
-            color="purple"
-            onClick={() => {
-              append({ value: "" });
-            }}
-          >
-            <HiPlusCircle />
-          </Button>
-        )}
-      </div>
+      <ErrorHelper error={error}>
+        <div
+          className={classNames("flex flex-col gap-1", {
+            "block w-full border disabled:cursor-not-allowed disabled:opacity-50 border-red-500 bg-red-50 text-red-900 placeholder-red-700 focus:border-red-500 focus:ring-red-500 dark:border-red-400 dark:bg-red-100 dark:focus:border-red-500 dark:focus:ring-red-500 p-2 sm:text-xs rounded-lg":
+              error,
+          })}
+        >
+          {fields.map((formField, index) => {
+            return (
+              <PrimitiveListItem
+                key={formField.id}
+                index={index}
+                qualifiedFieldName={`${qualifiedFieldName}[${index}]`}
+                type={itemType}
+                required={field.required}
+                resourceTypes={(field as ResourceProperty).resourceTypes}
+                allowedValues={(field as EnumProperty).allowedValues}
+                readOnly={configurationDisabled}
+                remove={remove}
+              />
+            );
+          })}
+          {!configurationDisabled && (
+            <Button
+              className={"mt-1 w-fit"}
+              size="sm"
+              color="purple"
+              onClick={() => {
+                append({ value: "" });
+              }}
+            >
+              <HiPlusCircle />
+            </Button>
+          )}
+        </div>
+      </ErrorHelper>
     );
   }
 
   if (isCollection(itemType)) {
     return (
-      <div className="flex flex-col gap-1">
-        {fields.map((formField, index) => {
-          return (
-            <CollectionListItem
-              key={index}
-              index={index}
-              id={`${id}[${index}]`}
-              type={itemType}
-              properties={properties}
-              required={field.required}
-              readOnly={field.configurationDisabled}
-              remove={remove}
-            />
-          );
-        })}
-        {!configurationDisabled && (
-          <Button
-            size="sm"
-            className={"ml-2 mt-1 h-fit w-fit"}
-            color="purple"
-            onClick={() => {
-              append({});
-            }}
-          >
-            <HiPlusCircle />
-          </Button>
-        )}
-      </div>
+      <ErrorHelper error={error}>
+        <div className="flex flex-col gap-1">
+          {fields.map((formField, index) => {
+            return (
+              <CollectionListItem
+                key={formField.id}
+                index={index}
+                qualifiedFieldName={`${qualifiedFieldName}[${index}]`}
+                type={itemType}
+                properties={properties}
+                required={field.required}
+                readOnly={field.configurationDisabled}
+                remove={remove}
+              />
+            );
+          })}
+          {!configurationDisabled && (
+            <Button
+              size="sm"
+              className={"mt-1 h-fit w-fit"}
+              color="purple"
+              onClick={() => {
+                append({});
+              }}
+            >
+              <HiPlusCircle />
+            </Button>
+          )}
+        </div>
+      </ErrorHelper>
     );
   }
 
   console.warn(`Unknown property type: ${itemType}`);
   return (
     <Textarea
-      id={id}
+      id={qualifiedFieldName}
       readOnly={configurationDisabled}
-      {...register(id ?? "")}
+      {...register(qualifiedFieldName ?? "")}
     />
   );
 };
 
 const PrimitiveListItem: FC<{
   index: number;
-  id: string;
+  qualifiedFieldName: string;
   type: PrimitiveTypes;
   allowedValues?: string[];
   resourceTypes?: string[];
@@ -122,7 +141,7 @@ const PrimitiveListItem: FC<{
   remove: (index: number) => void;
 }> = ({
   index,
-  id,
+  qualifiedFieldName,
   type,
   allowedValues,
   resourceTypes,
@@ -130,7 +149,17 @@ const PrimitiveListItem: FC<{
   readOnly,
   remove,
 }) => {
-  const { register } = useFormContext();
+  const id = `${qualifiedFieldName}.value`;
+  const { register, formState } = useFormContext();
+  const { errors } = formState;
+  const [error, setError] = useState<any>();
+
+  useEffect(() => {
+    const error = errors[qualifiedFieldName as string];
+    if (error) {
+      setError(error);
+    }
+  }, [errors, qualifiedFieldName]);
   let item: React.ReactNode;
   switch (type) {
     case PrimitiveTypes.String:
@@ -139,7 +168,10 @@ const PrimitiveListItem: FC<{
           sizing={"sm"}
           className={"w-full"}
           id={id}
-          {...register(id)}
+          helperText={error && <span>{error.message?.toString()}</span>}
+          {...register(id, {
+            required: required && `${qualifiedFieldName} is required.`,
+          })}
         />
       );
       break;
@@ -150,32 +182,48 @@ const PrimitiveListItem: FC<{
           sizing={"sm"}
           className={"w-full"}
           id={id}
-          {...register(id)}
+          {...register(id, {
+            required: required && `${qualifiedFieldName} is required.`,
+          })}
           type={"number"}
           {...(type === PrimitiveTypes.Integer ? { step: "1" } : {})}
+          helperText={error && <span>{error.message?.toString()}</span>}
         />
       );
       break;
     case PrimitiveTypes.Boolean:
-      item = <Checkbox id={id} {...register(id)} />;
+      item = (
+        <ErrorHelper error={error}>
+          <Checkbox
+            id={id}
+            {...register(id, {
+              required: required && `${qualifiedFieldName} is required.`,
+            })}
+          />
+        </ErrorHelper>
+      );
       break;
     case PrimitiveTypes.Resource:
       item = (
         <ResourceField
-          id={id}
+          qualifiedFieldName={qualifiedFieldName}
+          valueSelector={".value"}
           readOnly={readOnly}
           required={required}
           resourceTypes={resourceTypes}
+          error={error}
         />
       );
       break;
     case PrimitiveTypes.Enum:
       item = (
         <EnumField
-          id={id}
+          qualifiedFieldName={qualifiedFieldName}
+          valueSelector={".value"}
           allowedValues={allowedValues}
           readOnly={readOnly}
           required={required}
+          error={error}
         />
       );
       break;
@@ -201,27 +249,44 @@ const PrimitiveListItem: FC<{
 
 const CollectionListItem: FC<{
   index: number;
-  id: string;
+  qualifiedFieldName: string;
   type: CollectionTypes;
   properties?: Property[];
   readOnly?: boolean;
   required?: boolean;
   remove: (index: number) => void;
-}> = ({ index, id, type, properties, readOnly, required, remove }) => {
+}> = ({
+  index,
+  qualifiedFieldName,
+  type,
+  properties,
+  readOnly,
+  required,
+  remove,
+}) => {
   let item: React.ReactNode;
   switch (type) {
     case CollectionTypes.Map:
       item = (
-        <ConfigSection id={id}>
-          <ConfigGroup qualifiedFieldName={id} fields={properties} hidePrefix />
+        <ConfigSection id={qualifiedFieldName}>
+          <ConfigGroup
+            qualifiedFieldName={qualifiedFieldName}
+            fields={properties}
+            hidePrefix
+          />
         </ConfigSection>
       );
       break;
     case CollectionTypes.Set:
     case CollectionTypes.List:
       item = (
-        <ConfigSection id={id}>
-          <ConfigGroup qualifiedFieldName={id} fields={properties} hidePrefix />
+        <ConfigSection id={qualifiedFieldName}>
+          <ConfigGroup
+            qualifiedFieldName={qualifiedFieldName}
+            valueSelector={".value"}
+            fields={properties}
+            hidePrefix
+          />
         </ConfigSection>
       );
       break;

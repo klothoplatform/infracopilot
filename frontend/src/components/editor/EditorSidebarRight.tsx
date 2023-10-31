@@ -48,7 +48,7 @@ const EditorSidebarRight = forwardRef(
   (props, ref: ForwardedRef<HTMLDivElement>) => {
     return (
       <Sidebar aria-label="Sidebar" collapsed={false} theme={sidebarTheme}>
-        <div className="flex h-full flex-col justify-between py-2">
+        <div className="flex h-full flex-col justify-between overflow-hidden py-2">
           <SidebarTabs />
         </div>
       </Sidebar>
@@ -88,6 +88,7 @@ function SidebarTabs() {
   return (
     <>
       <Tabs.Group
+        className="h-full"
         aria-label="Activity Sidebar"
         /* eslint-disable-next-line react/style-prop-object */
         style={"fullWidth"}
@@ -150,7 +151,12 @@ const Details: FC = function () {
           ]);
         }}
       >
-        <Tabs.Item active title="Config" icon={HiCog6Tooth}>
+        <Tabs.Item
+          className="h-full max-h-full overflow-y-auto"
+          active
+          title="Config"
+          icon={HiCog6Tooth}
+        >
           <ResourceIdHeader
             resourceId={selectedResource}
             edgeId={selectedEdge}

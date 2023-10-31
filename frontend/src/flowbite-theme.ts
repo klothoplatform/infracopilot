@@ -1,37 +1,6 @@
 import type { CustomFlowbiteTheme } from "flowbite-react";
 
 const flowbiteTheme: CustomFlowbiteTheme = {
-  accordion: {
-    root: {
-      base: "divide-y divide-gray-200 border-gray-200 dark:divide-gray-700 dark:border-gray-700",
-      flush: {
-        off: "rounded-lg border",
-        on: "border-b",
-      },
-    },
-    content: {
-      base: "py-5 px-5 last:rounded-b-lg dark:bg-gray-900 first:rounded-t-lg",
-    },
-    title: {
-      arrow: {
-        base: "h-6 w-6 shrink-0",
-        open: {
-          off: "",
-          on: "rotate-180",
-        },
-      },
-      base: "flex w-full items-center justify-between first:rounded-t-lg last:rounded-b-lg py-5 px-5 text-left font-medium text-gray-500 dark:text-gray-400",
-      flush: {
-        off: "hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:hover:bg-gray-800 dark:focus:ring-gray-800",
-        on: "bg-transparent dark:bg-transparent",
-      },
-      heading: "w-full",
-      open: {
-        off: "",
-        on: "text-gray-900 bg-gray-100 dark:bg-gray-800 dark:text-white",
-      },
-    },
-  },
   alert: {
     wrapper:
       "max-w-full flex items-center [&_div]:max-w-full [&_div]:overflow-hidden",
@@ -149,19 +118,23 @@ const flowbiteTheme: CustomFlowbiteTheme = {
   },
   tab: {
     tablist: {
+      base: "max-h-12 bg-transparent",
       tabitem: {
         styles: {
           fullWidth: {
-            base: "rounded-t-lg",
+            base: "rounded-t-lg max-h-12 focus:ring-primary-300",
             active: {
-              on: "bg-primary-600 text-white dark:bg-primary-700 dark:white",
-              off: "text-gray-500 hover:bg-gray-50 hover:text-gray-600 dark:text-gray-400 dark:hover:bg-gray-800  dark:hover:text-gray-300",
+              on: "bg-primary-600 text-white dark:bg-primary-700 dark:white active:border-primary-300",
+              off: "text-gray-500 hover:bg-gray-50 hover:text-gray-600 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-300",
             },
           },
         },
       },
     },
-    tabpanel: "py-3 h-full",
+    tabpanel: "h-[calc(100%-5.25rem)]",
+    tabitemcontainer: {
+      base: "h-full",
+    },
   },
   table: {
     row: {

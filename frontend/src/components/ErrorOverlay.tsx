@@ -31,17 +31,13 @@ export const ErrorOverlay: FC = () => {
 
   return (
     <div
-      className={classNames("fixed inset-0 z-[1001] pointer-events-none", {
+      className={classNames("fixed inset-0 z-[1001] pointer-events-none p-2", {
         hidden: !errors.length,
       })}
     >
       <div
         className={classNames(
-          "mx-auto mt-24 flex h-fit max-h-[50vh] w-fit flex-col justify-start gap-1 overflow-y-auto",
-          {
-            "rounded bg-gray-100/90 p-2 drop-shadow-lg border-[1px] border-gray-300 dark:bg-gray-900 dark:border-gray-700":
-              errors.length > 1,
-          },
+          "mx-auto mt-24 flex h-fit max-h-[50vh] w-fit flex-col justify-start gap-1 overflow-y-auto p-2 rounded bg-gray-100/95 p-2 drop-shadow-lg border-[1px] border-gray-300 dark:bg-gray-900/95 dark:border-gray-700",
         )}
       >
         {currentErrors.map((error) => (
@@ -71,8 +67,8 @@ const ErrorToast: FC<{
   onRemove: (id: string) => void;
 }> = ({ error, onRemove }) => {
   return (
-    <Toast className="pointer-events-auto p-2">
-      <div className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-red-100 text-red-500 dark:bg-red-800 dark:text-red-200 ">
+    <Toast className="pointer-events-auto rounded-lg p-2">
+      <div className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-red-100 text-red-500 dark:bg-red-800 dark:text-red-200">
         <HiExclamationCircle className="h-5 w-5" />
       </div>
       <div className="ml-3 text-sm font-normal">{error.message}</div>

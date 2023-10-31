@@ -235,7 +235,7 @@ const EditableLabel: FC<EditableLabelProps> = ({
     >
       <>
         {!isEditing && (
-          <div className="line-clamp-2 rounded-sm border-[1px] border-gray-500/[0] border-opacity-0 px-1 font-semibold hover:border-gray-500 hover:bg-gray-100/20 dark:hover:bg-gray-700/20">
+          <div className="line-clamp-2 rounded-sm border-[1px] border-gray-500/[0] px-1 font-semibold hover:border-gray-500 hover:bg-gray-100/20 dark:hover:bg-gray-700/20">
             {label}
           </div>
         )}

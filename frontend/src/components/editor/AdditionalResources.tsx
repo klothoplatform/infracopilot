@@ -61,7 +61,7 @@ function AdditionalResources() {
         })
         .filter((e) => e !== null),
     );
-  }, [nodes, edges, selectedResource, selectedEdge]);
+  }, [nodes, edges, selectedResource, selectedEdge, architecture, mode]);
 
   return (
     <Card className="drop-shadow-xs overflow-auto">

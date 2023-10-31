@@ -1,7 +1,4 @@
-import type {
-  Constraint,
-  ConstraintScope,
-} from "../shared/architecture/Constraints";
+import type { Constraint } from "../shared/architecture/Constraints";
 import { formatConstraints } from "../shared/architecture/Constraints";
 import type { Architecture } from "../shared/architecture/Architecture";
 import { parseArchitecture } from "../shared/architecture/Architecture";
