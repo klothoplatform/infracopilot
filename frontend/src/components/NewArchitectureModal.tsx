@@ -1,6 +1,6 @@
 import { Button, Label, Modal, TextInput } from "flowbite-react";
 import { useForm } from "react-hook-form";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import createArchitecture from "../api/CreateArchitecture";
 import useApplicationStore from "../views/store/ApplicationStore";
 import { useNavigate } from "react-router-dom";
@@ -64,6 +64,20 @@ export default function NewArchitectureModal({
       setShouldSelectDefaultValue(true);
     }
   }, [show]);
+
+  useEffect(() => {
+    const handleEsc = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        reset();
+        onClose?.();
+      }
+    };
+    window.addEventListener("keydown", handleEsc);
+
+    return () => {
+      window.removeEventListener("keydown", handleEsc);
+    };
+  }, [onClose, reset]);
 
   return (
     <Modal
