@@ -1,7 +1,9 @@
 import json
 import logging
 import os
+import shutil
 import subprocess
+from pathlib import Path
 
 from src.engine_service.binaries.fetcher import (
     engine_executable_path,
@@ -9,6 +11,8 @@ from src.engine_service.binaries.fetcher import (
 )
 
 log = logging.getLogger()
+
+CAPTURE_ENGINE_FAILURES = os.getenv("CAPTURE_ENGINE_FAILURES", False)
 
 
 class EngineException(Exception):
@@ -79,11 +83,13 @@ async def run_engine_command(*args, **kwargs) -> tuple[str, str]:
         log.error("engine error:\n%s", err_logs)
 
     if result.returncode != 0:
+        capture_failure("failures/engine", cmd, cwd, err_logs)
         raise EngineException(
             f"Engine {cmd} returned non-zero exit code: {result.returncode}",
             out_logs,
             err_logs,
         )
+
     return out_logs, err_logs
 
 
@@ -109,9 +115,28 @@ async def run_iac_command(*args, **kwargs) -> tuple[str, str]:
         log.error("iac error:\n%s", err_logs)
 
     if result.returncode != 0:
+        capture_failure("failures/iac", cmd, cwd, err_logs)
         raise EngineException(
             f"Engine {cmd} returned non-zero exit code: {result.returncode}",
             out_logs,
             err_logs,
         )
     return out_logs, err_logs
+
+
+def capture_failure(failures_dir: Path | str, cmd: list, cwd: Path, err_logs: str):
+    if not CAPTURE_ENGINE_FAILURES:
+        return
+
+    failures_dir = Path(failures_dir)
+    capture_dir = failures_dir / cwd.name
+    failures_dir.mkdir(parents=True, exist_ok=True)
+    with open(cwd / "engine_err.log", "w") as file:
+        file.write("Original Command:\n" + " ".join(cmd) + "\n\n")
+        file.write(
+            "Replay Command:\n"
+            + " ".join(cmd).replace(str(cwd), str(capture_dir.absolute()))
+            + "\n\n"
+        )
+        file.write(err_logs)
+    shutil.copytree(cwd, capture_dir)
