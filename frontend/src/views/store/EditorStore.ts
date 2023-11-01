@@ -28,6 +28,7 @@ import type { Constraint } from "../../shared/architecture/Constraints";
 import {
   ApplicationConstraint,
   ConstraintOperator,
+  ConstraintScope,
   EdgeConstraint,
   parseConstraints,
   ResourceConstraint,
@@ -544,24 +545,25 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
         allConstraints,
         await get().getIdToken(),
       );
-      if (newArchitecture.failures.length > 0) {
-        console.log(newArchitecture.failures);
-        const failures = [
-          new Failure(get().unappliedConstraints, newArchitecture.failures),
-        ];
-        console.log("failures that we should be setting", failures);
-        await get().refreshArchitecture(get().architecture.id);
-        set(
-          {
-            unappliedConstraints: [],
-            canApplyConstraints: true,
-            failures: failures,
-          },
-          false,
-          "editor/applyConstraints:error",
-        );
-        return;
-      }
+      // TODO: look into enabling this again once we have decisions in the engine again
+      // if (newArchitecture.failures.length > 0) {
+      //   console.log(newArchitecture.failures);
+      //   const failures = [
+      //     new Failure(get().unappliedConstraints, newArchitecture.failures),
+      //   ];
+      //   console.log("failures that we should be setting", failures);
+      //   await get().refreshArchitecture(get().architecture.id);
+      //   set(
+      //     {
+      //       unappliedConstraints: [],
+      //       canApplyConstraints: true,
+      //       failures: failures,
+      //     },
+      //     false,
+      //     "editor/applyConstraints:error",
+      //   );
+      //   return;
+      // }
       console.log("new architecture", newArchitecture);
       const elements = toReactFlowElements(
         newArchitecture,
@@ -573,17 +575,49 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
         elements.edges,
         get().layoutOptions,
       );
-      const decision = new Decision(
-        get().unappliedConstraints,
-        newArchitecture.decisions,
-      );
+      // TODO: look into enabling this again once we have decisions in the engine again
+      // const decision = new Decision(
+      //   get().unappliedConstraints,
+      //   newArchitecture.decisions,
+      // );
+
+      // temporary workaround for decisions
+      const groupByKey = (list: any[], key: string) =>
+        list.reduce(
+          (hash, obj) => ({
+            ...hash,
+            [obj[key]]: (hash[obj[key]] || []).concat(obj),
+          }),
+          {},
+        );
+      const constraintsByScope = groupByKey(allConstraints, "scope");
+      const decisions = Object.entries(constraintsByScope)
+        .map(([scope, constraints]) => {
+          constraints = constraints as Constraint[];
+          if (scope === ConstraintScope.Resource) {
+            const uniqueResourceConstraints = [
+              ...new Map(
+                (constraints as ResourceConstraint[]).map((item) => [
+                  item.target.toString(),
+                  item,
+                ]),
+              ).values(),
+            ];
+            return uniqueResourceConstraints.map(
+              (c) => new Decision([c], architecture.decisions),
+            );
+          }
+          return [
+            new Decision(constraints as Constraint[], architecture.decisions),
+          ];
+        })
+        .flat();
+
       set(
         {
           nodes: result.nodes,
           edges: result.edges,
-          decisions: newArchitecture.decisions
-            ? [decision].concat(get().decisions)
-            : get().decisions,
+          decisions: decisions.concat(get().decisions),
           failures: [],
           unappliedConstraints: [],
           canApplyConstraints: true,

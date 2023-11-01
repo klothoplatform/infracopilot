@@ -29,8 +29,13 @@ import { ConfigGroup } from "../config/ConfigGroup";
 import type { NodeId } from "../../shared/architecture/TopologyNode";
 
 export default function ConfigForm() {
-  const { selectedResource, resourceTypeKB, architecture, applyConstraints } =
-    useApplicationStore();
+  const {
+    selectedResource,
+    resourceTypeKB,
+    architecture,
+    applyConstraints,
+    addError,
+  } = useApplicationStore();
 
   let resourceType: ResourceType | undefined;
   if (selectedResource) {
@@ -52,7 +57,7 @@ export default function ConfigForm() {
       : {},
   });
   const formState = methods.formState;
-  const { dirtyFields, touchedFields, isSubmitSuccessful } = formState;
+  const { defaultValues, dirtyFields, isSubmitSuccessful } = formState;
 
   useEffect(() => {
     if (!isSubmitSuccessful) {
@@ -80,32 +85,37 @@ export default function ConfigForm() {
 
   const submitConfigChanges: SubmitHandler<any> = useCallback(
     async (submittedValues: any) => {
-      console.log(submittedValues);
-      console.log(dirtyFields);
-      console.log(touchedFields);
       if (!selectedResource) {
         return;
       }
 
+      console.log("submitting config changes");
+
+      const modifiedFormFields = getModifiedFormFields(
+        submittedValues,
+        defaultValues,
+        dirtyFields,
+        resourceType?.properties,
+      );
+
+      const modifiedRootProperties = Object.fromEntries(
+        [...modifiedFormFields.keys()].map((key) => {
+          const rootKey = key.split(".", 2)[0].replaceAll(/\[\d+]/g, "");
+          const value = submittedValues[rootKey];
+          return [rootKey, value];
+        }),
+      );
+
       const constraints: Constraint[] = Object.entries(
-        toMetadata(submittedValues, resourceType?.properties) as any,
-      )
-        .map(([key, value]) => {
-          return {
-            property: key,
-            value: value,
-            modified: dirtyFields[key] || touchedFields[key],
-          };
-        })
-        .filter((prop) => prop.modified)
-        .map((prop): ResourceConstraint => {
-          return new ResourceConstraint(
-            ConstraintOperator.Equals,
-            selectedResource,
-            prop.property,
-            prop.value,
-          );
-        });
+        toMetadata(modifiedRootProperties, resourceType?.properties) as any,
+      ).map(([key, value]): ResourceConstraint => {
+        return new ResourceConstraint(
+          ConstraintOperator.Equals,
+          selectedResource,
+          key,
+          value,
+        );
+      });
 
       constraints.push(...applyCustomizers(selectedResource, submittedValues));
 
@@ -115,11 +125,12 @@ export default function ConfigForm() {
       await applyConstraints(constraints);
     },
     [
+      addError,
       applyConstraints,
+      defaultValues,
       dirtyFields,
       resourceType?.properties,
       selectedResource,
-      touchedFields,
     ],
   );
 
@@ -257,4 +268,120 @@ function applyCustomizers(resourceId: NodeId, state: any): Constraint[] {
     }
   });
   return constraints;
+}
+
+/**
+ getModifiedFormFields returns a map of qualified field name to value of all form fields that have been modified from their default values.
+ each entry represents the deepest nested field that has been modified.
+ only fields that are either primitive types or have primitive value/item types are considered.
+ the qualified field name is the dot-separated path to the field from the root of the form. List and Set items are indexed by their position in the collection.
+ the value is the primitive nested value of the field. if the field is a collection, the value is the nested value of the first item.
+
+ e.g. for the following form fields:
+ {
+ "a": 1,
+ "b": {
+ "c": 2,
+ "d": [
+ {
+ "e": 3,
+ "f": 4
+ }
+ ],
+ "g": {
+ "h": 5,
+ "i": 6
+ }
+ },
+ }
+ }
+
+ returns the following map:
+ {
+ "a": 1,
+ "b.c": 2,
+ "b.d[0].e": 3,
+ "b.d[0].f": 4,
+ "b.g.h": 5,
+ "b.g.i": 6
+ }
+
+ */
+function getModifiedFormFields(
+  formFields: any,
+  defaultValues: any,
+  dirtyFields: any,
+  resourceFields: Property[] = [],
+  parentKey?: string,
+): Map<string, any> {
+  const modifiedFormFields = new Map<string, any>();
+  Object.keys(dirtyFields).forEach((key) => {
+    const fieldValue = formFields?.[key];
+    const defaultValue = defaultValues?.[key];
+    const dirtyField = dirtyFields?.[key];
+    const resourceField = resourceFields.find(
+      (field) => field.name === key.replaceAll(/\[\d+]/g, ""),
+    );
+    const qualifiedKey = parentKey ? `${parentKey}.${key}` : key;
+    if (!resourceField) {
+      return;
+    }
+    // ignore non-dirty fields
+    if (!dirtyField || (Array.isArray(dirtyField) && !dirtyField.length)) {
+      return;
+    }
+
+    if (resourceField.type === CollectionTypes.Map) {
+      if (isCollection((resourceField as MapProperty).valueType)) {
+        getModifiedFormFields(
+          fieldValue,
+          defaultValue,
+          dirtyField,
+          resourceField.properties,
+          qualifiedKey,
+        ).forEach((value, key) => {
+          modifiedFormFields.set(key, value);
+        });
+      } else {
+        dirtyField.forEach((item: any, index: number) => {
+          if (!item?.["key"] && !item?.["value"]) {
+            return;
+          }
+          modifiedFormFields.set(`${qualifiedKey}[${index}]`, {
+            key: fieldValue[index]?.["key"],
+            value: fieldValue[index]?.["value"],
+          });
+        });
+      }
+    } else if (
+      resourceField.type === CollectionTypes.List ||
+      resourceField.type === CollectionTypes.Set
+    ) {
+      if (isCollection((resourceField as ListProperty).itemType)) {
+        dirtyField.forEach((item: any, index: number) => {
+          getModifiedFormFields(
+            fieldValue?.[index],
+            defaultValue?.[index],
+            dirtyField[index],
+            resourceField.properties,
+            `${qualifiedKey}[${index}]`,
+          ).forEach((value, key) => {
+            modifiedFormFields.set(key, value);
+          });
+        });
+      } else {
+        dirtyField.forEach((item: any, index: number) => {
+          if (!item?.["value"]) {
+            return;
+          }
+          modifiedFormFields.set(`${qualifiedKey}[${index}]`, {
+            value: fieldValue[index]?.["value"],
+          });
+        });
+      }
+    } else {
+      modifiedFormFields.set(qualifiedKey, fieldValue);
+    }
+  });
+  return modifiedFormFields;
 }

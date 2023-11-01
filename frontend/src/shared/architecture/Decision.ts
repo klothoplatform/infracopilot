@@ -8,9 +8,9 @@ export class Decision {
   constructor(constraints: Constraint[], json: any[]) {
     this.constraints = constraints;
     let res: any[] = [];
-    if (json != undefined) {
+    if (json) {
       json.forEach((j) => {
-        if (j.Resources == undefined) {
+        if (!j.Resources) {
           return;
         }
         res = res.concat(j.Resources);
@@ -67,7 +67,7 @@ export class Failure {
 
   formatTitle(): string {
     return this.constraints
-      .map((c) => c.tofailureMessage())
+      .map((c) => c.toFailureMessage())
       .join(", ")
       .replace(/:$/g, "");
   }

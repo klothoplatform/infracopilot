@@ -1,5 +1,5 @@
 import type { FC } from "react";
-import React, { useEffect, useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import type {
   EnumProperty,
@@ -25,11 +25,13 @@ import {
 import { ConfigSection } from "./ConfigSection";
 import { ConfigGroup } from "./ConfigGroup";
 import classNames from "classnames";
+import { env } from "../../shared/environment";
+import { BiSolidHand, BiSolidPencil } from "react-icons/bi";
 
 type ListProps = ConfigFieldProps;
 
 export const ListField: FC<ListProps> = ({ qualifiedFieldName, field }) => {
-  qualifiedFieldName = qualifiedFieldName ?? field.qualifiedName;
+  qualifiedFieldName = qualifiedFieldName ?? "UNKNOWN-LIST";
 
   const { register, control, formState } = useFormContext();
   const { fields, append, remove } = useFieldArray({
@@ -153,6 +155,7 @@ const PrimitiveListItem: FC<{
   const { register, formState } = useFormContext();
   const { errors } = formState;
   const [error, setError] = useState<any>();
+  const { touchedFields, dirtyFields } = formState;
 
   useEffect(() => {
     const error = errors[qualifiedFieldName as string];
@@ -231,19 +234,35 @@ const PrimitiveListItem: FC<{
       console.warn(`Unknown property type: ${type}`);
   }
   return (
-    <div className="my-[.1rem] flex w-full flex-row gap-1">
-      <div className="w-full">{item}</div>
-      <Button
-        className={"w-6"}
-        size={"md"}
-        color="red"
-        onClick={() => {
-          remove(index);
-        }}
-      >
-        <HiMinusCircle />
-      </Button>
-    </div>
+    <Fragment key={index}>
+      {env.debug.has("config-state") && (
+        <div className={"flex flex-row"}>
+          {findChildProperty(touchedFields, id) === true && (
+            <span className={"inline-flex text-blue-500"}>
+              <BiSolidHand />
+            </span>
+          )}
+          {findChildProperty(dirtyFields, id) === true && (
+            <span className={"inline-flex text-yellow-700"}>
+              <BiSolidPencil />
+            </span>
+          )}
+        </div>
+      )}
+      <div className="my-[.1rem] flex w-full flex-row gap-1">
+        <div className="w-full">{item}</div>
+        <Button
+          className={"w-6"}
+          size={"md"}
+          color="red"
+          onClick={() => {
+            remove(index);
+          }}
+        >
+          <HiMinusCircle />
+        </Button>
+      </div>
+    </Fragment>
   );
 };
 

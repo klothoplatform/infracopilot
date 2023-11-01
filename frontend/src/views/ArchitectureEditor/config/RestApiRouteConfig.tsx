@@ -34,7 +34,7 @@ const RoutesField: ListProperty = {
   itemType: CollectionTypes.Map,
   configurationDisabled: false,
   deployTime: false,
-  required: true,
+  required: false,
   properties: [
     {
       name: "Method",

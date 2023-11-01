@@ -4,8 +4,9 @@ import type { Auth0ContextInterface, User } from "@auth0/auth0-react";
 import type { ErrorStore } from "./ErrorStore";
 import { listArchitectures } from "../../api/ListArchitectures";
 import { analytics } from "../../App";
+import { env } from "../../shared/environment";
 
-const logoutUrl = process.env.REACT_APP_AUTH0_LOGOUT_URL;
+const logoutUrl = env.auth0.logoutUrl;
 
 export interface UserStoreState {
   architectures: Architecture[];

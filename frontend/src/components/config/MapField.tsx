@@ -1,5 +1,5 @@
 import type { FC } from "react";
-import React from "react";
+import React, { Fragment } from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import type { MapProperty } from "../../shared/resources/ResourceTypes";
 import {
@@ -10,8 +10,11 @@ import { Button, Textarea, TextInput } from "flowbite-react";
 import { HiMinusCircle, HiPlusCircle } from "react-icons/hi";
 import classNames from "classnames";
 import type { ConfigFieldProps } from "./ConfigField";
+import { findChildProperty } from "./ConfigField";
 import { ConfigSection } from "./ConfigSection";
 import { ConfigGroup } from "./ConfigGroup";
+import { env } from "../../shared/environment";
+import { BiSolidHand, BiSolidPencil } from "react-icons/bi";
 
 type MapProps = ConfigFieldProps & {
   removable?: boolean;
@@ -22,7 +25,7 @@ export const MapField: FC<MapProps> = ({
   field,
   removable,
 }) => {
-  qualifiedFieldName = qualifiedFieldName ?? field.qualifiedName;
+  qualifiedFieldName = qualifiedFieldName ?? "UNKNOWN-MAP";
 
   const { register, control } = useFormContext();
 
@@ -74,39 +77,80 @@ type PrimitiveMapEntryProps = {
 };
 
 const PrimitiveMapEntry: FC<PrimitiveMapEntryProps> = ({ id }) => {
-  const { register, control } = useFormContext();
+  const { register, control, formState } = useFormContext();
   const { fields, append, remove } = useFieldArray({
     control,
     name: id,
   });
+  const { dirtyFields, touchedFields, errors } = formState;
+  const error = findChildProperty(errors, id);
   return (
     <div className="flex w-full flex-col gap-1">
       {fields.map((field, index) => {
         return (
-          <div key={field.id} className="my-[.1rem] flex flex-row gap-1">
-            <TextInput
-              sizing={"sm"}
-              className={"w-[50%]"}
-              id={`${id}[${index}].key`}
-              {...register(`${id}[${index}].key`)}
-            />
-            <TextInput
-              sizing={"sm"}
-              className={"w-[50%]"}
-              id={`${id}[${index}].value`}
-              {...register(`${id}[${index}].value`)}
-            />
-            <Button
-              className={"h-full w-8"}
-              color={"red"}
-              size={"md"}
-              onClick={() => {
-                remove(index);
-              }}
-            >
-              <HiMinusCircle />
-            </Button>
-          </div>
+          <Fragment key={field.id}>
+            {env.debug.has("config-state") && (
+              <div className={"flex flex-row justify-between"}>
+                <div>
+                  {findChildProperty(touchedFields, `${id}[${index}].key`) ===
+                    true && (
+                    <span className={"inline-flex text-blue-500"}>
+                      <BiSolidHand />
+                    </span>
+                  )}
+                  {findChildProperty(dirtyFields, `${id}[${index}].key`) ===
+                    true && (
+                    <span className={"inline-flex  text-yellow-700"}>
+                      <BiSolidPencil />
+                    </span>
+                  )}
+                </div>
+                <div>
+                  <div>
+                    {findChildProperty(
+                      touchedFields,
+                      `${id}[${index}].value`,
+                    ) === true && (
+                      <span className={"inline-flex text-blue-500"}>
+                        <BiSolidHand />
+                      </span>
+                    )}
+                    {findChildProperty(dirtyFields, `${id}[${index}].value`) ===
+                      true && (
+                      <span className={"inline-flex  text-yellow-700"}>
+                        <BiSolidPencil />
+                      </span>
+                    )}
+                    <div></div>
+                  </div>
+                </div>
+              </div>
+            )}
+            <div className="my-[.1rem] flex flex-row gap-1">
+              <TextInput
+                sizing={"sm"}
+                className={"w-[50%]"}
+                id={`${id}[${index}].key`}
+                {...register(`${id}[${index}].key`)}
+              />
+              <TextInput
+                sizing={"sm"}
+                className={"w-[50%]"}
+                id={`${id}[${index}].value`}
+                {...register(`${id}[${index}].value`)}
+              />
+              <Button
+                className={"h-full w-8"}
+                color={"red"}
+                size={"md"}
+                onClick={() => {
+                  remove(index);
+                }}
+              >
+                <HiMinusCircle />
+              </Button>
+            </div>
+          </Fragment>
         );
       })}
       <Button

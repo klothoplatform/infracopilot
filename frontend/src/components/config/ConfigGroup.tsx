@@ -30,7 +30,10 @@ export const ConfigGroup: FC<ConfigGroupProps> = ({
     ?.map((property) =>
       property.type === CollectionTypes.Map &&
       (property as MapProperty).valueType === CollectionTypes.Map
-        ? property.properties ?? property
+        ? property.properties?.map((child) => ({
+            ...child,
+            name: `${property.name}.${child.name}`,
+          })) ?? property
         : property,
     )
     .flat()
@@ -40,18 +43,16 @@ export const ConfigGroup: FC<ConfigGroupProps> = ({
         <div key={index} className="h-fit max-w-full p-1">
           <ConfigField
             field={property}
-            qualifiedFieldName={`${
-              qualifiedFieldName ? qualifiedFieldName + "." : ""
-            }${property.name}`}
+            qualifiedFieldName={
+              qualifiedFieldName
+                ? `${qualifiedFieldName}.${property.name}`
+                : property.qualifiedName
+            }
             valueSelector={valueSelector}
             title={
-              parentLength &&
-              property.name !== property.qualifiedName &&
-              hidePrefix
-                ? property.qualifiedName
-                    .split(".")
-                    .slice(parentLength)
-                    .join(".")
+              parentLength && hidePrefix
+                ? qualifiedFieldName.split(".").slice(parentLength).join(".") +
+                  property.name
                 : property.qualifiedName
             }
             required={property.required}

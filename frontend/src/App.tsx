@@ -9,9 +9,10 @@ import { Navigate } from "react-router-dom";
 import { CallbackPage } from "./pages/CallbackPage";
 
 import { AnalyticsBrowser } from "@segment/analytics-next";
+import { env } from "./shared/environment";
 
 export const analytics = AnalyticsBrowser.load({
-  writeKey: "GKCsKtwCdTQO75tRzBPKAw82xVPYPqEz",
+  writeKey: env.analytics.writeKey,
 });
 
 const App: FC = function () {

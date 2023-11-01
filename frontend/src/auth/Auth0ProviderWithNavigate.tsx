@@ -1,6 +1,7 @@
 import { type AppState, Auth0Provider } from "@auth0/auth0-react";
 import React, { type PropsWithChildren } from "react";
 import { useNavigate } from "react-router-dom";
+import { env } from "../shared/environment";
 
 interface Auth0ProviderWithNavigateProps {
   children: React.ReactNode;
@@ -11,9 +12,9 @@ export const Auth0ProviderWithNavigate = ({
 }: PropsWithChildren<Auth0ProviderWithNavigateProps>): React.JSX.Element | null => {
   const navigate = useNavigate();
 
-  const domain = process.env.REACT_APP_AUTH0_DOMAIN;
-  const clientId = process.env.REACT_APP_AUTH0_CLIENT_ID;
-  const redirectUri = process.env.REACT_APP_AUTH0_CALLBACK_URL;
+  const domain = env.auth0.domain;
+  const clientId = env.auth0.clientId;
+  const redirectUri = env.auth0.callbackUrl;
 
   const onRedirectCallback = (appState?: AppState) => {
     navigate(appState?.returnTo || window.location.pathname);

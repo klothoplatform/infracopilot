@@ -23,7 +23,7 @@ export interface Constraint {
   scope: ConstraintScope;
   operator: ConstraintOperator;
   toIntent: () => string;
-  tofailureMessage: () => string;
+  toFailureMessage: () => string;
 }
 
 export type ApplicationConstraintOperators = Extract<
@@ -68,7 +68,7 @@ export class ApplicationConstraint implements Constraint {
     }
   }
 
-  tofailureMessage(): string {
+  toFailureMessage(): string {
     switch (this.operator) {
       case ConstraintOperator.Add:
         return `Failed to add ${this.node.toString()}`;
@@ -94,7 +94,7 @@ export class ConstructConstraint implements Constraint {
     return `Expanded construct ${this.target.toString()}`;
   }
 
-  tofailureMessage(): string {
+  toFailureMessage(): string {
     return `Failed to expand construct ${this.target.toString()}`;
   }
 }
@@ -113,7 +113,7 @@ export class ResourceConstraint implements Constraint {
     return `Configured ${this.target.toString()}`;
   }
 
-  tofailureMessage(): string {
+  toFailureMessage(): string {
     return `Failed to configure ${this.target.toString()}`;
   }
 }
@@ -145,7 +145,7 @@ export class EdgeConstraint implements Constraint {
     }
   }
 
-  tofailureMessage(): string {
+  toFailureMessage(): string {
     switch (this.operator) {
       case ConstraintOperator.MustExist:
         return `Failed to connect ${this.target.sourceId.name} -> ${this.target.targetId.name}`;

@@ -5,6 +5,7 @@ import reportWebVitals from "./reportWebVitals";
 import App from "./App";
 import { Auth0ProviderWithNavigate } from "./auth/Auth0ProviderWithNavigate";
 import { BrowserRouter } from "react-router-dom";
+import { env } from "./shared/environment";
 
 const container = document.getElementById("root");
 
@@ -25,9 +26,9 @@ function enableSessionRewind(args: {
   g.insertBefore(f, g.firstChild);
 }
 
-if (process.env.REACT_APP_SESSIONREWIND_ENABLED === "true") {
+if (env.sessionRewind.enabled) {
   enableSessionRewind({
-    apiKey: "66s8iL8YHi3iOXBqda2YSA4zLJeNyCZ8TazdUBR9",
+    apiKey: env.sessionRewind.apiKey,
     startRecording: true,
   });
 }

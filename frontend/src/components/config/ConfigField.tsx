@@ -25,10 +25,11 @@ import {
   PrimitiveTypes,
 } from "../../shared/resources/ResourceTypes";
 import classNames from "classnames";
-import { BiChevronRight } from "react-icons/bi";
+import { BiChevronRight, BiSolidHand, BiSolidPencil } from "react-icons/bi";
+import { env } from "../../shared/environment";
 
 export interface ConfigFieldProps {
-  qualifiedFieldName?: string;
+  qualifiedFieldName: string;
   field: Property;
   title?: string;
   required?: boolean;
@@ -78,13 +79,13 @@ export const ConfigField: FC<ConfigFieldProps> = ({
   valueSelector,
   ...props
 }) => {
-  const { type, qualifiedName, configurationDisabled } = field;
+  const { type, configurationDisabled } = field;
   const { formState } = useFormContext();
-  const { errors } = formState;
-  const error = findChildProperty(
-    errors,
-    `${qualifiedFieldName}${valueSelector ?? ""}`,
-  );
+  const { errors, touchedFields, dirtyFields } = formState;
+  const id = qualifiedFieldName + (valueSelector ?? "");
+  const error = findChildProperty(errors, id);
+  const touched = findChildProperty(touchedFields, id);
+  const dirty = findChildProperty(dirtyFields, id);
 
   let element: React.ReactElement;
   switch (type) {
@@ -139,15 +140,27 @@ export const ConfigField: FC<ConfigFieldProps> = ({
       break;
     case CollectionTypes.List:
     case CollectionTypes.Set:
-      element = <ListField field={field} {...props} />;
+      element = (
+        <ListField
+          qualifiedFieldName={qualifiedFieldName}
+          field={field}
+          {...props}
+        />
+      );
       break;
     case CollectionTypes.Map:
-      element = <MapField field={field} {...props} />;
+      element = (
+        <MapField
+          qualifiedFieldName={qualifiedFieldName}
+          field={field}
+          {...props}
+        />
+      );
       break;
     case PrimitiveTypes.Resource:
       element = (
         <ResourceField
-          qualifiedFieldName={qualifiedFieldName ?? qualifiedName}
+          qualifiedFieldName={qualifiedFieldName ?? "UNKNOWN-RESOURCE"}
           readOnly={configurationDisabled}
           resourceTypes={(field as ResourceProperty).resourceTypes}
           valueSelector={valueSelector}
@@ -160,7 +173,7 @@ export const ConfigField: FC<ConfigFieldProps> = ({
     case PrimitiveTypes.Enum:
       element = (
         <EnumField
-          qualifiedFieldName={qualifiedFieldName ?? qualifiedName}
+          qualifiedFieldName={qualifiedFieldName ?? "UNKNOWN-ENUM"}
           allowedValues={(field as EnumProperty).allowedValues}
           valueSelector={valueSelector}
           readOnly={configurationDisabled}
@@ -211,6 +224,21 @@ export const ConfigField: FC<ConfigFieldProps> = ({
                   })}
               </div>
               {field.required && <div className={"text-red-600"}>*</div>}
+              {env.debug.has("config-state") && (
+                <div className={"flex flex-row"}>
+                  {touched === true && (
+                    <span className={"inline-flex text-blue-500"}>
+                      <BiSolidHand />
+                    </span>
+                  )}
+                  {dirty === true && (
+                    <span className={"inline-flex  text-yellow-700"}>
+                      <BiSolidPencil />
+                    </span>
+                  )}
+                </div>
+              )}
+              {}
             </Label>
             {element}
           </div>
