@@ -59,12 +59,26 @@ EditorSidebarRight.displayName = "EditorSidebarRight";
 
 function SidebarTabs() {
   const tabsRef = useRef<TabsRef>(null);
-  const { rightSidebarSelector, navigateRightSidebar, decisions, failures } =
-    useApplicationStore();
+  const {
+    selectedResource,
+    selectedEdge,
+    rightSidebarSelector,
+    navigateRightSidebar,
+    decisions,
+    failures,
+  } = useApplicationStore();
+
+  const activeSubTab = rightSidebarSelector[1];
 
   useEffect(() => {
     tabsRef.current?.setActiveTab(rightSidebarSelector[0]);
   }, [rightSidebarSelector]);
+
+  useEffect(() => {
+    if (selectedResource === undefined && selectedEdge === undefined) {
+      navigateRightSidebar([RightSidebarTabs.Changes, activeSubTab]);
+    }
+  }, [selectedResource, selectedEdge, navigateRightSidebar, activeSubTab]);
 
   let notifications = [] as EventProps[];
   if (failures.length > 0) {
@@ -108,7 +122,13 @@ function SidebarTabs() {
         <Tabs.Item active title="Changes" icon={HiInformationCircle}>
           <EventNotifications events={notifications} />
         </Tabs.Item>
-        <Tabs.Item title="Details" icon={HiBars3}>
+        <Tabs.Item
+          title="Details"
+          icon={HiBars3}
+          disabled={
+            selectedResource === undefined && selectedEdge === undefined
+          }
+        >
           <Details />
         </Tabs.Item>
       </Tabs.Group>
@@ -202,46 +222,52 @@ const ResourceIdHeader: FC<ResourceIdHeaderProps> = function ({
   };
 
   return (
-    <div
-      className={
-        "mb-2 flex flex-row items-center gap-2 border-b-2 border-gray-200 pb-1 dark:border-gray-700"
-      }
-    >
-      {resourceId &&
-        getIcon(
-          resourceId.provider,
-          resourceId.type,
-          {
-            style: { maxWidth: "50px", maxHeight: "50px" },
-          },
-          undefined,
-          mode,
-        )}
-      <div className="inline-block w-full align-middle">
-        <div className="text-ellipsis text-xs font-medium text-gray-500 dark:text-gray-400">
-          {resourceId ? `${resourceId.provider}:${resourceId.type}` : ""}
+    <>
+      {resourceId !== undefined && edgeId !== undefined && (
+        <div
+          className={
+            "mb-2 flex flex-row items-center gap-2 border-b-2 border-gray-200 pb-1 dark:border-gray-700"
+          }
+        >
+          {resourceId &&
+            getIcon(
+              resourceId.provider,
+              resourceId.type,
+              {
+                style: { maxWidth: "50px", maxHeight: "50px" },
+              },
+              undefined,
+              mode,
+            )}
+          <div className="inline-block w-full align-middle">
+            <div className="text-ellipsis text-xs font-medium text-gray-500 dark:text-gray-400">
+              {resourceId ? `${resourceId.provider}:${resourceId.type}` : ""}
+            </div>
+            <div
+              className={"text-md text-ellipsis font-semibold dark:text-white"}
+            >
+              {resourceId
+                ? `${resourceId.namespace ? resourceId.namespace + ":" : ""}${
+                    resourceId.name
+                  }`
+                : edgeId}
+              <div />
+            </div>
+          </div>
+          <Button
+            color="gray"
+            className="h-14 w-10 focus:ring-0"
+            onClick={onClickCopyButton}
+            disabled={resourceId === undefined}
+          >
+            {!copied && (
+              <HiOutlineClipboardCopy className="stroke-gray-700 dark:stroke-gray-300" />
+            )}
+            {copied && <HiCheck color="green" />}
+          </Button>
         </div>
-        <div className={"text-md text-ellipsis font-semibold dark:text-white"}>
-          {resourceId
-            ? `${resourceId.namespace ? resourceId.namespace + ":" : ""}${
-                resourceId.name
-              }`
-            : edgeId}
-          <div />
-        </div>
-      </div>
-      <Button
-        color="gray"
-        className="h-14 w-10 focus:ring-0"
-        onClick={onClickCopyButton}
-        disabled={resourceId === undefined}
-      >
-        {!copied && (
-          <HiOutlineClipboardCopy className="stroke-gray-700 dark:stroke-gray-300" />
-        )}
-        {copied && <HiCheck color="green" />}
-      </Button>
-    </div>
+      )}
+    </>
   );
 };
 
@@ -301,13 +327,11 @@ interface EventNotificationsProps {
 
 const EventNotifications: FC<EventNotificationsProps> = function ({ events }) {
   return (
-    <Card className="mr-2 max-h-[70vh] overflow-y-auto p-4">
-      <div className="flex flex-col space-y-4">
-        {events.map((event, index) => (
-          <EventNotification key={index} {...event} />
-        ))}
-      </div>
-    </Card>
+    <div className="flex flex-col space-y-4">
+      {events.map((event, index) => (
+        <EventNotification key={index} {...event} />
+      ))}
+    </div>
   );
 };
 
