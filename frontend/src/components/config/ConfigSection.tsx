@@ -1,8 +1,10 @@
 import type { FC, PropsWithChildren } from "react";
-import React, { useCallback } from "react";
-import { Accordion, Button } from "flowbite-react";
+import React, { Fragment, useCallback } from "react";
+import { Accordion, Button, Label } from "flowbite-react";
 import { HiMinusCircle } from "react-icons/hi";
 import { useFormContext } from "react-hook-form";
+import { BiChevronRight, BiSolidHand, BiSolidPencil } from "react-icons/bi";
+import { env } from "../../shared/environment";
 
 type ConfigSectionProps = {
   id: string;
@@ -34,7 +36,29 @@ export const ConfigSection: FC<PropsWithChildren<ConfigSectionProps>> = ({
             "px-2 py-1 text-sm [&>h2]:overflow-hidden [&>h2]:text-ellipsis"
           }
         >
-          {title ?? id}
+          <>
+            <div
+              className={
+                "flex w-full flex-wrap items-center [&>span:first-child]:hidden"
+              }
+            >
+              {(title ?? id).split(".").map((part, index) => {
+                return (
+                  <Fragment key={index}>
+                    <span className="px-1">
+                      <BiChevronRight />
+                    </span>
+                    <span
+                      className={"w-fit overflow-hidden text-ellipsis "}
+                      key={index}
+                    >
+                      {part}
+                    </span>
+                  </Fragment>
+                );
+              })}
+            </div>
+          </>
         </Accordion.Title>
         <>
           {removable && (
