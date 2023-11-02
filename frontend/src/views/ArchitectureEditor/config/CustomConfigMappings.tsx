@@ -1,10 +1,8 @@
 import {
   apiIntegrationNodeModifier,
   handleRoutesState,
-  RestApiFormStateBuilder,
-  restApiLayoutModifier,
-  RestApiRouteConfig,
-} from "./RestApiRouteConfig";
+  restApiFormStateBuilder,
+} from "../CustomResources/RestApiRoute/RestApiRouteConfig";
 import type { FC } from "react";
 import type { Architecture } from "../../../shared/architecture/Architecture";
 import type { NodeId } from "../../../shared/architecture/TopologyNode";
@@ -13,25 +11,43 @@ import type { Constraint } from "../../../shared/architecture/Constraints";
 import type { NodeType } from "../../../shared/reactflow/NodeTypes";
 import type { Edge, Node } from "reactflow";
 import type { ElkNode } from "elkjs/lib/elk.bundled";
+import {
+  restApiIntegrationResourceCustomizer,
+  RestApiRouteConfig,
+} from "../CustomResources/RestApiRoute/ConfigCustomizer";
+import { restApiLayoutModifier } from "../CustomResources/RestApiRoute/LayoutModifier";
 
 export type ConfigSections = {
   [key: string]: {
     component?: FC<any>;
-    stateHandler?: (state: any, resourceId: NodeId) => any;
+    stateHandler?: (
+      submittedValues: any,
+      defaultValues: any,
+      modifiedValues: Map<string, any>,
+      resourceId: NodeId,
+      architecture: Architecture,
+    ) => any;
   };
 };
 
-export const customConfigMappings: {
-  [key: string]: {
-    sections: ConfigSections;
-    stateBuilder: (resourceId: NodeId, architecture: Architecture) => any;
-    layoutModifier?: LayoutModifier;
-    nodeModifier?: (node: Node, architecture: Architecture) => void;
-  };
-} = {
+export interface CustomConfigMap {
+  [key: string]: CustomConfigMapping;
+}
+
+export interface CustomConfigMapping {
+  sections: ConfigSections;
+  stateBuilder: FormStateBuilder;
+  constraintBuilder?: ConstraintBuilder;
+  nodeModifier?: (node: Node, architecture: Architecture) => void;
+  resourceTypeModifier?: ResourceTypeModifier;
+  layoutModifier?: LayoutModifier;
+}
+
+export const customConfigMappings: CustomConfigMap = {
   "aws:rest_api": {
     layoutModifier: restApiLayoutModifier,
-    stateBuilder: RestApiFormStateBuilder,
+    stateBuilder: restApiFormStateBuilder,
+    resourceTypeModifier: restApiIntegrationResourceCustomizer,
     sections: {
       Routes: {
         component: RestApiRouteConfig,
@@ -62,7 +78,7 @@ export function getCustomConfigState(
   ]?.stateBuilder(resourceId, architecture);
 }
 
-export type ResourceTypeModifier = (resourceType: ResourceType) => ResourceType;
+export type ResourceTypeModifier = (resourceType: ResourceType) => void;
 
 export type FormStateBuilder = (
   resourceId: NodeId,
@@ -87,6 +103,7 @@ export interface LayoutContext {
   };
   elkGraph: ElkNode;
 }
+
 export type LayoutModifier = (context: LayoutContext) => void;
 
 export interface CustomResourceType {

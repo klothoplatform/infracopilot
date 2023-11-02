@@ -769,6 +769,8 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       architectureId,
       await get().getIdToken(),
     );
+    types.applyCustomizations();
+
     set(
       {
         resourceTypeKB: types,

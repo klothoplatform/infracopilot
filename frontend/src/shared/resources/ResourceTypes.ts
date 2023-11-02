@@ -1,5 +1,7 @@
-import type { ArchitectureView } from "../architecture/Architecture";
-import type { ViewNodeType } from "../architecture/Architecture";
+import type {
+  ArchitectureView,
+  ViewNodeType,
+} from "../architecture/Architecture";
 
 export interface ResourceType {
   provider: string;
@@ -17,7 +19,13 @@ export interface Property {
   properties?: Property[];
   qualifiedName: string;
   required?: boolean;
+  defaultValue?: any;
   type: PropertyType;
+  // UI flag for hiding a property from the UI (e.g. when it is handled by a custom config section)
+  hidden?: boolean;
+  // UI flag for indicating that a property is not part of the resource definition (e.g. when it is handled by a custom config section)
+  // and should be ignored when serializing configuration form data
+  synthetic?: boolean;
 }
 
 export interface ListProperty extends Property {
@@ -91,6 +99,7 @@ type RawProperty = {
   deployTime: boolean;
   properties: object;
   required?: boolean;
+  defaultValue?: any;
 };
 
 function toList(rawProperties: any): RawProperty[] {
@@ -142,6 +151,7 @@ export function parseProperty(
     deployTime,
     properties: children,
     required,
+    defaultValue,
   }: RawProperty = rawProperty as any;
 
   if (!name) {
@@ -160,6 +170,7 @@ export function parseProperty(
     configurationDisabled,
     deployTime,
     required,
+    defaultValue,
   };
 
   switch (type) {

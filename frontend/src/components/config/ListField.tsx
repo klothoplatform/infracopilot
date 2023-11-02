@@ -37,10 +37,11 @@ export const ListField: FC<ListProps> = ({ qualifiedFieldName, field }) => {
   const { fields, append, remove } = useFieldArray({
     control,
     name: qualifiedFieldName,
-    rules: {
-      required:
-        field.required && `${qualifiedFieldName} must have at least one entry.`,
-    },
+    // rules: {
+    //   required:
+    //     field.required && `${qualifiedFieldName} must have at least one entry.`,
+    // },
+    // shouldUnregister: true,
   });
   const { errors } = formState;
   const error = findChildProperty(errors, qualifiedFieldName);

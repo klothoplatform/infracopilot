@@ -27,6 +27,7 @@ import {
 } from "../../shared/architecture/Constraints";
 import { ConfigGroup } from "../config/ConfigGroup";
 import type { NodeId } from "../../shared/architecture/TopologyNode";
+import type { Architecture } from "../../shared/architecture/Architecture";
 
 export default function ConfigForm() {
   const {
@@ -91,42 +92,55 @@ export default function ConfigForm() {
 
       console.log("submitting config changes");
 
-      const modifiedFormFields = getModifiedFormFields(
-        submittedValues,
-        defaultValues,
-        dirtyFields,
-        resourceType?.properties,
-      );
-
-      const modifiedRootProperties = Object.fromEntries(
-        [...modifiedFormFields.keys()].map((key) => {
-          const rootKey = key.split(".", 2)[0].replaceAll(/\[\d+]/g, "");
-          const value = submittedValues[rootKey];
-          return [rootKey, value];
-        }),
-      );
-
-      const constraints: Constraint[] = Object.entries(
-        toMetadata(modifiedRootProperties, resourceType?.properties) as any,
-      ).map(([key, value]): ResourceConstraint => {
-        return new ResourceConstraint(
-          ConstraintOperator.Equals,
-          selectedResource,
-          key,
-          value,
+      try {
+        const modifiedFormFields = getModifiedFormFields(
+          submittedValues,
+          defaultValues,
+          dirtyFields,
+          resourceType?.properties,
         );
-      });
 
-      constraints.push(...applyCustomizers(selectedResource, submittedValues));
+        const modifiedRootProperties = Object.fromEntries(
+          [...modifiedFormFields.keys()].map((key) => {
+            const rootKey = key.split(".", 2)[0].replaceAll(/\[\d+]/g, "");
+            const value = submittedValues[rootKey];
+            return [rootKey, value];
+          }),
+        );
 
-      if (!constraints.length) {
-        return;
+        const constraints: Constraint[] = Object.entries(
+          toMetadata(modifiedRootProperties, resourceType?.properties) as any,
+        ).map(([key, value]): ResourceConstraint => {
+          return new ResourceConstraint(
+            ConstraintOperator.Equals,
+            selectedResource,
+            key,
+            value,
+          );
+        });
+
+        constraints.push(
+          ...applyCustomizers(
+            selectedResource,
+            submittedValues,
+            defaultValues,
+            modifiedFormFields,
+            architecture,
+          ),
+        );
+
+        if (!constraints.length) {
+          return;
+        }
+        await applyConstraints(constraints);
+      } catch (e: any) {
+        addError(`Failed to configure ${selectedResource.name}: ${e.message}`);
       }
-      await applyConstraints(constraints);
     },
     [
       addError,
       applyConstraints,
+      architecture,
       defaultValues,
       dirtyFields,
       resourceType?.properties,
@@ -215,7 +229,8 @@ function toMetadata(formState: any, fields: Property[] = []) {
 
   const metadata: any = {};
   fields = fields.filter(
-    (field) => !field.deployTime && !field.configurationDisabled,
+    (field) =>
+      !field.deployTime && !field.configurationDisabled && !field.synthetic,
   );
   Object.keys(formState).forEach((key) => {
     const value = formState[key];
@@ -249,7 +264,13 @@ function toMetadata(formState: any, fields: Property[] = []) {
   return metadata;
 }
 
-function applyCustomizers(resourceId: NodeId, state: any): Constraint[] {
+function applyCustomizers(
+  resourceId: NodeId,
+  submittedValues: any,
+  defaultValues: any,
+  modifiedValues: Map<string, any>,
+  architecture: Architecture,
+): Constraint[] {
   const sections = getCustomConfigSections(
     resourceId.provider,
     resourceId.type,
@@ -260,10 +281,16 @@ function applyCustomizers(resourceId: NodeId, state: any): Constraint[] {
   }
 
   const constraints: Constraint[] = [];
-  Object.entries(state).forEach(([key, value]) => {
+  Object.entries(submittedValues).forEach(([key, value]) => {
     if (sections[key]?.stateHandler) {
       constraints.push(
-        ...(sections[key]?.stateHandler?.(value, resourceId) ?? []),
+        ...(sections[key]?.stateHandler?.(
+          submittedValues,
+          defaultValues,
+          modifiedValues,
+          resourceId,
+          architecture,
+        ) ?? []),
       );
     }
   });
@@ -277,35 +304,35 @@ function applyCustomizers(resourceId: NodeId, state: any): Constraint[] {
  the qualified field name is the dot-separated path to the field from the root of the form. List and Set items are indexed by their position in the collection.
  the value is the primitive nested value of the field. if the field is a collection, the value is the nested value of the first item.
 
+ @formatter:off
+
  e.g. for the following form fields:
- {
- "a": 1,
- "b": {
- "c": 2,
- "d": [
- {
- "e": 3,
- "f": 4
- }
- ],
- "g": {
- "h": 5,
- "i": 6
- }
- },
- }
- }
+  {
+    "a": 1,
+    "b": {
+      "c": 2,
+      "d": [
+        {
+          "e": 3,
+          "f": 4
+        }
+      ],
+      "g": {
+        "h": 5,
+        "i": 6
+      }
+    }
+  }
 
- returns the following map:
- {
- "a": 1,
- "b.c": 2,
- "b.d[0].e": 3,
- "b.d[0].f": 4,
- "b.g.h": 5,
- "b.g.i": 6
- }
-
+returns the following map:
+  {
+    "a": 1,
+    "b.c": 2,
+    "b.d[0].e": 3,
+    "b.d[0].f": 4,
+    "b.g.h": 5,
+    "b.g.i": 6
+  }
  */
 function getModifiedFormFields(
   formFields: any,

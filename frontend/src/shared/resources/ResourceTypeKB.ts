@@ -1,4 +1,5 @@
 import type { ResourceType, ResourceTypeFilter } from "./ResourceTypes";
+import { customConfigMappings } from "../../views/ArchitectureEditor/config/CustomConfigMappings";
 
 export class ResourceTypeKB {
   resourceTypes: Map<string, ResourceType> = new Map();
@@ -54,5 +55,15 @@ export class ResourceTypeKB {
       );
     }
     return resourceTypes.sort((a, b) => a.type.localeCompare(b.type));
+  }
+
+  applyCustomizations() {
+    Object.entries(customConfigMappings).forEach(([qualifiedType, config]) => {
+      const [provider, type] = qualifiedType.split(":");
+      const resourceType = this.getResourceType(provider, type);
+      if (resourceType) {
+        config.resourceTypeModifier?.(resourceType);
+      }
+    });
   }
 }

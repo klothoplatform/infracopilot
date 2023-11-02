@@ -35,6 +35,7 @@ export const MapField: FC<MapProps> = ({
     control,
     name: qualifiedFieldName,
     rules: { required: field.required, minLength: field.required ? 1 : 0 },
+    // shouldUnregister: true,
   });
 
   if (

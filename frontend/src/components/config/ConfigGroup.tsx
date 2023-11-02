@@ -15,7 +15,7 @@ type ConfigGroupProps = {
 };
 
 const fieldDisplayFilter = (field: Property) =>
-  !field.deployTime && !field.configurationDisabled;
+  !field.deployTime && !field.configurationDisabled && !field.hidden;
 
 export const ConfigGroup: FC<ConfigGroupProps> = ({
   qualifiedFieldName,
