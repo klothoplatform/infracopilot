@@ -223,7 +223,7 @@ const ResourceIdHeader: FC<ResourceIdHeaderProps> = function ({
 
   return (
     <>
-      {resourceId !== undefined && edgeId !== undefined && (
+      {(resourceId || edgeId) && (
         <div
           className={
             "mb-2 flex flex-row items-center gap-2 border-b-2 border-gray-200 pb-1 dark:border-gray-700"
