@@ -1,5 +1,5 @@
 import type { CheckboxProps, TextInputProps } from "flowbite-react";
-import { Checkbox, Dropdown, Label, TextInput } from "flowbite-react";
+import { Button, Checkbox, Dropdown, Label, TextInput } from "flowbite-react";
 import type { FC, PropsWithChildren } from "react";
 import React, {
   Fragment,
@@ -27,6 +27,7 @@ import {
 import classNames from "classnames";
 import { BiChevronRight, BiSolidHand, BiSolidPencil } from "react-icons/bi";
 import { env } from "../../shared/environment";
+import { HiMiniArrowUpRight, HiOutlineArrowUpRight } from "react-icons/hi2";
 
 export interface ConfigFieldProps {
   qualifiedFieldName: string;
@@ -363,7 +364,7 @@ export const ResourceField: FC<ResourceProps> = ({
   valueSelector,
 }) => {
   const { register, setValue, watch } = useFormContext();
-  const { architecture } = useApplicationStore();
+  const { architecture, selectResource } = useApplicationStore();
   const onClick = (value: string) => {
     setValue(id, value, {
       shouldTouch: true,
@@ -376,6 +377,7 @@ export const ResourceField: FC<ResourceProps> = ({
   const [items, setItems] = useState<string[]>([]);
 
   const watchValue = watch(id);
+  console.log("watchValue", watchValue);
 
   const refreshItems = useCallback(() => {
     const emptyFilter = resourceTypes?.length === 1 && !resourceTypes[0];
@@ -400,35 +402,51 @@ export const ResourceField: FC<ResourceProps> = ({
   });
 
   return (
-    <Dropdown
-      size={"xs"}
-      className="max-h-[50vh] overflow-y-auto"
-      id={id}
-      color={"purple"}
-      disabled={readOnly}
-      label={
-        watchValue?.length ? NodeId.parse(watchValue).name : "Select a resource"
-      }
-    >
-      {items.map((resourceId: string) => {
-        return (
-          <Dropdown.Item key={resourceId} onClick={() => onClick(resourceId)}>
-            {resourceId}
+    <div className="flex gap-1">
+      <Dropdown
+        size={"xs"}
+        className="max-h-[50vh] overflow-y-auto"
+        id={id}
+        color={"purple"}
+        disabled={readOnly}
+        label={
+          watchValue?.length
+            ? NodeId.parse(watchValue).name
+            : "Select a resource"
+        }
+      >
+        {items.map((resourceId: string) => {
+          return (
+            <Dropdown.Item key={resourceId} onClick={() => onClick(resourceId)}>
+              {resourceId}
+            </Dropdown.Item>
+          );
+        })}
+        {!items.length && (
+          <Dropdown.Item disabled={true}>
+            No resources{" "}
+            {resourceTypes
+              ? "of type " +
+                (resourceTypes.length > 1 ? "s" : "") +
+                resourceTypes.join(", ")
+              : ""}{" "}
+            available
           </Dropdown.Item>
-        );
-      })}
-      {!items.length && (
-        <Dropdown.Item disabled={true}>
-          No resources{" "}
-          {resourceTypes
-            ? "of type " +
-              (resourceTypes.length > 1 ? "s" : "") +
-              resourceTypes.join(", ")
-            : ""}{" "}
-          available
-        </Dropdown.Item>
+        )}
+      </Dropdown>
+      {watchValue?.length && (
+        <Button
+          title={"Show this resource"}
+          className={"h-[16px] w-[16px] rounded-md"}
+          color={"light"}
+          onClick={() => {
+            selectResource(NodeId.parse(watchValue));
+          }}
+        >
+          <HiMiniArrowUpRight size={12} />
+        </Button>
       )}
-    </Dropdown>
+    </div>
   );
 };
 
