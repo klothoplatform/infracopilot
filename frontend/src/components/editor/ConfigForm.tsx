@@ -58,7 +58,7 @@ export default function ConfigForm() {
       : {},
   });
   const formState = methods.formState;
-  const { defaultValues, dirtyFields, isSubmitSuccessful } = formState;
+  const { defaultValues, dirtyFields, isSubmitSuccessful, isDirty } = formState;
 
   useEffect(() => {
     if (!isSubmitSuccessful) {
@@ -156,7 +156,7 @@ export default function ConfigForm() {
             className="flex h-full w-full flex-col"
             onSubmit={methods.handleSubmit(submitConfigChanges)}
           >
-            <div className="w-full basis-[calc(100%-3rem)] overflow-auto pb-6 [&>*:not(:last-child)]:mb-2">
+            <div className="w-full basis-full overflow-auto pb-6 [&>*:not(:last-child)]:mb-2">
               <ConfigGroup fields={resourceType?.properties} />
               {selectedResource &&
                 Object.entries(
@@ -169,9 +169,11 @@ export default function ConfigForm() {
                   return Component ? <Component key={index} /> : null;
                 })}
             </div>
-            <Button type="submit" color="purple" className="my-2 w-full">
-              Apply Changes
-            </Button>
+            {isDirty && (
+              <Button type="submit" color="purple" className="my-2 w-full">
+                Apply Changes
+              </Button>
+            )}
           </form>
         </FormProvider>
       )}
