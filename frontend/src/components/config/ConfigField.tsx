@@ -377,7 +377,6 @@ export const ResourceField: FC<ResourceProps> = ({
   const [items, setItems] = useState<string[]>([]);
 
   const watchValue = watch(id);
-  console.log("watchValue", watchValue);
 
   const refreshItems = useCallback(() => {
     const emptyFilter = resourceTypes?.length === 1 && !resourceTypes[0];
