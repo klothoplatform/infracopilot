@@ -48,6 +48,7 @@ import { ResourceTypeKB } from "../../shared/resources/ResourceTypeKB";
 import type { ErrorStore } from "./ErrorStore";
 
 import { analytics } from "../../App";
+import { customConfigMappings } from "../ArchitectureEditor/config/CustomConfigMappings";
 
 export interface ResourceConfigurationRequest {
   resourceId: NodeId;
@@ -173,13 +174,19 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
           ),
         );
       }) ?? [];
+    const removedNodeIds = nodeConstraints.map((c) => c.node.toString());
+    const removedEdgeIds = edgeConstraints.map((c) => c.target.id);
+    const newNodes = nodes.filter((n) => !(n.id in removedNodeIds));
+    newNodes.forEach((node) => {
+      if (node.parentNode && node.parentNode in removedNodeIds) {
+        node.parentNode = undefined;
+      }
+    });
+    const newEdges = get().edges.filter((e) => !(e.id in removedEdgeIds));
+
     set({
-      nodes: nodes.filter(
-        (n) => elements.nodes?.every((e) => e.id !== n.id) ?? true,
-      ),
-      edges: get().edges.filter(
-        (edge) => elements.edges?.find((e) => e.id === edge.id) ?? true,
-      ),
+      nodes: newNodes,
+      edges: newEdges,
       unappliedConstraints: [
         ...get().unappliedConstraints,
         ...nodeConstraints,
@@ -453,7 +460,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     const nodeConstraints =
       elements.nodes
         ?.map((node) => {
-          const nodeConstraints: Constraint[] = [
+          let nodeConstraints: Constraint[] = [
             new ApplicationConstraint(
               ConstraintOperator.Add,
               node.data.resourceId,
@@ -469,6 +476,14 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
                 ),
               ),
             );
+          }
+          const constraintsModifier =
+            customConfigMappings[node.data.resourceId.qualifiedType]
+              ?.creationConstraintsModifier;
+          if (constraintsModifier) {
+            nodeConstraints =
+              constraintsModifier(node, get().architecture, nodeConstraints) ??
+              nodeConstraints;
           }
           return nodeConstraints;
         })

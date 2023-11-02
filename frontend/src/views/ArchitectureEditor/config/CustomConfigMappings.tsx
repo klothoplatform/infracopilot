@@ -1,6 +1,7 @@
 import {
   apiIntegrationNodeModifier,
   handleRoutesState,
+  restApiCreationConstraintsModifier,
   restApiFormStateBuilder,
 } from "../CustomResources/RestApiRoute/RestApiRouteConfig";
 import type { FC } from "react";
@@ -35,6 +36,11 @@ export interface CustomConfigMap {
 }
 
 export interface CustomConfigMapping {
+  creationConstraintsModifier?: (
+    node: Node,
+    architecture: Architecture,
+    defaultConstraints: Constraint[],
+  ) => Constraint[];
   sections: ConfigSections;
   stateBuilder: FormStateBuilder;
   constraintBuilder?: ConstraintBuilder;
@@ -45,6 +51,7 @@ export interface CustomConfigMapping {
 
 export const customConfigMappings: CustomConfigMap = {
   "aws:rest_api": {
+    creationConstraintsModifier: restApiCreationConstraintsModifier,
     layoutModifier: restApiLayoutModifier,
     stateBuilder: restApiFormStateBuilder,
     resourceTypeModifier: restApiIntegrationResourceCustomizer,

@@ -283,6 +283,22 @@ export const restApiFormStateBuilder = (
   };
 };
 
+export function restApiCreationConstraintsModifier(
+  node: Node,
+  architecture: Architecture,
+  defaultConstraints: Constraint[],
+) {
+  // eslint-disable-next-line no-template-curly-in-string
+  const routeConstraints = createAddRouteConstraints(
+    node.data.resourceId,
+    "ANY",
+    "/{proxy+}",
+    architecture,
+    0,
+  );
+  return [...defaultConstraints, ...routeConstraints];
+}
+
 export function apiIntegrationNodeModifier(
   node: Node,
   architecture: Architecture,
