@@ -47,6 +47,7 @@ export default function ConfigForm() {
   }
 
   const methods = useForm({
+    shouldFocusError: true,
     defaultValues: selectedResource
       ? {
           ...toFormState(
@@ -95,7 +96,7 @@ export default function ConfigForm() {
       try {
         const modifiedFormFields = getModifiedFormFields(
           submittedValues,
-          defaultValues,
+          { ...defaultValues },
           dirtyFields,
           resourceType?.properties,
         );
@@ -109,21 +110,31 @@ export default function ConfigForm() {
         );
 
         const constraints: Constraint[] = Object.entries(
-          toMetadata(modifiedRootProperties, resourceType?.properties) as any,
-        ).map(([key, value]): ResourceConstraint => {
-          return new ResourceConstraint(
-            ConstraintOperator.Equals,
-            selectedResource,
-            key,
-            value,
-          );
-        });
+          toResourceMetadata(
+            modifiedRootProperties,
+            resourceType?.properties,
+          ) as any,
+        )
+          .filter(
+            ([key]) =>
+              !resourceType?.properties?.find((field) => field.name === key)
+                ?.synthetic,
+          )
+
+          .map(([key, value]): ResourceConstraint => {
+            return new ResourceConstraint(
+              ConstraintOperator.Equals,
+              selectedResource,
+              key,
+              value,
+            );
+          });
 
         constraints.push(
           ...applyCustomizers(
             selectedResource,
             submittedValues,
-            defaultValues,
+            { ...defaultValues },
             modifiedFormFields,
             architecture,
           ),
@@ -192,8 +203,8 @@ function toFormState(metadata: any, fields: Property[] = []) {
   Object.keys(metadata).forEach((key) => {
     const value = metadata[key];
     const field = fields.find((field) => field.name === key);
-    if (field) {
-      if (field.type === CollectionTypes.Map) {
+    switch (field?.type) {
+      case CollectionTypes.Map:
         if (isCollection((field as MapProperty).valueType)) {
           formState[key] = toFormState(value, field.properties);
         } else {
@@ -201,30 +212,24 @@ function toFormState(metadata: any, fields: Property[] = []) {
             return { key, value };
           });
         }
-      } else if (
-        field.type === CollectionTypes.List ||
-        field.type === CollectionTypes.Set
-      ) {
+        break;
+      case CollectionTypes.Set:
+      case CollectionTypes.List:
         formState[key] = value.map((value: any) => {
-          switch ((field as ListProperty).itemType) {
-            case CollectionTypes.Map:
-              return toFormState(value, field.properties);
-            case CollectionTypes.Set:
-            case CollectionTypes.List:
-              return toFormState(value, field.properties);
-            default:
-              return { value };
+          if (isCollection((field as ListProperty).itemType)) {
+            return toFormState(value, field.properties);
           }
+          return { value };
         });
-      } else {
+        break;
+      default:
         formState[key] = value;
-      }
     }
   });
   return formState;
 }
 
-function toMetadata(formState: any, fields: Property[] = []) {
+function toResourceMetadata(formState: any, fields: Property[] = []) {
   if (!formState) {
     return {};
   }
@@ -234,13 +239,14 @@ function toMetadata(formState: any, fields: Property[] = []) {
     (field) =>
       !field.deployTime && !field.configurationDisabled && !field.synthetic,
   );
+
   Object.keys(formState).forEach((key) => {
     const value = formState[key];
     const field = fields.find((field) => field.name === key);
-    if (field) {
-      if (field.type === CollectionTypes.Map) {
+    switch (field?.type) {
+      case CollectionTypes.Map:
         if (isCollection((field as MapProperty).valueType)) {
-          metadata[key] = toMetadata(value, field.properties);
+          metadata[key] = toResourceMetadata(value, field.properties);
         } else {
           metadata[key] = Object.fromEntries(
             value.map((item: any) => {
@@ -248,19 +254,18 @@ function toMetadata(formState: any, fields: Property[] = []) {
             }),
           );
         }
-      } else if (
-        field.type === CollectionTypes.List ||
-        field.type === CollectionTypes.Set
-      ) {
-        metadata[key] = value?.map((item: any) => {
-          if ((field as ListProperty).itemType === CollectionTypes.Map) {
-            return toMetadata(item, field.properties);
+        break;
+      case CollectionTypes.Set:
+      case CollectionTypes.List:
+        metadata[key] = value.map((item: any) => {
+          if (isCollection((field as ListProperty).itemType)) {
+            return toResourceMetadata(item, field.properties);
           }
           return item.value;
         });
-      } else {
+        break;
+      default:
         metadata[key] = value;
-      }
     }
   });
   return metadata;

@@ -37,11 +37,10 @@ export const ListField: FC<ListProps> = ({ qualifiedFieldName, field }) => {
   const { fields, append, remove } = useFieldArray({
     control,
     name: qualifiedFieldName,
-    // rules: {
-    //   required:
-    //     field.required && `${qualifiedFieldName} must have at least one entry.`,
-    // },
-    // shouldUnregister: true,
+    rules: {
+      required:
+        field.required && `${qualifiedFieldName} must have at least one entry.`,
+    },
   });
   const { errors } = formState;
   const error = findChildProperty(errors, qualifiedFieldName);
@@ -174,7 +173,8 @@ const PrimitiveListItem: FC<{
           id={id}
           helperText={error && <span>{error.message?.toString()}</span>}
           {...register(id, {
-            required: required && `${qualifiedFieldName} is required.`,
+            required:
+              required && `${qualifiedFieldName.split(".").pop()} is required.`,
           })}
         />
       );
@@ -187,7 +187,8 @@ const PrimitiveListItem: FC<{
           className={"w-full"}
           id={id}
           {...register(id, {
-            required: required && `${qualifiedFieldName} is required.`,
+            required:
+              required && `${qualifiedFieldName.split(".").pop()} is required.`,
           })}
           type={"number"}
           {...(type === PrimitiveTypes.Integer ? { step: "1" } : {})}
@@ -201,7 +202,9 @@ const PrimitiveListItem: FC<{
           <Checkbox
             id={id}
             {...register(id, {
-              required: required && `${qualifiedFieldName} is required.`,
+              required:
+                required &&
+                `${qualifiedFieldName.split(".").pop()} is required.`,
             })}
           />
         </ErrorHelper>
@@ -303,7 +306,6 @@ const CollectionListItem: FC<{
         <ConfigSection id={qualifiedFieldName}>
           <ConfigGroup
             qualifiedFieldName={qualifiedFieldName}
-            valueSelector={".value"}
             fields={properties}
             hidePrefix
           />

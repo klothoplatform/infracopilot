@@ -34,8 +34,11 @@ export const MapField: FC<MapProps> = ({
   useFieldArray({
     control,
     name: qualifiedFieldName,
-    rules: { required: field.required, minLength: field.required ? 1 : 0 },
-    // shouldUnregister: true,
+    rules: {
+      required:
+        field.required && `${qualifiedFieldName.split(".").pop()} is required.`,
+      minLength: field.required ? 1 : 0,
+    },
   });
 
   if (
@@ -133,12 +136,14 @@ const PrimitiveMapEntry: FC<PrimitiveMapEntryProps> = ({ id }) => {
                 className={"w-[50%]"}
                 id={`${id}[${index}].key`}
                 {...register(`${id}[${index}].key`)}
+                helperText={error && <span>{error.message?.toString()}</span>}
               />
               <TextInput
                 sizing={"sm"}
                 className={"w-[50%]"}
                 id={`${id}[${index}].value`}
                 {...register(`${id}[${index}].value`)}
+                helperText={error && <span>{error.message?.toString()}</span>}
               />
               <Button
                 className={"h-full w-8"}

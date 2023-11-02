@@ -1,13 +1,7 @@
 import type { CheckboxProps, TextInputProps } from "flowbite-react";
 import { Button, Checkbox, Dropdown, Label, TextInput } from "flowbite-react";
 import type { FC, PropsWithChildren } from "react";
-import React, {
-  Fragment,
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useState,
-} from "react";
+import React, { Fragment, useCallback, useEffect, useState } from "react";
 
 import { useFormContext } from "react-hook-form";
 import useApplicationStore from "../../views/store/ApplicationStore";
@@ -27,7 +21,7 @@ import {
 import classNames from "classnames";
 import { BiChevronRight, BiSolidHand, BiSolidPencil } from "react-icons/bi";
 import { env } from "../../shared/environment";
-import { HiMiniArrowUpRight, HiOutlineArrowUpRight } from "react-icons/hi2";
+import { HiMiniArrowUpRight } from "react-icons/hi2";
 
 export interface ConfigFieldProps {
   qualifiedFieldName: string;
@@ -316,8 +310,9 @@ const InputField: FC<InputProps> = ({
   error,
   ...rest
 }) => {
-  const { register } = useFormContext();
+  const { register, unregister } = useFormContext();
   const id = qualifiedFieldName + (valueSelector ?? "");
+
   return (
     <TextInput
       sizing={"sm"}
@@ -328,7 +323,8 @@ const InputField: FC<InputProps> = ({
       helperText={error && <span>{error.message?.toString()}</span>}
       {...rest}
       {...register(id, {
-        required: required && `${qualifiedFieldName} is required.`,
+        required:
+          required && `${qualifiedFieldName.split(".").pop()} is required.`,
       })}
     />
   );
@@ -350,7 +346,8 @@ export const BooleanField: FC<BooleanProps> = ({
       readOnly={configurationDisabled}
       {...props}
       {...register(id, {
-        required: required && `${qualifiedFieldName} is required.`,
+        required:
+          required && `${qualifiedFieldName.split(".").pop()} is required.`,
       })}
     />
   );
@@ -363,7 +360,12 @@ export const ResourceField: FC<ResourceProps> = ({
   required,
   valueSelector,
 }) => {
-  const { register, setValue, watch } = useFormContext();
+  const { register, unregister, setValue, watch, formState } = useFormContext();
+  const { errors } = formState;
+  const error = findChildProperty(
+    errors,
+    qualifiedFieldName + (valueSelector ?? ""),
+  );
   const { architecture, selectResource } = useApplicationStore();
   const onClick = (value: string) => {
     setValue(id, value, {
@@ -394,45 +396,54 @@ export const ResourceField: FC<ResourceProps> = ({
     setItems(refreshItems());
   }, [refreshItems]);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     register(id, {
-      required: required && `${qualifiedFieldName} is required.`,
+      required:
+        required && `${qualifiedFieldName.split(".").pop()} is required.`,
     });
-  });
+    return () => {
+      unregister(id, { keepDefaultValue: true });
+    };
+  }, [id, qualifiedFieldName, unregister, register, required]);
 
   return (
     <div className="flex gap-1">
-      <Dropdown
-        size={"xs"}
-        className="max-h-[50vh] overflow-y-auto"
-        id={id}
-        color={"purple"}
-        disabled={readOnly}
-        label={
-          watchValue?.length
-            ? NodeId.parse(watchValue).name
-            : "Select a resource"
-        }
-      >
-        {items.map((resourceId: string) => {
-          return (
-            <Dropdown.Item key={resourceId} onClick={() => onClick(resourceId)}>
-              {resourceId}
+      <ErrorHelper error={error}>
+        <Dropdown
+          size={"xs"}
+          className="max-h-[50vh] overflow-y-auto"
+          id={id}
+          color={"purple"}
+          disabled={readOnly}
+          label={
+            watchValue?.length
+              ? NodeId.parse(watchValue).name
+              : "Select a resource"
+          }
+        >
+          {items.map((resourceId: string) => {
+            return (
+              <Dropdown.Item
+                key={resourceId}
+                onClick={() => onClick(resourceId)}
+              >
+                {resourceId}
+              </Dropdown.Item>
+            );
+          })}
+          {!items.length && (
+            <Dropdown.Item disabled={true}>
+              No resources{" "}
+              {resourceTypes
+                ? "of type " +
+                  (resourceTypes.length > 1 ? "s" : "") +
+                  resourceTypes.join(", ")
+                : ""}{" "}
+              available
             </Dropdown.Item>
-          );
-        })}
-        {!items.length && (
-          <Dropdown.Item disabled={true}>
-            No resources{" "}
-            {resourceTypes
-              ? "of type " +
-                (resourceTypes.length > 1 ? "s" : "") +
-                resourceTypes.join(", ")
-              : ""}{" "}
-            available
-          </Dropdown.Item>
-        )}
-      </Dropdown>
+          )}
+        </Dropdown>
+      </ErrorHelper>
       {watchValue?.length && (
         <Button
           title={"Show this resource"}
@@ -458,7 +469,7 @@ export const EnumField: FC<EnumProps> = ({
   valueSelector,
 }) => {
   const id = qualifiedFieldName + (valueSelector ?? "");
-  const { register, setValue, watch } = useFormContext();
+  const { register, unregister, setValue, watch } = useFormContext();
 
   const onClick = (value: string) => {
     setValue(id, value, {
@@ -470,11 +481,15 @@ export const EnumField: FC<EnumProps> = ({
 
   const watchValue = watch(id);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     register(id, {
-      required: required && `${qualifiedFieldName} is required.`,
+      required:
+        required && `${qualifiedFieldName.split(".").pop()} is required.`,
     });
-  });
+    return () => {
+      unregister(id, { keepDefaultValue: true });
+    };
+  }, [id, qualifiedFieldName, register, required, unregister]);
 
   return (
     <ErrorHelper error={error}>

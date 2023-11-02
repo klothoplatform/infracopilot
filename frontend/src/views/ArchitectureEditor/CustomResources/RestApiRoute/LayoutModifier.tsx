@@ -56,11 +56,14 @@ export const restApiLayoutModifier: LayoutModifier = ({
       //     .map((node, index) => [node.id, index]),
       // );
 
-      // get longest path length
+      // get longest route length
       const maxLength = Math.min(
         childRFNodes.reduce((max, node) => {
-          const pathLength = node.data?.resourceMeta?.path.length;
-          return pathLength > max ? pathLength : max;
+          const routeLength =
+            (node.data?.resourceMeta?.path.length ?? 0) +
+            (node.data?.resourceMeta?.method.length ?? 0) +
+            1;
+          return routeLength > max ? routeLength : max;
         }, 0),
         80,
       );
@@ -74,7 +77,7 @@ export const restApiLayoutModifier: LayoutModifier = ({
           // "org.eclipse.elk.priority": `${
           //   childPriorities.get(child.id) ?? 10000
           // }`,
-          "org.eclipse.elk.nodeSize.minimum": ElkSize(100 + maxLength * 7, 50),
+          "org.eclipse.elk.nodeSize.minimum": ElkSize(80 + maxLength * 7, 50),
           // "org.eclipse.elk.partitioning.activate": "true",
         };
       });
