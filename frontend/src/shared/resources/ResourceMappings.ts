@@ -62,7 +62,6 @@ import {
   AmazonRdsProxyInstance,
 } from "../../components/icons/AwsResource/Database";
 import {
-  AmazonElasticContainerRegistryImage,
   AmazonElasticContainerRegistryRegistry,
   AmazonElasticContainerServiceService,
   AmazonElasticContainerServiceTask,
@@ -172,7 +171,7 @@ export const typeMappings = new Map<
       ["cloudfront_distribution", AmazonCloudFrontDownloadDistribution],
       ["cloudfront_origin_access_identity", AmazonCloudFront],
       ["dynamodb_table", AmazonDynamoDbTable],
-      ["ecr_image", AmazonElasticContainerRegistryImage],
+      ["ecr_image", Docker],
       ["ecr_repo", AmazonElasticContainerRegistryRegistry],
       [
         "ec2_instance",
