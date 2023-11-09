@@ -1,4 +1,3 @@
-import { Footer } from "flowbite-react";
 import type { FC, ForwardedRef, PropsWithChildren } from "react";
 import React, {
   forwardRef,
@@ -9,8 +8,6 @@ import React, {
 } from "react";
 import Navbar from "../components/navbar";
 import EditorSidebarLeft from "../components/editor/EditorSidebarLeft";
-import { MdFacebook } from "react-icons/md";
-import { FaDribbble, FaGithub, FaInstagram, FaTwitter } from "react-icons/fa";
 import { SidebarProvider } from "../context/SidebarContext";
 import EditorSidebarRight from "../components/editor/EditorSidebarRight";
 import useApplicationStore from "../views/store/ApplicationStore";
@@ -20,77 +17,68 @@ import { ArchitectureButtonAndModal } from "../components/NewArchitectureButton"
 import { useNavigate, useParams } from "react-router-dom";
 import { WorkingOverlay } from "../components/WorkingOverlay";
 
-interface NavbarSidebarLayoutProps {
-  isFooter?: boolean;
-}
+const NavbarSidebarLayout: FC<PropsWithChildren> = function ({ children }) {
+  const { architecture, isAuthenticated } = useApplicationStore();
 
-const NavbarSidebarLayout: FC<PropsWithChildren<NavbarSidebarLayoutProps>> =
-  function ({ children, isFooter = true }) {
-    const { architecture, isAuthenticated } = useApplicationStore();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const leftSidebarRef = useRef<HTMLDivElement>(null);
+  const rightSidebarRef = useRef<HTMLDivElement>(null);
 
-    const containerRef = useRef<HTMLDivElement>(null);
-    const leftSidebarRef = useRef<HTMLDivElement>(null);
-    const rightSidebarRef = useRef<HTMLDivElement>(null);
+  const [resourceLayout, setResourceLayout] = useState<"list" | "grid">("grid");
 
-    const [resourceLayout, setResourceLayout] = useState<"list" | "grid">(
-      "grid",
-    );
-
-    const onResizeLeftSidebar = (newSize: number) => {
-      setResourceLayout(newSize < 280 ? "list" : "grid");
-    };
-
-    return (
-      <SidebarProvider>
-        <div className="flex h-[100vh] max-h-[100vh] w-[100vw] max-w-[100vw] flex-col">
-          <Navbar>
-            <EditorNavContent />
-          </Navbar>
-          <div
-            className="flex h-full w-full gap-0 overflow-hidden bg-gray-50 dark:bg-gray-800"
-            ref={containerRef}
-          >
-            {architecture?.id && (
-              <>
-                <Resizable
-                  containerRef={containerRef}
-                  childRef={leftSidebarRef}
-                  onResize={onResizeLeftSidebar}
-                >
-                  <div
-                    ref={leftSidebarRef}
-                    className="box-border flex min-w-[280px] max-w-[29%] shrink-0 grow-0 basis-[388px]"
-                  >
-                    <EditorSidebarLeft resourceLayout={resourceLayout} />
-                  </div>
-                </Resizable>
-                <div
-                  className="grow-1 shrink-1 box-border flex w-full min-w-[30%] basis-10/12"
-                  ref={rightSidebarRef}
-                >
-                  {isAuthenticated && (
-                    <MainContent isFooter={isFooter}>{children}</MainContent>
-                  )}
-                </div>
-                <Resizable
-                  containerRef={containerRef}
-                  childRef={rightSidebarRef}
-                  handleSide="left"
-                >
-                  <div
-                    ref={rightSidebarRef}
-                    className="right-0 box-border flex h-full w-[25rem] min-w-[15%] max-w-[39%] shrink-0 grow-0"
-                  >
-                    <EditorSidebarRight />
-                  </div>
-                </Resizable>
-              </>
-            )}
-          </div>
-        </div>
-      </SidebarProvider>
-    );
+  const onResizeLeftSidebar = (newSize: number) => {
+    setResourceLayout(newSize < 280 ? "list" : "grid");
   };
+
+  return (
+    <SidebarProvider>
+      <div className="flex h-[100vh] max-h-[100vh] w-[100vw] max-w-[100vw] flex-col">
+        <Navbar>
+          <EditorNavContent />
+        </Navbar>
+        <div
+          className="flex h-full w-full gap-0 overflow-hidden bg-gray-50 dark:bg-gray-800"
+          ref={containerRef}
+        >
+          {architecture?.id && (
+            <>
+              <Resizable
+                containerRef={containerRef}
+                childRef={leftSidebarRef}
+                onResize={onResizeLeftSidebar}
+              >
+                <div
+                  ref={leftSidebarRef}
+                  className="box-border flex min-w-[280px] max-w-[29%] shrink-0 grow-0 basis-[388px]"
+                >
+                  <EditorSidebarLeft resourceLayout={resourceLayout} />
+                </div>
+              </Resizable>
+              <div
+                className="grow-1 shrink-1 box-border flex w-full min-w-[30%] basis-10/12"
+                ref={rightSidebarRef}
+              >
+                {isAuthenticated && <MainContent>{children}</MainContent>}
+              </div>
+              <Resizable
+                containerRef={containerRef}
+                childRef={rightSidebarRef}
+                handleSide="left"
+              >
+                <div
+                  ref={rightSidebarRef}
+                  className="right-0 box-border flex h-full w-[25rem] min-w-[15%] max-w-[39%] shrink-0 grow-0"
+                >
+                  <EditorSidebarRight />
+                </div>
+              </Resizable>
+            </>
+          )}
+        </div>
+      </div>
+    </SidebarProvider>
+  );
+};
 
 type ResizableProps = {
   handleSide?: "left" | "right";
@@ -176,7 +164,7 @@ const EditorNavContent: FC = function () {
   const {
     initializeEditor,
     addError,
-    isAuthenticated,
+    auth0,
     architecture,
     isEditorInitialized,
     isEditorInitializing,
@@ -197,7 +185,7 @@ const EditorNavContent: FC = function () {
       return;
     }
     if (
-      isAuthenticated &&
+      auth0?.isAuthenticated &&
       architectureId &&
       architecture?.id !== architectureId &&
       !isEditorInitializing
@@ -215,7 +203,7 @@ const EditorNavContent: FC = function () {
       })();
     }
   }, [
-    isAuthenticated,
+    auth0?.isAuthenticated,
     architectureId,
     navigate,
     initializeEditor,
@@ -232,7 +220,7 @@ const EditorNavContent: FC = function () {
           {architecture.name}
         </div>
         <div className="flex">
-          <ArchitectureButtonAndModal disabled={!isAuthenticated} />
+          <ArchitectureButtonAndModal disabled={!auth0?.isAuthenticated} />
         </div>
         <ExportIacButton disabled={isExportButtonHidden} />
       </div>
@@ -242,88 +230,17 @@ const EditorNavContent: FC = function () {
 };
 
 const MainContent = forwardRef(
-  (
-    { children, isFooter }: PropsWithChildren<NavbarSidebarLayoutProps>,
-    ref: ForwardedRef<HTMLDivElement>,
-  ) => {
+  ({ children }: PropsWithChildren, ref: ForwardedRef<HTMLDivElement>) => {
     return (
       <div
         className="relative h-full w-full overflow-hidden dark:bg-gray-900"
         ref={ref}
       >
         {children}
-        {isFooter && (
-          <div className="mx-4 mt-4">
-            <MainContentFooter />
-          </div>
-        )}
       </div>
     );
   },
 );
 MainContent.displayName = "MainContent";
-
-const MainContentFooter: FC = function () {
-  return (
-    <>
-      <Footer container>
-        <div className="flex w-full flex-col gap-y-6 lg:flex-row lg:justify-between lg:gap-y-0">
-          <Footer.LinkGroup>
-            <Footer.Link href="#" className="mb-3 mr-3 lg:mb-0">
-              Terms and conditions
-            </Footer.Link>
-            <Footer.Link href="#" className="mb-3 mr-3 lg:mb-0">
-              Privacy Policy
-            </Footer.Link>
-            <Footer.Link href="#" className="mr-3">
-              Licensing
-            </Footer.Link>
-            <Footer.Link href="#" className="mr-3">
-              Cookie Policy
-            </Footer.Link>
-            <Footer.Link href="#">Contact</Footer.Link>
-          </Footer.LinkGroup>
-          <Footer.LinkGroup>
-            <div className="flex gap-4 md:gap-0">
-              <Footer.Link
-                href="#"
-                className="hover:[&>*]:text-black dark:hover:[&>*]:text-gray-300"
-              >
-                <MdFacebook className="text-lg" />
-              </Footer.Link>
-              <Footer.Link
-                href="#"
-                className="hover:[&>*]:text-black dark:hover:[&>*]:text-gray-300"
-              >
-                <FaInstagram className="text-lg" />
-              </Footer.Link>
-              <Footer.Link
-                href="#"
-                className="hover:[&>*]:text-black dark:hover:[&>*]:text-gray-300"
-              >
-                <FaTwitter className="text-lg" />
-              </Footer.Link>
-              <Footer.Link
-                href="#"
-                className="hover:[&>*]:text-black dark:hover:[&>*]:text-gray-300"
-              >
-                <FaGithub className="text-lg" />
-              </Footer.Link>
-              <Footer.Link
-                href="#"
-                className="hover:[&>*]:text-black dark:hover:[&>*]:text-gray-300"
-              >
-                <FaDribbble className="text-lg" />
-              </Footer.Link>
-            </div>
-          </Footer.LinkGroup>
-        </div>
-      </Footer>
-      <p className="my-8 text-center text-sm text-gray-500 dark:text-gray-300">
-        &copy; 2023 CloudCompiler Inc. All rights reserved.
-      </p>
-    </>
-  );
-};
 
 export default NavbarSidebarLayout;
