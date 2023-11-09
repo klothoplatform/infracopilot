@@ -28,6 +28,7 @@ import {
 import { ConfigGroup } from "../config/ConfigGroup";
 import type { NodeId } from "../../shared/architecture/TopologyNode";
 import type { Architecture } from "../../shared/architecture/Architecture";
+import { analytics } from "../../App";
 
 export default function ConfigForm() {
   const {
@@ -139,6 +140,12 @@ export default function ConfigForm() {
             architecture,
           ),
         );
+        analytics.track("configureResource", {
+          configure: {
+            resourceId: selectedResource.toString(),
+            constraints: constraints,
+          },
+        });
 
         if (!constraints.length) {
           return;

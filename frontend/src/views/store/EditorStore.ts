@@ -24,14 +24,16 @@ import {
   autoLayout,
   DefaultLayoutOptions,
 } from "../../shared/reactflow/AutoLayout";
-import type { Constraint } from "../../shared/architecture/Constraints";
+import type {
+  Constraint,
+  ResourceConstraint,
+} from "../../shared/architecture/Constraints";
 import {
   ApplicationConstraint,
   ConstraintOperator,
   ConstraintScope,
   EdgeConstraint,
   parseConstraints,
-  ResourceConstraint,
 } from "../../shared/architecture/Constraints";
 import { applyConstraints } from "../../api/ApplyConstraints";
 import TopologyEdge from "../../shared/architecture/TopologyEdge";
@@ -49,12 +51,6 @@ import type { ErrorStore } from "./ErrorStore";
 
 import { analytics } from "../../App";
 import { customConfigMappings } from "../ArchitectureEditor/config/CustomConfigMappings";
-
-export interface ResourceConfigurationRequest {
-  resourceId: NodeId;
-  property: string;
-  value: any;
-}
 
 interface EditorStoreState {
   architecture: Architecture;
@@ -107,9 +103,6 @@ interface EditorStoreActions {
     generateConstraints?: boolean,
   ) => Promise<void>;
   applyConstraints: (constraints?: Constraint[]) => Promise<void>;
-  configureResources: (
-    requests: ResourceConfigurationRequest[],
-  ) => Promise<void>;
   deleteElements: (elements: Partial<ReactFlowElements>) => Promise<void>;
   deselectEdge: (edgeId: string) => void;
   deselectNode: (nodeId: string) => void;
@@ -737,40 +730,6 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       false,
       "editor/navigateRightSidebar",
     );
-  },
-  configureResources: async (requests: ResourceConfigurationRequest[]) => {
-    const constraints = requests.map(
-      (request) =>
-        new ResourceConstraint(
-          ConstraintOperator.Equals,
-          request.resourceId,
-          request.property,
-          request.value,
-        ),
-    );
-    set(
-      {
-        unappliedConstraints: [...get().unappliedConstraints, ...constraints],
-      },
-      false,
-      "editor/configureResources",
-    );
-    analytics.track("configureResources", {
-      configure: requests.reduce(
-        (acc: Record<string, Record<string, any>>, request) => {
-          const id = request.resourceId.toString();
-          if (id in acc) {
-            acc[id][request.property] = request.value;
-          } else {
-            acc[id] = { [request.property]: request.value };
-          }
-          return acc;
-        },
-        {},
-      ),
-    });
-    await get().applyConstraints();
-    console.log("configured resources");
   },
   getResourceTypeKB: async (architectureId: string, refresh?: boolean) => {
     if (
