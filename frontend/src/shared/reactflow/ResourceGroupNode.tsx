@@ -144,6 +144,7 @@ const ResourceGroupNode = memo(
                   ? `${data.resourceId.type}:${data.resourceId.name}`
                   : data.resourceId.toString()
               }
+              disabled
               onSubmit={async (newValue) => {
                 const { provider, type, namespace } = data.resourceId;
                 await replaceResource(
@@ -185,6 +186,7 @@ const ResourceGroupNode = memo(
 
 type EditableLabelProps = {
   label: string;
+  disabled?: boolean;
   initialValue?: string;
   onSubmit?: (newValue: string) => void;
 };
@@ -192,6 +194,7 @@ type EditableLabelProps = {
 const EditableLabel: FC<EditableLabelProps> = ({
   initialValue,
   label,
+  disabled,
   onSubmit,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -227,6 +230,7 @@ const EditableLabel: FC<EditableLabelProps> = ({
   return (
     // eslint-disable-next-line jsx-a11y/click-events-have-key-events,jsx-a11y/no-static-element-interactions
     <button
+      disabled={disabled}
       onClick={() => {
         setIsEditing(true);
         setShouldSelectContent(true);
@@ -235,7 +239,16 @@ const EditableLabel: FC<EditableLabelProps> = ({
     >
       <>
         {!isEditing && (
-          <div className="line-clamp-2 rounded-sm border-[1px] border-gray-500/[0] px-1 font-semibold hover:border-gray-500 hover:bg-gray-100/20 dark:hover:bg-gray-700/20">
+          <div
+            className={classNames(
+              "line-clamp-2 rounded-sm border-[1px] border-gray-500/[0] px-1 font-semibold",
+              {
+                "cursor-text hover:border-gray-500 hover:bg-gray-100/20 dark:hover:bg-gray-700/20":
+                  !disabled,
+                "pointer-events-none": disabled,
+              },
+            )}
+          >
             {label}
           </div>
         )}

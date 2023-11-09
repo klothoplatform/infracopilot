@@ -177,6 +177,7 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
 
         <EditableLabel
           label={data.label}
+          disabled
           onSubmit={async (newValue) => {
             const { provider, type, namespace } = data.resourceId;
             await replaceResource(
@@ -233,10 +234,15 @@ const ResourceIcon: FC<ResourceIconProps> = ({
 
 type EditableLabelProps = {
   label: string;
+  disabled?: boolean;
   onSubmit?: (newValue: string) => void;
 };
 
-const EditableLabel: FC<EditableLabelProps> = ({ label, onSubmit }) => {
+const EditableLabel: FC<EditableLabelProps> = ({
+  label,
+  disabled,
+  onSubmit,
+}) => {
   const [isEditing, setIsEditing] = useState(false);
   const [state, dispatch] = useReducer(reducer, {
     label,
@@ -272,7 +278,14 @@ const EditableLabel: FC<EditableLabelProps> = ({ label, onSubmit }) => {
       <>
         {!isEditing && (
           <button
-            className="pointer-events-auto flex w-fit max-w-[210px] cursor-text justify-center border-[1px] border-gray-500/[0] px-1 hover:rounded-sm hover:border-gray-500 hover:bg-gray-100/20 dark:hover:bg-gray-700/20"
+            className={classNames(
+              "flex w-fit max-w-[210px] justify-center border-[1px] border-gray-500/[0] px-1",
+              {
+                "pointer-events-auto cursor-text hover:rounded-sm hover:border-gray-500 hover:bg-gray-100/20 dark:hover:bg-gray-700/20":
+                  !disabled,
+              },
+            )}
+            disabled={disabled}
             onClick={() => {
               setIsEditing(true);
               setShouldSelectContent(true);
