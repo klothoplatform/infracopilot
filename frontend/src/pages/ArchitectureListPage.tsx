@@ -7,23 +7,36 @@ import ArchitecturesTable from "../components/architectures/ArchitecturesTable";
 import { ArchitectureButtonAndModal } from "../components/NewArchitectureButton";
 import { WorkingOverlay } from "../components/WorkingOverlay";
 import LeftSideBar from "../components/architectures/LeftSideBar";
+import { ErrorOverlay } from "../components/ErrorOverlay";
 
 function ArchitectureListPage() {
-  const { isAuthenticated, getArchitectures, architectures, user } =
+  const { isAuthenticated, getArchitectures, architectures, user, addError } =
     useApplicationStore();
   const [isLoaded, setIsLoaded] = useState(false);
   const [isLoadingArchitectures, setIsLoadingArchitectures] = useState(false);
+
   useEffect(() => {
     if (!isAuthenticated || isLoaded || isLoadingArchitectures) {
       return;
     }
     setIsLoadingArchitectures(true);
     (async () => {
-      await getArchitectures(true);
+      try {
+        await getArchitectures(true);
+      } catch (error: any) {
+        addError(error.message);
+      } finally {
+        setIsLoadingArchitectures(false);
+      }
       setIsLoaded(true);
-      setIsLoadingArchitectures(false);
     })();
-  }, [isAuthenticated, isLoaded, isLoadingArchitectures, getArchitectures]);
+  }, [
+    isAuthenticated,
+    isLoaded,
+    isLoadingArchitectures,
+    getArchitectures,
+    addError,
+  ]);
 
   return (
     <>
@@ -38,6 +51,7 @@ function ArchitectureListPage() {
           </div>
         </div>
       </SidebarProvider>
+      <ErrorOverlay />
       <WorkingOverlay
         show={isLoadingArchitectures}
         message={"Loading architectures..."}
@@ -47,5 +61,7 @@ function ArchitectureListPage() {
 }
 
 export default withAuthenticationRequired(ArchitectureListPage, {
-  onRedirecting: () => <WorkingOverlay show={true} />,
+  onRedirecting: () => (
+    <WorkingOverlay show={true} message="Authenticating..." />
+  ),
 });
