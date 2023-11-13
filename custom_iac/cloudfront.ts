@@ -161,11 +161,11 @@ export class Cloudfront {
         cloudfrontDefaultCertificate: process.env.STAGE !== "dev",
         acmCertificateArn:
           process.env.STAGE === "dev"
-            ? "arn:aws:acm:us-east-1:338991950301:certificate/7dd16501-4926-4db3-95f8-fdb0f955d3ee"
-            : undefined,
+            ? "arn:aws:acm:us-east-1:338991950301:certificate/635f7b40-f430-491d-9f4f-4fed4e689305"
+            : "arn:aws:acm:us-east-1:200804570572:certificate/142fc308-f79c-44b3-be2e-b29283f31660",
       },
       aliases:
-        process.env.STAGE === "dev" ? ["app.infracopilot.io"] : undefined,
+        process.env.STAGE === "dev" ? ["dev.infracopilot.io"] : ["app.infracopilot.io"],
 
       customErrorResponses: [
         {
