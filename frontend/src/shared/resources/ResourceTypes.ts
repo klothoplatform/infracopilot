@@ -90,6 +90,7 @@ export interface ResourceTypeFilter {
   excludedProviders?: string[];
   excludedTypes?: string[];
   excludedClassifications?: string[];
+  iconSizes?: ViewNodeType[];
 }
 
 type RawProperty = {

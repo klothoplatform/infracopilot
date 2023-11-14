@@ -1,5 +1,6 @@
 import type { ResourceType, ResourceTypeFilter } from "./ResourceTypes";
 import { customConfigMappings } from "../../views/ArchitectureEditor/config/CustomConfigMappings";
+import { ArchitectureView, ViewNodeType } from "../architecture/Architecture";
 
 export class ResourceTypeKB {
   resourceTypes: Map<string, ResourceType> = new Map();
@@ -51,6 +52,15 @@ export class ResourceTypeKB {
         (resourceType) =>
           resourceType.classifications?.every(
             (c) => !filter.excludedClassifications?.includes(c),
+          ),
+      );
+    }
+    if (filter?.iconSizes) {
+      resourceTypes = resourceTypes.filter(
+        (resourceType) =>
+          filter.iconSizes?.includes(
+            resourceType.views.get(ArchitectureView.DataFlow) ??
+              ViewNodeType.Small,
           ),
       );
     }

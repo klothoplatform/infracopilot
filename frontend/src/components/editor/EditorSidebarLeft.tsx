@@ -8,9 +8,19 @@ import { HiFilter } from "react-icons/hi";
 import { useSidebarContext } from "../../context/SidebarContext";
 import type { FilterFunction } from "./ResourceAccordion";
 import ResourceAccordion from "./ResourceAccordion";
-import { AwsLogo } from "./Icon";
-import { Logo } from "../icons/K8SLogo/Unlabeled";
 import debounce from "lodash.debounce";
+import { ViewNodeType } from "../../shared/architecture/Architecture";
+
+const displayedClassifications = [
+  "api",
+  "cluster",
+  "compute",
+  "load_balancer",
+  "messaging",
+  "network",
+  "queue",
+  "storage",
+];
 
 const sidebarTheme: CustomFlowbiteTheme["sidebar"] = {
   root: {
@@ -59,6 +69,30 @@ const EditorSidebarLeft = forwardRef(
       [],
     );
 
+    const sections = displayedClassifications.map((classification, index) => {
+      let name = classification
+        .replace(/_/g, " ")
+        .toLowerCase()
+        .replace(/\b\w/g, (s) => s.toUpperCase());
+      // hack
+      if (name === "Api") {
+        name = "API";
+      }
+      return (
+        <ResourceAccordion
+          key={index}
+          name={name}
+          resourceFilter={{
+            classifications: [classification],
+            iconSizes: [ViewNodeType.Parent, ViewNodeType.Big],
+          }}
+          userFilter={filterFunction}
+          layout={resourceLayout}
+          open
+        />
+      );
+    });
+
     return (
       <div
         ref={ref}
@@ -82,26 +116,7 @@ const EditorSidebarLeft = forwardRef(
               onChange={debouncedHandleInputChange}
             />
             <div className={"w-full"}>
-              <Accordion>
-                <ResourceAccordion
-                  name={"AWS"}
-                  icon={<AwsLogo width={"20px"} height={"20px"} />}
-                  open
-                  resourceFilter={{
-                    providers: ["aws"],
-                    excludedTypes: ["ecr_image"],
-                  }}
-                  userFilter={filterFunction}
-                  layout={resourceLayout}
-                />
-                <ResourceAccordion
-                  name={"Kubernetes"}
-                  icon={<Logo width={"20px"} height={"20px"} />}
-                  resourceFilter={{ providers: ["kubernetes"] }}
-                  userFilter={filterFunction}
-                  layout={resourceLayout}
-                />
-              </Accordion>
+              <Accordion>{sections}</Accordion>
             </div>
           </div>
         </Sidebar>

@@ -13,7 +13,7 @@ import { getIcon } from "../../shared/resources/ResourceMappings";
 
 interface ResourceAccordionOptions {
   name: string;
-  icon: React.JSX.Element;
+  icon?: React.JSX.Element;
   open?: boolean;
   userFilter?: FilterFunction;
   layout?: "grid" | "list";
@@ -44,7 +44,6 @@ export default function ResourceAccordion({
   resourceFilter,
 }: ResourceAccordionOptions) {
   const { mode } = useContext(ThemeContext);
-  const provider = name.toLowerCase();
   const [options, setOptions] = React.useState<ResourceOption[]>([]);
   const { resourceTypeKB, isAuthenticated } = useApplicationStore();
 
@@ -64,7 +63,7 @@ export default function ResourceAccordion({
             type: resourceType.type,
             name: resourceType.displayName,
             icon: getIcon(
-              provider,
+              resourceType.provider,
               resourceType.type,
               undefined,
               undefined,
@@ -77,7 +76,6 @@ export default function ResourceAccordion({
     resourceTypeKB,
     resourceFilter,
     userFilter,
-    provider,
     setOptions,
     mode,
     isAuthenticated,
@@ -114,14 +112,16 @@ export default function ResourceAccordion({
         aria-controls="panel1bh-content"
         id="panel1bh-header"
         onClick={onTitleClick}
-        className={"flex w-full"}
+        className={"flex w-full px-2 py-2.5 [&>h2]:w-full [&>h2]:text-ellipsis"}
       >
         <div className={"mr-3 flex w-full"}>
-          <div className={"h-[20px] min-h-[20px] w-[20px] min-w-[20px]"}>
-            {icon}
-          </div>
+          {icon && (
+            <div className={"h-[20px] min-h-[20px] w-[20px] min-w-[20px]"}>
+              {icon}
+            </div>
+          )}
           <div className={"ml-3"}>{name}</div>
-          <div className={"ml-auto mr-3"}>
+          <div className={"ml-auto mr-3 place-self-end"}>
             {showResourceCount && (
               <Badge color={"purple"} className={"ml-2"}>
                 {options?.length ?? 0}
