@@ -50,6 +50,12 @@ install-frontend:
 build-frontend:
 	npm --prefix frontend run build
 
+build-frontend-dev:
+	npm --prefix frontend run build-dev
+
+build-frontend-prod:
+	npm --prefix frontend run build-prod
+
 start:
 	npm --prefix frontend run start && kill $$!
 

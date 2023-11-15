@@ -84,10 +84,11 @@ jobs:
       - name: build frontend
         run: |
           make install-frontend
-          make build-frontend
+          make build-frontend-${STAGE}
         env:
           CI: false
           NODE_OPTIONS: "--max-old-space-size=4096"
+          STAGE: ${{ inputs.stage }}
       - name: download klotho
         uses: actions/download-artifact@v3
         with:

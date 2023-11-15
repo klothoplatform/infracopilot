@@ -1,7 +1,7 @@
 app: infracopilot-ui-prod
 provider: aws
 path: .
-execution_unit:
+execution_units:
   main:
     type: lambda
     pulumi_params:
