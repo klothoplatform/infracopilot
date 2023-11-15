@@ -13,6 +13,7 @@
     "classnames": "^2.3.2",
     "date-fns": "^2.30.0",
     "elkjs": "^0.8.2",
+    "env-cmd": "^10.1.0",
     "flowbite": "^1.8.1",
     "flowbite-react": "^0.6.4",
     "html-to-image": "^1.11.11",
@@ -57,6 +58,8 @@
   "scripts": {
     "start": "PORT=3100 react-scripts start",
     "build": "react-scripts build",
+    "build-dev": "env-cmd -f ./.env.dev npm run build",
+    "build-prod": "env-cmd -f ./.env.prod npm run build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "clean": "rm -rf ./build",
