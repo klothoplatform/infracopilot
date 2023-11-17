@@ -12,6 +12,10 @@ on:
         required: true
         type: string
         default: us-west-2
+      engine-repo:
+        description: the Klotho repository to build
+        type: string
+        default: klothoplatform/klotho
       engine-ref:
         description: the ref (branch, tag or SHA) of the engine to build
         required: false
@@ -27,6 +31,10 @@ on:
         required: true
         type: string
         default: us-west-2
+      engine-repo:
+        required: false
+        type: string
+        default: klothoplatform/klotho
       engine-ref:
         required: false
         type: string
@@ -40,8 +48,8 @@ jobs:
     name: Build Binaries (engine, iac)
     uses: ./.github/workflows/build_binaries.yaml
     with:
-      klotho-repo: ${{ inputs.klotho-repo }}
-      klotho-ref: ${{ inputs.klotho-ref }}
+      klotho-repo: ${{ inputs.engine-repo }}
+      klotho-ref: ${{ inputs.engine-ref }}
     secrets: inherit
 
   upgrade-engine:
