@@ -10,6 +10,7 @@ import { IoEllipsisVerticalSharp } from "react-icons/io5";
 import classNames from "classnames";
 import RenameArchitectureModal from "./RenameArchitectureModal";
 import DeleteArchitectureModal from "./DeleteArchitectureModal";
+import useApplicationStore from "../../views/store/ApplicationStore";
 
 const dateFormat = "MM/dd/yyyy hh:mm a z";
 
@@ -23,6 +24,8 @@ const ArchitecturesTable: FC<{
   user?: User;
   architectures: Architecture[];
 }> = ({ user, architectures }) => {
+  const { resetEditorState } = useApplicationStore();
+
   const [sortedBy, setSortedBy] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [renaming, setRenaming] = useState<Architecture | null>(null);
@@ -69,7 +72,12 @@ const ArchitecturesTable: FC<{
           className="bg-white dark:border-gray-700 dark:bg-gray-800"
         >
           <Table.Cell>
-            <Link to={`/editor/${architecture.id}`}>{architecture.name}</Link>
+            <Link
+              onClick={() => resetEditorState()}
+              to={`/editor/${architecture.id}`}
+            >
+              {architecture.name}
+            </Link>
           </Table.Cell>
           <Table.Cell>{user?.email}</Table.Cell>
           <Table.Cell>

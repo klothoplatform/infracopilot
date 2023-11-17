@@ -187,7 +187,7 @@ const EditorNavContent: FC = function () {
     if (
       auth0?.isAuthenticated &&
       architectureId &&
-      architecture?.id !== architectureId &&
+      !isEditorInitialized &&
       !isEditorInitializing
     ) {
       (async () => {
@@ -209,7 +209,6 @@ const EditorNavContent: FC = function () {
     initializeEditor,
     addError,
     isEditorInitialized,
-    architecture?.id,
     isEditorInitializing,
   ]);
 
