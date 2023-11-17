@@ -40,6 +40,37 @@ class Architecture(Base):
         return f"architecture:{self.id}"
 
 
+async def rename_architecture(id: str, name: str):
+    stmt = (
+        select(Architecture)
+        .where(Architecture.id == id)
+        .order_by(Architecture.state.desc())
+    )
+    result = session.execute(statement=stmt).fetchall()
+    if result is None:
+        raise Exception(f"Architecture with id, {id}, does not exist")
+    for r in result:
+        print(r[0])
+        r[0].name = name
+        print(r[0])
+        session.add(r[0])
+    session.commit()
+
+
+async def delete_architecture(id: str):
+    stmt = (
+        select(Architecture)
+        .where(Architecture.id == id)
+        .order_by(Architecture.state.desc())
+    )
+    result = session.execute(statement=stmt).fetchall()
+    if result is None:
+        raise Exception(f"Architecture with id, {id}, does not exist")
+    for r in result:
+        session.delete(r[0])
+    session.commit()
+
+
 async def get_architecture_latest(id: str) -> Architecture:
     stmt = (
         select(Architecture)

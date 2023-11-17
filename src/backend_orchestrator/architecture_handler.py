@@ -40,6 +40,10 @@ class CreateArchitectureRequest(BaseModel):
     owner: str = None
 
 
+class ModifyArchitectureRequest(BaseModel):
+    name: str
+
+
 async def copilot_new_architecture(
     body: CreateArchitectureRequest, user_id: str = None
 ):

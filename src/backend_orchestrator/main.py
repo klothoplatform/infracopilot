@@ -9,9 +9,10 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.gzip import GZipMiddleware
 from src.auth_service.main import can_read_architecture, can_write_to_architecture
 from src.auth_service.token import PUBLIC_USER, AuthError, get_user_id
-from src.state_manager.architecture_data import get_architectures_by_owner
+from src.state_manager.architecture_data import delete_architecture, rename_architecture
 from src.util.orm import Base, engine
 from src.backend_orchestrator.architecture_handler import (
+    ModifyArchitectureRequest,
     copilot_get_state,
     copilot_get_resource_types,
     copilot_list_architectures,
@@ -121,6 +122,39 @@ async def get_resource_types(request: Request, id: str):
             },
         )
     return await copilot_get_resource_types(id)
+
+
+@app.post("/api/architecture/{id}")
+async def modify_architecture(
+    request: Request, id: str, body: ModifyArchitectureRequest
+):
+    user_id = get_user_id(request)
+    authorized = await can_write_to_architecture(User(id=user_id), id)
+    if not authorized:
+        raise AuthError(
+            detail=f"User {user_id} is not authorized to modify architecture {id}",
+            error={
+                "code": "unauthorized",
+                "description": f"User is not authorized to modify architecture {id}",
+            },
+        )
+    print(body.name)
+    return await rename_architecture(id, body.name)
+
+
+@app.delete("/api/architecture/{id}")
+async def modify_architecture(request: Request, id: str):
+    user_id = get_user_id(request)
+    authorized = await can_write_to_architecture(User(id=user_id), id)
+    if not authorized:
+        raise AuthError(
+            detail=f"User {user_id} is not authorized to delete architecture {id}",
+            error={
+                "code": "unauthorized",
+                "description": f"User is not authorized to delete architecture {id}",
+            },
+        )
+    return await delete_architecture(id)
 
 
 @app.get("/api/architectures")

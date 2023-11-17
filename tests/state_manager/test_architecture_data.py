@@ -2,11 +2,13 @@ from src.util.entity import User
 from src.util.orm import Base, engine, session
 from src.state_manager.architecture_data import (
     Architecture,
+    delete_architecture,
     get_architecture_changelog_history,
     get_architecture_latest,
     get_architecture_history,
     add_architecture,
     get_architectures_by_owner,
+    rename_architecture,
 )
 import aiounittest
 
@@ -51,6 +53,16 @@ class TestArchitectureData(aiounittest.AsyncTestCase):
 
     def tearDown(self):
         self.session.query(Architecture).delete()
+
+    async def test_rename_architecture(self):
+        await rename_architecture("test", "new name")
+        result = await get_architecture_latest("test")
+        self.assertEqual(result.name, "new name")
+
+    async def test_delete_architecture(self):
+        await delete_architecture("test")
+        result = await get_architecture_latest("test")
+        self.assertIsNone(result)
 
     async def test_can_latest_architecture_none_exist(self):
         result = await get_architecture_latest("unknown")

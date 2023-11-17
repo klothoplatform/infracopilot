@@ -81,9 +81,10 @@ async def run_engine_command(*args, **kwargs) -> tuple[str, str]:
     log.debug("engine output:\n%s", out_logs)
     if err_logs is not None and len(err_logs.strip()) > 0:
         log.error("engine error:\n%s", err_logs)
+    if cwd is not None:
+        capture_failure("failures/engine", cmd, cwd, err_logs)
 
     if result.returncode != 0:
-        capture_failure("failures/engine", cmd, cwd, err_logs)
         raise EngineException(
             f"Engine {cmd} returned non-zero exit code: {result.returncode}",
             out_logs,
@@ -113,9 +114,8 @@ async def run_iac_command(*args, **kwargs) -> tuple[str, str]:
     log.debug("iac output:\n%s", out_logs)
     if err_logs is not None and len(err_logs.strip()) > 0:
         log.error("iac error:\n%s", err_logs)
-
+    capture_failure("failures/iac", cmd, cwd, err_logs)
     if result.returncode != 0:
-        capture_failure("failures/iac", cmd, cwd, err_logs)
         raise EngineException(
             f"Engine {cmd} returned non-zero exit code: {result.returncode}",
             out_logs,

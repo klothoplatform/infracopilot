@@ -61,13 +61,13 @@ function ArchitectureListPage() {
             </div>
             <div
               className={
-                "flex h-fit w-full flex-col gap-2 overflow-hidden rounded-lg bg-gray-100 p-4 dark:bg-gray-900"
+                "bg-white-100 flex w-full grow flex-col gap-2 overflow-hidden rounded-lg p-4 dark:bg-gray-800"
               }
             >
               <h2 className={"mb-2 text-lg font-semibold dark:text-white"}>
                 Architectures
               </h2>
-              <div className="h-full w-full overflow-auto">
+              <div className="h-full w-full overflow-auto p-4">
                 <ArchitecturesTable user={user} architectures={architectures} />
               </div>
             </div>
