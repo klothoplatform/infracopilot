@@ -32,7 +32,6 @@ export default function DeleteArchitectureModal({
   const { getIdToken, getArchitectures } = useApplicationStore();
 
   const onSubmit = async () => {
-    onClose();
     await deleteArchitecture({
       id: id,
       idToken: await getIdToken(),

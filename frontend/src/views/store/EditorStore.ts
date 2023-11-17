@@ -51,6 +51,7 @@ import type { ErrorStore } from "./ErrorStore";
 
 import { analytics } from "../../App";
 import { customConfigMappings } from "../ArchitectureEditor/config/CustomConfigMappings";
+import modifyArchitecture from "../../api/ModifyArchitecture";
 
 interface EditorStoreState {
   architecture: Architecture;
@@ -127,6 +128,7 @@ interface EditorStoreActions {
   resetEditorState: (newState?: Partial<EditorStoreState>) => void;
   selectEdge: (edgeId: string) => void;
   setIsEditorInitialized: (isEditorInitialized: boolean) => void;
+  renameArchitecture: (newName: string) => Promise<void>;
 }
 
 type EditorStoreBase = EditorStoreState & EditorStoreActions;
@@ -761,6 +763,23 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       },
       false,
       "editor/setIsEditorInitialized",
+    );
+  },
+  renameArchitecture: async (newName: string) => {
+    const architecture = get().architecture;
+    architecture.name = newName;
+    const idToken = await get().getIdToken();
+    await modifyArchitecture({
+      name: newName,
+      id: architecture.id,
+      idToken,
+    });
+    set(
+      {
+        architecture,
+      },
+      false,
+      "editor/renameArchitecture",
     );
   },
 });

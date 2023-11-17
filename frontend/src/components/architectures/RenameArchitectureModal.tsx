@@ -32,7 +32,6 @@ export default function NewArchitectureModal({
   const { getIdToken, getArchitectures } = useApplicationStore();
 
   const onSubmit = async (state: ModifyArchitectureFormState) => {
-    onClose();
     await modifyArchitecture({
       name: state.name,
       id: id,
@@ -115,7 +114,6 @@ export default function NewArchitectureModal({
                 }
               }}
               {...rest}
-              placeholder="Untitled Architecture"
               type="text"
               color={errors.name ? "failure" : undefined}
               helperText={errors.name?.message}

@@ -16,6 +16,7 @@ import { ExportIacButton } from "../components/ExportIacButton";
 import { ArchitectureButtonAndModal } from "../components/NewArchitectureButton";
 import { useNavigate, useParams } from "react-router-dom";
 import { WorkingOverlay } from "../components/WorkingOverlay";
+import { EditableLabel } from "../components/EditableLabel";
 
 const NavbarSidebarLayout: FC<PropsWithChildren> = function ({ children }) {
   const { architecture, isAuthenticated } = useApplicationStore();
@@ -168,6 +169,7 @@ const EditorNavContent: FC = function () {
     architecture,
     isEditorInitialized,
     isEditorInitializing,
+    renameArchitecture,
   } = useApplicationStore();
 
   const isExportButtonHidden = architecture.id === undefined;
@@ -216,7 +218,18 @@ const EditorNavContent: FC = function () {
     <div className="inline-block align-middle dark:text-white">
       <div className="flex">
         <div className="my-auto mr-6 flex font-semibold">
-          {architecture.name}
+          <EditableLabel
+            key={architecture.name}
+            initialValue={architecture.name}
+            label={architecture.name}
+            disabled={!isEditorInitialized}
+            onSubmit={async (newValue) => {
+              await renameArchitecture(newValue);
+            }}
+            onError={(e) => {
+              addError("Renaming architecture failed!");
+            }}
+          ></EditableLabel>
         </div>
         <div className="flex">
           <ArchitectureButtonAndModal disabled={!auth0?.isAuthenticated} />
