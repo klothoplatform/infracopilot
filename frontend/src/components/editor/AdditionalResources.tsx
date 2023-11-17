@@ -73,11 +73,9 @@ function AdditionalResources() {
   }
 
   return (
-    <Card className="drop-shadow-xs overflow-auto">
-      <Table hoverable striped className="w-full">
-        <Table.Body>{resourceRows}</Table.Body>
-      </Table>
-    </Card>
+    <Table hoverable striped className="w-full">
+      <Table.Body>{resourceRows}</Table.Body>
+    </Table>
   );
 }
 

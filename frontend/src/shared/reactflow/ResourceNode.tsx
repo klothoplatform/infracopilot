@@ -23,6 +23,7 @@ import {
 import { TbDotsCircleHorizontal } from "react-icons/tb";
 import { ThemeContext } from "flowbite-react/lib/esm/components/Flowbite/ThemeContext";
 import type { IconProps } from "../../components/editor/Icon";
+import { Tooltip } from "flowbite-react";
 
 interface ResourceNodeProps {
   id: string;
@@ -95,16 +96,18 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
 
     const quickActions = data.vizMetadata?.children.map((element: NodeId) => {
       return (
-        <ResourceIcon
-          key={`${data.resourceId.toString()}-nav-to-${element.toString()}`}
-          data={data}
-          resourceId={element}
-          iconProps={{
-            height: "25px",
-            width: "25px",
-          }}
-          onClick={onClickQuickAction}
-        />
+        <Tooltip content={element.toString()} key={element.toString()}>
+          <ResourceIcon
+            key={`${data.resourceId.toString()}-nav-to-${element.toString()}`}
+            data={data}
+            resourceId={element}
+            iconProps={{
+              height: "25px",
+              width: "25px",
+            }}
+            onClick={onClickQuickAction}
+          />
+        </Tooltip>
       );
     });
 
@@ -342,23 +345,24 @@ const AdditionalResourcesAction: FC<AdditionalResourcesProps> = ({
 }) => {
   const { selectResource, navigateRightSidebar } = useApplicationStore();
   return (
-    <button
-      title="additional resources"
-      className="h-[25px] w-[25px]"
-      type="button"
-      onClick={() => {
-        selectResource(resourceId);
-        navigateRightSidebar([
-          RightSidebarTabs.Details,
-          RightSidebarDetailsTabs.AdditionalResources,
-        ]);
-      }}
-    >
-      <TbDotsCircleHorizontal
-        className="text-gray-800 dark:text-gray-200"
-        size="25px"
-      />
-    </button>
+    <Tooltip content={"Additional resources"}>
+      <button
+        className="h-[25px] w-[25px]"
+        type="button"
+        onClick={() => {
+          selectResource(resourceId);
+          navigateRightSidebar([
+            RightSidebarTabs.Details,
+            RightSidebarDetailsTabs.AdditionalResources,
+          ]);
+        }}
+      >
+        <TbDotsCircleHorizontal
+          className="text-gray-800 dark:text-gray-200"
+          size="25px"
+        />
+      </button>
+    </Tooltip>
   );
 };
 

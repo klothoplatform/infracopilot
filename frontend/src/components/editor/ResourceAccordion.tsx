@@ -1,7 +1,7 @@
 import type { MouseEventHandler } from "react";
 import * as React from "react";
 import { useContext, useEffect } from "react";
-import { Accordion, Badge, Card } from "flowbite-react";
+import { Accordion, Badge, Card, Tooltip } from "flowbite-react";
 
 import "./ResourceAccordion.scss";
 import classNames from "classnames";
@@ -162,42 +162,44 @@ const ResourceCard = ({
   orientation,
 }: ResourceCardProps) => {
   return (
-    <Card
-      title={option.name}
-      className={classNames(
-        "shadow-sm hover:border-2 hover:border-primary-500 hover:bg-primary-50 dark:hover:border-primary-500 dark:hover:bg-primary-900 hover:shadow-md dark:text-white",
-        {
-          "h-[100px] w-[100px] shrink-0 grow-0 basis-[100px]":
-            orientation !== "horizontal",
-          "min-h-[40px] max-h-[40px] justify-center items-start w-full max-w-full":
-            orientation === "horizontal",
-        },
-      )}
-      onDragStart={(event) =>
-        onDragStart(event, `${option.provider}:${option.type}`)
-      }
-      draggable
-    >
-      {orientation !== "horizontal" && (
-        <div className={"flex flex-col justify-center gap-2"}>
-          {React.cloneElement(option.icon, {
-            className: "fixed-image mx-auto h-[50px] w-[50px]",
-          })}
-          <div className={"mx-auto max-w-[85%] truncate text-center text-xs"}>
-            {option.name}
+    <Tooltip content={option.name}>
+      <Card
+        className={classNames(
+          "shadow-sm hover:border-2 hover:border-primary-500 hover:bg-primary-50 dark:hover:border-primary-500 dark:hover:bg-primary-900 hover:shadow-md dark:text-white",
+          {
+            "h-[100px] w-[100px] shrink-0 grow-0 basis-[100px]":
+              orientation !== "horizontal",
+            "min-h-[40px] max-h-[40px] justify-center items-start w-full max-w-full":
+              orientation === "horizontal",
+          },
+        )}
+        onDragStart={(event) =>
+          onDragStart(event, `${option.provider}:${option.type}`)
+        }
+        draggable
+      >
+        {orientation !== "horizontal" && (
+          <div className={"flex flex-col justify-center gap-2"}>
+            {React.cloneElement(option.icon, {
+              className: "fixed-image mx-auto h-[50px] w-[50px]",
+            })}
+            <div className={"mx-auto max-w-[85%] truncate text-center text-xs"}>
+              {option.name}
+            </div>
           </div>
-        </div>
-      )}
-      {orientation === "horizontal" && (
-        <div className="mx-2 flex h-full max-w-full items-center gap-3">
-          {React.cloneElement(option.icon, {
-            className: "fixed-image mx-auto h-[30px] w-[30px] shrink-0 grow-0",
-          })}
-          <div className={"mx-auto truncate text-start text-xs"}>
-            {option.name}
+        )}
+        {orientation === "horizontal" && (
+          <div className="mx-2 flex h-full max-w-full items-center gap-3">
+            {React.cloneElement(option.icon, {
+              className:
+                "fixed-image mx-auto h-[30px] w-[30px] shrink-0 grow-0",
+            })}
+            <div className={"mx-auto truncate text-start text-xs"}>
+              {option.name}
+            </div>
           </div>
-        </div>
-      )}
-    </Card>
+        )}
+      </Card>
+    </Tooltip>
   );
 };
