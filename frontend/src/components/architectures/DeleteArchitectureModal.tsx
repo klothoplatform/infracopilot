@@ -8,6 +8,7 @@ interface DeleteArchitectureModalProps {
   onClose: () => void;
   show: boolean;
   id: string;
+  name?: string;
 }
 
 export interface DeleteArchitectureFormState {
@@ -18,6 +19,7 @@ export default function DeleteArchitectureModal({
   onClose,
   show,
   id,
+  name,
 }: DeleteArchitectureModalProps) {
   const {
     reset,
@@ -87,11 +89,15 @@ export default function DeleteArchitectureModal({
           onClose?.();
         }}
       >
-        <Modal.Header>Rename Architecture</Modal.Header>
+        <Modal.Header>
+          Delete Architecture{name ? ` — ${name}` : ""}
+        </Modal.Header>
         <Modal.Body>
           <div>
             <div className="mb-2 block">
-              <Label htmlFor="name" value="Name" />
+              <Label htmlFor="confirmation">
+                Type <i>confirm</i> to delete
+              </Label>
             </div>
             <TextInput
               id="confirmation"
@@ -111,11 +117,15 @@ export default function DeleteArchitectureModal({
           </div>
         </Modal.Body>
         <Modal.Footer>
-          <Button type="reset" color="clear">
+          <Button type="reset" color="clear" className="dark:text-white">
             Cancel
           </Button>
-          <Button type="submit" color="purple">
-            Ok
+          <Button
+            type="submit"
+            color="purple"
+            disabled={Object.entries(errors).length > 0}
+          >
+            Delete
           </Button>
         </Modal.Footer>
       </form>

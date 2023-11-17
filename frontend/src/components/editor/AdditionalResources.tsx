@@ -45,12 +45,18 @@ function AdditionalResources() {
                 nodeId.provider,
                 nodeId.type,
                 {
-                  className: "w-full h-full",
+                  style: {
+                    height: "100%",
+                    width: "100%",
+                    fontSize: "small",
+                  },
                 },
                 undefined,
                 mode,
               )
-            : UnknownIcon({ className: "w-full h-full" });
+            : UnknownIcon({
+                style: { height: "100%", width: "100%", fontSize: "small" },
+              });
           return (
             <ResourceItem
               key={nodeId.toString()}

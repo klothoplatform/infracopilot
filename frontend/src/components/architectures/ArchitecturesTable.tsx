@@ -1,5 +1,6 @@
-import React, { type FC, useState, useEffect } from "react";
-import { Table, ListGroup, Button } from "flowbite-react";
+import React, { type FC, useEffect, useRef, useState } from "react";
+import type { CustomFlowbiteTheme } from "flowbite-react";
+import { ListGroup, Table } from "flowbite-react";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
 import type { User } from "@auth0/auth0-react";
@@ -8,11 +9,15 @@ import { TbArrowDown, TbArrowsSort, TbArrowUp } from "react-icons/tb";
 import { IoEllipsisVerticalSharp } from "react-icons/io5";
 import classNames from "classnames";
 import RenameArchitectureModal from "./RenameArchitectureModal";
-import { FaEllipsisH } from "react-icons/fa";
 import DeleteArchitectureModal from "./DeleteArchitectureModal";
-import { set } from "yaml/dist/schema/yaml-1.1/set";
 
 const dateFormat = "MM/dd/yyyy hh:mm a z";
+
+const tableTheme: CustomFlowbiteTheme["table"] = {
+  root: {
+    shadow: "drop-shadow-none",
+  },
+};
 
 const ArchitecturesTable: FC<{
   user?: User;
@@ -20,9 +25,10 @@ const ArchitecturesTable: FC<{
 }> = ({ user, architectures }) => {
   const [sortedBy, setSortedBy] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
-  const [openEditId, setOpenEditId] = useState<string | null>(null);
-  const [openRenameModal, setOpenRenameModal] = useState<boolean | null>(null);
-  const [openDeleteModal, setOpenDeleteModal] = useState<boolean | null>(null);
+  const [renaming, setRenaming] = useState<Architecture | null>(null);
+  const [deleting, setDeleting] = useState<Architecture | null>(null);
+  const [selectedArchitecture, setSelectedArchitecture] =
+    useState<Architecture | null>(null);
 
   const updateSort = (sort: string) => {
     if (sortedBy && sortedBy === sort) {
@@ -70,32 +76,38 @@ const ArchitecturesTable: FC<{
             {architecture.created_at &&
               format(new Date(architecture.created_at * 1000), dateFormat)}
           </Table.Cell>
-          <Table.Cell style={{ position: "relative" }}>
-            {openEditId === architecture.id ? (
-              <div className="absolute left-0 top-0 z-50">
-                <ListGroup>
-                  <ListGroup.Item onClick={() => setOpenEditId(null)}>
-                    <FaEllipsisH />
-                  </ListGroup.Item>
-                  <ListGroup.Item onClick={() => setOpenRenameModal(true)}>
-                    Rename
-                  </ListGroup.Item>
-                  <ListGroup.Item onClick={() => setOpenDeleteModal(true)}>
-                    Delete
-                  </ListGroup.Item>
-                </ListGroup>
-              </div>
-            ) : (
-              <div
-                role="button"
-                tabIndex={0}
-                onKeyDown={() => {}}
-                onClick={() => {
-                  setOpenEditId(architecture.id);
-                }}
-              >
-                <IoEllipsisVerticalSharp className="hover:text-gray-900 dark:hover:text-white" />
-              </div>
+          <Table.Cell style={{ position: "relative", width: "1%" }}>
+            <div
+              role="button"
+              tabIndex={0}
+              onKeyDown={() => {}}
+              onClick={() => {
+                setSelectedArchitecture(architecture);
+              }}
+            >
+              <IoEllipsisVerticalSharp className="hover:text-gray-900 dark:hover:text-white" />
+            </div>
+            {selectedArchitecture?.id === architecture.id && (
+              <AdditionalActionsDropdown
+                architecture={architecture}
+                onClose={() => setSelectedArchitecture(null)}
+                actions={[
+                  {
+                    id: "Rename",
+                    onClick: () => {
+                      setRenaming(selectedArchitecture);
+                      setSelectedArchitecture(null);
+                    },
+                  },
+                  {
+                    id: "Delete",
+                    onClick: () => {
+                      setDeleting(selectedArchitecture);
+                      setSelectedArchitecture(null);
+                    },
+                  },
+                ]}
+              />
             )}
           </Table.Cell>
         </Table.Row>
@@ -104,7 +116,7 @@ const ArchitecturesTable: FC<{
 
   return (
     <>
-      <Table hoverable>
+      <Table hoverable theme={tableTheme}>
         <Table.Head>
           <SortableHeaderCell
             title="Name"
@@ -128,32 +140,89 @@ const ArchitecturesTable: FC<{
             sortDirection={sortDirection}
           />
           <Table.HeadCell>
-            <span className="sr-only">Edit</span>
+            <span className="sr-only w-0">Additional Actions</span>
           </Table.HeadCell>
         </Table.Head>
         <Table.Body className="divide-y">{architectureCells}</Table.Body>
       </Table>
-      {openRenameModal && openEditId != null ? (
+      {renaming && (
         <RenameArchitectureModal
           onClose={() => {
-            setOpenEditId(null);
-            setOpenRenameModal(false);
+            setRenaming(null);
           }}
-          show={openRenameModal}
-          id={openEditId}
+          show={!!renaming}
+          id={renaming.id}
+          name={renaming.name}
         />
-      ) : null}
-      {openDeleteModal && openEditId != null ? (
+      )}
+      {deleting && (
         <DeleteArchitectureModal
           onClose={() => {
-            setOpenEditId(null);
-            setOpenDeleteModal(false);
+            setDeleting(null);
           }}
-          show={openDeleteModal}
-          id={openEditId}
+          show={!!deleting}
+          id={deleting.id}
+          name={deleting.name}
         />
-      ) : null}
+      )}
     </>
+  );
+};
+
+const AdditionalActionsDropdown: FC<{
+  architecture: Architecture;
+  onClose?: (actionId?: string) => void;
+  actions: {
+    id: string;
+    title?: string;
+    onClick?: (architectureId: string) => void;
+  }[];
+}> = ({ architecture, onClose, actions }) => {
+  const ref = useRef<HTMLDivElement>(null);
+
+  // add event listener to close dropdown when clicking outside it
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        onClose?.();
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [onClose]);
+
+  useEffect(() => {
+    const handleEsc = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose?.();
+      }
+    };
+    window.addEventListener("keydown", handleEsc);
+
+    return () => {
+      window.removeEventListener("keydown", handleEsc);
+    };
+  }, [onClose]);
+
+  return (
+    <div ref={ref} className="absolute left-[-4rem] top-0 z-50">
+      <ListGroup>
+        {actions?.map((action) => {
+          return (
+            <ListGroup.Item
+              key={action.id}
+              onClick={() => {
+                action.onClick?.(architecture.id);
+              }}
+            >
+              {action.title ?? action.id}
+            </ListGroup.Item>
+          );
+        })}
+      </ListGroup>
+    </div>
   );
 };
 

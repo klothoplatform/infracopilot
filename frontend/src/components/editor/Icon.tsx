@@ -1,4 +1,7 @@
 import React from "react";
+import { FaQuestionCircle } from "react-icons/fa";
+import classNames from "classnames";
+import { BsQuestionSquareFill } from "react-icons/bs";
 
 export interface IconProps
   extends Omit<
@@ -35,8 +38,14 @@ export const WarningIcon = (props: IconProps) => {
 
 export const UnknownIcon = (props: IconProps | undefined) => {
   return (
-    <div style={{ background: "gray" }} {...props}>
-      Unknown Icon
+    <div
+      {...props}
+      className={classNames(
+        "flex h-[100px] w-[100px] items-center justify-center rounded-md bg-gray-500 text-2xl font-medium text-white dark:bg-gray-600",
+        ...(props?.className ?? ""),
+      )}
+    >
+      ?
     </div>
   );
 };

@@ -1,15 +1,14 @@
 import { Button, Label, Modal, TextInput } from "flowbite-react";
 import { useForm } from "react-hook-form";
-import { useCallback, useEffect, useLayoutEffect, useState } from "react";
-import createArchitecture from "../../api/CreateArchitecture";
+import { useEffect, useState } from "react";
 import useApplicationStore from "../../views/store/ApplicationStore";
-import { useNavigate } from "react-router-dom";
 import modifyArchitecture from "../../api/ModifyArchitecture";
 
 interface ModifyArchitectureModalProps {
   onClose: () => void;
   show: boolean;
   id: string;
+  name: string;
 }
 
 export interface ModifyArchitectureFormState {
@@ -20,6 +19,7 @@ export default function NewArchitectureModal({
   onClose,
   show,
   id,
+  name,
 }: ModifyArchitectureModalProps) {
   const {
     reset,
@@ -27,7 +27,7 @@ export default function NewArchitectureModal({
     handleSubmit,
     trigger,
     formState: { errors },
-  } = useForm<ModifyArchitectureFormState>();
+  } = useForm<ModifyArchitectureFormState>({ defaultValues: { name: name } });
 
   const { getIdToken, getArchitectures } = useApplicationStore();
 
@@ -123,11 +123,15 @@ export default function NewArchitectureModal({
           </div>
         </Modal.Body>
         <Modal.Footer>
-          <Button type="reset" color="clear">
+          <Button type="reset" color="clear" className="dark:text-white">
             Cancel
           </Button>
-          <Button type="submit" color="purple">
-            Ok
+          <Button
+            type="submit"
+            color="purple"
+            disabled={Object.entries(errors).length > 0}
+          >
+            Rename
           </Button>
         </Modal.Footer>
       </form>
