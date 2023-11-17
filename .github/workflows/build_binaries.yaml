@@ -23,7 +23,6 @@ jobs:
         with:
           repository: ${{ inputs.klotho-repo }}
           ref: ${{ inputs.klotho-ref }}
-          token: ${{ secrets.KLOTHO_PRO_READ_PAT }}  # the "infra-tests checkout" PAT, owned by @klotho-bot
       - uses: actions/setup-go@v3
         with:
           go-version: '1.21.3'
