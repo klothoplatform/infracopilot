@@ -10,6 +10,7 @@ type EditableLabelProps = {
   onSubmit?: (newValue: string) => void | Promise<void>;
   onError?: (error: any) => void;
   textAlign?: "left" | "center" | "right";
+  maxWidth?: string;
 };
 
 export const EditableLabel: FC<EditableLabelProps> = ({
@@ -19,6 +20,7 @@ export const EditableLabel: FC<EditableLabelProps> = ({
   onSubmit,
   onError,
   textAlign,
+  maxWidth,
 }) => {
   label = label ?? initialValue;
   const [isEditing, setIsEditing] = useState(false);
@@ -77,19 +79,24 @@ export const EditableLabel: FC<EditableLabelProps> = ({
         console.log("clicked");
         setIsEditing(true);
       }}
-      className="h-fit w-fit max-w-fit justify-start break-all text-start dark:text-gray-200"
+      className={classNames(
+        "h-fit w-fit justify-start text-start dark:text-gray-200",
+      )}
     >
       <>
         {!isEditing && (
           <div
             className={classNames(
-              "line-clamp-2 rounded-sm border-[1px] border-gray-500/[0] px-1 font-semibold",
+              "overflow-hidden text-ellipsis rounded-sm border-[1px] border-gray-500/[0] px-1 font-semibold",
               {
                 "cursor-text hover:border-gray-500 hover:bg-gray-100/20 dark:hover:bg-gray-700/20":
                   !disabled,
                 "pointer-events-none": disabled,
               },
             )}
+            style={{
+              maxWidth: maxWidth,
+            }}
           >
             {label}
           </div>
@@ -111,7 +118,7 @@ export const EditableLabel: FC<EditableLabelProps> = ({
                 }
               }}
               className={classNames(
-                "overflow-x-visible rounded-sm border-[1px] bg-gray-50 focus:border-gray-50 dark:bg-gray-900",
+                "rounded-sm border-[1px] bg-gray-50 focus:border-gray-50 dark:bg-gray-900",
                 {
                   "text-left": textAlign === "left",
                   "text-center": textAlign === "center",
@@ -120,6 +127,7 @@ export const EditableLabel: FC<EditableLabelProps> = ({
               )}
               style={{
                 width: `${Math.max(24, state.label.length * 0.75)}ch`,
+                maxWidth: maxWidth,
               }}
               id="label"
               required
