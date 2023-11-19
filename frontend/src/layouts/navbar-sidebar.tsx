@@ -176,7 +176,7 @@ const EditorNavContent: FC = function () {
 
   let { architectureId } = useParams();
   const navigate = useNavigate();
-  const [workingMessage, setWorkingMessage] = useState("");
+  const workingMessage = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     if (!architectureId) {
@@ -192,15 +192,15 @@ const EditorNavContent: FC = function () {
       (!isEditorInitialized || architecture.id !== architectureId) &&
       !isEditorInitializing
     ) {
+      workingMessage.current = "Initializing editor...";
       (async () => {
         try {
-          setWorkingMessage("Loading architecture...");
           await initializeEditor(architectureId);
         } catch (e: any) {
-          addError(e.message);
+          addError("Failed to initialize editor!");
           navigate("/architectures");
         } finally {
-          setWorkingMessage("");
+          workingMessage.current = undefined;
         }
       })();
     }
@@ -212,6 +212,7 @@ const EditorNavContent: FC = function () {
     addError,
     isEditorInitialized,
     isEditorInitializing,
+    architecture.id,
   ]);
 
   return (
@@ -222,7 +223,9 @@ const EditorNavContent: FC = function () {
             key={architecture.name}
             initialValue={architecture.name}
             label={architecture.name}
-            disabled={!isEditorInitialized}
+            disabled={
+              !isEditorInitialized || architecture.id !== architectureId
+            }
             onSubmit={async (newValue) => {
               await renameArchitecture(newValue);
             }}
@@ -236,7 +239,10 @@ const EditorNavContent: FC = function () {
         </div>
         <ExportIacButton disabled={isExportButtonHidden} />
       </div>
-      <WorkingOverlay show={!!workingMessage} message={workingMessage} />
+      <WorkingOverlay
+        show={(workingMessage.current?.length ?? 0) > 0}
+        message={workingMessage.current}
+      />
     </div>
   );
 };
