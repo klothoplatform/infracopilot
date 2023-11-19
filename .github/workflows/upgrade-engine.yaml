@@ -53,6 +53,7 @@ jobs:
     secrets: inherit
 
   upgrade-engine:
+    name: Upgrade Engine (${{ inputs.stage }})
     needs:
       - build-binaries
     runs-on: ubuntu-latest
