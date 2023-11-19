@@ -1,7 +1,7 @@
 import { type FC, type PropsWithChildren } from "react";
 import { DarkThemeToggle, Dropdown, Navbar } from "flowbite-react";
 import LoginButton from "../auth/Login";
-import useApplicationStore from "../views/store/ApplicationStore";
+import useApplicationStore from "../pages/store/ApplicationStore";
 import { Link } from "react-router-dom";
 
 interface NavbarProps {}

@@ -19,7 +19,7 @@ import {
 import { HiBars3, HiCog6Tooth } from "react-icons/hi2";
 import ConfigForm from "./ConfigForm";
 import AdditionalResources from "./AdditionalResources";
-import useApplicationStore from "../../views/store/ApplicationStore";
+import useApplicationStore from "../../pages/store/ApplicationStore";
 
 import { ThemeContext } from "flowbite-react/lib/esm/components/Flowbite/ThemeContext";
 import {

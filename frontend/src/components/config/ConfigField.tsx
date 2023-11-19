@@ -4,7 +4,7 @@ import type { FC, PropsWithChildren } from "react";
 import React, { Fragment, useCallback, useEffect, useState } from "react";
 
 import { useFormContext } from "react-hook-form";
-import useApplicationStore from "../../views/store/ApplicationStore";
+import useApplicationStore from "../../pages/store/ApplicationStore";
 import { NodeId } from "../../shared/architecture/TopologyNode";
 import { ListField } from "./ListField";
 import { MapField } from "./MapField";

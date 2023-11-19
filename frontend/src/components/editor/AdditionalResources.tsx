@@ -4,7 +4,7 @@ import * as React from "react";
 import { useContext, useEffect, useState } from "react";
 import { getDownstreamResources } from "../../shared/architecture/Architecture";
 import { ThemeContext } from "flowbite-react/lib/esm/components/Flowbite/ThemeContext";
-import useApplicationStore from "../../views/store/ApplicationStore";
+import useApplicationStore from "../../pages/store/ApplicationStore";
 import { NodeIcon } from "../../shared/resources/ResourceMappings";
 import type { NodeId } from "../../shared/architecture/TopologyNode";
 

@@ -1,9 +1,9 @@
 import { type FC, useEffect } from "react";
 import { Route, Routes } from "react-router";
 import FlowbiteWrapper from "./components/flowbite-wrapper";
-import ArchitectureEditor from "./views/ArchitectureEditor/ArchitectureEditor";
+import ArchitectureEditor from "./pages/ArchitectureEditor/ArchitectureEditor";
 import ArchitectureListPage from "./pages/ArchitectureListPage";
-import useApplicationStore from "./views/store/ApplicationStore";
+import useApplicationStore from "./pages/store/ApplicationStore";
 import { useAuth0 } from "@auth0/auth0-react";
 import { Navigate } from "react-router-dom";
 import { CallbackPage } from "./pages/CallbackPage";

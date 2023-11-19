@@ -10,7 +10,7 @@ import { IoEllipsisVerticalSharp } from "react-icons/io5";
 import classNames from "classnames";
 import RenameArchitectureModal from "./RenameArchitectureModal";
 import DeleteArchitectureModal from "./DeleteArchitectureModal";
-import useApplicationStore from "../../views/store/ApplicationStore";
+import useApplicationStore from "../../pages/store/ApplicationStore";
 
 const dateFormat = "MM/dd/yyyy hh:mm a z";
 

@@ -15,11 +15,11 @@ import type { SubmitHandler } from "react-hook-form";
 import { FormProvider, useForm } from "react-hook-form";
 import React, { useCallback, useEffect } from "react";
 
-import useApplicationStore from "../../views/store/ApplicationStore";
+import useApplicationStore from "../../pages/store/ApplicationStore";
 import {
   getCustomConfigSections,
   getCustomConfigState,
-} from "../../views/ArchitectureEditor/config/CustomConfigMappings";
+} from "../../pages/ArchitectureEditor/config/CustomConfigMappings";
 import type { Constraint } from "../../shared/architecture/Constraints";
 import {
   ConstraintOperator,

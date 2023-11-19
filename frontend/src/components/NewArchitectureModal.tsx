@@ -2,7 +2,7 @@ import { Button, Label, Modal, TextInput } from "flowbite-react";
 import { useForm } from "react-hook-form";
 import { useCallback, useEffect, useState } from "react";
 import createArchitecture from "../api/CreateArchitecture";
-import useApplicationStore from "../views/store/ApplicationStore";
+import useApplicationStore from "../pages/store/ApplicationStore";
 import { useNavigate } from "react-router-dom";
 
 interface NewArchitectureModalProps {

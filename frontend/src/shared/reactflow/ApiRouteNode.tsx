@@ -1,6 +1,6 @@
 import React, { memo, useMemo, useState } from "react";
 import { Handle, Position, useStore, useUpdateNodeInternals } from "reactflow";
-import useApplicationStore from "../../views/store/ApplicationStore";
+import useApplicationStore from "../../pages/store/ApplicationStore";
 
 import "./NodeStyles.scss";
 import classNames from "classnames";

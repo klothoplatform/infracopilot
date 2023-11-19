@@ -6,7 +6,7 @@ import type { TopologyNode } from "./TopologyNode";
 import { NodeId } from "./TopologyNode";
 import type { ResourceTypeKB } from "../resources/ResourceTypeKB";
 import { customNodeMappings, NodeType } from "../reactflow/NodeTypes";
-import { customConfigMappings } from "../../views/ArchitectureEditor/config/CustomConfigMappings";
+import { customConfigMappings } from "../../pages/ArchitectureEditor/config/CustomConfigMappings";
 
 export enum ArchitectureView {
   DataFlow = "dataflow",

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { withAuthenticationRequired } from "@auth0/auth0-react";
 import Navbar from "../components/navbar";
 import { SidebarProvider } from "../context/SidebarContext";
-import useApplicationStore from "../views/store/ApplicationStore";
+import useApplicationStore from "./store/ApplicationStore";
 import ArchitecturesTable from "../components/architectures/ArchitecturesTable";
 import { WorkingOverlay } from "../components/WorkingOverlay";
 import { ErrorOverlay } from "../components/ErrorOverlay";

@@ -1,4 +1,4 @@
-import useApplicationStore from "../views/store/ApplicationStore";
+import useApplicationStore from "../pages/store/ApplicationStore";
 import { downloadFile } from "../helpers/download-file";
 import { type FC, useState } from "react";
 import ExportIaC from "../api/ExportIaC";

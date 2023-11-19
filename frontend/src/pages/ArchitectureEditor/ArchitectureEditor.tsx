@@ -6,17 +6,32 @@ import React, {
   useRef,
   useState,
 } from "react";
-import Navbar from "../components/navbar";
-import EditorSidebarLeft from "../components/editor/EditorSidebarLeft";
-import { SidebarProvider } from "../context/SidebarContext";
-import EditorSidebarRight from "../components/editor/EditorSidebarRight";
-import useApplicationStore from "../views/store/ApplicationStore";
+import { ReactFlowProvider } from "reactflow";
+import "reactflow/dist/style.css";
+import EditorPane from "./EditorPane";
+import { ErrorOverlay } from "../../components/ErrorOverlay";
+import Navbar from "../../components/navbar";
+import EditorSidebarLeft from "../../components/editor/EditorSidebarLeft";
+import { SidebarProvider } from "../../context/SidebarContext";
+import EditorSidebarRight from "../../components/editor/EditorSidebarRight";
+import useApplicationStore from "../store/ApplicationStore";
 import classNames from "classnames";
-import { ExportIacButton } from "../components/ExportIacButton";
-import { ArchitectureButtonAndModal } from "../components/NewArchitectureButton";
+import { ExportIacButton } from "../../components/ExportIacButton";
+import { ArchitectureButtonAndModal } from "../../components/NewArchitectureButton";
 import { useNavigate, useParams } from "react-router-dom";
-import { WorkingOverlay } from "../components/WorkingOverlay";
-import { EditableLabel } from "../components/EditableLabel";
+import { WorkingOverlay } from "../../components/WorkingOverlay";
+import { EditableLabel } from "../../components/EditableLabel";
+
+function ArchitectureEditor() {
+  return (
+    <NavbarSidebarLayout>
+      <div className="flex h-full w-full flex-col items-center justify-between overflow-hidden border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800 sm:flex">
+        <EditorPane />
+      </div>
+      <ErrorOverlay />
+    </NavbarSidebarLayout>
+  );
+}
 
 const NavbarSidebarLayout: FC<PropsWithChildren> = function ({ children }) {
   const { architecture, isAuthenticated } = useApplicationStore();
@@ -218,8 +233,6 @@ const EditorNavContent: FC = function () {
     architecture.id,
   ]);
 
-  console.log("workingMessage", workingMessage);
-
   return (
     <div className="inline-block align-middle dark:text-white">
       <div className="flex">
@@ -263,4 +276,11 @@ const MainContent = forwardRef(
 );
 MainContent.displayName = "MainContent";
 
-export default NavbarSidebarLayout;
+const ReactFlowWrapper = () => {
+  return (
+    <ReactFlowProvider>
+      <ArchitectureEditor />
+    </ReactFlowProvider>
+  );
+};
+export default ReactFlowWrapper;

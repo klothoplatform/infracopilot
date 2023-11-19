@@ -1,7 +1,7 @@
 import { Button, Label, Modal, TextInput } from "flowbite-react";
 import { useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
-import useApplicationStore from "../../views/store/ApplicationStore";
+import useApplicationStore from "../../pages/store/ApplicationStore";
 import deleteArchitecture from "../../api/DeleteArchitecture";
 
 interface DeleteArchitectureModalProps {

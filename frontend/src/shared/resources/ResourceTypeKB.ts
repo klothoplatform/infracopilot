@@ -1,5 +1,5 @@
 import type { ResourceType, ResourceTypeFilter } from "./ResourceTypes";
-import { customConfigMappings } from "../../views/ArchitectureEditor/config/CustomConfigMappings";
+import { customConfigMappings } from "../../pages/ArchitectureEditor/config/CustomConfigMappings";
 import { ArchitectureView, ViewNodeType } from "../architecture/Architecture";
 
 export class ResourceTypeKB {

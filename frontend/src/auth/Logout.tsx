@@ -1,6 +1,6 @@
 import React from "react";
 import { Button } from "flowbite-react";
-import useApplicationStore from "../views/store/ApplicationStore";
+import useApplicationStore from "../pages/store/ApplicationStore";
 
 const LogoutButton = () => {
   const { logout } = useApplicationStore();

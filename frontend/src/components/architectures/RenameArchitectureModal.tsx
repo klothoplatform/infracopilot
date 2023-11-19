@@ -1,7 +1,7 @@
 import { Button, Label, Modal, TextInput } from "flowbite-react";
 import { useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
-import useApplicationStore from "../../views/store/ApplicationStore";
+import useApplicationStore from "../../pages/store/ApplicationStore";
 import modifyArchitecture from "../../api/ModifyArchitecture";
 
 interface ModifyArchitectureModalProps {

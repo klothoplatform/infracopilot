@@ -8,7 +8,7 @@ import classNames from "classnames";
 import { FaAngleDown } from "react-icons/fa";
 import { ThemeContext } from "flowbite-react/lib/esm/components/Flowbite/ThemeContext";
 import type { ResourceTypeFilter } from "../../shared/resources/ResourceTypes";
-import useApplicationStore from "../../views/store/ApplicationStore";
+import useApplicationStore from "../../pages/store/ApplicationStore";
 import { NodeIcon } from "../../shared/resources/ResourceMappings";
 
 interface ResourceAccordionOptions {

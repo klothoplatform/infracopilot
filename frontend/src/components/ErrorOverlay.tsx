@@ -2,9 +2,9 @@ import type { FC } from "react";
 import React, { useEffect, useState } from "react";
 import { Button, Toast } from "flowbite-react";
 import classNames from "classnames";
-import useApplicationStore from "../views/store/ApplicationStore";
+import useApplicationStore from "../pages/store/ApplicationStore";
 import { HiExclamationCircle } from "react-icons/hi";
-import type { ApplicationError } from "../views/store/ErrorStore";
+import type { ApplicationError } from "../pages/store/ErrorStore";
 
 export const ErrorOverlay: FC = () => {
   const { errors, removeError, clearErrors } = useApplicationStore();

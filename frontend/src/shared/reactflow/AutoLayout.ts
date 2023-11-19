@@ -2,7 +2,7 @@ import type { Edge, Node } from "reactflow";
 import { Position } from "reactflow";
 import type { ElkExtendedEdge, ElkLabel, ElkNode } from "elkjs/lib/elk.bundled";
 import ELK from "elkjs/lib/elk.bundled";
-import { customConfigMappings } from "../../views/ArchitectureEditor/config/CustomConfigMappings";
+import { customConfigMappings } from "../../pages/ArchitectureEditor/config/CustomConfigMappings";
 
 export enum NodePlacementStrategy {
   NETWORK_SIMPLEX = "Network Simplex",
