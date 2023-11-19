@@ -1,6 +1,6 @@
 import React from "react";
 import { Handle, Position } from "reactflow";
-import { getIcon } from "../resources/ResourceMappings";
+import { NodeIcon } from "../resources/ResourceMappings";
 
 interface IndicatorNodeProps {
   data: any;
@@ -25,12 +25,11 @@ export const IndicatorNode = (props: IndicatorNodeProps) => {
         style={{ visibility: "hidden" }}
         isConnectable={isConnectable}
       />
-      {getIcon(
-        props.data.resourceId.provider,
-        props.data.resourceId.type,
-        undefined,
-        props.data.iconVariant,
-      )}
+      <NodeIcon
+        provider={props.data.resourceId.provider}
+        type={props.data.resourceId.type}
+        variant={props.data.iconVariant}
+      />
       <Handle
         type="source"
         position={Position.Right}

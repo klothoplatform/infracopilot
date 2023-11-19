@@ -1,12 +1,11 @@
-import { Card, Table, Tooltip } from "flowbite-react";
+import { Table, Tooltip } from "flowbite-react";
 import type { FC, ReactNode } from "react";
 import * as React from "react";
 import { useContext, useEffect, useState } from "react";
-import { UnknownIcon } from "./Icon";
 import { getDownstreamResources } from "../../shared/architecture/Architecture";
 import { ThemeContext } from "flowbite-react/lib/esm/components/Flowbite/ThemeContext";
 import useApplicationStore from "../../views/store/ApplicationStore";
-import { getIcon } from "../../shared/resources/ResourceMappings";
+import { NodeIcon } from "../../shared/resources/ResourceMappings";
 import type { NodeId } from "../../shared/architecture/TopologyNode";
 
 function AdditionalResources() {
@@ -39,32 +38,20 @@ function AdditionalResources() {
     }
     setResourceRows(
       connectedNodes
-        .map((nodeId) => {
-          const icon = nodeId
-            ? getIcon(
-                nodeId.provider,
-                nodeId.type,
-                {
-                  style: {
-                    height: "100%",
-                    width: "100%",
-                    fontSize: "small",
-                  },
-                },
-                undefined,
-                mode,
-              )
-            : UnknownIcon({
-                style: { height: "100%", width: "100%", fontSize: "small" },
-              });
-          return (
-            <ResourceItem
-              key={nodeId.toString()}
-              icon={icon}
-              resourceId={nodeId}
-            />
-          );
-        })
+        .map((nodeId) => (
+          <ResourceItem
+            key={nodeId.toString()}
+            icon={
+              <NodeIcon
+                provider={nodeId.provider}
+                type={nodeId.type}
+                className="h-full w-full"
+                variant={mode}
+              />
+            }
+            resourceId={nodeId}
+          />
+        ))
         .filter((e) => e !== null),
     );
   }, [nodes, edges, selectedResource, selectedEdge, architecture, mode]);

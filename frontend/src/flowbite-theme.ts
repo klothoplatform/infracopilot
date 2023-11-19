@@ -115,8 +115,9 @@ const flowbiteTheme: CustomFlowbiteTheme = {
   },
   tooltip: {
     // max-w-max is required to avoid tooltip causing ResizeObserver loop limit exceeded error
-    base: "absolute inline-block z-100 rounded-lg py-2 px-3 text-sm font-medium shadow-sm max-w-max w-fit",
-    content: "relative z-200 max-w-max w-max",
+    base: "absolute inline-block z-10 rounded-lg py-2 px-3 text-sm font-medium shadow-sm max-w-max w-fit",
+    content: "relative z-20 max-w-max w-max",
+    target: "",
   },
   tab: {
     tablist: {

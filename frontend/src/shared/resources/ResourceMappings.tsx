@@ -91,7 +91,8 @@ import {
   AmazonEfs,
   AmazonSimpleStorageService,
 } from "../../components/icons/AwsArchitectureService/Storage";
-import type React from "react";
+import React from "react";
+import type { FC } from "react";
 import { PublicSubnet } from "../../components/icons/AwsCustom/PublicSubnet";
 import { PrivateSubnet } from "../../components/icons/AwsCustom/PrivateSubnet";
 import type { TopologyNodeData } from "../architecture/TopologyNode";
@@ -117,8 +118,8 @@ type Discriminator = <T extends TopologyNodeData>(n: T) => string;
 export interface IconMapping {
   marginLeft?: string;
   marginTop?: string;
-  nodeIcon: CallableFunction;
-  groupIcon?: CallableFunction;
+  nodeIcon: FC<IconProps>;
+  groupIcon?: FC<IconProps>;
   groupStyle?: Partial<React.CSSProperties>;
   groupIconStyle?: Partial<React.CSSProperties>;
   groupEnableDragTarget?: boolean;
@@ -158,7 +159,7 @@ export const typeMappings = new Map<
   ],
   [
     "aws",
-    new Map<string, CallableFunction | IconMapping>([
+    new Map<string, FC<IconProps> | IconMapping>([
       ["account_id", AwsIdentityAccessManagementAwsSts],
       ["ami", AmazonEc2Ami],
       ["api_deployment", AmazonApiGateway],
@@ -432,37 +433,46 @@ export const getIconMapping = (
   mapping = mapping?.variants?.get(variant) ?? mapping;
   return mapping;
 };
-export const getIcon = (
-  provider: string,
-  type: string,
-  props?: IconProps,
-  data?: TopologyNodeData,
-  variant?: string,
-): React.JSX.Element => {
+
+export const NodeIcon: FC<
+  {
+    provider: string;
+    type: string;
+    data?: TopologyNodeData;
+    variant?: string;
+  } & IconProps
+> = ({ provider, type, data, variant, ...iconProps }) => {
   let mapping = typeMappings.get(provider)?.get(type) as any;
   if (!variant) {
     variant = mapping?.discriminator?.(data);
   }
   mapping = mapping?.variants?.get(variant) ?? mapping;
-  return mapping?.nodeIcon?.(props) ?? mapping?.(props) ?? UnknownIcon(props);
+  const NodeIcon = mapping?.nodeIcon ?? mapping ?? UnknownIcon;
+  return <NodeIcon {...iconProps} />;
 };
 
-export const getGroupIcon = (
-  provider: string,
-  type: string,
-  props?: IconProps,
-  data?: TopologyNodeData,
-  variant?: string,
-): React.JSX.Element => {
+export const GroupIcon: FC<
+  {
+    provider: string;
+    type: string;
+    data?: TopologyNodeData;
+    variant?: string;
+  } & IconProps
+> = ({ provider, type, data, variant, ...iconsProps }) => {
   let mapping = typeMappings.get(provider)?.get(type) as any;
   if (!variant) {
     variant = mapping?.discriminator?.(data);
   }
   mapping = mapping?.variants?.get(variant) ?? mapping;
+  const GroupIcon =
+    mapping?.groupIcon ?? mapping?.nodeIcon ?? mapping ?? UnknownIcon;
   return (
-    mapping?.groupIcon?.(props) ??
-    mapping?.nodeIcon?.(props) ??
-    mapping?.(props) ??
-    UnknownIcon(props)
+    <GroupIcon
+      {...iconsProps}
+      style={{
+        ...mapping?.groupIconStyle,
+        ...iconsProps.style,
+      }}
+    />
   );
 };

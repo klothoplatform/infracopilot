@@ -1,12 +1,5 @@
 import type { CustomFlowbiteTheme } from "flowbite-react";
-import {
-  Alert,
-  Button,
-  Card,
-  Sidebar,
-  Tabs,
-  type TabsRef,
-} from "flowbite-react";
+import { Alert, Button, Sidebar, Tabs, type TabsRef } from "flowbite-react";
 import type { FC, ForwardedRef } from "react";
 import React, {
   forwardRef,
@@ -34,7 +27,7 @@ import {
   RightSidebarTabs,
 } from "../../shared/sidebar-nav";
 import type { NodeId } from "../../shared/architecture/TopologyNode";
-import { getIcon } from "../../shared/resources/ResourceMappings";
+import { NodeIcon } from "../../shared/resources/ResourceMappings";
 
 const sidebarTheme: CustomFlowbiteTheme["sidebar"] = {
   root: {
@@ -229,16 +222,14 @@ const ResourceIdHeader: FC<ResourceIdHeaderProps> = function ({
             "mb-2 flex flex-row items-center gap-2 border-b-2 border-gray-200 pb-1 dark:border-gray-700"
           }
         >
-          {resourceId &&
-            getIcon(
-              resourceId.provider,
-              resourceId.type,
-              {
-                style: { maxWidth: "50px", maxHeight: "50px" },
-              },
-              undefined,
-              mode,
-            )}
+          {resourceId && (
+            <NodeIcon
+              provider={resourceId?.provider ?? "unknown"}
+              type={resourceId?.type ?? "unknown"}
+              style={{ maxHeight: "50px", maxWidth: "50px" }}
+              variant={mode}
+            />
+          )}
           <div className="inline-block w-full align-middle">
             <div className="text-ellipsis text-xs font-medium text-gray-500 dark:text-gray-400">
               {resourceId ? `${resourceId.provider}:${resourceId.type}` : ""}

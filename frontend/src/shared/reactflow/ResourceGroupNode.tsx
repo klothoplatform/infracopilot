@@ -7,7 +7,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { getGroupIcon, getIconMapping } from "../resources/ResourceMappings";
+import { getIconMapping, GroupIcon } from "../resources/ResourceMappings";
 import { Handle, Position, useStore, useUpdateNodeInternals } from "reactflow";
 import reducer from "../../helpers/reducer";
 import useApplicationStore from "../../views/store/ApplicationStore";
@@ -125,18 +125,15 @@ const ResourceGroupNode = memo(
         >
           <div className="flex h-fit w-full">
             <div className="min-h-[24px] min-w-[24px]">
-              {getGroupIcon(
-                data.resourceId.provider,
-                data.resourceId.type,
-                {
-                  style: {
-                    width: "24px",
-                    height: "24px",
-                    ...iconMapping?.groupIconStyle,
-                  },
-                },
-                data,
-              )}
+              <GroupIcon
+                provider={data.resourceId.provider}
+                type={data.resourceId.type}
+                data={data}
+                style={{
+                  width: "24px",
+                  height: "24px",
+                }}
+              />
             </div>
             <EditableLabel
               label={

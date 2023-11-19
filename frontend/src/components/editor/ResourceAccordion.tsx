@@ -1,7 +1,7 @@
 import type { MouseEventHandler } from "react";
 import * as React from "react";
 import { useContext, useEffect } from "react";
-import { Accordion, Badge, Card, Tooltip } from "flowbite-react";
+import { Accordion, Badge, Card } from "flowbite-react";
 
 import "./ResourceAccordion.scss";
 import classNames from "classnames";
@@ -9,7 +9,7 @@ import { FaAngleDown } from "react-icons/fa";
 import { ThemeContext } from "flowbite-react/lib/esm/components/Flowbite/ThemeContext";
 import type { ResourceTypeFilter } from "../../shared/resources/ResourceTypes";
 import useApplicationStore from "../../views/store/ApplicationStore";
-import { getIcon } from "../../shared/resources/ResourceMappings";
+import { NodeIcon } from "../../shared/resources/ResourceMappings";
 
 interface ResourceAccordionOptions {
   name: string;
@@ -24,7 +24,6 @@ interface ResourceOption {
   provider: string;
   type: string;
   name: string;
-  icon: React.JSX.Element;
 }
 
 type ResourceCardProps = {
@@ -43,7 +42,6 @@ export default function ResourceAccordion({
   layout,
   resourceFilter,
 }: ResourceAccordionOptions) {
-  const { mode } = useContext(ThemeContext);
   const [options, setOptions] = React.useState<ResourceOption[]>([]);
   const { resourceTypeKB, isAuthenticated } = useApplicationStore();
 
@@ -57,29 +55,15 @@ export default function ResourceAccordion({
             r.classifications?.length &&
             (userFilter === undefined || userFilter(r.type)),
         )
-        .map((resourceType) => {
+        .map((resourceType, i) => {
           return {
             provider: resourceType.provider,
             type: resourceType.type,
             name: resourceType.displayName,
-            icon: getIcon(
-              resourceType.provider,
-              resourceType.type,
-              undefined,
-              undefined,
-              mode,
-            ),
           };
         }),
     );
-  }, [
-    resourceTypeKB,
-    resourceFilter,
-    userFilter,
-    setOptions,
-    mode,
-    isAuthenticated,
-  ]);
+  }, [resourceTypeKB, resourceFilter, userFilter, setOptions, isAuthenticated]);
 
   const [isOpen, setIsOpen] = React.useState(open);
   const [showResourceCount, setShowResourceCount] = React.useState(false);
@@ -161,45 +145,49 @@ const ResourceCard = ({
   onDragStart,
   orientation,
 }: ResourceCardProps) => {
+  const { mode } = useContext(ThemeContext);
+
   return (
-    <Tooltip content={option.name}>
-      <Card
-        className={classNames(
-          "shadow-sm hover:border-2 hover:border-primary-500 hover:bg-primary-50 dark:hover:border-primary-500 dark:hover:bg-primary-900 hover:shadow-md dark:text-white",
-          {
-            "h-[100px] w-[100px] shrink-0 grow-0 basis-[100px]":
-              orientation !== "horizontal",
-            "min-h-[40px] max-h-[40px] justify-center items-start w-full max-w-full":
-              orientation === "horizontal",
-          },
-        )}
-        onDragStart={(event) =>
-          onDragStart(event, `${option.provider}:${option.type}`)
-        }
-        draggable
-      >
-        {orientation !== "horizontal" && (
-          <div className={"flex flex-col justify-center gap-2"}>
-            {React.cloneElement(option.icon, {
-              className: "fixed-image mx-auto h-[50px] w-[50px]",
-            })}
-            <div className={"mx-auto max-w-[85%] truncate text-center text-xs"}>
-              {option.name}
-            </div>
+    <Card
+      title={option.name}
+      className={classNames(
+        "shadow-sm hover:border-2 hover:border-primary-500 hover:bg-primary-50 dark:hover:border-primary-500 dark:hover:bg-primary-900 hover:shadow-md dark:text-white",
+        {
+          "h-[100px] w-[100px] shrink-0 grow-0 basis-[100px]":
+            orientation !== "horizontal",
+          "min-h-[40px] max-h-[40px] justify-center items-start w-full max-w-full":
+            orientation === "horizontal",
+        },
+      )}
+      onDragStart={(event) =>
+        onDragStart(event, `${option.provider}:${option.type}`)
+      }
+      draggable
+    >
+      {orientation !== "horizontal" && (
+        <div className={"flex flex-col justify-center gap-2"}>
+          <NodeIcon
+            provider={option.provider}
+            type={option.type}
+            variant={mode}
+            className="fixed-image h-[50px]v mx-auto w-[50px]"
+          />
+          <div className={"mx-auto max-w-[85%] truncate text-center text-xs"}>
+            {option.name}
           </div>
-        )}
-        {orientation === "horizontal" && (
-          <div className="mx-2 flex h-full max-w-full items-center gap-3">
-            {React.cloneElement(option.icon, {
-              className:
-                "fixed-image mx-auto h-[30px] w-[30px] shrink-0 grow-0",
-            })}
-            <div className={"mx-auto truncate text-start text-xs"}>
-              {option.name}
-            </div>
-          </div>
-        )}
-      </Card>
-    </Tooltip>
+        </div>
+      )}
+      {orientation === "horizontal" && (
+        <div className="my-3 ml-1 flex h-full w-full items-center gap-3">
+          <NodeIcon
+            provider={option.provider}
+            type={option.type}
+            variant={mode}
+            className="fixed-image h-[30px] w-[30px] shrink-0 grow-0"
+          />
+          <div className={"truncate text-start text-xs"}>{option.name}</div>
+        </div>
+      )}
+    </Card>
   );
 };

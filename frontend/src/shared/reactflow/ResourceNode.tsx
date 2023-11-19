@@ -9,7 +9,7 @@ import React, {
   useState,
 } from "react";
 import { Handle, Position, useStore, useUpdateNodeInternals } from "reactflow";
-import { getIcon } from "../resources/ResourceMappings";
+import { NodeIcon } from "../resources/ResourceMappings";
 import useApplicationStore from "../../views/store/ApplicationStore";
 
 import "./NodeStyles.scss";
@@ -102,8 +102,8 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
             data={data}
             resourceId={element}
             iconProps={{
-              height: "25px",
               width: "25px",
+              height: "25px",
             }}
             onClick={onClickQuickAction}
           />
@@ -149,8 +149,9 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
             data={data}
             resourceId={data.resourceId}
             iconProps={{
-              height: "100px",
+              // className: "h-[100px] w-[100px]",
               width: "100px",
+              height: "100px",
             }}
             onClick={onClickResourceIcon}
           />
@@ -211,9 +212,9 @@ ResourceNode.displayName = "ResourceNode";
 type ResourceIconProps = {
   resourceId: NodeId;
   data: any;
-  iconProps?: IconProps;
   onClick?: (resourceId: NodeId) => void;
   className?: string;
+  iconProps?: IconProps;
 };
 
 const ResourceIcon: FC<ResourceIconProps> = ({
@@ -230,7 +231,13 @@ const ResourceIcon: FC<ResourceIconProps> = ({
       onClick={() => onClick?.(resourceId)}
       type="button"
     >
-      {getIcon(resourceId.provider, resourceId.type, iconProps, data, mode)}
+      <NodeIcon
+        provider={resourceId.provider}
+        type={resourceId.type}
+        data={data}
+        variant={mode}
+        {...iconProps}
+      />
     </button>
   );
 };
