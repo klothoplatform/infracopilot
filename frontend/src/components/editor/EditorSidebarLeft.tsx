@@ -65,7 +65,7 @@ const EditorSidebarLeft = forwardRef(
     };
 
     const debouncedHandleInputChange = useCallback(
-      debounce(handleInputChange, 200),
+      debounce(handleInputChange, 100),
       [],
     );
 

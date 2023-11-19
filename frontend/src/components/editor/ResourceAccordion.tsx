@@ -53,7 +53,7 @@ export default function ResourceAccordion({
         .filter(
           (r) =>
             r.classifications?.length &&
-            (userFilter === undefined || userFilter(r.type)),
+            (userFilter === undefined || userFilter(r.displayName)),
         )
         .map((resourceType, i) => {
           return {
@@ -89,6 +89,12 @@ export default function ResourceAccordion({
       setShowResourceCount(false);
     }
   }, [setIsOpen, setShowResourceCount, userFilter, options, isOpen]);
+
+  useEffect(() => {
+    if (!userFilter && isOpen !== false) {
+      setIsOpen(true);
+    }
+  }, [isOpen, userFilter]);
 
   return (
     <Accordion.Panel isOpen={isOpen} arrowIcon={FaAngleDown}>
