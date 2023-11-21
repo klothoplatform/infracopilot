@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse
 
 
 from src.backend_orchestrator.architecture_handler import (
+    copilot_clone_architecture,
     copilot_new_architecture,
     copilot_get_resource_types,
     CreateArchitectureRequest,
@@ -116,6 +117,86 @@ class TestGetState(aiounittest.AsyncTestCase):
             },
         )
         self.assertEqual(response["decisions"], [{"id": "test"}])
+
+
+class TestCloneArchitecture(aiounittest.AsyncTestCase):
+    test_id = "test-id"
+    test_architecture = Architecture(
+        id=test_id,
+        name="test-new",
+        state=0,
+        constraints={},
+        owner="test-owner",
+        created_at=mock.ANY,
+        updated_by="test-owner",
+        engine_version=0.0,
+        decisions=[{"id": "test"}],
+    )
+    test_result = RunEngineResult(
+        resources_yaml="test-yaml",
+        topology_yaml="test-yaml",
+        iac_topology="test-yaml",
+    )
+
+    @mock.patch("uuid.uuid4")
+    @mock.patch(
+        "src.backend_orchestrator.architecture_handler.add_architecture_owner",
+        new_callable=mock.AsyncMock,
+    )
+    @mock.patch(
+        "src.backend_orchestrator.architecture_handler.add_architecture",
+        new_callable=mock.AsyncMock,
+    )
+    @mock.patch(
+        "src.backend_orchestrator.architecture_handler.get_architecture_latest",
+        new_callable=mock.AsyncMock,
+    )
+    @mock.patch(
+        "src.backend_orchestrator.architecture_handler.get_state_from_fs",
+        new_callable=mock.AsyncMock,
+    )
+    @mock.patch(
+        "src.backend_orchestrator.architecture_handler.write_state_to_fs",
+        new_callable=mock.AsyncMock,
+    )
+    async def test_copilot_get_state(
+        self,
+        mock_write_fs: mock.Mock,
+        mock_get_fs: mock.Mock,
+        mock_latest: mock.Mock,
+        mock_add_architecture: mock.Mock,
+        mock_add_architecture_owner: mock.Mock,
+        mock_uuid: mock.Mock,
+    ):
+        test_uuid = "test-uuid"
+        mock_uuid.return_value = test_uuid
+        mock_latest.return_value = self.test_architecture
+        mock_get_fs.return_value = self.test_result
+        mock_write_fs.return_value = "location"
+        mock_add_architecture.return_value = None
+        mock_add_architecture_owner.return_value = None
+        result = await copilot_clone_architecture(
+            "test-owner", self.test_id, "test-new", "test-owner"
+        )
+        mock_get_fs.assert_called_once_with(arch=self.test_architecture)
+        mock_latest.assert_called_once_with(self.test_id)
+        mock_write_fs.assert_called_once_with(
+            mock.ANY,
+            self.test_result,
+        )
+        mock_add_architecture.assert_called_once()
+        self.assertEqual(mock_add_architecture.call_args.args[0].id, test_uuid)
+        self.assertEqual(mock_add_architecture.call_args.args[0].state, 0)
+        self.assertEqual(
+            mock_add_architecture.call_args.args[0].state_location, "location"
+        )
+        mock_add_architecture_owner.assert_called_once()
+        self.assertEqual(
+            mock_add_architecture_owner.call_args.args[0],
+            User(id="test-owner"),
+        )
+        self.assertEqual(result.body, JSONResponse(content={"id": test_uuid}).body)
+        self.assertEqual(result.status_code, 200)
 
 
 class TestListResourceTypes(aiounittest.AsyncTestCase):

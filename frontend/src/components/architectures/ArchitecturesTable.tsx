@@ -11,6 +11,7 @@ import classNames from "classnames";
 import RenameArchitectureModal from "./RenameArchitectureModal";
 import DeleteArchitectureModal from "./DeleteArchitectureModal";
 import useApplicationStore from "../../pages/store/ApplicationStore";
+import CloneArchitectureModal from "./CloneArchitectureModal";
 
 const dateFormat = "MM/dd/yyyy hh:mm a z";
 
@@ -30,6 +31,7 @@ const ArchitecturesTable: FC<{
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [renaming, setRenaming] = useState<Architecture | null>(null);
   const [deleting, setDeleting] = useState<Architecture | null>(null);
+  const [cloning, setCloning] = useState<Architecture | null>(null);
   const [selectedArchitecture, setSelectedArchitecture] =
     useState<Architecture | null>(null);
 
@@ -114,6 +116,13 @@ const ArchitecturesTable: FC<{
                       setSelectedArchitecture(null);
                     },
                   },
+                  {
+                    id: "Clone",
+                    onClick: () => {
+                      setCloning(selectedArchitecture);
+                      setSelectedArchitecture(null);
+                    },
+                  }
                 ]}
               />
             )}
@@ -171,6 +180,16 @@ const ArchitecturesTable: FC<{
           show={!!deleting}
           id={deleting.id}
           name={deleting.name}
+        />
+      )}
+      {cloning && (
+        <CloneArchitectureModal
+          onClose={() => {
+            setCloning(null);
+          }}
+          show={!!cloning}
+          id={cloning.id}
+          name={cloning.name}
         />
       )}
     </>
