@@ -21,6 +21,7 @@ from src.state_manager.architecture_data import (
 )
 from src.state_manager.architecture_storage import (
     get_state_from_fs,
+    write_state_to_fs,
     ArchitectureStateDoesNotExistError,
 )
 from src.util.entity import User
@@ -171,4 +172,40 @@ async def copilot_list_architectures(user_id: str):
         )
     except Exception:
         log.error("Error listing architectures", exc_info=True)
+        raise HTTPException(status_code=500, detail="internal server error")
+
+
+class CloneArchitectureRequest(BaseModel):
+    name: str
+    owner: str = None
+
+
+async def copilot_clone_architecture(user_id: str, id: str, name: str, owner: str):
+    try:
+        owner = User(user_id) if owner is None else User(owner)
+        architecture = await get_architecture_latest(id)
+        if architecture is None:
+            raise ArchitectureStateDoesNotExistError(
+                f"No architecture exists for id {id}"
+            )
+        newArch = Architecture(
+            id=str(uuid.uuid4()),
+            name=name,
+            state=0,
+            constraints=[],
+            owner=owner.to_auth_string(),
+            created_at=int(time.time()),
+            updated_by=User(user_id).to_auth_string(),
+            engine_version=architecture.engine_version,
+            decisions=[],
+        )
+        state = await get_state_from_fs(arch=architecture)
+        if state:
+            state_location = await write_state_to_fs(newArch, state)
+            newArch.state_location = state_location
+        await add_architecture(newArch)
+        await add_architecture_owner(owner, newArch.id)
+        return JSONResponse(content={"id": newArch.id})
+    except Exception:
+        log.error("Error cloning architecture", exc_info=True)
         raise HTTPException(status_code=500, detail="internal server error")

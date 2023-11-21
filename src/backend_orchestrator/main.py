@@ -12,7 +12,9 @@ from src.auth_service.token import PUBLIC_USER, AuthError, get_user_id
 from src.state_manager.architecture_data import delete_architecture, rename_architecture
 from src.util.orm import Base, engine
 from src.backend_orchestrator.architecture_handler import (
+    CloneArchitectureRequest,
     ModifyArchitectureRequest,
+    copilot_clone_architecture,
     copilot_get_state,
     copilot_get_resource_types,
     copilot_list_architectures,
@@ -138,12 +140,26 @@ async def modify_architecture(
                 "description": f"User is not authorized to modify architecture {id}",
             },
         )
-    print(body.name)
     return await rename_architecture(id, body.name)
 
 
+@app.post("/api/architecture/{id}/clone")
+async def clone_architecture(request: Request, id: str, body: CloneArchitectureRequest):
+    user_id = get_user_id(request)
+    authorized = await can_read_architecture(User(id=user_id), id)
+    if not authorized:
+        raise AuthError(
+            detail=f"User {user_id} is not authorized to modify architecture {id}",
+            error={
+                "code": "unauthorized",
+                "description": f"User is not authorized to modify architecture {id}",
+            },
+        )
+    return await copilot_clone_architecture(user_id, id, body.name, body.owner)
+
+
 @app.delete("/api/architecture/{id}")
-async def modify_architecture(request: Request, id: str):
+async def delete_architecture(request: Request, id: str):
     user_id = get_user_id(request)
     authorized = await can_write_to_architecture(User(id=user_id), id)
     if not authorized:
