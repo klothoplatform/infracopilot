@@ -79,28 +79,27 @@ async def copilot_get_state(id: str, accept: Optional[str] = None):
             )
         state = await get_state_from_fs(arch)
         decisions = await get_architecture_changelog_history(id)
-        return Response(
-            headers={
-                "Content-Type": "application/octet-stream"
-                if accept == "application/octet-stream"
-                else "application/json"
-            },
-            content=jsons.dumps(
-                {
-                    "id": arch.id,
-                    "name": arch.name,
-                    "owner": arch.owner,
-                    "engineVersion": arch.engine_version,
-                    "version": arch.state if arch.state is not None else 0,
-                    "decisions": decisions,
-                    "state": {
-                        "resources_yaml": state.resources_yaml,
-                        "topology_yaml": state.topology_yaml,
-                    }
-                    if state is not None
-                    else None,
-                }
-            ),
+        payload = {
+            "id": arch.id,
+            "name": arch.name,
+            "owner": arch.owner,
+            "engineVersion": arch.engine_version,
+            "version": arch.state if arch.state is not None else 0,
+            "decisions": decisions,
+            "state": {
+                "resources_yaml": state.resources_yaml,
+                "topology_yaml": state.topology_yaml,
+            }
+            if state is not None
+            else None,
+        }
+        return (
+            Response(
+                headers={"Content-Type": "application/octet-stream"},
+                content=jsons.dumps(payload),
+            )
+            if accept == "application/octet-stream"
+            else JSONResponse(content=jsons.dump(payload))
         )
     except ArchitectureStateDoesNotExistError:
         raise HTTPException(status_code=404, detail="Architecture state not found")
@@ -168,7 +167,7 @@ async def copilot_list_architectures(user_id: str):
                 )
             )
         return JSONResponse(
-            content=jsons.dumps({"architectures": cleaned_architectures})
+            content=jsons.dump({"architectures": cleaned_architectures})
         )
     except Exception:
         log.error("Error listing architectures", exc_info=True)

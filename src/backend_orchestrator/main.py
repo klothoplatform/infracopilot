@@ -9,7 +9,10 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.gzip import GZipMiddleware
 from src.auth_service.main import can_read_architecture, can_write_to_architecture
 from src.auth_service.token import PUBLIC_USER, AuthError, get_user_id
-from src.state_manager.architecture_data import delete_architecture, rename_architecture
+from src.state_manager.architecture_data import (
+    delete_architecture as copilot_delete_architecture,
+    rename_architecture,
+)
 from src.util.orm import Base, engine
 from src.backend_orchestrator.architecture_handler import (
     CloneArchitectureRequest,
@@ -170,7 +173,7 @@ async def delete_architecture(request: Request, id: str):
                 "description": f"User is not authorized to delete architecture {id}",
             },
         )
-    return await delete_architecture(id)
+    return await copilot_delete_architecture(id)
 
 
 @app.get("/api/architectures")
