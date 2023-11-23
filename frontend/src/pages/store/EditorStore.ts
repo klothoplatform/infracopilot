@@ -45,7 +45,7 @@ import {
 } from "../../shared/sidebar-nav";
 import { Decision, Failure } from "../../shared/architecture/Decision";
 import { getResourceTypes } from "../../api/GetResourceTypes";
-import type { UserStoreBase } from "./UserStore";
+import type { AuthStoreBase } from "./AuthStore";
 import { ResourceTypeKB } from "../../shared/resources/ResourceTypeKB";
 import type { ErrorStore } from "./ErrorStore";
 
@@ -133,7 +133,7 @@ interface EditorStoreActions {
 
 type EditorStoreBase = EditorStoreState & EditorStoreActions;
 
-export type EditorStore = EditorStoreBase & UserStoreBase & ErrorStore;
+export type EditorStore = EditorStoreBase & AuthStoreBase & ErrorStore;
 
 export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
   set: (state: object, replace?: boolean, id?: string) => any,
@@ -399,7 +399,6 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
         false,
         "editor/initializeEditor:error",
       );
-      get().addError("Architecture could not be loaded");
       throw e;
     }
   },

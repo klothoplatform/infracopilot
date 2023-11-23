@@ -1,6 +1,8 @@
 import axios from "axios";
 import type { Architecture } from "../shared/architecture/Architecture";
 import { analytics } from "../App";
+import { ApiError } from "../shared/errors";
+import { trackError } from "../pages/store/ErrorStore";
 
 export interface ModifyArchitectureRequest {
   id: string;
@@ -25,8 +27,15 @@ export default async function modifyArchitecture(
     },
   );
   if (response.status !== 200) {
-    analytics.track("ModifyArchitecture", { status: response.status });
-    throw new Error("ModifyArchitecture failed");
+    const error = new ApiError({
+      errorId: "ModifyArchitecture",
+      message: "An error occurred while modifying architecture.",
+      status: response.status,
+      statusText: response.statusText,
+      url: response.config.url,
+    });
+    trackError(error);
+    throw error;
   }
   analytics.track("ModifyArchitecture", {
     status: response.status,

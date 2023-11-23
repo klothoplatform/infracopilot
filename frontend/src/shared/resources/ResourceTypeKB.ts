@@ -3,7 +3,16 @@ import { customConfigMappings } from "../../pages/ArchitectureEditor/config/Cust
 import { ArchitectureView, ViewNodeType } from "../architecture/Architecture";
 
 export class ResourceTypeKB {
-  resourceTypes: Map<string, ResourceType> = new Map();
+  constructor(
+    public resourceTypes: Map<string, ResourceType> = new Map<
+      string,
+      ResourceType
+    >(),
+  ) {
+    resourceTypes.forEach((resourceType) => {
+      this.addResourceType(resourceType);
+    });
+  }
 
   addResourceType(resourceType: ResourceType): void {
     this.resourceTypes.set(

@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
 import useApplicationStore from "../../pages/store/ApplicationStore";
 import modifyArchitecture from "../../api/ModifyArchitecture";
+import { UIError } from "../../shared/errors";
 
 interface ModifyArchitectureModalProps {
   onClose: () => void;
@@ -29,16 +30,40 @@ export default function NewArchitectureModal({
     formState: { errors },
   } = useForm<ModifyArchitectureFormState>({ defaultValues: { name: name } });
 
-  const { getIdToken, getArchitectures } = useApplicationStore();
+  const { getIdToken, getArchitectures, addError } = useApplicationStore();
 
   const onSubmit = async (state: ModifyArchitectureFormState) => {
-    await modifyArchitecture({
-      name: state.name,
-      id: id,
-      idToken: await getIdToken(),
-    });
-    await getArchitectures(true);
-    onClose();
+    let success = false;
+    try {
+      await modifyArchitecture({
+        name: state.name,
+        id: id,
+        idToken: await getIdToken(),
+      });
+      success = true;
+    } catch (e: any) {
+      addError(
+        new UIError({
+          errorId: "ModifyArchitectureModal:Submit",
+          message: `Failed to modify architecture: ${name}`,
+          messageComponent: (
+            <span>
+              Failed to modify architecture: <strong>{name}</strong>
+            </span>
+          ),
+          cause: e,
+          data: {
+            id,
+            name,
+            newName: state.name,
+          },
+        }),
+      );
+    }
+    if (success) {
+      await getArchitectures(true);
+      onClose();
+    }
   };
 
   // required for ref sharing with react-hook-form: https://www.react-hook-form.com/faqs/#Howtosharerefusage

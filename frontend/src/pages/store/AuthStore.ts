@@ -1,15 +1,12 @@
 import type { StateCreator } from "zustand/esm";
-import { type Architecture } from "../../shared/architecture/Architecture";
 import type { Auth0ContextInterface, User } from "@auth0/auth0-react";
 import type { ErrorStore } from "./ErrorStore";
-import { listArchitectures } from "../../api/ListArchitectures";
 import { analytics } from "../../App";
 import { env } from "../../shared/environment";
 
 const logoutUrl = env.auth0.logoutUrl;
 
-export interface UserStoreState {
-  architectures: Architecture[];
+export interface AuthStoreState {
   auth0?: Auth0ContextInterface;
   currentIdToken: { idToken: string; expiresAt: number };
   isAuthenticated: boolean;
@@ -17,17 +14,15 @@ export interface UserStoreState {
   user?: User;
 }
 
-export interface UserStoreBase extends UserStoreState {
-  getArchitectures: (ignoreCache?: boolean) => Promise<Architecture[]>;
+export interface AuthStoreBase extends AuthStoreState {
   getIdToken: () => Promise<string>;
   logout: () => void;
   loginWithRedirect: () => Promise<void>;
   updateAuthentication: (context: Auth0ContextInterface) => Promise<void>;
-  resetUserState: () => void;
+  resetAuthState: () => void;
 }
 
-const initialState: () => UserStoreState = () => ({
-  architectures: [],
+const initialState: () => AuthStoreState = () => ({
   auth0: undefined,
   currentIdToken: { idToken: "", expiresAt: 0 },
   isAuthenticated: false,
@@ -35,25 +30,13 @@ const initialState: () => UserStoreState = () => ({
   user: undefined,
 });
 
-export type UserStore = UserStoreBase & ErrorStore;
+export type AuthStore = AuthStoreBase & ErrorStore;
 
-export const userStore: StateCreator<UserStore, [], [], UserStoreBase> = (
+export const authStore: StateCreator<AuthStore, [], [], AuthStoreBase> = (
   set: (state: object, replace?: boolean, id?: string) => any,
   get,
 ) => ({
   ...initialState(),
-  getArchitectures: async (ignoreCache) => {
-    const cachedArchitectures = get().architectures;
-    if (cachedArchitectures.length > 0 && !ignoreCache) {
-      return cachedArchitectures;
-    }
-
-    const usersArchitectures = await listArchitectures(
-      await get().getIdToken(),
-    );
-    set({ architectures: usersArchitectures }, false, "getArchitectures");
-    return usersArchitectures;
-  },
   getIdToken: async () => {
     let { idToken, expiresAt } = get().currentIdToken;
     const fiveMinutesInSeconds = 60 * 5;
@@ -156,5 +139,5 @@ export const userStore: StateCreator<UserStore, [], [], UserStoreBase> = (
       "updateAuthentication/authenticated",
     );
   },
-  resetUserState: () => set(initialState(), false, "resetUserState"),
+  resetAuthState: () => set(initialState(), false, "resetAuthState"),
 });

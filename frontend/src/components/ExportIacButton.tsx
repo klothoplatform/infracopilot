@@ -5,6 +5,7 @@ import ExportIaC from "../api/ExportIaC";
 import { Button } from "flowbite-react";
 import { AiOutlineLoading } from "react-icons/ai";
 import { TbFileExport } from "react-icons/tb";
+import { ApplicationError, UIError } from "../shared/errors";
 
 interface ExportIacButtonProps {
   disabled?: boolean;
@@ -29,7 +30,17 @@ export const ExportIacButton: FC<ExportIacButtonProps> = (
       const url = URL.createObjectURL(iacZip);
       downloadFile(architecture.name + ".zip", url);
     } catch (e: any) {
-      addError(`Failed to export IaC: ${e.message}`);
+      if (e instanceof ApplicationError) {
+        addError(e);
+      } else {
+        addError(
+          new UIError({
+            errorId: "ExportIacButton:Click",
+            message: "Failed to export IaC!",
+            cause: e as Error,
+          }),
+        );
+      }
     } finally {
       setTimeout(() => {
         // reduce flickering for fast requests

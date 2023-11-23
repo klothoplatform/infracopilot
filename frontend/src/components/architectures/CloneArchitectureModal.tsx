@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
 import useApplicationStore from "../../pages/store/ApplicationStore";
 import cloneArchitecture from "../../api/CloneArchitecture";
+import { UIError } from "../../shared/errors";
 
 interface CloneArchitectureModalProps {
   onClose: () => void;
@@ -27,19 +28,44 @@ export default function CloneArchitectureModal({
     handleSubmit,
     trigger,
     formState: { errors },
-  } = useForm<CloneArchitectureFormState>();
+  } = useForm<CloneArchitectureFormState>({
+    defaultValues: { name: `Copy of ${name}` },
+  });
 
-  const { getIdToken, getArchitectures } = useApplicationStore();
+  const { getIdToken, getArchitectures, addError } = useApplicationStore();
 
   const onSubmit = async (state: CloneArchitectureFormState) => {
-    onClose();
-    await cloneArchitecture({
-      id: id,
-      name: state.name,
-      idToken: await getIdToken(),
-    });
-    await getArchitectures(true);
-    onClose();
+    let success = false;
+    try {
+      await cloneArchitecture({
+        id: id,
+        name: state.name,
+        idToken: await getIdToken(),
+      });
+      success = true;
+    } catch (e: any) {
+      addError(
+        new UIError({
+          errorId: "CloneArchitectureModal:Submit",
+          message: `Failed to clone architecture: ${name}`,
+          messageComponent: (
+            <span>
+              Failed to clone architecture: <strong>{name}</strong>
+            </span>
+          ),
+          cause: e,
+          data: {
+            id,
+            name,
+            newName: state.name,
+          },
+        }),
+      );
+    }
+    if (success) {
+      await getArchitectures(true);
+      onClose();
+    }
   };
 
   // required for ref sharing with react-hook-form: https://www.react-hook-form.com/faqs/#Howtosharerefusage
@@ -87,9 +113,9 @@ export default function CloneArchitectureModal({
     >
       <form
         onSubmit={handleSubmit((state) => {
-            onSubmit(state);
-            reset();
-          })}
+          onSubmit(state);
+          reset();
+        })}
         onReset={() => {
           reset();
           onClose?.();
@@ -101,7 +127,9 @@ export default function CloneArchitectureModal({
         <Modal.Body>
           <div>
             <div className="mb-2 block">
-              <Label htmlFor="clone" />
+              <Label htmlFor="clone">
+                Supply a new name for your cloned architecture.
+              </Label>
             </div>
             <TextInput
               id="clone"
@@ -113,7 +141,6 @@ export default function CloneArchitectureModal({
                 }
               }}
               {...rest}
-              placeholder={"Cloned-"+name}
               type="text"
               color={errors.name ? "failure" : undefined}
               helperText={errors.name?.message}

@@ -12,6 +12,10 @@ import RenameArchitectureModal from "./RenameArchitectureModal";
 import DeleteArchitectureModal from "./DeleteArchitectureModal";
 import useApplicationStore from "../../pages/store/ApplicationStore";
 import CloneArchitectureModal from "./CloneArchitectureModal";
+import { ErrorBoundary } from "react-error-boundary";
+import { FallbackRenderer } from "../FallbackRenderer";
+import { UIError } from "../../shared/errors";
+import { trackError } from "../../pages/store/ErrorStore";
 
 const dateFormat = "MM/dd/yyyy hh:mm a z";
 
@@ -25,7 +29,7 @@ const ArchitecturesTable: FC<{
   user?: User;
   architectures: Architecture[];
 }> = ({ user, architectures }) => {
-  const { resetEditorState } = useApplicationStore();
+  const { resetEditorState, resetUserDataState } = useApplicationStore();
 
   const [sortedBy, setSortedBy] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
@@ -122,7 +126,7 @@ const ArchitecturesTable: FC<{
                       setCloning(selectedArchitecture);
                       setSelectedArchitecture(null);
                     },
-                  }
+                  },
                 ]}
               />
             )}
@@ -132,7 +136,22 @@ const ArchitecturesTable: FC<{
     });
 
   return (
-    <>
+    <ErrorBoundary
+      fallbackRender={FallbackRenderer}
+      onError={(error, info) => {
+        trackError(
+          new UIError({
+            message: "uncaught error in ArchitecturesTable",
+            errorId: "ArchitecturesTable:ErrorBoundary",
+            cause: error,
+            data: {
+              info,
+            },
+          }),
+        );
+      }}
+      onReset={() => resetUserDataState()}
+    >
       <Table hoverable theme={tableTheme}>
         <Table.Head>
           <SortableHeaderCell
@@ -192,7 +211,7 @@ const ArchitecturesTable: FC<{
           name={cloning.name}
         />
       )}
-    </>
+    </ErrorBoundary>
   );
 };
 

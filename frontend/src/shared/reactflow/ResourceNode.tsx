@@ -125,7 +125,7 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
 
   return (
     <>
-      {/* eslint-disable-next-line jsx-a11y/mouse-events-have-key-events,tailwindcss/no-custom-classname */}
+      {/* eslint-disable-next-line tailwindcss/no-custom-classname,jsx-a11y/no-static-element-interactions */}
       <div
         className="resource-node resource-icon-node pointer-events-none absolute flex h-fit w-[210px] flex-col justify-center"
         onMouseOver={(e) => {
@@ -133,6 +133,17 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
         }}
         onMouseLeave={(e) => {
           setMouseOverNode(false);
+        }}
+        onFocus={(e) => {
+          setMouseOverNode(true);
+        }}
+        onBlur={(e) => {
+          setMouseOverNode(false);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            onClickResourceIcon();
+          }
         }}
       >
         <div
@@ -149,7 +160,6 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
             data={data}
             resourceId={data.resourceId}
             iconProps={{
-              // className: "h-[100px] w-[100px]",
               width: "100px",
               height: "100px",
             }}

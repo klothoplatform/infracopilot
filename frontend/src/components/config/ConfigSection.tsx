@@ -1,10 +1,9 @@
 import type { FC, PropsWithChildren } from "react";
 import React, { Fragment, useCallback } from "react";
-import { Accordion, Button, Label } from "flowbite-react";
+import { Accordion, Button } from "flowbite-react";
 import { HiMinusCircle } from "react-icons/hi";
 import { useFormContext } from "react-hook-form";
-import { BiChevronRight, BiSolidHand, BiSolidPencil } from "react-icons/bi";
-import { env } from "../../shared/environment";
+import { BiChevronRight } from "react-icons/bi";
 
 type ConfigSectionProps = {
   id: string;

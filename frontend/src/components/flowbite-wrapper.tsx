@@ -1,16 +1,17 @@
 import { Flowbite, useThemeMode } from "flowbite-react";
-import type { FC } from "react";
+import type { FC, PropsWithChildren } from "react";
 import { useEffect } from "react";
-import { Outlet } from "react-router";
 import theme from "../flowbite-theme";
 
-const FlowbiteWrapper: FC = function () {
+const FlowbiteWrapper: FC<PropsWithChildren> = ({ children }) => {
   const dark = localStorage.getItem("theme") === "dark";
 
   return (
     <Flowbite theme={{ dark, theme }}>
-      <PersistFlowbiteThemeToLocalStorage />
-      <Outlet />
+      <>
+        <PersistFlowbiteThemeToLocalStorage />
+        <>{children}</>
+      </>
     </Flowbite>
   );
 };

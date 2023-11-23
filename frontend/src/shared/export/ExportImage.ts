@@ -9,7 +9,7 @@ export enum Watermark {
   InfraCopilot = "infracopilot",
 }
 
-function downloadImage(dataUrl: string, format: string) {
+export function downloadImage(dataUrl: string, format: string) {
   const a = document.createElement("a");
 
   a.setAttribute("download", `reactflow.${format.toLowerCase()}`);
@@ -120,8 +120,8 @@ function getBoundingElements(nodes: Node[], edges: Edge[]): BoundingElements {
   boundingElements.bottomElement = !maxYEdge
     ? maxYNode
     : maxY(maxYNode) > maxYEdge.data.edgeSection.maxY
-    ? maxYNode
-    : maxYEdge;
+      ? maxYNode
+      : maxYEdge;
 
   return boundingElements;
 }

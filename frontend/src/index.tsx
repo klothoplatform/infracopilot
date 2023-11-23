@@ -6,6 +6,7 @@ import App from "./App";
 import { Auth0ProviderWithNavigate } from "./auth/Auth0ProviderWithNavigate";
 import { BrowserRouter } from "react-router-dom";
 import { env } from "./shared/environment";
+import FlowbiteWrapper from "./components/flowbite-wrapper";
 
 const container = document.getElementById("root");
 
@@ -38,7 +39,9 @@ root.render(
   <BrowserRouter>
     <Auth0ProviderWithNavigate>
       <StrictMode>
-        <App />
+        <FlowbiteWrapper>
+          <App />
+        </FlowbiteWrapper>
       </StrictMode>
     </Auth0ProviderWithNavigate>
   </BrowserRouter>,

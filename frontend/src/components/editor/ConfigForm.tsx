@@ -1,4 +1,5 @@
 "use client";
+import { trackError } from "../../pages/store/ErrorStore";
 
 import type {
   ListProperty,
@@ -29,6 +30,9 @@ import { ConfigGroup } from "../config/ConfigGroup";
 import type { NodeId } from "../../shared/architecture/TopologyNode";
 import type { Architecture } from "../../shared/architecture/Architecture";
 import { analytics } from "../../App";
+import { ErrorBoundary } from "react-error-boundary";
+import { FallbackRenderer } from "../FallbackRenderer";
+import { ApplicationError, UIError } from "../../shared/errors";
 
 export default function ConfigForm() {
   const {
@@ -93,7 +97,7 @@ export default function ConfigForm() {
       }
 
       console.log("submitting config changes");
-
+      let constraints: Constraint[] = [];
       try {
         const modifiedFormFields = getModifiedFormFields(
           submittedValues,
@@ -110,7 +114,7 @@ export default function ConfigForm() {
           }),
         );
 
-        const constraints: Constraint[] = Object.entries(
+        constraints = Object.entries(
           toResourceMetadata(
             modifiedRootProperties,
             resourceType?.properties,
@@ -121,7 +125,6 @@ export default function ConfigForm() {
               !resourceType?.properties?.find((field) => field.name === key)
                 ?.synthetic,
           )
-
           .map(([key, value]): ResourceConstraint => {
             return new ResourceConstraint(
               ConstraintOperator.Equals,
@@ -140,19 +143,40 @@ export default function ConfigForm() {
             architecture,
           ),
         );
-        analytics.track("configureResource", {
-          configure: {
-            resourceId: selectedResource.toString(),
-            constraints: constraints,
-          },
-        });
+      } catch (e: any) {
+        addError(
+          new UIError({
+            errorId: "ConfigForm:SubmitConfigChanges",
+            message: "Failed to submit config changes!",
+            cause: e,
+          }),
+        );
+      }
 
-        if (!constraints.length) {
-          return;
-        }
+      analytics.track("configureResource", {
+        configure: {
+          resourceId: selectedResource.toString(),
+          constraints: constraints,
+        },
+      });
+
+      if (!constraints.length) {
+        return;
+      }
+      try {
         await applyConstraints(constraints);
       } catch (e: any) {
-        addError(`Failed to configure ${selectedResource.name}: ${e.message}`);
+        if (e instanceof ApplicationError) {
+          addError(e);
+        } else {
+          addError(
+            new UIError({
+              errorId: "ConfigForm:ApplyConstraints",
+              message: "Failed to apply constraints!",
+              data: { error: e.message },
+            }),
+          );
+        }
       }
     },
     [
@@ -167,7 +191,19 @@ export default function ConfigForm() {
   );
 
   return (
-    <>
+    <ErrorBoundary
+      onError={(error, info) =>
+        trackError(
+          new UIError({
+            message: "uncaught error in ConfigForm",
+            errorId: "ConfigForm:ErrorBoundary",
+            cause: error,
+            data: { info },
+          }),
+        )
+      }
+      fallbackRender={FallbackRenderer}
+    >
       {(resourceType?.properties?.length ?? 0) > 0 && (
         <FormProvider {...methods}>
           <form
@@ -195,7 +231,7 @@ export default function ConfigForm() {
           </form>
         </FormProvider>
       )}
-    </>
+    </ErrorBoundary>
   );
 }
 

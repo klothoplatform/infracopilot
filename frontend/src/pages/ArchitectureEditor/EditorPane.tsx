@@ -17,7 +17,10 @@ import useApplicationStore from "../store/ApplicationStore";
 import ContextMenu from "./ContextMenu";
 import { WorkingOverlay } from "../../components/WorkingOverlay";
 import { getIconMapping } from "../../shared/resources/ResourceMappings";
-
+import { ErrorBoundary } from "react-error-boundary";
+import { FallbackRenderer } from "../../components/FallbackRenderer";
+import { UIError } from "../../shared/errors";
+import { trackError } from "../store/ErrorStore";
 export default function EditorPane() {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
@@ -119,7 +122,7 @@ export default function EditorPane() {
           nodes: [newNode],
         });
       } catch (e: any) {
-        addError(e.message);
+        addError(e);
       }
     },
     [
@@ -226,7 +229,19 @@ export default function EditorPane() {
   }, [fitView, nodes, edges, oldEdgeCount, oldNodeCount]);
 
   return (
-    <>
+    <ErrorBoundary
+      onError={(error, info) =>
+        trackError(
+          new UIError({
+            message: "uncaught error in EditorPane",
+            errorId: "EditorPane:ErrorBoundary",
+            cause: error,
+            data: { info },
+          }),
+        )
+      }
+      fallbackRender={FallbackRenderer}
+    >
       <div
         className={"grow-1 mx-2 h-full w-full bg-gray-50 dark:bg-gray-900"}
         ref={reactFlowWrapper}
@@ -260,6 +275,7 @@ export default function EditorPane() {
           onNodeClick={onNodeClick}
           onEdgeClick={onEdgeClick}
           onPaneClick={onPaneClick}
+          deleteKeyCode={null}
         >
           <Background variant={BackgroundVariant.Dots} gap={25} size={1} />
           {menu && <ContextMenu {...menu} />}
@@ -267,6 +283,6 @@ export default function EditorPane() {
         </ReactFlow>
         <WorkingOverlay show={showSpinner} message={"Autocompleting..."} />
       </div>
-    </>
+    </ErrorBoundary>
   );
 }

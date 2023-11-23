@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import createArchitecture from "../api/CreateArchitecture";
 import useApplicationStore from "../pages/store/ApplicationStore";
 import { useNavigate } from "react-router-dom";
+import { UIError } from "../shared/errors";
 
 interface NewArchitectureModalProps {
   onClose: () => void;
@@ -27,22 +28,47 @@ export default function NewArchitectureModal({
     formState: { errors },
   } = useForm<NewArchitectureFormState>();
 
-  const { getIdToken, user, resetEditorState } = useApplicationStore();
+  const { getIdToken, user, resetEditorState, addError } =
+    useApplicationStore();
   const navigate = useNavigate();
 
   let onSubmit = useCallback(
     async (state: NewArchitectureFormState) => {
-      onClose();
-      const { id } = await createArchitecture({
-        name: state.name,
-        owner: user?.sub ?? "public",
-        engineVersion: 1,
-        idToken: await getIdToken(),
-      });
-      resetEditorState();
-      navigate(`/editor/${id}`);
+      let id;
+      try {
+        onClose();
+        const architecture = await createArchitecture({
+          name: state.name,
+          owner: user?.sub ?? "public",
+          engineVersion: 1,
+          idToken: await getIdToken(),
+        });
+        id = architecture.id;
+      } catch (e: any) {
+        addError(
+          new UIError({
+            errorId: "NewArchitectureModal:Submit",
+            message: "Failed to create architecture!",
+            cause: e as Error,
+          }),
+        );
+      }
+      if (id) {
+        try {
+          resetEditorState();
+          navigate(`/editor/${id}`);
+        } catch (e: any) {
+          addError(
+            new UIError({
+              errorId: "NewArchitectureModal:Submit",
+              message: "Loading new architecture failed!",
+              cause: e,
+            }),
+          );
+        }
+      }
     },
-    [getIdToken, navigate, onClose, resetEditorState, user?.sub],
+    [addError, getIdToken, navigate, onClose, resetEditorState, user?.sub],
   );
 
   // required for ref sharing with react-hook-form: https://www.react-hook-form.com/faqs/#Howtosharerefusage

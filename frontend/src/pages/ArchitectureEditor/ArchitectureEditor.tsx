@@ -21,6 +21,7 @@ import { ArchitectureButtonAndModal } from "../../components/NewArchitectureButt
 import { useNavigate, useParams } from "react-router-dom";
 import { WorkingOverlay } from "../../components/WorkingOverlay";
 import { EditableLabel } from "../../components/EditableLabel";
+import { UIError } from "../../shared/errors";
 
 function ArchitectureEditor() {
   return (
@@ -212,7 +213,13 @@ const EditorNavContent: FC = function () {
         try {
           await initializeEditor(architectureId);
         } catch (e: any) {
-          addError("Failed to initialize editor!");
+          addError(
+            new UIError({
+              message: "Failed to initialize editor!",
+              cause: e as Error,
+              errorId: "ArchitectureEditor:InitializeEditor",
+            }),
+          );
           setWorkingMessage(undefined);
           navigate("/architectures");
         }
@@ -248,7 +255,13 @@ const EditorNavContent: FC = function () {
               await renameArchitecture(newValue);
             }}
             onError={(e) => {
-              addError("Renaming architecture failed!");
+              addError(
+                new UIError({
+                  message: "Renaming architecture failed!",
+                  cause: e as Error,
+                  errorId: "ArchitectureEditor:RenameArchitecture",
+                }),
+              );
             }}
           ></EditableLabel>
         </div>

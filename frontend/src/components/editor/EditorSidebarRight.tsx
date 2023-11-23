@@ -28,6 +28,10 @@ import {
 } from "../../shared/sidebar-nav";
 import type { NodeId } from "../../shared/architecture/TopologyNode";
 import { NodeIcon } from "../../shared/resources/ResourceMappings";
+import { ErrorBoundary } from "react-error-boundary";
+import { FallbackRenderer } from "../FallbackRenderer";
+import { trackError } from "../../pages/store/ErrorStore";
+import { UIError } from "../../shared/errors";
 
 const sidebarTheme: CustomFlowbiteTheme["sidebar"] = {
   root: {
@@ -41,9 +45,23 @@ const EditorSidebarRight = forwardRef(
   (props, ref: ForwardedRef<HTMLDivElement>) => {
     return (
       <Sidebar aria-label="Sidebar" collapsed={false} theme={sidebarTheme}>
-        <div className="flex h-full flex-col justify-between overflow-hidden py-2">
-          <SidebarTabs />
-        </div>
+        <ErrorBoundary
+          onError={(error, info) =>
+            trackError(
+              new UIError({
+                message: "uncaught error in EditorSidebarRight",
+                errorId: "EditorSidebarLeft:ErrorBoundary",
+                cause: error,
+                data: { info },
+              }),
+            )
+          }
+          fallbackRender={FallbackRenderer}
+        >
+          <div className="flex h-full flex-col justify-between overflow-hidden py-2">
+            <SidebarTabs />
+          </div>
+        </ErrorBoundary>
       </Sidebar>
     );
   },

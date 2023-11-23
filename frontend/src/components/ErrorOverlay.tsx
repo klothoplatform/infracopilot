@@ -4,7 +4,9 @@ import { Button, Toast } from "flowbite-react";
 import classNames from "classnames";
 import useApplicationStore from "../pages/store/ApplicationStore";
 import { HiExclamationCircle } from "react-icons/hi";
-import type { ApplicationError } from "../pages/store/ErrorStore";
+import type { ApplicationError } from "../shared/errors";
+
+const maxErrors = 5;
 
 export const ErrorOverlay: FC = () => {
   const { errors, removeError, clearErrors } = useApplicationStore();
@@ -19,7 +21,7 @@ export const ErrorOverlay: FC = () => {
 
   useEffect(() => {
     if (shouldRefresh) {
-      setCurrentErrors(errors.slice(0, 5));
+      setCurrentErrors(errors.slice(0, maxErrors));
       setShouldRefresh(false);
     }
   }, [currentErrors, errors, setCurrentErrors, shouldRefresh]);
@@ -37,26 +39,35 @@ export const ErrorOverlay: FC = () => {
     >
       <div
         className={classNames(
-          "mx-auto mt-24 flex h-fit max-h-[50vh] w-fit flex-col justify-start gap-1 overflow-y-auto p-2 rounded bg-gray-100/95 p-2 drop-shadow-lg border-[1px] border-gray-300 dark:bg-gray-900/95 dark:border-gray-700",
+          "mx-auto mt-24 flex h-fit w-fit max-h-[50vh] max-w-[90wh] flex-col justify-start gap-1 p-2 rounded bg-gray-100/95 drop-shadow-lg border-[1px] border-gray-300 dark:bg-gray-900/95 dark:border-gray-700",
         )}
       >
-        {currentErrors.map((error) => (
-          <ErrorToast key={error.id} error={error} onRemove={onRemove} />
-        ))}
-        {currentErrors.length > 1 && (
-          <Button
-            color="light"
-            size={"xs"}
-            outline
-            className="pointer-events-auto mt-1 self-end"
-            onClick={() => {
-              clearErrors();
-              setShouldRefresh(true);
-            }}
-          >
-            clear
-          </Button>
-        )}
+        <div className="flex w-fit flex-col gap-2 overflow-y-auto px-4 py-2">
+          {currentErrors.map((error) => (
+            <ErrorToast key={error.id} error={error} onRemove={onRemove} />
+          ))}
+        </div>
+        <div className="flex w-full place-items-center justify-end gap-4 pr-6 dark:text-white">
+          {errors.length > maxErrors && (
+            <span className="text-xs font-light">
+              (and {errors.length - maxErrors} more)
+            </span>
+          )}
+          {currentErrors.length > 1 && (
+            <Button
+              color="light"
+              size={"xs"}
+              outline
+              className="pointer-events-auto mt-1 self-end"
+              onClick={() => {
+                clearErrors();
+                setShouldRefresh(true);
+              }}
+            >
+              clear
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -66,12 +77,15 @@ const ErrorToast: FC<{
   error: ApplicationError;
   onRemove: (id: string) => void;
 }> = ({ error, onRemove }) => {
+  const { messageComponent, message } = error;
   return (
-    <Toast className="pointer-events-auto rounded-lg p-2">
+    <Toast className="pointer-events-auto w-fit max-w-[90wh] rounded-lg p-2">
       <div className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-red-100 text-red-500 dark:bg-red-800 dark:text-red-200">
         <HiExclamationCircle className="h-5 w-5" />
       </div>
-      <div className="ml-3 text-sm font-normal">{error.message}</div>
+      <div className="ml-3 text-sm font-normal">
+        {messageComponent ?? message}
+      </div>
       <Toast.Toggle
         onClick={() => {
           onRemove(error.id);

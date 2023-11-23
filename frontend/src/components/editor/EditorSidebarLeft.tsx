@@ -1,5 +1,4 @@
 import classNames from "classnames";
-import type { CustomFlowbiteTheme } from "flowbite-react";
 import { Accordion, Sidebar, TextInput } from "flowbite-react";
 import type { ChangeEvent, ForwardedRef } from "react";
 import React, { forwardRef, useCallback, useState } from "react";
@@ -10,6 +9,11 @@ import type { FilterFunction } from "./ResourceAccordion";
 import ResourceAccordion from "./ResourceAccordion";
 import debounce from "lodash.debounce";
 import { ViewNodeType } from "../../shared/architecture/Architecture";
+import { FallbackRenderer } from "../FallbackRenderer";
+import { ErrorBoundary } from "react-error-boundary";
+import { trackError } from "../../pages/store/ErrorStore";
+import { UIError } from "../../shared/errors";
+import useApplicationStore from "../../pages/store/ApplicationStore";
 
 const displayedClassifications = [
   "api",
@@ -22,14 +26,6 @@ const displayedClassifications = [
   "storage",
 ];
 
-const sidebarTheme: CustomFlowbiteTheme["sidebar"] = {
-  root: {
-    // base: "h-full flex overflow-x-hidden overflow-y-auto",
-    // inner:
-    //   "h-full w-full overflow-y-auto overflow-x-hidden rounded bg-gray-50 py-4 px-3 dark:bg-gray-800",
-  },
-};
-
 type EditorSidebarLeftProps = {
   resourceLayout?: "list" | "grid";
 };
@@ -39,6 +35,11 @@ const EditorSidebarLeft = forwardRef(
     { resourceLayout }: EditorSidebarLeftProps,
     ref: ForwardedRef<HTMLDivElement>,
   ) => {
+    const {
+      getResourceTypeKB,
+      architecture: { id },
+    } = useApplicationStore();
+
     const { isOpenOnSmallScreens: isSidebarOpenOnSmallScreens } =
       useSidebarContext();
 
@@ -104,21 +105,37 @@ const EditorSidebarLeft = forwardRef(
           aria-label="Sidebar"
           collapsed={false}
           className={"w-full min-w-fit"}
-          theme={sidebarTheme}
         >
-          <div className="flex flex-col justify-between gap-2 py-2">
-            <TextInput
-              icon={HiFilter}
-              type="search"
-              placeholder="filter"
-              required
-              size={32}
-              onChange={debouncedHandleInputChange}
-            />
-            <div className={"w-full"}>
-              <Accordion>{sections}</Accordion>
+          <ErrorBoundary
+            onError={(error, info) =>
+              trackError(
+                new UIError({
+                  message: "uncaught error in EditorSidebarLeft",
+                  errorId: "EditorSidebarLeft:ErrorBoundary",
+                  cause: error,
+                  data: { info },
+                }),
+              )
+            }
+            fallbackRender={FallbackRenderer}
+            onReset={() => {
+              getResourceTypeKB(id, true);
+            }}
+          >
+            <div className="flex flex-col justify-between gap-2 py-2">
+              <TextInput
+                icon={HiFilter}
+                type="search"
+                placeholder="filter"
+                required
+                size={32}
+                onChange={debouncedHandleInputChange}
+              />
+              <div className={"w-full"}>
+                <Accordion>{sections}</Accordion>
+              </div>
             </div>
-          </div>
+          </ErrorBoundary>
         </Sidebar>
       </div>
     );

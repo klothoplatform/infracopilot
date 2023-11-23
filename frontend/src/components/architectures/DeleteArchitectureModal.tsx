@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
 import useApplicationStore from "../../pages/store/ApplicationStore";
 import deleteArchitecture from "../../api/DeleteArchitecture";
+import { UIError } from "../../shared/errors";
 
 interface DeleteArchitectureModalProps {
   onClose: () => void;
@@ -26,18 +27,41 @@ export default function DeleteArchitectureModal({
     register,
     handleSubmit,
     trigger,
+    watch,
     formState: { errors },
   } = useForm<DeleteArchitectureFormState>();
 
-  const { getIdToken, getArchitectures } = useApplicationStore();
-
+  const { getIdToken, getArchitectures, addError } = useApplicationStore();
+  const watchConfirmation = watch("confirmation");
   const onSubmit = async () => {
-    await deleteArchitecture({
-      id: id,
-      idToken: await getIdToken(),
-    });
-    await getArchitectures(true);
-    onClose();
+    let success = false;
+    try {
+      await deleteArchitecture({
+        id: id,
+        idToken: await getIdToken(),
+      });
+      success = true;
+    } catch (e: any) {
+      addError(
+        new UIError({
+          errorId: "DeleteArchitectureModal:Submit",
+          message: `Failed to delete architecture: ${name}`,
+          messageComponent: (
+            <span>
+              Failed to delete architecture: <strong>{name}</strong>
+            </span>
+          ),
+          cause: e,
+          data: {
+            id,
+          },
+        }),
+      );
+    }
+    if (success) {
+      await getArchitectures(true);
+      onClose();
+    }
   };
 
   // required for ref sharing with react-hook-form: https://www.react-hook-form.com/faqs/#Howtosharerefusage
@@ -122,7 +146,7 @@ export default function DeleteArchitectureModal({
           <Button
             type="submit"
             color="purple"
-            disabled={Object.entries(errors).length > 0}
+            disabled={Object.entries(errors).length > 0 || !watchConfirmation}
           >
             Delete
           </Button>

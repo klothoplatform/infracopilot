@@ -10,6 +10,10 @@ import { ThemeContext } from "flowbite-react/lib/esm/components/Flowbite/ThemeCo
 import type { ResourceTypeFilter } from "../../shared/resources/ResourceTypes";
 import useApplicationStore from "../../pages/store/ApplicationStore";
 import { NodeIcon } from "../../shared/resources/ResourceMappings";
+import { ErrorBoundary } from "react-error-boundary";
+import { FallbackRenderer } from "../FallbackRenderer";
+import { trackError } from "../../pages/store/ErrorStore";
+import { UIError } from "../../shared/errors";
 
 interface ResourceAccordionOptions {
   name: string;
@@ -121,6 +125,19 @@ export default function ResourceAccordion({
         </div>
       </Accordion.Title>
       <Accordion.Content className="px-1 py-2">
+        <ErrorBoundary
+          fallbackRender={FallbackRenderer}
+          onError={(error, componentStack) => {
+            trackError(
+              new UIError({
+                errorId: "ResourceAccordion:ErrorBoundary",
+                message: "uncaught error in ResourceAccordion",
+                cause: error,
+                data: componentStack,
+              }),
+            );
+          }}
+        ></ErrorBoundary>
         <div
           className={classNames(
             "flex w-full flex-wrap content-start gap-2 px-2",

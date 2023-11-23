@@ -7,6 +7,7 @@ Avoid using environment variables directly in the application.
 Instead, use env to keep it clean.
  */
 export const env: Environment = {
+  environment: process.env.REACT_APP_ENVIRONMENT ?? process.env.NODE_ENV,
   debug: new Set(
     (process.env.REACT_APP_DEBUG ?? "")
       .split(",")
@@ -26,6 +27,9 @@ export const env: Environment = {
   },
   analytics: {
     writeKey: "GKCsKtwCdTQO75tRzBPKAw82xVPYPqEz",
+    trackErrors:
+      (process.env.REACT_APP_ANALYTICS_TRACK_ERRORS ?? "true").toLowerCase() ===
+      "true",
   },
 };
 
@@ -43,5 +47,7 @@ export interface Environment {
   };
   analytics: {
     writeKey: string;
+    trackErrors: boolean;
   };
+  environment: string;
 }

@@ -3,10 +3,13 @@ import { createWithEqualityFn } from "zustand/traditional";
 import { shallow } from "zustand/shallow";
 import type { EditorStore } from "./EditorStore";
 import { editorStore } from "./EditorStore";
-import type { UserStoreBase } from "./UserStore";
-import { userStore } from "./UserStore";
+import type { AuthStore } from "./AuthStore";
+import { authStore } from "./AuthStore";
 import { devtools, persist } from "zustand/middleware";
+import type { ErrorStore } from "./ErrorStore";
 import { errorStore } from "./ErrorStore";
+import type { UserDataStore } from "./UserDataStore";
+import { userDataStore } from "./UserDataStore";
 
 type WithSelectors<S> = S extends {
   getState: () => infer T;
@@ -28,7 +31,7 @@ const createSelectors = <S extends UseBoundStore<StoreApi<object>>>(
   return store;
 };
 
-type ApplicationStore = EditorStore & UserStoreBase;
+type ApplicationStore = EditorStore & UserDataStore & ErrorStore & AuthStore;
 
 const useApplicationStoreBase = createWithEqualityFn<ApplicationStore>()(
   devtools(
@@ -36,10 +39,11 @@ const useApplicationStoreBase = createWithEqualityFn<ApplicationStore>()(
       (...all) => ({
         ...editorStore(...all),
         ...errorStore(...all),
-        ...userStore(...all),
+        ...userDataStore(...all),
+        ...authStore(...all),
       }),
       {
-        name: "user-storage", // name of the item in the storage (must be unique)
+        name: "application-store", // name of the item in the storage (must be unique)
         partialize: (state: ApplicationStore) => ({
           currentIdToken: state.currentIdToken,
           user: state.user,

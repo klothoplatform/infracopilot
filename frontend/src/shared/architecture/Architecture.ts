@@ -7,6 +7,8 @@ import { NodeId } from "./TopologyNode";
 import type { ResourceTypeKB } from "../resources/ResourceTypeKB";
 import { customNodeMappings, NodeType } from "../reactflow/NodeTypes";
 import { customConfigMappings } from "../../pages/ArchitectureEditor/config/CustomConfigMappings";
+import { ApplicationError } from "../errors";
+import { isObject } from "../object-util";
 
 export enum ArchitectureView {
   DataFlow = "dataflow",
@@ -193,57 +195,77 @@ export function toReactFlowElements(
   };
 }
 
-export function parseArchitecture(data: ArrayBuffer): Architecture {
-  const architectureJSON = JSON.parse(new TextDecoder().decode(data));
-
-  const architecture: Architecture = {
-    provider: architectureJSON.provider,
-    id: architectureJSON.id,
-    engineVersion: architectureJSON.engineVersion,
-    raw_state: {
-      resources_yaml: architectureJSON.state?.resources_yaml,
-      topology_yaml: architectureJSON.state?.topology_yaml,
-    },
-    decisions: architectureJSON.decisions,
-    failures: architectureJSON.failures,
-    version: architectureJSON.version,
-    name: architectureJSON.name,
-    owner: architectureJSON.owner,
-    resources: new Map<string, any>(),
-    edges: [],
-    views: new Map<ArchitectureView, TopologyGraph>(),
-  };
-
-  if (architectureJSON.state?.topology_yaml) {
-    architecture.views.set(
-      ArchitectureView.DataFlow,
-      TopologyGraph.parse(
-        (architectureJSON.state?.topology_yaml as string) ?? "",
-      ),
-    );
+export function parseArchitecture(rawArchitecture: any): Architecture {
+  console.log("rawArchitecture: ", rawArchitecture);
+  if (!isObject(rawArchitecture)) {
+    throw new ApplicationError({
+      errorId: "ParseArchitecture",
+      message: "Architecture state is invalid.",
+      data: {
+        rawArchitecture,
+      },
+    });
   }
 
-  if (architectureJSON.state?.resources_yaml) {
-    const parsedState = yaml.parse(architectureJSON.state?.resources_yaml);
-    if (parsedState?.resources) {
-      architecture.resources = new Map<string, any>(
-        Object.keys(parsedState.resources).map((key) => [
-          key,
-          parsedState.resources[key],
-        ]),
+  try {
+    const architecture: Architecture = {
+      provider: rawArchitecture.provider,
+      id: rawArchitecture.id,
+      engineVersion: rawArchitecture.engineVersion,
+      raw_state: {
+        resources_yaml: rawArchitecture.state?.resources_yaml,
+        topology_yaml: rawArchitecture.state?.topology_yaml,
+      },
+      decisions: rawArchitecture.decisions,
+      failures: rawArchitecture.failures,
+      version: rawArchitecture.version,
+      name: rawArchitecture.name,
+      owner: rawArchitecture.owner,
+      resources: new Map<string, any>(),
+      edges: [],
+      views: new Map<ArchitectureView, TopologyGraph>(),
+    };
+
+    if (rawArchitecture.state?.topology_yaml) {
+      architecture.views.set(
+        ArchitectureView.DataFlow,
+        TopologyGraph.parse(
+          (rawArchitecture.state?.topology_yaml as string) ?? "",
+        ),
       );
     }
-    if (parsedState?.edges) {
-      architecture.edges = Object.keys(parsedState.edges).map((key) => {
-        const [source, destination] = key.split("->").map((id) => id.trim());
-        return {
-          source: NodeId.parse(source),
-          destination: NodeId.parse(destination),
-          metadata: parsedState.edges[key],
-        } as GraphEdge;
-      });
+
+    if (rawArchitecture.state?.resources_yaml) {
+      const parsedState = yaml.parse(rawArchitecture.state?.resources_yaml);
+      if (parsedState?.resources) {
+        architecture.resources = new Map<string, any>(
+          Object.keys(parsedState.resources).map((id) => [
+            id,
+            { ...parsedState.resources[id], id: NodeId.parse(id) },
+          ]),
+        );
+      }
+      if (parsedState?.edges) {
+        architecture.edges = Object.keys(parsedState.edges).map((key) => {
+          const [source, destination] = key.split("->").map((id) => id.trim());
+          return {
+            source: NodeId.parse(source),
+            destination: NodeId.parse(destination),
+            metadata: parsedState.edges[key],
+          } as GraphEdge;
+        });
+      }
     }
+    console.log("architecture: ", architecture);
+    return architecture;
+  } catch (e: any) {
+    throw new ApplicationError({
+      errorId: "ParseArchitecture",
+      message: "An error occurred during architecture parsing.",
+      cause: e,
+      data: {
+        rawArchitecture,
+      },
+    });
   }
-  console.log("architecture: ", architecture);
-  return architecture;
 }

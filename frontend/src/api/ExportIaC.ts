@@ -1,14 +1,17 @@
+import type { AxiosResponse } from "axios";
 import axios from "axios";
 import { analytics } from "../App";
+import { ApiError } from "../shared/errors";
+import { trackError } from "../pages/store/ErrorStore";
 
 export default async function ExportIaC(
   architectureId: string,
   state: number,
   idToken: string,
 ): Promise<any> {
-  const { data, status } = await axios.get(
-    `/api/architecture/${architectureId}/iac`,
-    {
+  let response: AxiosResponse;
+  try {
+    response = await axios.get(`/api/architecture/${architectureId}/iac`, {
       params: {
         state: `${state}`,
       },
@@ -17,16 +20,30 @@ export default async function ExportIaC(
         accept: "application/octet-stream",
         ...(idToken && { Authorization: `Bearer ${idToken}` }),
       },
-    },
-  );
+    });
+  } catch (e: any) {
+    const error = new ApiError({
+      errorId: "ExportIaC",
+      message: "An error occurred while exporting IaC.",
+      status: e.status,
+      statusText: e.message,
+      url: e.request?.url,
+      cause: e,
+      data: {
+        id: architectureId,
+        state: state,
+        hasData: !!e.response?.data,
+      },
+    });
+    trackError(error);
+    throw error;
+  }
   analytics.track("ExportIaC", {
     id: architectureId,
     state: state,
-    status: status,
-    hasData: !!data,
+    status: response.status,
+    hasData: !!response.data,
   });
-  if (status !== 200 || !data) {
-    throw new Error(`Failed to export IaC`);
-  }
-  return data;
+
+  return response.data;
 }

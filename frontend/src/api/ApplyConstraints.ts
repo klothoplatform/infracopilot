@@ -3,7 +3,8 @@ import { formatConstraints } from "../shared/architecture/Constraints";
 import type { Architecture } from "../shared/architecture/Architecture";
 import { parseArchitecture } from "../shared/architecture/Architecture";
 import axios from "axios";
-import { analytics } from "../App";
+import { ApiError } from "../shared/errors";
+import { trackError } from "../pages/store/ErrorStore";
 
 export async function applyConstraints(
   architectureId: string,
@@ -12,7 +13,6 @@ export async function applyConstraints(
   idToken: string,
 ): Promise<Architecture> {
   console.log("applyConstraints", architectureId);
-  let data;
 
   const constraintCount: Record<string, number> = {};
   for (const c of constraints) {
@@ -20,30 +20,37 @@ export async function applyConstraints(
     constraintCount[key] = (constraintCount[key] ?? 0) + 1;
   }
 
-  const response = await axios.post(
-    `/api/architecture/${architectureId}/run`,
-    { constraints: JSON.parse(formatConstraints(constraints)) },
-    {
-      params: {
-        state: latestState,
+  let data: ArrayBuffer;
+  try {
+    const response = await axios.post(
+      `/api/architecture/${architectureId}/run`,
+      { constraints: JSON.parse(formatConstraints(constraints)) },
+      {
+        params: {
+          state: latestState,
+        },
+        responseType: "json",
+        decompress: true,
+        headers: {
+          accept: "application/octet-stream",
+          ...(idToken && { Authorization: `Bearer ${idToken}` }),
+        },
       },
-      responseType: "arraybuffer",
-      decompress: true,
-      headers: {
-        accept: "application/octet-stream",
-        ...(idToken && { Authorization: `Bearer ${idToken}` }),
-      },
-      validateStatus: (status) => status === 200 || status === 400,
-    },
-  );
-  data = response.data;
-
-  console.debug("response from apply constraints", response);
-  if (response.status === 400) {
-    analytics.track("ApplyConstraints", {
-      constraints: constraintCount,
+    );
+    data = response.data;
+    console.debug("response from apply constraints", data);
+  } catch (e: any) {
+    const error = new ApiError({
+      errorId: "ApplyConstraints",
+      message: "An error occurred while applying constraints.",
+      status: e.status,
+      statusText: e.message,
+      url: e.request?.url,
+      cause: e,
     });
-    console.error(new TextDecoder().decode(data));
+    trackError(error);
+    throw error;
   }
+
   return parseArchitecture(data);
 }

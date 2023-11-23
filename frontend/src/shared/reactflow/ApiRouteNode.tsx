@@ -57,7 +57,7 @@ const ApiRouteNode = memo(({ id, data, isConnectable }: RouteNodeProps) => {
   }, [updateNodeInternals, id, data, isConnectable]);
 
   return (
-    // eslint-disable-next-line jsx-a11y/mouse-events-have-key-events
+    // eslint-disable-next-line jsx-a11y/no-static-element-interactions
     <div
       className={classNames(
         "resource-node api-route-node pointer-events-none flex h-full w-full flex-col justify-center border-2",
@@ -71,6 +71,17 @@ const ApiRouteNode = memo(({ id, data, isConnectable }: RouteNodeProps) => {
       }}
       onMouseLeave={(e) => {
         setMouseOverNode(false);
+      }}
+      onFocus={(e) => {
+        setMouseOverNode(true);
+      }}
+      onBlur={(e) => {
+        setMouseOverNode(false);
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          onSelect();
+        }
       }}
     >
       <button

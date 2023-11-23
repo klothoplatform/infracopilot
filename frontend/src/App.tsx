@@ -1,6 +1,5 @@
 import { type FC, useEffect } from "react";
 import { Route, Routes } from "react-router";
-import FlowbiteWrapper from "./components/flowbite-wrapper";
 import ArchitectureEditor from "./pages/ArchitectureEditor/ArchitectureEditor";
 import ArchitectureListPage from "./pages/ArchitectureListPage";
 import useApplicationStore from "./pages/store/ApplicationStore";
@@ -25,16 +24,11 @@ const App: FC = function () {
 
   return (
     <Routes>
-      <Route element={<FlowbiteWrapper />}>
-        <Route path="/" element={<Navigate to={"/architectures"} />} index />
-        <Route path="/architectures" element={<ArchitectureListPage />} />
-        <Route path="/editor" element={<ArchitectureEditor />} />
-        <Route
-          path="/editor/:architectureId"
-          element={<ArchitectureEditor />}
-        />
-        <Route path="/callback" element={<CallbackPage />} />
-      </Route>
+      <Route path="/" element={<Navigate to={"/architectures"} />} index />
+      <Route path="/architectures" element={<ArchitectureListPage />} />
+      <Route path="/editor" element={<ArchitectureEditor />} />
+      <Route path="/editor/:architectureId" element={<ArchitectureEditor />} />
+      <Route path="/callback" element={<CallbackPage />} />
     </Routes>
   );
 };
