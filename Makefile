@@ -1,4 +1,4 @@
-PHONY: run test test-coverage black black-check install-frontend build-frontend start clean post-compile
+PHONY: run test test-frontend test-backend test-coverage black black-check install-frontend build-frontend start clean post-compile
 
 ifdef KLOTHO_CONFIG_FILE
 KLOTHO_CONFIG_FILE := $(KLOTHO_CONFIG_FILE)
@@ -29,7 +29,7 @@ run:
 	pipenv run uvicorn src.backend_orchestrator.main:app --port=3000
 
 
-test:
+test-backend:
 	PYTHONPATH=. pipenv run python -m unittest discover -s tests
 
 test-coverage:
@@ -56,6 +56,9 @@ build-frontend-dev:
 build-frontend-prod:
 	npm --prefix frontend run build-prod
 
+test-frontend:
+	npm --prefix frontend run test:unit
+
 start:
 	npm --prefix frontend run start && kill $$!
 
@@ -65,3 +68,6 @@ clean:
 post-compile:
 	mv ./compiled/web-ui/frontend/build/* ./compiled/web-ui && rm -rf ./compiled/web-ui/frontend; \
 	cp -v -a custom_iac/. compiled/iac;
+
+
+test: test-frontend test-backend

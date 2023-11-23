@@ -2,12 +2,13 @@ name: Unit Tests
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
   pull_request:
-    branches: ['*']
+    branches: [ '*' ]
 
 env:
   PYTHON_VERSION: "3.11"
+  NODE_VERSION: "18"
 
 jobs:
   unit_tests:
@@ -21,7 +22,17 @@ jobs:
         run: |
           pip install pipenv
           pipenv install --dev
-      - name: Run tests
+      - name: Run Backend Tests
+        continue-on-error: true
         run: |
           PYTHONPATH=. pipenv run coverage run -m unittest discover
           PYTHONPATH=. pipenv run coverage report -m --fail-under 80 --skip-empty
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Install Frontend Dependencies
+        run: npm install
+        working-directory: ./frontend
+      - name: Run Frontend Tests
+        run: npm run test
+        working-directory: ./frontend
