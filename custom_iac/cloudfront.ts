@@ -1,6 +1,7 @@
 import * as aws from "@pulumi/aws";
 import * as pulumi from "@pulumi/pulumi";
 import { CloudCCLib, Resource, ResourceKey } from "../deploylib";
+import { local } from "@pulumi/command";
 
 export interface CloudfrontDistribution {
   Id: string;
@@ -165,7 +166,9 @@ export class Cloudfront {
             : "arn:aws:acm:us-east-1:200804570572:certificate/142fc308-f79c-44b3-be2e-b29283f31660",
       },
       aliases:
-        process.env.STAGE === "dev" ? ["dev.infracopilot.io"] : ["app.infracopilot.io"],
+        process.env.STAGE === "dev"
+          ? ["dev.infracopilot.io"]
+          : ["app.infracopilot.io"],
 
       customErrorResponses: [
         {
@@ -201,6 +204,16 @@ export class Cloudfront {
       ],
       /* CUSTOM CONFIGURATION END */
     });
+
+    /* CUSTOM RESOURCES START */
+
+    const invalidationCommand = new local.Command("invalidate-cache", {
+      create: pulumi.interpolate`aws cloudfront create-invalidation --distribution-id ${distribution.id} --paths /*`,
+      triggers: [Math.random()],
+    });
+
+    /* CUSTOM RESOURCES END */
+
     return distribution;
   }
 }
