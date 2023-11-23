@@ -13,6 +13,7 @@ import { UIError } from "../shared/errors";
 import { ErrorBoundary } from "react-error-boundary";
 import { FaRepeat } from "react-icons/fa6";
 import NavBar from "../components/NavBar";
+import { Button } from "flowbite-react";
 
 function ArchitectureListPage() {
   const {
