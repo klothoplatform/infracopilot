@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { SidebarProvider } from "../context/SidebarContext";
-import Navbar from "../components/navbar";
+import Navbar from "../components/NavBar";
 import { useNavigate } from "react-router-dom";
 import useApplicationStore from "./store/ApplicationStore";
 

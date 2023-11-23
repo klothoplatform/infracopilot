@@ -10,7 +10,7 @@ import { ReactFlowProvider } from "reactflow";
 import "reactflow/dist/style.css";
 import EditorPane from "./EditorPane";
 import { ErrorOverlay } from "../../components/ErrorOverlay";
-import Navbar from "../../components/navbar";
+import Navbar from "../../components/NavBar";
 import EditorSidebarLeft from "../../components/editor/EditorSidebarLeft";
 import { SidebarProvider } from "../../context/SidebarContext";
 import EditorSidebarRight from "../../components/editor/EditorSidebarRight";

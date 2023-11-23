@@ -7,12 +7,12 @@ import { ErrorOverlay } from "../components/ErrorOverlay";
 import { BigArchitectureButtonAndModal } from "../components/NewArchitectureBigButton";
 import LeftSideBar from "../components/architectures/LeftSideBar";
 import { SidebarProvider } from "../context/SidebarContext";
-import { Button, Navbar } from "flowbite-react";
 import { FallbackRenderer } from "../components/FallbackRenderer";
 import { trackError } from "./store/ErrorStore";
 import { UIError } from "../shared/errors";
 import { ErrorBoundary } from "react-error-boundary";
 import { FaRepeat } from "react-icons/fa6";
+import NavBar from "../components/NavBar";
 
 function ArchitectureListPage() {
   const {
@@ -84,7 +84,7 @@ function ArchitectureListPage() {
         onReset={() => resetUserDataState()}
       >
         <SidebarProvider>
-          <Navbar />
+          <NavBar />
           <div className="flex h-full w-full flex-row overflow-hidden">
             <LeftSideBar />
             <div className="flex h-full w-full grow flex-col gap-6 px-4 py-6">
