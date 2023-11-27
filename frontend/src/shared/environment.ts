@@ -25,6 +25,7 @@ export const env: Environment = {
     callbackUrl: process.env.REACT_APP_AUTH0_CALLBACK_URL,
     logoutUrl: process.env.REACT_APP_AUTH0_LOGOUT_URL,
   },
+  commandBarEnabled: true,
   analytics: {
     writeKey: "GKCsKtwCdTQO75tRzBPKAw82xVPYPqEz",
     trackErrors:
@@ -45,6 +46,7 @@ export interface Environment {
     callbackUrl?: string;
     logoutUrl?: string;
   };
+  commandBarEnabled: boolean;
   analytics: {
     writeKey: string;
     trackErrors: boolean;

@@ -120,6 +120,10 @@ export const authStore: StateCreator<AuthStore, [], [], AuthStoreBase> = (
           userName: user.name,
         });
       }
+      if (env.commandBarEnabled && user?.sub) {
+        (window as any).CommandBar?.boot(user.sub);
+      }
+
       analytics.identify(user?.sub, {
         name: user?.name,
         email: user?.email,
