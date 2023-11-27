@@ -31,8 +31,6 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
       - name: Install Frontend Dependencies
-        run: npm install
-        working-directory: ./frontend
+        run: make install-frontend
       - name: Run Frontend Tests
-        run: npm run test
-        working-directory: ./frontend
+        run: make test-frontend
