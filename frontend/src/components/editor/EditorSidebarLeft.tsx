@@ -14,6 +14,7 @@ import { ErrorBoundary } from "react-error-boundary";
 import { trackError } from "../../pages/store/ErrorStore";
 import { UIError } from "../../shared/errors";
 import useApplicationStore from "../../pages/store/ApplicationStore";
+import { env } from "../../shared/environment";
 
 const displayedClassifications = [
   "api",
@@ -79,6 +80,7 @@ const EditorSidebarLeft = forwardRef(
       if (name === "Api") {
         name = "API";
       }
+
       return (
         <ResourceAccordion
           key={index}
@@ -86,6 +88,7 @@ const EditorSidebarLeft = forwardRef(
           resourceFilter={{
             classifications: [classification],
             iconSizes: [ViewNodeType.Parent, ViewNodeType.Big],
+            excludedQualifiedTypes: env.hiddenResources,
           }}
           userFilter={filterFunction}
           layout={resourceLayout}

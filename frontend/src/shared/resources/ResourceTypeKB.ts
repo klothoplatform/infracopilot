@@ -56,6 +56,14 @@ export class ResourceTypeKB {
         (resourceType) => !filter.excludedTypes?.includes(resourceType.type),
       );
     }
+    if (filter?.excludedQualifiedTypes) {
+      resourceTypes = resourceTypes.filter(
+        (resourceType) =>
+          !filter.excludedQualifiedTypes?.includes(
+            `${resourceType.provider}:${resourceType.type}`,
+          ),
+      );
+    }
     if (filter?.excludedClassifications) {
       resourceTypes = resourceTypes.filter(
         (resourceType) =>

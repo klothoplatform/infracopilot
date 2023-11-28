@@ -6,6 +6,17 @@ This includes environment variables, but also settings that are derived from env
 Avoid using environment variables directly in the application.
 Instead, use env to keep it clean.
  */
+
+// Wave 1: Hidden Resources
+const hiddenResources = [
+  "aws:ec2_instance",
+  "aws:sqs_queue",
+  "aws:rds_proxy",
+  "aws:elasticache_cluster",
+  "aws:ses_email_identity",
+  "kubernetes:deployment",
+];
+
 export const env: Environment = {
   environment: process.env.REACT_APP_ENVIRONMENT ?? process.env.NODE_ENV,
   debug: new Set(
@@ -32,6 +43,12 @@ export const env: Environment = {
       (process.env.REACT_APP_ANALYTICS_TRACK_ERRORS ?? "true").toLowerCase() ===
       "true",
   },
+  hiddenResources:
+    process.env.REACT_APP_HIDDEN_RESOURCES === undefined
+      ? hiddenResources
+      : process.env.REACT_APP_HIDDEN_RESOURCES.split(",")
+          .map((r) => r.trim())
+          .filter((r) => r.length > 0),
 };
 
 export interface Environment {
@@ -52,4 +69,5 @@ export interface Environment {
     trackErrors: boolean;
   };
   environment: string;
+  hiddenResources: string[];
 }

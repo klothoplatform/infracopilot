@@ -48,7 +48,6 @@ export default function ResourceAccordion({
 }: ResourceAccordionOptions) {
   const [options, setOptions] = React.useState<ResourceOption[]>([]);
   const { resourceTypeKB, isAuthenticated } = useApplicationStore();
-
   useEffect(() => {
     if (!isAuthenticated) return;
     const filteredTypes = resourceTypeKB.getResourceTypes(resourceFilter);
@@ -99,6 +98,11 @@ export default function ResourceAccordion({
       setIsOpen(true);
     }
   }, [isOpen, userFilter]);
+
+  const filteredTypes = resourceTypeKB.getResourceTypes(resourceFilter);
+  if (!filteredTypes.length) {
+    return null; // Don't render an accordion that has no resources even before applying the user filter
+  }
 
   return (
     <Accordion.Panel isOpen={isOpen} arrowIcon={FaAngleDown}>

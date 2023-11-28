@@ -90,6 +90,7 @@ export interface ResourceTypeFilter {
   excludedProviders?: string[];
   excludedTypes?: string[];
   excludedClassifications?: string[];
+  excludedQualifiedTypes?: string[];
   iconSizes?: ViewNodeType[];
 }
 
