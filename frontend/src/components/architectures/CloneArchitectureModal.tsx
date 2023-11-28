@@ -132,6 +132,8 @@ export default function CloneArchitectureModal({
               </Label>
             </div>
             <TextInput
+              data-1p-ignore
+              autoComplete="off"
               id="clone"
               ref={(e) => {
                 ref(e);

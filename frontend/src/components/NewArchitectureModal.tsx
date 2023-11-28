@@ -127,6 +127,8 @@ export default function NewArchitectureModal({
               <Label htmlFor="name" value="Name" />
             </div>
             <TextInput
+              data-1p-ignore
+              autoComplete="off"
               id="name"
               ref={(e) => {
                 ref(e);

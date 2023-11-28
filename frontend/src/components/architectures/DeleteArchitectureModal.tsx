@@ -123,6 +123,8 @@ export default function DeleteArchitectureModal({
               </Label>
             </div>
             <TextInput
+              data-1p-ignore
+              autoComplete="off"
               id="confirmation"
               ref={(e) => {
                 ref(e);

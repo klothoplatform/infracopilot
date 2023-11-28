@@ -103,6 +103,7 @@ export const EditableLabel: FC<EditableLabelProps> = ({
         )}
         {isEditing && (
           <form
+            autoComplete="off"
             onSubmit={(e) => {
               e.preventDefault();
               handleSubmit();
