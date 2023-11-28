@@ -1,4 +1,4 @@
-import { type FC, type PropsWithChildren } from "react";
+import { type FC, type PropsWithChildren, useState } from "react";
 import { DarkThemeToggle, Dropdown, Navbar } from "flowbite-react";
 import LoginButton from "../auth/Login";
 import useApplicationStore from "../pages/store/ApplicationStore";
@@ -39,10 +39,15 @@ const NavBar: FC<PropsWithChildren<NavbarProps>> = function ({ children }) {
 
 const AccountDropdown: FC = function () {
   const { user, logout } = useApplicationStore();
+  const [noPicture, setNoPicture] = useState(false);
 
   if (!user) {
     return null;
   }
+
+  const handleImageError = () => {
+    setNoPicture(true);
+  };
 
   return (
     <Dropdown
@@ -50,18 +55,38 @@ const AccountDropdown: FC = function () {
       inline
       label={
         <span className="h-10 w-10 rounded-full">
-          <span className="sr-only">User menu</span>
-          <img className="rounded-full" src={user.picture} alt="Account" />
+          <div className="sr-only">account menu</div>
+          {noPicture ? (
+            <div className="flex h-full w-full items-center justify-center rounded-full bg-primary-400 text-lg font-light text-white dark:bg-primary-500">
+              {(user.given_name ?? "")[0] ?? ""}
+              {(user.family_name ?? "")[0] ?? ""}
+            </div>
+          ) : (
+            <img
+              className="rounded-full"
+              src={user.picture}
+              onError={handleImageError}
+              alt="Account"
+            />
+          )}
         </span>
       }
     >
       <Dropdown.Header>
         <div className="flex items-center gap-2">
-          <img
-            className="max-h-[3.25rem] max-w-[3.25rem] rounded-full"
-            src={user.picture}
-            alt="Account"
-          />
+          {noPicture ? (
+            <div className="flex h-[3.25rem] w-[3.25rem] items-center justify-center rounded-full bg-primary-400 text-lg font-light text-white dark:bg-primary-500">
+              {(user.given_name ?? "")[0] ?? ""}
+              {(user.family_name ?? "")[0] ?? ""}
+            </div>
+          ) : (
+            <img
+              className="max-h-[3.25rem] max-w-[3.25rem] rounded-full"
+              src={user.picture}
+              alt="Account"
+              onError={handleImageError}
+            />
+          )}
           <div>
             <h2 className="font-medium">{user.name}</h2>
             <p>{user.email}</p>
