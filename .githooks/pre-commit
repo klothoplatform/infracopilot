@@ -9,7 +9,7 @@ fi
 
 # find any staged py files
 files="$(git diff --name-only --cached | grep '.*\.py$' | paste -sd ' ' -)"
-if [ "$files" == "" ]; then
+if [ -z "$files" ]; then
     echo "ℹ️ No files to reformat, skipping"
     exit 0
 fi
