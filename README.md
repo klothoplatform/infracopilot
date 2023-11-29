@@ -16,6 +16,16 @@ ensure the following files/keys exist:
 - fga_secret.key
 - fga_store_id.key
 
+To set these with the bitwarden CLI:
+```sh
+FGA_NOTE=$(bw get item "auth0 fga" | jq -r '.notes' | grep -o '^dev.*')
+echo "$FGA_NOTE" | grep 'client id:' | sed 's#.*: ##' > fga_client_id.key
+echo "$FGA_NOTE" | grep 'model id:' | sed 's#.*: ##' > fga_model_id.key
+echo "$FGA_NOTE" | grep 'secret:' | sed 's#.*: ##' > fga_secret.key
+echo "$FGA_NOTE" | grep 'store id:' | sed 's#.*: ##' > fga_store_id.key
+unset FGA_NOTE
+```
+
 ```sh
 PORT=3000 ENGINE_PATH=/Path/to/klotho/engine/binary IAC_CLI_PATH=/Path/to/klotho/iac/binary  make run
 ```

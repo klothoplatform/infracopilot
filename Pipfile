@@ -16,6 +16,7 @@ openfga-sdk = "*"
 pyjwt = "*"
 pem = "*"
 cryptography = "*"
+requests = "*"
 
 [dev-packages]
 black = "*"

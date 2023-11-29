@@ -44,10 +44,12 @@ black-check:
 
 # Frontend commands
 
-install-frontend:
+install-frontend: frontend/node_modules
+
+frontend/node_modules: frontend/package.json
 	npm --prefix frontend install
 
-build-frontend:
+build-frontend: frontend/node_modules
 	npm --prefix frontend run build
 
 build-frontend-dev:
