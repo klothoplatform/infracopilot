@@ -55,17 +55,20 @@ async def get_state_from_fs(arch: Architecture) -> Optional[RunEngineResult]:
         raise
 
 
-async def get_iac_from_fs(arch: Architecture) -> Optional[str]:
-    if arch.iac_location == None:
+async def get_iac_from_fs(arch: Architecture) -> Optional[BytesIO]:
+    if arch.iac_location is None:
         return None
     try:
-        async with aiofiles.open(arch.iac_location, mode="r") as f:
+        async with aiofiles.open(arch.iac_location, mode="rb") as f:
             state_raw = await f.read()
             if state_raw is None:
                 raise ArchitectureStateDoesNotExistError(
                     f"No architecture exists at location: {get_path_for_architecture(arch)}"
                 )
-            return state_raw
+            if isinstance(state_raw, str):
+                state_raw = state_raw.encode()
+            return BytesIO(state_raw)
+
     except FileNotFoundError:
         raise ArchitectureStateDoesNotExistError(
             f"No architecture exists at location: {get_path_for_architecture(arch)}"
@@ -99,8 +102,8 @@ async def write_iac_to_fs(arch: Architecture, content: BytesIO) -> str:
         # When running in local dev, we need to create the directory.
         # When running in the cloud, the path is just the S3 object's id - no parent creation necessary.
         Path(os.path.dirname(path)).mkdir(parents=True, exist_ok=True)
-    async with aiofiles.open(path, mode="w") as f:
-        await f.write(content)
+    async with aiofiles.open(path, mode="wb") as f:
+        await f.write(content.getvalue())
     return path
 
 

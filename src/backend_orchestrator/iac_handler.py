@@ -52,20 +52,19 @@ async def copilot_get_iac(id, state: int, accept: Optional[str] = None):
             iac = result.iac_bytes
             if iac is None:
                 return Response(content="I failed to generate IaC", status_code=500)
-            iac_location = await write_iac_to_fs(arch, str(iac.getvalue()))
+            iac_location = await write_iac_to_fs(arch, iac)
             arch.iac_location = iac_location
             await add_architecture(arch)
-            return StreamingResponse(
-                iter([iac.getvalue()]),
-                media_type="application/x-zip-compressed",
-                headers={
-                    "Content-Type": "application/octet-stream"
-                    if accept == "application/octet-stream"
-                    else "application/x-zip-compressed",
-                    "Content-Disposition": f"attachment; filename=images.zip",
-                },
-            )
-        return Response(content=iac)
+        return StreamingResponse(
+            iter([iac.getvalue()]),
+            media_type="application/x-zip-compressed",
+            headers={
+                "Content-Type": "application/octet-stream"
+                if accept == "application/octet-stream"
+                else "application/x-zip-compressed",
+                "Content-Disposition": f"attachment; filename=images.zip",
+            },
+        )
     except ArchitecutreStateNotLatestError as e:
         raise HTTPException(
             status_code=400, detail="Architecture state is not the latest"

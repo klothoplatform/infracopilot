@@ -87,9 +87,7 @@ class TestGetIac(aiounittest.AsyncTestCase):
                 name=self.test_architecture.name,
             )
         )
-        mock_write_iac.assert_called_once_with(
-            self.test_architecture, str(self.iobytes.getvalue())
-        )
+        mock_write_iac.assert_called_once_with(self.test_architecture, self.iobytes)
         mock_add.assert_called_once()
         self.test_architecture.iac_location = "test-location"
         self.assertEqual(mock_add.call_args.args[0], self.test_architecture)
