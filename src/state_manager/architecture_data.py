@@ -41,20 +41,22 @@ class Architecture(Base):
 
 
 async def rename_architecture(id: str, name: str):
-    stmt = (
-        select(Architecture)
-        .where(Architecture.id == id)
-        .order_by(Architecture.state.desc())
+    latest = await get_architecture_latest(id)
+    arch = Architecture(
+        id=latest.id,
+        name=name,
+        state=latest.state + 1,
+        constraints=latest.constraints,
+        owner=latest.owner,
+        created_at=latest.created_at,
+        updated_by=latest.updated_by,
+        engine_version=latest.engine_version,
+        decisions=latest.decisions,
+        state_location=latest.state_location,
+        iac_location=latest.iac_location,
+        extraFields=latest.extraFields,
     )
-    result = session.execute(statement=stmt).fetchall()
-    if result is None:
-        raise Exception(f"Architecture with id, {id}, does not exist")
-    for r in result:
-        print(r[0])
-        r[0].name = name
-        print(r[0])
-        session.add(r[0])
-    session.commit()
+    await add_architecture(arch)
 
 
 async def delete_architecture(id: str):
