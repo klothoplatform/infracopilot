@@ -254,10 +254,18 @@ const EditorNavContent: FC = function () {
             onSubmit={async (newValue) => {
               await renameArchitecture(newValue);
             }}
+            regexRule={{
+              pattern: /^[a-zA-Z0-9-_]+$/,
+              message:"Name must only contain alphanumeric characters, dashes and underscores",
+            }}
             onError={(e) => {
+              let message;
+              if (e instanceof UIError) {
+                message = e.message;
+              } 
               addError(
                 new UIError({
-                  message: "Renaming architecture failed!",
+                  message: message ? message : "Failed to rename architecture!",
                   cause: e as Error,
                   errorId: "ArchitectureEditor:RenameArchitecture",
                 }),

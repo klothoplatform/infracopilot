@@ -29,7 +29,7 @@ export default function CloneArchitectureModal({
     trigger,
     formState: { errors },
   } = useForm<CloneArchitectureFormState>({
-    defaultValues: { name: `Copy of ${name}` },
+    defaultValues: { name: `${name}-Copy` },
   });
 
   const { getIdToken, getArchitectures, addError } = useApplicationStore();
@@ -74,6 +74,10 @@ export default function CloneArchitectureModal({
     maxLength: {
       value: 80,
       message: "Name must be at most 80 characters long",
+    },
+    pattern: {
+        value: /^[a-zA-Z0-9-_]+$/,
+        message:"Name must only contain alphanumeric characters, dashes and underscores",
     },
     onChange: async () => {
       await trigger("name");

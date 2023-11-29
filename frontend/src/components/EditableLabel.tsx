@@ -2,6 +2,12 @@ import type { FC } from "react";
 import React, { useEffect, useReducer, useRef, useState } from "react";
 import reducer from "../helpers/reducer";
 import classNames from "classnames";
+import { UIError } from "../shared/errors";
+
+export interface RegexRule {
+  pattern: RegExp;
+  message: string;
+}
 
 type EditableLabelProps = {
   label?: string;
@@ -9,6 +15,7 @@ type EditableLabelProps = {
   initialValue: string;
   onSubmit?: (newValue: string) => void | Promise<void>;
   onError?: (error: any) => void;
+  regexRule?: RegexRule;
   textAlign?: "left" | "center" | "right";
   maxWidth?: string;
 };
@@ -19,6 +26,7 @@ export const EditableLabel: FC<EditableLabelProps> = ({
   disabled,
   onSubmit,
   onError,
+  regexRule,
   textAlign,
   maxWidth,
 }) => {
@@ -33,6 +41,11 @@ export const EditableLabel: FC<EditableLabelProps> = ({
   const handleSubmit = () => {
     (async () => {
       try {
+        if (regexRule) {
+          if (!regexRule.pattern.test(state.label)) {
+            throw new UIError({message: regexRule.message});
+          }
+        }
         if (state.label?.length > 0 && state.label !== initialValue) {
           await onSubmit?.(state.label);
         }

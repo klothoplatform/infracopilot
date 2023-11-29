@@ -3,15 +3,14 @@
 # }
 import logging
 from typing import Annotated, Optional
-
-from fastapi import FastAPI, Response, Header
+import jsons
+from fastapi import FastAPI, HTTPException, Response, Header
 from fastapi.responses import JSONResponse
 from fastapi.middleware.gzip import GZipMiddleware
 from src.auth_service.main import can_read_architecture, can_write_to_architecture
 from src.auth_service.token import PUBLIC_USER, AuthError, get_user_id
 from src.state_manager.architecture_data import (
     delete_architecture as copilot_delete_architecture,
-    rename_architecture,
 )
 from src.util.orm import Base, engine
 from src.backend_orchestrator.architecture_handler import (
@@ -23,6 +22,7 @@ from src.backend_orchestrator.architecture_handler import (
     copilot_list_architectures,
     copilot_new_architecture,
     CreateArchitectureRequest,
+    rename_architecture,
 )
 from src.backend_orchestrator.iac_handler import copilot_get_iac
 from src.backend_orchestrator.run_engine_handler import copilot_run, CopilotRunRequest

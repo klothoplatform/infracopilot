@@ -40,25 +40,6 @@ class Architecture(Base):
         return f"architecture:{self.id}"
 
 
-async def rename_architecture(id: str, name: str):
-    latest = await get_architecture_latest(id)
-    arch = Architecture(
-        id=latest.id,
-        name=name,
-        state=latest.state + 1,
-        constraints=latest.constraints,
-        owner=latest.owner,
-        created_at=latest.created_at,
-        updated_by=latest.updated_by,
-        engine_version=latest.engine_version,
-        decisions=latest.decisions,
-        state_location=latest.state_location,
-        iac_location=latest.iac_location,
-        extraFields=latest.extraFields,
-    )
-    await add_architecture(arch)
-
-
 async def delete_architecture(id: str):
     stmt = (
         select(Architecture)

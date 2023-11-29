@@ -30,7 +30,7 @@ export default function NewArchitectureModal({
     formState: { errors },
   } = useForm<ModifyArchitectureFormState>({ defaultValues: { name: name } });
 
-  const { getIdToken, getArchitectures, addError } = useApplicationStore();
+  const { getIdToken, getArchitectures, addError, architecture } = useApplicationStore();
 
   const onSubmit = async (state: ModifyArchitectureFormState) => {
     let success = false;
@@ -76,6 +76,10 @@ export default function NewArchitectureModal({
     minLength: {
       value: 1,
       message: "Name must be at least 1 character long",
+    },
+    pattern: {
+      value: /^[a-zA-Z0-9-_]+$/,
+      message:"Name must only contain alphanumeric characters, dashes and underscores",
     },
     onChange: async () => {
       await trigger("name");

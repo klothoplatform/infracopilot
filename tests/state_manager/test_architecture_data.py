@@ -8,7 +8,6 @@ from src.state_manager.architecture_data import (
     get_architecture_history,
     add_architecture,
     get_architectures_by_owner,
-    rename_architecture,
 )
 import aiounittest
 
@@ -53,11 +52,6 @@ class TestArchitectureData(aiounittest.AsyncTestCase):
 
     def tearDown(self):
         self.session.query(Architecture).delete()
-
-    async def test_rename_architecture(self):
-        await rename_architecture("test", "new name")
-        result = await get_architecture_latest("test")
-        self.assertEqual(result.name, "new name")
 
     async def test_delete_architecture(self):
         await delete_architecture("test")

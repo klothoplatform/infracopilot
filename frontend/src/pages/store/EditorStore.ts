@@ -16,6 +16,7 @@ import type {
 } from "../../shared/architecture/Architecture";
 import {
   ArchitectureView,
+  parseArchitecture,
   toReactFlowElements,
 } from "../../shared/architecture/Architecture";
 import { getArchitecture } from "../../api/GetArchitecture";
@@ -768,14 +769,15 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     const architecture = get().architecture;
     architecture.name = newName;
     const idToken = await get().getIdToken();
-    await modifyArchitecture({
+    const newArchitecture = await modifyArchitecture({
       name: newName,
       id: architecture.id,
       idToken,
     });
+
     set(
       {
-        architecture,
+        architecture: newArchitecture,
       },
       false,
       "editor/renameArchitecture",

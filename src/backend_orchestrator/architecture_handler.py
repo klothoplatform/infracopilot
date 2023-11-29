@@ -108,6 +108,48 @@ async def copilot_get_state(id: str, accept: Optional[str] = None):
         raise HTTPException(status_code=500, detail="internal server error")
 
 
+async def rename_architecture(id: str, name: str, accept: Optional[str] = None):
+    try:
+        arch = await get_architecture_latest(id)
+        if arch is None:
+            raise ArchitectureStateDoesNotExistError(
+                f"No architecture exists for id {id}"
+            )
+        arch.name = name
+        arch.state += 1
+        arch.iac_location = None
+        await add_architecture(arch)
+        state = await get_state_from_fs(arch)
+        decisions = await get_architecture_changelog_history(id)
+        payload = {
+            "id": arch.id,
+            "name": name,
+            "owner": arch.owner,
+            "engineVersion": arch.engine_version,
+            "version": arch.state if arch.state is not None else 0,
+            "decisions": decisions,
+            "state": {
+                "resources_yaml": state.resources_yaml,
+                "topology_yaml": state.topology_yaml,
+            }
+            if state is not None
+            else None,
+        }
+        return (
+            Response(
+                headers={"Content-Type": "application/octet-stream"},
+                content=jsons.dumps(payload),
+            )
+            if accept == "application/octet-stream"
+            else JSONResponse(content=jsons.dump(payload))
+        )
+    except ArchitectureStateDoesNotExistError:
+        raise HTTPException(status_code=404, detail="Architecture state not found")
+    except Exception:
+        log.error("Error getting state", exc_info=True)
+        raise HTTPException(status_code=500, detail="internal server error")
+
+
 class ResourceTypeResponse(BaseModel):
     resources: List[str]
 

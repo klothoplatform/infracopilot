@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { Architecture } from "../shared/architecture/Architecture";
+import { parseArchitecture, type Architecture } from "../shared/architecture/Architecture";
 import { analytics } from "../App";
 import { ApiError } from "../shared/errors";
 import { trackError } from "../pages/store/ErrorStore";
@@ -42,9 +42,5 @@ export default async function modifyArchitecture(
     id: request.id,
   });
 
-  return {
-    name: request.name,
-    id: request.id,
-    version: 0,
-  } as Architecture;
+  return parseArchitecture(response.data)
 }
