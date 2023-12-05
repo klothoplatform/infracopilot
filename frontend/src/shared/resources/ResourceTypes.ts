@@ -20,6 +20,8 @@ export interface Property {
   qualifiedName: string;
   required?: boolean;
   defaultValue?: any;
+  minValue?: number;
+  maxValue?: number;
   type: PropertyType;
   // UI flag for hiding a property from the UI (e.g. when it is handled by a custom config section)
   hidden?: boolean;
@@ -102,6 +104,9 @@ type RawProperty = {
   properties: object;
   required?: boolean;
   defaultValue?: any;
+  allowedValues?: string[];
+  minValue?: number;
+  maxValue?: number;
 };
 
 function toList(rawProperties: any): RawProperty[] {
@@ -151,9 +156,12 @@ export function parseProperty(
     type: rawType,
     configurationDisabled,
     deployTime,
+    allowedValues,
     properties: children,
     required,
     defaultValue,
+    minValue,
+    maxValue,
   }: RawProperty = rawProperty as any;
 
   if (!name) {
@@ -173,6 +181,8 @@ export function parseProperty(
     deployTime,
     required,
     defaultValue,
+    minValue,
+    maxValue,
   };
 
   switch (type) {
@@ -223,6 +233,14 @@ export function parseProperty(
     case PrimitiveTypes.Resource: {
       const resourceProperty = property as ResourceProperty;
       resourceProperty.resourceTypes = extractInnerTypes(rawType);
+      break;
+    }
+    case PrimitiveTypes.String: {
+      if (allowedValues) {
+        const enumProperty = property as EnumProperty;
+        enumProperty.allowedValues = allowedValues;
+        enumProperty.type = PrimitiveTypes.Enum;
+      }
       break;
     }
   }

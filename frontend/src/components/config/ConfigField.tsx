@@ -3,7 +3,7 @@ import { Button, Checkbox, Dropdown, Label, TextInput } from "flowbite-react";
 import type { FC, PropsWithChildren } from "react";
 import React, { Fragment, useCallback, useEffect, useState } from "react";
 
-import { useFormContext } from "react-hook-form";
+import { type RegisterOptions, useFormContext } from "react-hook-form";
 import useApplicationStore from "../../pages/store/ApplicationStore";
 import { NodeId } from "../../shared/architecture/TopologyNode";
 import { ListField } from "./ListField";
@@ -32,8 +32,10 @@ export interface ConfigFieldProps {
   valueSelector?: string;
 }
 
+
 type InputProps = {
   qualifiedFieldName: string;
+  rules?: RegisterOptions;
   required?: boolean;
   error?: any;
   valueSelector?: string;
@@ -275,9 +277,20 @@ export const NumberField: FC<TextProps> = ({
       qualifiedFieldName={qualifiedFieldName ?? field.qualifiedName}
       inputMode="numeric"
       type="number"
+      rules={{
+        min: field.minValue ?  {
+          value: field.minValue,
+          message: `Value must be at least ${field.minValue}`,
+        }: undefined,
+        max: field.maxValue ? {
+          value: field.maxValue,
+          message: `Value must be at most ${field.maxValue}`,
+        } : undefined,
+      }}
       valueSelector={valueSelector}
       required={field.required}
       readOnly={field.configurationDisabled}
+      // validate minValue and maxValue
       {...rest}
     />
   );
@@ -295,6 +308,16 @@ export const IntField: FC<TextProps> = ({
       inputMode="numeric"
       type="number"
       step="1"
+      rules={{
+        min: field.minValue ?  {
+          value: field.minValue,
+          message: `Value must be at least ${field.minValue}`,
+        }: undefined,
+        max: field.maxValue ? {
+          value: field.maxValue,
+          message: `Value must be at most ${field.maxValue}`,
+        } : undefined,
+      }}
       valueSelector={valueSelector}
       required={field.required}
       readOnly={field.configurationDisabled}
@@ -307,6 +330,7 @@ const InputField: FC<InputProps> = ({
   qualifiedFieldName,
   required,
   valueSelector,
+  rules,
   error,
   ...rest
 }) => {
@@ -325,6 +349,7 @@ const InputField: FC<InputProps> = ({
       {...register(id, {
         required:
           required && `${qualifiedFieldName.split(".").pop()} is required.`,
+        ...rules,
       })}
     />
   );
