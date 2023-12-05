@@ -166,3 +166,4 @@ node_modules/
 
 /state/
 /failures/
+*.sqlite3
