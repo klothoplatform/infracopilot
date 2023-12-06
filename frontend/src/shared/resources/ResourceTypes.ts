@@ -20,8 +20,6 @@ export interface Property {
   qualifiedName: string;
   required?: boolean;
   defaultValue?: any;
-  minValue?: number;
-  maxValue?: number;
   type: PropertyType;
   // UI flag for hiding a property from the UI (e.g. when it is handled by a custom config section)
   hidden?: boolean;
@@ -58,6 +56,11 @@ export interface ResourceProperty extends Property {
 
 export interface EnumProperty extends Property {
   allowedValues: string[];
+}
+
+export interface NumberProperty extends Property {
+  minValue?: number;
+  maxValue?: number;
 }
 
 export enum PrimitiveTypes {
@@ -181,8 +184,6 @@ export function parseProperty(
     deployTime,
     required,
     defaultValue,
-    minValue,
-    maxValue,
   };
 
   switch (type) {
@@ -241,6 +242,13 @@ export function parseProperty(
         enumProperty.allowedValues = allowedValues;
         enumProperty.type = PrimitiveTypes.Enum;
       }
+      break;
+    }
+    case PrimitiveTypes.Integer:
+    case PrimitiveTypes.Number: {
+      const numberProperty = property as NumberProperty;
+      numberProperty.minValue = minValue;
+      numberProperty.maxValue = maxValue;
       break;
     }
   }

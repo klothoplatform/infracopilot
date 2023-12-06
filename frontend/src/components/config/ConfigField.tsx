@@ -11,6 +11,7 @@ import { MapField } from "./MapField";
 import type {
   EnumProperty,
   MapProperty,
+  NumberProperty,
   Property,
   ResourceProperty,
 } from "../../shared/resources/ResourceTypes";
@@ -42,6 +43,10 @@ type InputProps = {
 } & TextInputProps;
 
 type TextProps = TextInputProps & ConfigFieldProps;
+
+type NumberProps = {
+  field: NumberProperty;
+} & TextInputProps & ConfigFieldProps;
 
 type BooleanProps = {
   error?: any;
@@ -102,7 +107,7 @@ export const ConfigField: FC<ConfigFieldProps> = ({
       element = (
         <NumberField
           qualifiedFieldName={qualifiedFieldName}
-          field={field}
+          field={field as NumberProperty}
           valueSelector={valueSelector}
           {...props}
           color={error ? "failure" : undefined}
@@ -114,7 +119,7 @@ export const ConfigField: FC<ConfigFieldProps> = ({
       element = (
         <IntField
           qualifiedFieldName={qualifiedFieldName}
-          field={field}
+          field={field as NumberProperty}
           valueSelector={valueSelector}
           {...props}
           color={error ? "failure" : undefined}
@@ -266,7 +271,7 @@ export const StringField: FC<TextProps> = ({
   );
 };
 
-export const NumberField: FC<TextProps> = ({
+export const NumberField: FC<NumberProps> = ({
   qualifiedFieldName,
   field,
   valueSelector,
@@ -296,7 +301,7 @@ export const NumberField: FC<TextProps> = ({
   );
 };
 
-export const IntField: FC<TextProps> = ({
+export const IntField: FC<NumberProps> = ({
   qualifiedFieldName,
   field,
   valueSelector,
