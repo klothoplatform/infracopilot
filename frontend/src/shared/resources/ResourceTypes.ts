@@ -58,6 +58,11 @@ export interface EnumProperty extends Property {
   allowedValues: string[];
 }
 
+export interface NumberProperty extends Property {
+  minValue?: number;
+  maxValue?: number;
+}
+
 export enum PrimitiveTypes {
   Boolean = "boolean",
   Enum = "enum",
@@ -102,6 +107,9 @@ type RawProperty = {
   properties: object;
   required?: boolean;
   defaultValue?: any;
+  allowedValues?: string[];
+  minValue?: number;
+  maxValue?: number;
 };
 
 function toList(rawProperties: any): RawProperty[] {
@@ -151,9 +159,12 @@ export function parseProperty(
     type: rawType,
     configurationDisabled,
     deployTime,
+    allowedValues,
     properties: children,
     required,
     defaultValue,
+    minValue,
+    maxValue,
   }: RawProperty = rawProperty as any;
 
   if (!name) {
@@ -223,6 +234,21 @@ export function parseProperty(
     case PrimitiveTypes.Resource: {
       const resourceProperty = property as ResourceProperty;
       resourceProperty.resourceTypes = extractInnerTypes(rawType);
+      break;
+    }
+    case PrimitiveTypes.String: {
+      if (allowedValues) {
+        const enumProperty = property as EnumProperty;
+        enumProperty.allowedValues = allowedValues;
+        enumProperty.type = PrimitiveTypes.Enum;
+      }
+      break;
+    }
+    case PrimitiveTypes.Integer:
+    case PrimitiveTypes.Number: {
+      const numberProperty = property as NumberProperty;
+      numberProperty.minValue = minValue;
+      numberProperty.maxValue = maxValue;
       break;
     }
   }
