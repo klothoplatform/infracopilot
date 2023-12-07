@@ -14,6 +14,7 @@ import type {
 import { addEdge, applyEdgeChanges, applyNodeChanges } from "reactflow";
 import type {
   Architecture,
+  ConfigurationError,
   ReactFlowElements,
 } from "../../shared/architecture/Architecture";
 import {
@@ -37,7 +38,7 @@ import {
   EdgeConstraint,
   parseConstraints,
 } from "../../shared/architecture/Constraints";
-import { applyConstraints } from "../../api/ApplyConstraints";
+import { ApplyConstraintsErrorType, applyConstraints } from "../../api/ApplyConstraints";
 import TopologyEdge from "../../shared/architecture/TopologyEdge";
 import { NodeId } from "../../shared/architecture/TopologyNode";
 import type { RightSidebarTabSelector } from "../../shared/sidebar-nav";
@@ -56,14 +57,12 @@ import { customConfigMappings } from "../ArchitectureEditor/config/CustomConfigM
 import modifyArchitecture from "../../api/ModifyArchitecture";
 import { getValidEdgeTargets } from "../../api/GetValidEdgeTargets";
 import { ApplicationError } from "../../shared/errors";
-import { type ConfigurationError } from "../../shared/resources/ConfigurationError";
 
 interface EditorStoreState {
   architecture: Architecture;
   canApplyConstraints: boolean;
   connectionSourceId?: string;
   decisions: Decision[];
-  configErrors: ConfigurationError[];
   deletingNodes: boolean;
   edges: Edge[];
   isEditorInitialized: boolean;
@@ -124,7 +123,7 @@ interface EditorStoreActions {
     elements: Partial<ReactFlowElements>,
     generateConstraints?: boolean,
   ) => Promise<void>;
-  applyConstraints: (constraints?: Constraint[]) => Promise<void>;
+  applyConstraints: (constraints?: Constraint[]) => Promise<ConfigurationError[]>;
   deleteElements: (elements: Partial<ReactFlowElements>) => Promise<void>;
   deselectEdge: (edgeId: string) => void;
   deselectNode: (nodeId: string) => void;
@@ -616,15 +615,14 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       //   );
       //   return;
       // }
-      if (response.errorType) {
+      if (response.errorType == ApplyConstraintsErrorType.ConfigValidation) {
         navigateToChanges = false;
         set(
           {
             canApplyConstraints: true,
-            configErrors: response.configErrors ?? [],
           },
         );
-        return;
+        return response.architecture.config_errors ?? [];
       }
 
       console.log("new architecture", response.architecture);
@@ -686,13 +684,13 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
           canApplyConstraints: true,
           edgeTargetState: initialState().edgeTargetState,
           architecture: response.architecture,
-          configErrors: response.configErrors ?? [],
         },
         false,
         "editor/applyConstraints:end",
       );
       console.log("new nodes", elements.nodes);
       get().updateEdgeTargets();
+      return response.architecture.config_errors ?? [];
     } catch (e) {
       console.error("error applying constraints", e);
       await get().refreshArchitecture(get().architecture.id);
@@ -712,6 +710,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
         false,
         "editor/applyConstraints:error",
       );
+      return [];
     } finally {
       if (navigateToChanges) {
         get().navigateRightSidebar([

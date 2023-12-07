@@ -5,7 +5,6 @@ import { parseArchitecture } from "../shared/architecture/Architecture";
 import axios from "axios";
 import { ApiError } from "../shared/errors";
 import { trackError } from "../pages/store/ErrorStore";
-import { type ConfigurationError, parseConfigurationErrors } from "../shared/resources/ConfigurationError";
 
 export enum ApplyConstraintsErrorType {
   ConfigValidation = "ConfigValidation",
@@ -13,7 +12,6 @@ export enum ApplyConstraintsErrorType {
 
 export interface ApplyConstraintsResponse {
   architecture: Architecture;
-  configErrors?: ConfigurationError[];
   errorType?: ApplyConstraintsErrorType;
 }
 
@@ -54,10 +52,8 @@ export async function applyConstraints(
     console.log("error from apply constraints", e)
     if (e.response.status === 400 && e.response.data?.error_type === "ConfigValidation") {
       console.log(e.response.data.config_errors)
-      const cve = parseConfigurationErrors(e.response.data.config_errors);
       return {
         architecture: parseArchitecture(e.response.data),
-        configErrors: cve,
         errorType: ApplyConstraintsErrorType.ConfigValidation,
       };
     }
@@ -72,9 +68,7 @@ export async function applyConstraints(
     trackError(error);
     throw error;
   }
-  const cve = parseConfigurationErrors(data.config_errors);
   return {
     architecture: parseArchitecture(data),
-    configErrors: cve,
   };
 }

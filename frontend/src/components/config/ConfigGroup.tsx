@@ -64,20 +64,7 @@ export const ConfigGroup: FC<ConfigGroupProps> = ({
       );
     });
 
-    // add errors to the fields which failed server side validation
-    const {errors} = useFormState();
-    const { configErrors, selectedNode } = useApplicationStore();
-    console.log(configErrors, selectedNode)
-    if (configErrors) {
-      configErrors.forEach((e) => {
-        if (e.resource.toString() === selectedNode) {
-          errors[e.property] = {
-            message: e.error,
-            type: "manual",
-          }
-        }
-      });
-    }
+
   
 
   return <>{rows}</>;
