@@ -3,9 +3,11 @@ import type {
   Connection,
   Edge,
   EdgeChange,
+  IsValidConnection,
   Node,
   NodeChange,
   OnConnect,
+  OnConnectStart,
   OnEdgesChange,
   OnNodesChange,
 } from "reactflow";
@@ -16,7 +18,6 @@ import type {
 } from "../../shared/architecture/Architecture";
 import {
   ArchitectureView,
-  parseArchitecture,
   toReactFlowElements,
 } from "../../shared/architecture/Architecture";
 import { getArchitecture } from "../../api/GetArchitecture";
@@ -53,6 +54,8 @@ import type { ErrorStore } from "./ErrorStore";
 import { analytics } from "../../App";
 import { customConfigMappings } from "../ArchitectureEditor/config/CustomConfigMappings";
 import modifyArchitecture from "../../api/ModifyArchitecture";
+import { getValidEdgeTargets } from "../../api/GetValidEdgeTargets";
+import { ApplicationError } from "../../shared/errors";
 
 interface EditorStoreState {
   architecture: Architecture;
@@ -73,30 +76,44 @@ interface EditorStoreState {
   selectedNode?: string;
   selectedResource?: NodeId;
   unappliedConstraints: Constraint[];
+  edgeTargetState: {
+    architectureVersion: number;
+    engineVersion: number;
+    validTargets: Map<string, string[]>;
+    existingEdges: Map<string, string[]>;
+    updating: boolean;
+  };
 }
 
 const initialState: () => EditorStoreState = () => ({
-  nodes: [],
-  edges: [],
-  decisions: [],
-  isEditorInitialized: false,
-  isEditorInitializing: false,
-  failures: [],
-  selectedNode: undefined,
-  selectedEdge: undefined,
-  selectedResource: undefined,
-  layoutRefreshing: false,
-  deletingNodes: false,
-  layoutOptions: DefaultLayoutOptions,
-  resourceTypeKB: new ResourceTypeKB(),
   architecture: {} as Architecture,
-  unappliedConstraints: [],
   canApplyConstraints: true,
   connectionSourceId: undefined,
+  decisions: [],
+  deletingNodes: false,
+  edges: [],
+  failures: [],
+  isEditorInitialized: false,
+  isEditorInitializing: false,
+  layoutOptions: DefaultLayoutOptions,
+  layoutRefreshing: false,
+  nodes: [],
+  resourceTypeKB: new ResourceTypeKB(),
   rightSidebarSelector: [
     RightSidebarTabs.Changes,
     RightSidebarDetailsTabs.Config,
   ],
+  selectedEdge: undefined,
+  selectedNode: undefined,
+  selectedResource: undefined,
+  unappliedConstraints: [],
+  edgeTargetState: {
+    architectureVersion: 0,
+    engineVersion: 0,
+    validTargets: new Map<string, string[]>(),
+    existingEdges: new Map<string, string[]>(),
+    updating: false,
+  },
 });
 
 interface EditorStoreActions {
@@ -114,10 +131,12 @@ interface EditorStoreActions {
     refresh?: boolean,
   ) => Promise<ResourceTypeKB>;
   initializeEditor: (id: string, version?: number) => Promise<void>;
+  isValidConnection: IsValidConnection;
   navigateRightSidebar: (selector: RightSidebarTabSelector) => void;
   onNodesChange: OnNodesChange;
   onEdgesChange: OnEdgesChange;
   onConnect: OnConnect;
+  onConnectStart: OnConnectStart;
   selectNode: (nodeId: string) => void;
   selectResource: (resourceId: NodeId) => void;
   refreshLayout: () => Promise<void>;
@@ -130,6 +149,7 @@ interface EditorStoreActions {
   selectEdge: (edgeId: string) => void;
   setIsEditorInitialized: (isEditorInitialized: boolean) => void;
   renameArchitecture: (newName: string) => Promise<void>;
+  updateEdgeTargets: (sources?: NodeId[]) => Promise<void>;
 }
 
 type EditorStoreBase = EditorStoreState & EditorStoreActions;
@@ -242,6 +262,21 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       target: edge.targetId,
     });
     console.log("connected", connection);
+  },
+  onConnectStart: (event, { nodeId }) => {
+    if (!nodeId) {
+      return;
+    }
+
+    const { architectureVersion, validTargets } = get().edgeTargetState;
+    if (
+      architectureVersion !== get().architecture.version ||
+      (architectureVersion === get().architecture.version &&
+        !validTargets.has(nodeId))
+    ) {
+      // if we don't have valid targets for this node/version combination, update them
+      get().updateEdgeTargets([NodeId.parse(nodeId)]);
+    }
   },
   selectNode: (nodeId: string) => {
     if (get().selectedNode === nodeId) {
@@ -367,6 +402,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       "editor/refreshArchitecture",
     );
     console.log("architecture refreshed");
+    get().updateEdgeTargets();
   },
   initializeEditor: async (architectureId: string, version?: number) => {
     if (get().isEditorInitializing) {
@@ -632,11 +668,13 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
           unappliedConstraints: [],
           canApplyConstraints: true,
           architecture: newArchitecture,
+          edgeTargetState: initialState().edgeTargetState,
         },
         false,
         "editor/applyConstraints:end",
       );
       console.log("new nodes", elements.nodes);
+      get().updateEdgeTargets();
     } catch (e) {
       console.error("error applying constraints", e);
       await get().refreshArchitecture(get().architecture.id);
@@ -782,5 +820,150 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       false,
       "editor/renameArchitecture",
     );
+  },
+  updateEdgeTargets: async (sources) => {
+    let architecture = get().architecture;
+    const idToken = await get().getIdToken();
+    set(
+      {
+        edgeTargetState: {
+          ...get().edgeTargetState,
+          updating: true,
+        },
+      },
+      false,
+      "editor/updateEdgeTargets:start",
+    );
+    // if no sources are provided, allow refresh all using the backend cache
+    const isPartial = sources && sources.length > 0;
+    try {
+      const response = await getValidEdgeTargets(
+        architecture.id,
+        architecture.version,
+        {
+          resources: { sources },
+          tags: ["big", "parent"],
+        },
+        idToken,
+      );
+
+      const { validTargets, architectureVersion, architectureId } = response;
+
+      architecture = get().architecture;
+      if (architectureId !== architecture.id) {
+        console.log("architecture id mismatch, ignoring");
+        set(
+          {
+            edgeTargetState: {
+              ...get().edgeTargetState,
+              updating: false,
+            },
+          },
+          false,
+          "editor/updateEdgeTargets:idMismatch",
+        );
+        return;
+      }
+      if (architectureVersion !== architecture.version) {
+        console.log("architecture version mismatch, ignoring");
+        set(
+          {
+            edgeTargetState: {
+              ...get().edgeTargetState,
+              updating: false,
+            },
+          },
+          false,
+          "editor/updateEdgeTargets:versionMismatch",
+        );
+        return;
+      }
+
+      if (isPartial) {
+        const oldValidTargets = get().edgeTargetState.validTargets;
+        oldValidTargets.forEach((targets, sourceId) => {
+          if (!validTargets.has(sourceId)) {
+            validTargets.set(sourceId, targets);
+          }
+        });
+      }
+
+      // filter out edges that already exist in the dataflow/topology view
+      const topologyEdges = get().edges;
+      const existingEdges = new Map<string, string[]>();
+      topologyEdges.forEach((edge) => {
+        const sourceId = edge.source;
+        if (validTargets.has(sourceId)) {
+          const targets = validTargets.get(sourceId);
+          if (targets) {
+            validTargets.set(
+              sourceId,
+              targets.filter((t) => t !== edge.target),
+            );
+          }
+        }
+        existingEdges.set(sourceId, [
+          ...(existingEdges.get(sourceId) ?? []),
+          edge.target,
+        ]);
+      });
+
+      set(
+        {
+          edgeTargetState: {
+            updating: false,
+            architectureVersion: architecture.version,
+            engineVersion: architecture.engineVersion,
+            validTargets: validTargets,
+            existingEdges: existingEdges,
+          },
+        },
+        false,
+        "editor/updateEdgeTargets:end",
+      );
+      console.log("valid edge targets updated");
+    } catch (e) {
+      set(
+        {
+          edgeTargetState: {
+            ...get().edgeTargetState,
+            updating: false,
+          },
+        },
+        false,
+        "editor/updateEdgeTargets:error",
+      );
+      if (e instanceof ApplicationError) {
+        return;
+      }
+      console.error("unhandled error updating valid edge targets", e);
+    }
+  },
+  isValidConnection: (edge: Edge | Connection) => {
+    const edges = get().edges;
+    if (
+      edges.find((e) => e.source === edge.source && e.target === edge.target)
+    ) {
+      // edge already exists
+      return false;
+    }
+
+    const { validTargets, architectureVersion } = get().edgeTargetState;
+    const architecture = get().architecture;
+    if (architectureVersion !== architecture.version) {
+      // we don't have valid targets for this version, so allow the connection and let the engine handle it
+      return true;
+    }
+
+    const sourceId = edge.source;
+    const targetId = edge.target;
+    if (!sourceId || !targetId) {
+      return false;
+    }
+    const targets = validTargets.get(sourceId);
+    if (!targets) {
+      return false;
+    }
+    return targets.includes(targetId);
   },
 });

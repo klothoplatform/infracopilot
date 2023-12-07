@@ -41,6 +41,7 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
     selectNode,
     selectResource,
     navigateRightSidebar,
+    edgeTargetState: { validTargets, existingEdges },
   } = useApplicationStore();
 
   const connectionNodeId = useStore(connectionNodeIdSelector);
@@ -50,6 +51,18 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
   // this could be a map by handle id
   const showSourceHandle = !isConnecting && mouseOverNode;
   const updateNodeInternals = useUpdateNodeInternals();
+
+  const isValidConnectionTarget =
+    isConnecting &&
+    connectionNodeId !== id &&
+    (validTargets.get(connectionNodeId) ?? []).includes(id);
+
+  const isInvalidConnectionTarget =
+    isConnecting &&
+    connectionNodeId !== id &&
+    validTargets.size &&
+    !existingEdges.get(connectionNodeId)?.includes(id) &&
+    !(validTargets.get(connectionNodeId) ?? []).includes(id);
 
   const onClickResourceIcon = () => {
     selectResource(data.resourceId);
@@ -152,7 +165,13 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
             {
               "border-primary-600/100 dark:border-primary-500/100 shadow-md shadow-primary-100 dark:shadow-primary-900":
                 isSelected,
-              "border-primary-600/[0]": !isSelected,
+              "border-primary-600/[0]": !isSelected && !isValidConnectionTarget,
+              "bg-blue-500/5 border-blue-400 dark:border-blue-500 shadow-md shadow-blue-100 dark:shadow-blue-900":
+                !mouseOverNode && isValidConnectionTarget,
+              "bg-blue-500/10 border-blue-700 dark:border-blue-200 shadow-md shadow-blue-100 dark:shadow-blue-900":
+                mouseOverNode && isValidConnectionTarget,
+              "bg-red-500/10 border-red-600 dark:border-red-600 shadow-md shadow-red-100 dark:shadow-red-900":
+                !isSelected && isInvalidConnectionTarget && mouseOverNode,
             },
           )}
         >
@@ -165,17 +184,17 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
             }}
             onClick={onClickResourceIcon}
           />
+          {isConnecting && (
+            <Handle
+              // eslint-disable-next-line tailwindcss/no-custom-classname
+              className="full-icon-handle"
+              id={`${id}-dnd-target`}
+              position={Position.Left}
+              type="target"
+            />
+          )}
         </div>
         {handles}
-        {isConnecting && (
-          <Handle
-            // eslint-disable-next-line tailwindcss/no-custom-classname
-            className="full-icon-handle"
-            id={`${id}-dnd-target`}
-            position={Position.Left}
-            type="target"
-          />
-        )}
         <Handle
           className={classNames("node-handle", {
             "opacity-0": !showSourceHandle,

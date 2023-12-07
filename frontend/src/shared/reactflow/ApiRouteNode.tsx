@@ -15,8 +15,13 @@ interface RouteNodeProps {
 const connectionNodeIdSelector = (state: any) => state.connectionNodeId;
 
 const ApiRouteNode = memo(({ id, data, isConnectable }: RouteNodeProps) => {
-  const { selectedResource, selectNode, selectResource, navigateRightSidebar } =
-    useApplicationStore();
+  const {
+    selectedResource,
+    selectNode,
+    selectResource,
+    navigateRightSidebar,
+    edgeTargetState: { validTargets },
+  } = useApplicationStore();
 
   const connectionNodeId = useStore(connectionNodeIdSelector);
   const isConnecting = !!connectionNodeId;
@@ -24,6 +29,18 @@ const ApiRouteNode = memo(({ id, data, isConnectable }: RouteNodeProps) => {
   const [mouseOverNode, setMouseOverNode] = useState(false);
   const [mouseOverHandle] = useState(false);
   const showSourceHandle = !isConnecting && (mouseOverNode || mouseOverHandle);
+
+  const isValidConnectionTarget =
+    isConnecting &&
+    connectionNodeId !== id &&
+    (validTargets.get(connectionNodeId) ?? []).includes(id);
+
+  const isInvalidConnectionTarget =
+    isConnecting &&
+    connectionNodeId !== id &&
+    validTargets.size &&
+    !(validTargets.get(connectionNodeId) ?? []).includes(id);
+
   const updateNodeInternals = useUpdateNodeInternals();
 
   const onSelect = () => {
@@ -63,7 +80,13 @@ const ApiRouteNode = memo(({ id, data, isConnectable }: RouteNodeProps) => {
         "resource-node api-route-node pointer-events-none flex h-full w-full flex-col justify-center border-2",
         {
           "border-primary-600/100 dark:border-primary-500/100": isSelected,
-          "border-primary-600/[0]": !isSelected,
+          "border-primary-600/[0]": !isSelected && !isValidConnectionTarget,
+          "border-blue-400/100 dark:border-blue-400/100 shadow-md shadow-blue-100 dark:shadow-blue-900":
+            !mouseOverNode && isValidConnectionTarget,
+          "border-blue-600/100 dark:border-blue-600/100 shadow-md shadow-blue-100 dark:shadow-blue-900":
+            mouseOverNode && isValidConnectionTarget,
+          "border-red-600/100 dark:border-red-700/100 shadow-md shadow-red-100 dark:shadow-red-900":
+            isConnecting && isInvalidConnectionTarget && mouseOverNode,
         },
       )}
       onMouseOver={(e) => {

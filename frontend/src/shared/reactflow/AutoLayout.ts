@@ -378,7 +378,7 @@ export async function autoLayout(
           targetPosition: Position.Right,
           position: { x, y },
           positionAbsolute: { x, y },
-          zIndex: node.type === "resourceGroup" ? 0 : 1,
+          zIndex: node.type === "resourceGroup" ? -1 : 1,
           style: {
             width,
             height,

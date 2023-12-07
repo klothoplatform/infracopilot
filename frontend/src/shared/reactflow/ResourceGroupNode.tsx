@@ -35,13 +35,25 @@ const ResourceGroupNode = memo(
       navigateRightSidebar,
       nodes,
       resourceTypeKB,
+      edgeTargetState: { validTargets },
     } = useApplicationStore();
 
     const connectionNodeId = useStore(connectionNodeIdSelector);
     const isConnecting = !!connectionNodeId;
     const isSelected = selectedResource === data.resourceId;
     const hasChildren = !!nodes.find((node) => node.parentNode === id);
+    const [mouseOverNode, setMouseOverNode] = useState(false);
 
+    const isValidConnectionTarget =
+      isConnecting &&
+      connectionNodeId !== id &&
+      (validTargets.get(connectionNodeId) ?? []).includes(id);
+
+    const isInvalidConnectionTarget =
+      isConnecting &&
+      connectionNodeId !== id &&
+      validTargets.size &&
+      !(validTargets.get(connectionNodeId) ?? []).includes(id);
     const onSelect = () => {
       console.log("onSelect", data.resourceId);
       selectResource(data.resourceId);
@@ -88,7 +100,6 @@ const ResourceGroupNode = memo(
     return (
       // eslint-disable-next-line jsx-a11y/click-events-have-key-events,jsx-a11y/no-static-element-interactions
       <div
-        onClick={onSelect}
         className={classNames(
           "group-node relative border-2 rounded-md bg-transparent pointer-events-auto flex",
           {
@@ -97,10 +108,26 @@ const ResourceGroupNode = memo(
             "border-primary-600/[0] w-full h-full": !isSelected,
           },
         )}
+        onClick={onSelect}
+        onMouseOver={(e) => {
+          setMouseOverNode(true);
+        }}
+        onMouseLeave={(e) => {
+          setMouseOverNode(false);
+        }}
+        onFocus={(e) => {
+          setMouseOverNode(true);
+        }}
+        onBlur={(e) => {
+          setMouseOverNode(false);
+        }}
       >
         {iconMapping?.groupEnableDragTarget && isConnecting && (
           <Handle
-            className="group-target-handle"
+            className={classNames("group-target-handle", {
+              "valid-target": isValidConnectionTarget,
+              "invalid-target": mouseOverNode && isInvalidConnectionTarget,
+            })}
             id={`${id}-dnd-target`}
             position={Position.Left}
             type="target"
