@@ -1,55 +1,71 @@
 /* Put global react flow styles here */
 
+.react-flow__connectionline {
+  z-index: 50 !important;
+}
+
+.react-flow__edges:not(.react-flow__connectionline) {
+  z-index: 0 !important;
+}
+
 /* see https://reactflow.dev/docs/guides/theming/ */
-
-/* lowering the z index of edges makes it easier to overlay other divs on top of them (make sure group nodes have an even lower z index) */
 .react-flow__edges {
-  z-index: 1 !important;
-}
+  --connection-color: theme('colors.primary.600');
 
-.react-flow__edge-path {
-  stroke-width: 2px !important;
-  stroke: #545b64 !important;
-}
 
-.react-flow__edge {
-  marker.arrow-closed {
-    fill: #545b64;
+  ///* lowering the z index of edges makes it easier to overlay other divs on top of them (make sure group nodes have an even lower z index) */
+  cursor: default;
+
+  .react-flow__edge-path {
+    stroke-width: 2px;
+    stroke: #545b64;
   }
-}
 
-.react-flow__edge.selected .react-flow__edge-path,
-.react-flow__edge:focus .react-flow__edge-path,
-.react-flow__edge:focus-visible .react-flow__edge-path {
-  stroke: rgb(124 58 237 / 1) !important;
-}
+  .react-flow__edge {
+    marker.arrow-closed {
+      fill: #545b64;
+    }
+  }
 
-.react-flow__connection-path {
-  stroke: rgb(124 58 237 / 1) !important;
-}
+  marker.connection-arrow-closed {
+    fill: var(--connection-color);
+  }
 
-/* styling for the markers on the ends of edges */
-.react-flow__edge:focus marker {
-  fill: rgb(124 58 237 / 1);
-}
-
-.dark {
   .react-flow__edge.selected .react-flow__edge-path,
   .react-flow__edge:focus .react-flow__edge-path,
   .react-flow__edge:focus-visible .react-flow__edge-path {
-    stroke: rgb(139 92 246) !important;
+    stroke: var(--connection-color);
   }
+
   .react-flow__connection-path {
-    stroke: rgb(139 92 246) !important;
+    stroke: var(--connection-color);
   }
 
+  /* styling for the markers on the ends of edges */
   .react-flow__edge:focus marker {
-    fill: rgb(139 92 246);
+    fill: var(--connection-color);
   }
 
-  // TODO: style the react flow controls for dark mode
-  //.react-flow__controls-button {
-  //  background: #a2a2a2 !important;
-  //  border-bottom-color: #252525 !important;
-  //}
+  .dark {
+    .react-flow__edge.selected .react-flow__edge-path,
+    .react-flow__edge:focus .react-flow__edge-path,
+    .react-flow__edge:focus-visible .react-flow__edge-path {
+      stroke: var(--connection-color);
+    }
+
+    .react-flow__connection-path {
+      stroke: var(--connection-color);
+    }
+
+    .react-flow__edge:focus marker {
+      fill: var(--connection-color);
+    }
+
+    // TODO: style the react flow controls for dark mode
+    //.react-flow__controls-button {
+    //  background: #a2a2a2 !important;
+    //  border-bottom-color: #252525 !important;
+    //}
+  }
+
 }

@@ -5,6 +5,7 @@ import ReactFlow, {
   ConnectionLineType,
   Controls,
   useReactFlow,
+  useStore,
 } from "reactflow";
 import NodeTypes, { NodeType } from "../../shared/reactflow/NodeTypes";
 import EdgeTypes, {
@@ -21,15 +22,21 @@ import { ErrorBoundary } from "react-error-boundary";
 import { FallbackRenderer } from "../../components/FallbackRenderer";
 import { UIError } from "../../shared/errors";
 import { trackError } from "../store/ErrorStore";
+import ConnectionLine from "../../shared/reactflow/ConnectionLine";
+import { shallow } from "zustand/shallow";
+import classNames from "classnames";
+
 export default function EditorPane() {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
   const {
     nodes,
     edges,
+    isValidConnection,
     onNodesChange,
     onEdgesChange,
     onConnect,
+    onConnectStart,
     addGraphElements,
     canApplyConstraints,
     selectEdge,
@@ -39,6 +46,9 @@ export default function EditorPane() {
     deselectEdge,
     addError,
   } = useApplicationStore();
+
+  const connectionNodeId = useStore((s) => s.connectionNodeId, shallow);
+  const isConnecting = connectionNodeId !== null;
 
   const { fitView, getIntersectingNodes } = useReactFlow();
 
@@ -249,20 +259,22 @@ export default function EditorPane() {
         <ReactFlow
           nodes={nodes}
           edges={edges}
+          isValidConnection={isValidConnection}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onNodeContextMenu={onNodeContextMenu}
           onEdgeContextMenu={onEdgeContextMenu}
           onConnect={onConnect}
+          onConnectStart={onConnectStart}
           onDrop={onDrop}
           onDragOver={onDragOver}
           onInit={setReactFlowInstance}
           nodeTypes={NodeTypes}
           edgeTypes={EdgeTypes}
           defaultEdgeOptions={defaultEdgeOptions}
+          connectionLineComponent={ConnectionLine}
           connectionLineType={ConnectionLineType.Straight}
           connectionLineStyle={{
-            stroke: "#545B64",
             strokeWidth: 2,
             strokeLinecap: "square",
             zIndex: 1000,
@@ -276,6 +288,9 @@ export default function EditorPane() {
           onEdgeClick={onEdgeClick}
           onPaneClick={onPaneClick}
           deleteKeyCode={null}
+          className={classNames({
+            "[&_div]:cursor-crosshair": isConnecting, // overrides the default grab cursor when you're connecting nodes
+          })}
         >
           <Background variant={BackgroundVariant.Dots} gap={25} size={1} />
           {menu && <ContextMenu {...menu} />}

@@ -1,5 +1,5 @@
 import type { Node, XYPosition } from "reactflow";
-import { MarkerType, Position } from "reactflow";
+import { MarkerType, Position } from "reactflow"; // this helper function returns the intersection point
 
 // this helper function returns the intersection point
 // of the line between the center of the intersectionNode and the target node
@@ -100,4 +100,57 @@ export function createNodesAndEdges() {
   }
 
   return { nodes, edges };
+}
+
+export interface Point {
+  x: number;
+  y: number;
+}
+
+export enum Direction {
+  Left = "left",
+  Right = "right",
+  Up = "up",
+  Down = "down",
+}
+
+export interface LineDirection {
+  vertical?: Direction.Up | Direction.Down;
+  horizontal?: Direction.Left | Direction.Right;
+  angle?: number;
+}
+
+// get the direction of the line using its slope angle to segment the line into 8 segments (45 degrees each)
+export function getLineDirection(A: Point, B: Point): LineDirection {
+  const dx = B.x - A.x;
+  const dy = B.y - A.y;
+  const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+  const resultDirection: LineDirection = {
+    angle,
+    vertical: undefined,
+    horizontal: undefined,
+  };
+
+  if (angle >= -22.5 && angle < 22.5) {
+    resultDirection.horizontal = Direction.Right;
+  } else if (angle >= 22.5 && angle < 67.5) {
+    resultDirection.horizontal = Direction.Right;
+    resultDirection.vertical = Direction.Down;
+  } else if (angle >= 67.5 && angle < 112.5) {
+    resultDirection.vertical = Direction.Down;
+  } else if (angle >= 112.5 && angle < 157.5) {
+    resultDirection.horizontal = Direction.Left;
+    resultDirection.vertical = Direction.Down;
+  } else if (angle >= 157.5 || angle < -157.5) {
+    resultDirection.horizontal = Direction.Left;
+  } else if (angle >= -157.5 && angle < -112.5) {
+    resultDirection.horizontal = Direction.Left;
+    resultDirection.vertical = Direction.Up;
+  } else if (angle >= -112.5 && angle < -67.5) {
+    resultDirection.vertical = Direction.Up;
+  } else if (angle >= -67.5 && angle < -22.5) {
+    resultDirection.horizontal = Direction.Right;
+    resultDirection.vertical = Direction.Up;
+  }
+  return resultDirection;
 }
