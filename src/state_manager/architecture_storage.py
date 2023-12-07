@@ -1,22 +1,20 @@
 # @klotho::execution_unit {
 #    id = "main"
 # }
-from io import BytesIO
-from typing import Optional
-from pathlib import Path
+import json
 import os
-
-import jsons
-from botocore.exceptions import ClientError
-
-from src.engine_service.engine_commands.run import RunEngineResult
-
+from io import BytesIO
+from pathlib import Path
+from typing import Optional
 
 # @klotho::persist {
 #   id = "architecturestore"
 # }
 import aiofiles
+import jsons
+from botocore.exceptions import ClientError
 
+from src.engine_service.engine_commands.run import RunEngineResult
 from src.state_manager.architecture_data import Architecture
 
 root_path = Path("state")
@@ -86,24 +84,25 @@ async def get_iac_from_fs(arch: Architecture) -> Optional[BytesIO]:
 async def write_state_to_fs(arch: Architecture, content: RunEngineResult) -> str:
     if not isinstance(content, RunEngineResult):
         raise TypeError(f"content must be of type RunEngineResult, not {type(content)}")
-    path = f"{get_path_for_architecture(arch)}/state.json"
-    if os.getenv("EXECUNIT_NAME") is None:
-        # When running in local dev, we need to create the directory.
-        # When running in the cloud, the path is just the S3 object's id - no parent creation necessary.
-        Path(os.path.dirname(path)).mkdir(parents=True, exist_ok=True)
-    async with aiofiles.open(path, mode="w") as f:
-        await f.write(jsons.dumps(content))
-    return path
+    return await write_file_to_fs(arch, jsons.dumps(content), "state.json", "w")
 
 
 async def write_iac_to_fs(arch: Architecture, content: BytesIO) -> str:
-    path = f"{get_path_for_architecture(arch)}/iac.zip"
+    if not isinstance(content, BytesIO):
+        raise TypeError(f"content must be of type BytesIO, not {type(content)}")
+    return await write_file_to_fs(arch, content.getvalue(), "iac.zip", "wb")
+
+
+async def write_file_to_fs(
+    arch: Architecture, content: any, filename: str, mode: str
+) -> str:
+    path = str(Path(get_path_for_architecture(arch)) / filename)
     if os.getenv("EXECUNIT_NAME") is None:
         # When running in local dev, we need to create the directory.
         # When running in the cloud, the path is just the S3 object's id - no parent creation necessary.
         Path(os.path.dirname(path)).mkdir(parents=True, exist_ok=True)
-    async with aiofiles.open(path, mode="wb") as f:
-        await f.write(content.getvalue())
+    async with aiofiles.open(path, mode=mode) as f:
+        await f.write(content)
     return path
 
 

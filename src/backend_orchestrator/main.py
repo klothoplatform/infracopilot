@@ -3,16 +3,14 @@
 # }
 import logging
 from typing import Annotated, Optional
-import jsons
-from fastapi import FastAPI, HTTPException, Response, Header
-from fastapi.responses import JSONResponse
+
+from fastapi import FastAPI, Response, Header
+from fastapi import Request
 from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.responses import JSONResponse
+
 from src.auth_service.main import can_read_architecture, can_write_to_architecture
 from src.auth_service.token import PUBLIC_USER, AuthError, get_user_id
-from src.state_manager.architecture_data import (
-    delete_architecture as copilot_delete_architecture,
-)
-from src.util.orm import Base, engine
 from src.backend_orchestrator.architecture_handler import (
     CloneArchitectureRequest,
     ModifyArchitectureRequest,
@@ -24,10 +22,17 @@ from src.backend_orchestrator.architecture_handler import (
     CreateArchitectureRequest,
     rename_architecture,
 )
+from src.backend_orchestrator.get_valid_edge_targets_handler import (
+    CopilotGetValidEdgeTargetsRequest,
+    copilot_get_valid_edge_targets,
+)
 from src.backend_orchestrator.iac_handler import copilot_get_iac
 from src.backend_orchestrator.run_engine_handler import copilot_run, CopilotRunRequest
-from fastapi import Request
+from src.state_manager.architecture_data import (
+    delete_architecture as copilot_delete_architecture,
+)
 from src.util.entity import User
+from src.util.orm import Base, engine
 
 # @klotho::expose {
 #   id = "myapi"
@@ -82,6 +87,24 @@ async def run(
         )
     accept = request.headers.get("accept")
     return await copilot_run(id, state, body, accept)
+
+
+@app.post("/api/architecture/{id}/valid-edge-targets")
+async def get_valid_edge_targets(
+    request: Request, id, state: int, body: CopilotGetValidEdgeTargetsRequest
+):
+    user_id = get_user_id(request)
+    authorized = await can_read_architecture(User(id=user_id), id)
+    if not authorized:
+        raise AuthError(
+            detail=f"User {user_id} is not authorized to write to architecture {id}",
+            error={
+                "code": "unauthorized",
+                "description": f"User is not authorized to write to architecture {id}",
+            },
+        )
+    accept = request.headers.get("accept")
+    return await copilot_get_valid_edge_targets(id, state, body, accept)
 
 
 @app.post("/api/architecture")
