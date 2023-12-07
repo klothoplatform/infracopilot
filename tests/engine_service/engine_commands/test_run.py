@@ -31,10 +31,7 @@ class TestRunEngine(aiounittest.AsyncTestCase):
         with open(dir / "resources.yaml", "w") as file:
             file.write("resources_yaml")
 
-        with open(dir / "decisions.json", "w") as file:
-            file.write("[]")
-
-        with open(dir / "failures.json", "w") as file:
+        with open(dir / "config_errors.json", "w") as file:
             file.write("[]")
 
     @mock.patch(
@@ -78,7 +75,6 @@ class TestRunEngine(aiounittest.AsyncTestCase):
                 resources_yaml="resources_yaml",
                 topology_yaml="topology_yaml",
                 iac_topology="iac_topology",
-                decisions_json=[],
-                failures_json=[],
+                config_errors_json=[],
             ),
         )

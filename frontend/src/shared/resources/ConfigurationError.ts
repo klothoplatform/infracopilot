@@ -13,7 +13,7 @@ export interface ConfigurationError  {
 export const parseConfigurationErrors = (errors: any): ConfigurationError[] => {
     return errors.map((error: any) => {
         return {
-            resource: NodeId.fromTopologyId(error.resource),
+            resource: NodeId.parse(error.resource),
             property: error.property,
             value: error.value,
             error: error.error

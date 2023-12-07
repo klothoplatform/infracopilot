@@ -6,6 +6,8 @@ import { CollectionTypes } from "../../shared/resources/ResourceTypes";
 import type { FC, ReactNode } from "react";
 import React from "react";
 import { ConfigField } from "./ConfigField";
+import { useFormState } from "react-hook-form";
+import useApplicationStore from "../../pages/store/ApplicationStore";
 
 type ConfigGroupProps = {
   qualifiedFieldName?: string;
@@ -61,6 +63,22 @@ export const ConfigGroup: FC<ConfigGroupProps> = ({
         </div>,
       );
     });
+
+    // add errors to the fields which failed server side validation
+    const {errors} = useFormState();
+    const { configErrors, selectedNode } = useApplicationStore();
+    console.log(configErrors, selectedNode)
+    if (configErrors) {
+      configErrors.forEach((e) => {
+        if (e.resource.toString() === selectedNode) {
+          errors[e.property] = {
+            message: e.error,
+            type: "manual",
+          }
+        }
+      });
+    }
+  
 
   return <>{rows}</>;
 };
