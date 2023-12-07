@@ -64,7 +64,7 @@ export class ApplicationConstraint implements Constraint {
       case ConstraintOperator.Remove:
         return `Removed ${this.node.toString()}`;
       case ConstraintOperator.Replace:
-        return `Replaced ${this.node.toString()} -> ${this.replacementNode?.toString()}`;
+        return `Replaced ${this.node.toString()} ➔ ${this.replacementNode?.toString()}`;
     }
   }
 
@@ -75,7 +75,7 @@ export class ApplicationConstraint implements Constraint {
       case ConstraintOperator.Remove:
         return `Failed to remove ${this.node.toString()}`;
       case ConstraintOperator.Replace:
-        return `Failed to replace ${this.node.toString()} -> ${this.replacementNode?.toString()}`;
+        return `Failed to replace ${this.node.toString()} ➔ ${this.replacementNode?.toString()}`;
     }
   }
 }
@@ -131,34 +131,34 @@ export class EdgeConstraint implements Constraint {
   toIntent(): string {
     switch (this.operator) {
       case ConstraintOperator.MustExist:
-        return `Connected ${this.target.sourceId.name} -> ${this.target.targetId.name}`;
+        return `Connected ${this.target.sourceId.name} ➔ ${this.target.targetId.name}`;
       case ConstraintOperator.MustNotExist:
-        return `Disconnected ${this.target.sourceId.name} -> ${this.target.targetId.name}`;
+        return `Disconnected ${this.target.sourceId.name} ➔ ${this.target.targetId.name}`;
       case ConstraintOperator.MustContain:
         return `Added ${this.node?.toString()} to ${
           this.target.sourceId.name
-        } -> ${this.target.targetId.name}`;
+        } ➔ ${this.target.targetId.name}`;
       case ConstraintOperator.MustNotContain:
         return `Removed ${this.node?.toString()} from ${
           this.target.sourceId.name
-        } -> ${this.target.targetId.name}`;
+        } ➔ ${this.target.targetId.name}`;
     }
   }
 
   toFailureMessage(): string {
     switch (this.operator) {
       case ConstraintOperator.MustExist:
-        return `Failed to connect ${this.target.sourceId.name} -> ${this.target.targetId.name}`;
+        return `Failed to connect ${this.target.sourceId.name} ➔ ${this.target.targetId.name}`;
       case ConstraintOperator.MustNotExist:
-        return `Failed to disconnect ${this.target.sourceId.name} -> ${this.target.targetId.name}`;
+        return `Failed to disconnect ${this.target.sourceId.name} ➔ ${this.target.targetId.name}`;
       case ConstraintOperator.MustContain:
         return `Failed to add ${this.node?.toString()} to ${
           this.target.sourceId.name
-        } -> ${this.target.targetId.name}`;
+        } ➔ ${this.target.targetId.name}`;
       case ConstraintOperator.MustNotContain:
         return `Failed to remove ${this.node?.toString()} from ${
           this.target.sourceId.name
-        } -> ${this.target.targetId.name}`;
+        } ➔ ${this.target.targetId.name}`;
     }
   }
 }
