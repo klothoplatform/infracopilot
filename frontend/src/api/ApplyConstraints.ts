@@ -5,13 +5,24 @@ import { parseArchitecture } from "../shared/architecture/Architecture";
 import axios from "axios";
 import { ApiError } from "../shared/errors";
 import { trackError } from "../pages/store/ErrorStore";
+import { type ConfigurationError, parseConfigurationErrors } from "../shared/resources/ConfigurationError";
+
+export enum ApplyConstraintsErrorType {
+  ConfigValidation = "ConfigValidation",
+}
+
+export interface ApplyConstraintsResponse {
+  architecture: Architecture;
+  configErrors?: ConfigurationError[];
+  errorType?: ApplyConstraintsErrorType;
+}
 
 export async function applyConstraints(
   architectureId: string,
   latestState: number,
   constraints: Constraint[],
   idToken: string,
-): Promise<Architecture> {
+): Promise<ApplyConstraintsResponse> {
   console.log("applyConstraints", architectureId);
 
   const constraintCount: Record<string, number> = {};
@@ -20,7 +31,7 @@ export async function applyConstraints(
     constraintCount[key] = (constraintCount[key] ?? 0) + 1;
   }
 
-  let data: ArrayBuffer;
+  let data;
   try {
     const response = await axios.post(
       `/api/architecture/${architectureId}/run`,
@@ -38,8 +49,18 @@ export async function applyConstraints(
       },
     );
     data = response.data;
-    console.debug("response from apply constraints", data);
+    console.log("response from apply constraints", data);
   } catch (e: any) {
+    console.log("error from apply constraints", e)
+    if (e.response.status === 400 && e.response.data?.error_type === "ConfigValidation") {
+      console.log(e.response.data.config_errors)
+      const cve = parseConfigurationErrors(e.response.data.config_errors);
+      return {
+        architecture: parseArchitecture(e.response.data),
+        configErrors: cve,
+        errorType: ApplyConstraintsErrorType.ConfigValidation,
+      };
+    }
     const error = new ApiError({
       errorId: "ApplyConstraints",
       message: "An error occurred while applying constraints.",
@@ -51,6 +72,9 @@ export async function applyConstraints(
     trackError(error);
     throw error;
   }
-
-  return parseArchitecture(data);
+  const cve = parseConfigurationErrors(data.config_errors);
+  return {
+    architecture: parseArchitecture(data),
+    configErrors: cve,
+  };
 }

@@ -16,10 +16,13 @@ CAPTURE_ENGINE_FAILURES = os.getenv("CAPTURE_ENGINE_FAILURES", False)
 
 
 class EngineException(Exception):
+    type: str
+
     def __init__(self, message, stdout: str, stderr: str):
         super().__init__(message)
         self.stdout = stdout
         self.stderr = stderr
+        self.type = "Engine"
 
     def err_log_str(self):
         err_logs = [
@@ -36,6 +39,14 @@ class EngineException(Exception):
                 and "Klotho compilation failed" not in entry["msg"]
             )
         )
+
+
+class ConfigValidationException(EngineException):
+    type: str
+
+    def __init__(self, message, stdout: str, stderr: str):
+        super().__init__(message, stdout, stderr)
+        self.type = "ConfigValidation"
 
 
 class IacException(Exception):
@@ -85,6 +96,12 @@ async def run_engine_command(*args, **kwargs) -> tuple[str, str]:
         capture_failure("failures/engine", cmd, cwd, err_logs)
 
     if result.returncode != 0:
+        if result.returncode == 2:
+            raise ConfigValidationException(
+                f"Engine {cmd} returned non-zero exit code: {result.returncode}",
+                out_logs,
+                err_logs,
+            )
         raise EngineException(
             f"Engine {cmd} returned non-zero exit code: {result.returncode}",
             out_logs,

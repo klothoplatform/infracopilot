@@ -7,7 +7,11 @@ import logging
 import yaml
 import contextlib
 
-from src.engine_service.engine_commands.util import run_engine_command, EngineException
+from src.engine_service.engine_commands.util import (
+    ConfigValidationException,
+    run_engine_command,
+    EngineException,
+)
 
 log = logging.getLogger(__name__)
 
@@ -27,16 +31,17 @@ class RunEngineResult(NamedTuple):
     resources_yaml: str
     topology_yaml: str
     iac_topology: str
-    decisions_json: List[Dict] = []
-    failures_json: List[Dict] = []
+    config_errors_json: List[Dict] = []
 
 
 class FailedRunException(Exception):
-    failures_json: List[Dict]
+    config_errors_json: List[Dict] = []
+    error_type: str
 
-    def __init__(self, message, failures_json):
+    def __init__(self, message, error_type, config_errors_json):
         super().__init__(message)
-        self.failures_json = failures_json
+        self.error_type = error_type
+        self.config_errors_json = config_errors_json
 
 
 @contextlib.contextmanager
@@ -100,28 +105,38 @@ async def run_engine(request: RunEngineRequest) -> RunEngineResult:
             with open(dir / "resources.yaml") as file:
                 resources_yaml = file.read()
 
-            # with open(dir / "decisions.json") as file:
-            #     raw_str = file.read()
-            #     decisions_json = jsons.loads(raw_str)
-            #
-            # with open(dir / "failures.json") as file:
-            #     raw_str = file.read()
-            #     failures_json = jsons.loads(raw_str)
+            config_errors_json = {}
+            if "config_errors.json" in os.listdir(tmp_dir):
+                with open(dir / "config_errors.json") as file:
+                    raw_str = file.read()
+                    config_errors_json = jsons.loads(raw_str)
 
             return RunEngineResult(
                 resources_yaml=resources_yaml,
                 topology_yaml=topology_yaml,
                 iac_topology=iac_topology,
-                # decisions_json=decisions_json,
-                # failures_json=failures_json,
+                config_errors_json=config_errors_json,
             )
-        except EngineException:
-            if "failures.json" in os.listdir(tmp_dir):
-                with open(dir / "failures.json") as file:
+        except ConfigValidationException as cve:
+            config_errors_json = {}
+            if "config_errors.json" in os.listdir(tmp_dir):
+                with open(dir / "config_errors.json") as file:
                     raw_str = file.read()
-                    failures_json = jsons.loads(raw_str)
+                    config_errors_json = jsons.loads(raw_str)
+            raise FailedRunException(
+                "Could not solve graph",
+                error_type=cve.type,
+                config_errors_json=config_errors_json,
+            )
+        except EngineException as e:
+            if "config_errors.json" in os.listdir(tmp_dir):
+                with open(dir / "config_errors.json") as file:
+                    raw_str = file.read()
+                    config_errors_json = jsons.loads(raw_str)
                 raise FailedRunException(
-                    "Could not solve graph", failures_json=failures_json
+                    "Could not solve graph",
+                    error_type=e.type,
+                    config_errors_json=config_errors_json,
                 )
             raise
         except Exception as e:

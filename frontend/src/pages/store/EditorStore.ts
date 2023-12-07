@@ -49,19 +49,21 @@ import { Decision, Failure } from "../../shared/architecture/Decision";
 import { getResourceTypes } from "../../api/GetResourceTypes";
 import type { AuthStoreBase } from "./AuthStore";
 import { ResourceTypeKB } from "../../shared/resources/ResourceTypeKB";
-import type { ErrorStore } from "./ErrorStore";
+import { type ErrorStore } from "./ErrorStore";
 
 import { analytics } from "../../App";
 import { customConfigMappings } from "../ArchitectureEditor/config/CustomConfigMappings";
 import modifyArchitecture from "../../api/ModifyArchitecture";
 import { getValidEdgeTargets } from "../../api/GetValidEdgeTargets";
 import { ApplicationError } from "../../shared/errors";
+import { type ConfigurationError } from "../../shared/resources/ConfigurationError";
 
 interface EditorStoreState {
   architecture: Architecture;
   canApplyConstraints: boolean;
   connectionSourceId?: string;
   decisions: Decision[];
+  configErrors: ConfigurationError[];
   deletingNodes: boolean;
   edges: Edge[];
   isEditorInitialized: boolean;
@@ -86,26 +88,27 @@ interface EditorStoreState {
 }
 
 const initialState: () => EditorStoreState = () => ({
+  nodes: [],
+  edges: [],
+  decisions: [],
+  configErrors: [],
+  isEditorInitialized: false,
+  isEditorInitializing: false,
+  failures: [],
+  selectedNode: undefined,
+  selectedEdge: undefined,
+  selectedResource: undefined,
+  layoutRefreshing: false,
+  deletingNodes: false,
+  layoutOptions: DefaultLayoutOptions,
+  resourceTypeKB: new ResourceTypeKB(),
   architecture: {} as Architecture,
   canApplyConstraints: true,
   connectionSourceId: undefined,
-  decisions: [],
-  deletingNodes: false,
-  edges: [],
-  failures: [],
-  isEditorInitialized: false,
-  isEditorInitializing: false,
-  layoutOptions: DefaultLayoutOptions,
-  layoutRefreshing: false,
-  nodes: [],
-  resourceTypeKB: new ResourceTypeKB(),
   rightSidebarSelector: [
     RightSidebarTabs.Changes,
     RightSidebarDetailsTabs.Config,
   ],
-  selectedEdge: undefined,
-  selectedNode: undefined,
-  selectedResource: undefined,
   unappliedConstraints: [],
   edgeTargetState: {
     architectureVersion: 0,
@@ -571,6 +574,8 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       throw new Error("cannot apply constraints, no architecture in context");
     }
 
+    let navigateToChanges = true;
+
     try {
       set(
         {
@@ -585,12 +590,13 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       ];
       console.log("applying constraints", allConstraints);
 
-      const newArchitecture = await applyConstraints(
+      const response = await applyConstraints(
         architecture.id,
         architecture.version,
         allConstraints,
         await get().getIdToken(),
       );
+      console.log("response from apply constraints", response);
       // TODO: look into enabling this again once we have decisions in the engine again
       // if (newArchitecture.failures.length > 0) {
       //   console.log(newArchitecture.failures);
@@ -610,10 +616,21 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       //   );
       //   return;
       // }
-      console.log("new architecture", newArchitecture);
+      if (response.errorType) {
+        navigateToChanges = false;
+        set(
+          {
+            canApplyConstraints: true,
+            configErrors: response.configErrors ?? [],
+          },
+        );
+        return;
+      }
+
+      console.log("new architecture", response.architecture);
       const elements = toReactFlowElements(
-        newArchitecture,
-        await get().getResourceTypeKB(newArchitecture.id),
+        response.architecture!,
+        await get().getResourceTypeKB(response.architecture.id),
         ArchitectureView.DataFlow,
       );
       const result = await autoLayout(
@@ -667,8 +684,9 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
           failures: [],
           unappliedConstraints: [],
           canApplyConstraints: true,
-          architecture: newArchitecture,
           edgeTargetState: initialState().edgeTargetState,
+          architecture: response.architecture,
+          configErrors: response.configErrors ?? [],
         },
         false,
         "editor/applyConstraints:end",
@@ -695,10 +713,12 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
         "editor/applyConstraints:error",
       );
     } finally {
-      get().navigateRightSidebar([
-        RightSidebarTabs.Changes,
-        get().rightSidebarSelector[1],
-      ]);
+      if (navigateToChanges) {
+        get().navigateRightSidebar([
+          RightSidebarTabs.Changes,
+          get().rightSidebarSelector[1],
+        ]);
+      }
     }
   },
   deselectEdge: (edgeId: string) => {
