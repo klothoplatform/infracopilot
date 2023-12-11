@@ -26,6 +26,13 @@ export interface ReactFlowElements {
   edges: Edge[];
 }
 
+export interface ConfigurationError  {
+  resource: NodeId
+  property: string
+  value?: any
+  error: string
+}
+
 export interface Architecture {
   provider: string;
   id: string;
@@ -45,6 +52,7 @@ export interface Architecture {
   views: Map<ArchitectureView, TopologyGraph>;
   resources: Map<string, any>;
   edges: GraphEdge[];
+  config_errors: ConfigurationError[];
 }
 
 export interface GraphEdge {
@@ -223,6 +231,7 @@ export function parseArchitecture(rawArchitecture: any): Architecture {
       resources: new Map<string, any>(),
       edges: [],
       views: new Map<ArchitectureView, TopologyGraph>(),
+      config_errors: rawArchitecture.config_errors,
     };
 
     if (rawArchitecture.state?.topology_yaml) {

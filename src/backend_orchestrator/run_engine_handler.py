@@ -67,7 +67,6 @@ async def copilot_run(
             owner=architecture.owner,
             created_at=architecture.created_at,
             updated_by=architecture.owner,
-            decisions=result.decisions_json,
             engine_version=1.0,
             state_location=None,
         )
@@ -87,12 +86,11 @@ async def copilot_run(
                     "owner": arch.owner,
                     "engineVersion": arch.engine_version,
                     "version": arch.state if arch.state is not None else 0,
-                    "decisions": result.decisions_json,
-                    "failures": result.failures_json,
                     "state": {
                         "resources_yaml": result.resources_yaml,
                         "topology_yaml": result.topology_yaml,
                     },
+                    "config_errors": result.config_errors_json,
                 }
             ),
         )
@@ -100,7 +98,8 @@ async def copilot_run(
         print(
             jsons.dumps(
                 {
-                    "failures": e.failures_json,
+                    "error_type": e.error_type,
+                    "config_errors": e.config_errors_json,
                 }
             )
         )
@@ -108,7 +107,8 @@ async def copilot_run(
             status_code=400,
             content=jsons.dumps(
                 {
-                    "failures": e.failures_json,
+                    "error_type": e.error_type,
+                    "config_errors": e.config_errors_json,
                 }
             ),
         )

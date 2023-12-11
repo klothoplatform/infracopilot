@@ -6,10 +6,12 @@ import os
 from unittest import mock
 
 from src.engine_service.engine_commands.run import (
+    FailedRunException,
     run_engine,
     RunEngineRequest,
     RunEngineResult,
 )
+from src.engine_service.engine_commands.util import ConfigValidationException
 
 
 class TestRunEngine(aiounittest.AsyncTestCase):
@@ -31,10 +33,7 @@ class TestRunEngine(aiounittest.AsyncTestCase):
         with open(dir / "resources.yaml", "w") as file:
             file.write("resources_yaml")
 
-        with open(dir / "decisions.json", "w") as file:
-            file.write("[]")
-
-        with open(dir / "failures.json", "w") as file:
+        with open(dir / "config_errors.json", "w") as file:
             file.write("[]")
 
     @mock.patch(
@@ -78,7 +77,47 @@ class TestRunEngine(aiounittest.AsyncTestCase):
                 resources_yaml="resources_yaml",
                 topology_yaml="topology_yaml",
                 iac_topology="iac_topology",
-                decisions_json=[],
-                failures_json=[],
+                config_errors_json=[],
             ),
+        )
+
+    @mock.patch(
+        "src.engine_service.engine_commands.run.run_engine_command",
+        new_callable=mock.AsyncMock,
+    )
+    @mock.patch("tempfile.TemporaryDirectory")
+    async def test_run_engine_failure(
+        self, mock_temp_dir: mock.Mock, mock_eng_cmd: mock.Mock
+    ):
+        request = RunEngineRequest(
+            id="test",
+            templates=[],
+            constraints=[],
+            guardrails=None,
+            input_graph="test",
+            engine_version=0.0,
+        )
+        mock_temp_dir.return_value.__enter__.return_value = self.temp_dir.name
+
+        mock_eng_cmd.ra = (
+            "",
+            "",
+        )
+        mock_eng_cmd.side_effect = self.run_engine_side_effect(self.temp_dir.name)
+        mock_eng_cmd.side_effect = ConfigValidationException("test", "", "")
+        with self.assertRaises(FailedRunException) as fre:
+            await run_engine(request)
+            self.assertEqual(fre.error_type, "ConfigValidationException")
+        mock_temp_dir.assert_called_once()
+        mock_eng_cmd.assert_called_once_with(
+            "Run",
+            "--input-graph",
+            f"{self.temp_dir.name}/graph.yaml",
+            "--constraints",
+            f"{self.temp_dir.name}/constraints.yaml",
+            "--provider",
+            "aws",
+            "--output-dir",
+            self.temp_dir.name,
+            cwd=PosixPath(self.temp_dir.name),
         )

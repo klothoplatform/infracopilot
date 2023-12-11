@@ -6,6 +6,8 @@ import { CollectionTypes } from "../../shared/resources/ResourceTypes";
 import type { FC, ReactNode } from "react";
 import React from "react";
 import { ConfigField } from "./ConfigField";
+import { useFormState } from "react-hook-form";
+import useApplicationStore from "../../pages/store/ApplicationStore";
 
 type ConfigGroupProps = {
   qualifiedFieldName?: string;
@@ -61,6 +63,9 @@ export const ConfigGroup: FC<ConfigGroupProps> = ({
         </div>,
       );
     });
+
+
+  
 
   return <>{rows}</>;
 };

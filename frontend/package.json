@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@auth0/auth0-react": "^2.2.1",
+    "@hookform/error-message": "^2.0.1",
     "@segment/analytics-next": "^1.59.0",
     "autoprefixer": "^10.4.16",
     "axios": "^1.5.0",

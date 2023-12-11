@@ -3,7 +3,9 @@ import { Button, Checkbox, Dropdown, Label, TextInput } from "flowbite-react";
 import type { FC, PropsWithChildren } from "react";
 import React, { Fragment, useCallback, useEffect, useState } from "react";
 
-import { type RegisterOptions, useFormContext } from "react-hook-form";
+import { type RegisterOptions, useFormContext, useFormState, FieldError } from "react-hook-form";
+import { ErrorMessage } from '@hookform/error-message';
+
 import useApplicationStore from "../../pages/store/ApplicationStore";
 import { NodeId } from "../../shared/architecture/TopologyNode";
 import { ListField } from "./ListField";
