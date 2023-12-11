@@ -46,25 +46,16 @@ class Architecture(Base):
         return f"architecture:{self.id}"
 
 
-async def generate_architecture_stack_name(id: str) -> str:
+async def delete_future_states(id: str, state: int):
     stmt = (
         select(Architecture)
         .where(Architecture.id == id)
-        .order_by(Architecture.state.desc())
-        .limit(1)
+        .where(Architecture.state > state)
     )
-    result = session.execute(statement=stmt).fetchone()
-    if result is None:
-        raise Exception(f"Architecture with id, {id}, does not exist")
-    architecture: Architecture = result[0]
-    name = architecture.name if architecture.name is not None else architecture.id
-    stack_name = re.sub(r"[^a-zA-Z0-9\-_]", "", name)
-    architecture.extraFields = (
-        {} if architecture.extraFields is None else architecture.extraFields
-    )
-    architecture.extraFields[ExtraFieldKeys.STACK_NAME.value] = stack_name
+    result = session.execute(statement=stmt).fetchall()
+    for r in result:
+        session.delete(r[0])
     session.commit()
-    return stack_name
 
 
 async def delete_architecture(id: str):
@@ -87,6 +78,38 @@ async def get_architecture_latest(id: str) -> Architecture:
         .where(Architecture.id == id)
         .order_by(Architecture.state.desc())
         .limit(1)
+    )
+    result = session.execute(statement=stmt).fetchone()
+    return None if result is None else result[0]
+
+
+async def get_architecture_at_state(id: str, state: int) -> Architecture:
+    stmt = (
+        select(Architecture)
+        .where(Architecture.id == id)
+        .where(Architecture.state == state)
+    )
+    result = session.execute(statement=stmt).fetchone()
+    return None if result is None else result[0]
+
+
+async def get_previous_state(id: str, state: int) -> Architecture:
+    stmt = (
+        select(Architecture)
+        .where(Architecture.id == id)
+        .where(Architecture.state < state)
+        .order_by(Architecture.state.desc())
+    )
+    result = session.execute(statement=stmt).fetchone()
+    return None if result is None else result[0]
+
+
+async def get_next_state(id: str, state: int) -> Architecture:
+    stmt = (
+        select(Architecture)
+        .where(Architecture.id == id)
+        .where(Architecture.state > state)
+        .order_by(Architecture.state.asc())
     )
     result = session.execute(statement=stmt).fetchone()
     return None if result is None else result[0]

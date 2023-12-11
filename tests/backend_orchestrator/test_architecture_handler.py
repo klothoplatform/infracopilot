@@ -10,6 +10,8 @@ from fastapi.responses import JSONResponse
 
 from src.backend_orchestrator.architecture_handler import (
     copilot_clone_architecture,
+    copilot_get_previous_state,
+    copilot_get_next_state,
     copilot_new_architecture,
     copilot_get_resource_types,
     CreateArchitectureRequest,
@@ -106,6 +108,140 @@ class TestGetState(aiounittest.AsyncTestCase):
         result = await copilot_get_state(self.test_id)
         mock_fs.assert_called_once_with(self.test_architecture)
         mock_latest.assert_called_once_with(self.test_id)
+        mock_get_architecture_changelog_history.assert_called_once_with(self.test_id)
+        response = jsons.loads(result.body.decode("utf-8"))
+        self.assertEqual(response["id"], "test-id")
+        self.assertEqual(
+            response["state"],
+            {
+                "resources_yaml": "test-yaml",
+                "topology_yaml": "test-yaml",
+            },
+        )
+        self.assertEqual(response["decisions"], [{"id": "test"}])
+
+
+class TestGetPreviousState(aiounittest.AsyncTestCase):
+    test_id = "test-id"
+    test_architecture = Architecture(
+        id=test_id,
+        name="test-new",
+        state=1,
+        constraints={},
+        owner="test-owner",
+        created_at=mock.ANY,
+        updated_by="test-owner",
+        engine_version=0.0,
+        decisions=[{"id": "test"}],
+    )
+    test_architecture_1 = Architecture(
+        id=test_id,
+        name="test-new",
+        state=2,
+        constraints={},
+        owner="test-owner",
+        created_at=mock.ANY,
+        updated_by="test-owner",
+        engine_version=0.0,
+        decisions=[{"id": "test"}],
+    )
+    test_result = RunEngineResult(
+        resources_yaml="test-yaml",
+        topology_yaml="test-yaml",
+        iac_topology="test-yaml",
+    )
+
+    @mock.patch(
+        "src.backend_orchestrator.architecture_handler.get_architecture_changelog_history",
+        new_callable=mock.AsyncMock,
+    )
+    @mock.patch(
+        "src.backend_orchestrator.architecture_handler.get_previous_state",
+        new_callable=mock.AsyncMock,
+    )
+    @mock.patch(
+        "src.backend_orchestrator.architecture_handler.get_state_from_fs",
+        new_callable=mock.AsyncMock,
+    )
+    async def test_copilot_get_previous_state(
+        self,
+        mock_get_state_from_fs: mock.Mock,
+        mock_get_previous_state: mock.Mock,
+        mock_get_architecture_changelog_history: mock.Mock,
+    ):
+        mock_get_state_from_fs.return_value = self.test_result
+        mock_get_previous_state.return_value = self.test_architecture
+        mock_get_architecture_changelog_history.return_value = [{"id": "test"}]
+        result = await copilot_get_previous_state(self.test_id, 2)
+        mock_get_state_from_fs.assert_called_once_with(self.test_architecture)
+        mock_get_previous_state.assert_called_once_with(self.test_id, 2)
+        mock_get_architecture_changelog_history.assert_called_once_with(self.test_id)
+        response = jsons.loads(result.body.decode("utf-8"))
+        self.assertEqual(response["id"], "test-id")
+        self.assertEqual(
+            response["state"],
+            {
+                "resources_yaml": "test-yaml",
+                "topology_yaml": "test-yaml",
+            },
+        )
+        self.assertEqual(response["decisions"], [{"id": "test"}])
+
+
+class TestGetNextState(aiounittest.AsyncTestCase):
+    test_id = "test-id"
+    test_architecture = Architecture(
+        id=test_id,
+        name="test-new",
+        state=1,
+        constraints={},
+        owner="test-owner",
+        created_at=mock.ANY,
+        updated_by="test-owner",
+        engine_version=0.0,
+        decisions=[{"id": "test"}],
+    )
+    test_architecture_1 = Architecture(
+        id=test_id,
+        name="test-new",
+        state=2,
+        constraints={},
+        owner="test-owner",
+        created_at=mock.ANY,
+        updated_by="test-owner",
+        engine_version=0.0,
+        decisions=[{"id": "test"}],
+    )
+    test_result = RunEngineResult(
+        resources_yaml="test-yaml",
+        topology_yaml="test-yaml",
+        iac_topology="test-yaml",
+    )
+
+    @mock.patch(
+        "src.backend_orchestrator.architecture_handler.get_architecture_changelog_history",
+        new_callable=mock.AsyncMock,
+    )
+    @mock.patch(
+        "src.backend_orchestrator.architecture_handler.get_next_state",
+        new_callable=mock.AsyncMock,
+    )
+    @mock.patch(
+        "src.backend_orchestrator.architecture_handler.get_state_from_fs",
+        new_callable=mock.AsyncMock,
+    )
+    async def test_copilot_get_next_state(
+        self,
+        mock_get_state_from_fs: mock.Mock,
+        mock_get_next_state: mock.Mock,
+        mock_get_architecture_changelog_history: mock.Mock,
+    ):
+        mock_get_state_from_fs.return_value = self.test_result
+        mock_get_next_state.return_value = self.test_architecture
+        mock_get_architecture_changelog_history.return_value = [{"id": "test"}]
+        result = await copilot_get_next_state(self.test_id, 1)
+        mock_get_state_from_fs.assert_called_once_with(self.test_architecture)
+        mock_get_next_state.assert_called_once_with(self.test_id, 1)
         mock_get_architecture_changelog_history.assert_called_once_with(self.test_id)
         response = jsons.loads(result.body.decode("utf-8"))
         self.assertEqual(response["id"], "test-id")

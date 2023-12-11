@@ -3,12 +3,15 @@ from src.util.orm import Base, engine, session
 from src.state_manager.architecture_data import (
     Architecture,
     delete_architecture,
-    generate_architecture_stack_name,
+    delete_future_states,
+    get_architecture_at_state,
     get_architecture_changelog_history,
     get_architecture_latest,
     get_architecture_history,
     add_architecture,
     get_architectures_by_owner,
+    get_next_state,
+    get_previous_state,
 )
 import aiounittest
 
@@ -54,6 +57,25 @@ class TestArchitectureData(aiounittest.AsyncTestCase):
     def tearDown(self):
         self.session.query(Architecture).delete()
 
+    async def test_can_delete_future_states(self):
+        await delete_future_states("test", 1)
+        result = await get_architecture_history("test")
+        self.assertEqual(
+            result,
+            [
+                Architecture(
+                    id="test",
+                    state=1,
+                    owner="user:bob",
+                    engine_version=1.0,
+                    constraints={},
+                    decisions=[{"id": "test"}],
+                    created_at=1,
+                    updated_by="bob",
+                )
+            ],
+        )
+
     async def test_delete_architecture(self):
         await delete_architecture("test")
         result = await get_architecture_latest("test")
@@ -78,9 +100,48 @@ class TestArchitectureData(aiounittest.AsyncTestCase):
             ),
         )
 
-    async def test_generate_architecture_stack_name(self):
-        await generate_architecture_stack_name("test")
-        result = await get_architecture_latest("test")
+    async def test_can_get_architecture_at_state(self):
+        result = await get_architecture_at_state("test", 1)
+        self.assertEqual(
+            result,
+            Architecture(
+                id="test",
+                state=1,
+                owner="user:bob",
+                engine_version=1.0,
+                constraints={},
+                decisions=[{"id": "test"}],
+                created_at=1,
+                updated_by="bob",
+            ),
+        )
+
+    async def test_get_architecture_at_state_none_exist(self):
+        result = await get_architecture_at_state("test", 3)
+        self.assertIsNone(result)
+
+    async def test_get_previous_state(self):
+        result = await get_previous_state("test", 2)
+        self.assertEqual(
+            result,
+            Architecture(
+                id="test",
+                state=1,
+                owner="user:bob",
+                engine_version=1.0,
+                constraints={},
+                decisions=[{"id": "test"}],
+                created_at=1,
+                updated_by="bob",
+            ),
+        )
+
+    async def test_get_previous_state_none_exist(self):
+        result = await get_previous_state("test", 1)
+        self.assertIsNone(result)
+
+    async def test_get_next_state(self):
+        result = await get_next_state("test", 1)
         self.assertEqual(
             result,
             Architecture(
@@ -89,41 +150,15 @@ class TestArchitectureData(aiounittest.AsyncTestCase):
                 owner="user:bob",
                 engine_version=1.0,
                 constraints={},
+                decisions=[{"id": "another test"}],
                 created_at=1,
                 updated_by="bob",
-                extraFields={"stack_name": "test"},
             ),
         )
 
-    async def test_generate_architecture_stack_name_gets_sanitized(self):
-        self.session.add(
-            Architecture(
-                id="test",
-                name="asjh@#$ flkjsn 1234",
-                state=3,
-                owner="user:bob",
-                engine_version=1.0,
-                constraints={},
-                created_at=1,
-                updated_by="bob",
-                decisions=[{"id": "another test"}],
-            )
-        )
-        await generate_architecture_stack_name("test")
-        result = await get_architecture_latest("test")
-        self.assertEqual(
-            result,
-            Architecture(
-                id="test",
-                state=3,
-                owner="user:bob",
-                engine_version=1.0,
-                constraints={},
-                created_at=1,
-                updated_by="bob",
-                extraFields={"stack_name": "asjhflkjsn1234"},
-            ),
-        )
+    async def test_get_next_state_none_exist(self):
+        result = await get_next_state("test", 2)
+        self.assertIsNone(result)
 
     async def test_can_get_architecture_history(self):
         result = await get_architecture_history("test")

@@ -16,6 +16,8 @@ from src.engine_service.engine_commands.run import (
 )
 from src.guardrails_manager.guardrails_store import get_guardrails
 from src.state_manager.architecture_data import (
+    delete_future_states,
+    get_architecture_at_state,
     get_architecture_latest,
     add_architecture,
     Architecture,
@@ -31,21 +33,30 @@ log = logging.getLogger(__name__)
 
 class CopilotRunRequest(BaseModel):
     constraints: List[dict]
+    overwrite: bool = False
 
 
 async def copilot_run(
     id: str, state: int, body: CopilotRunRequest, accept: Optional[str] = None
 ):
     try:
-        architecture = await get_architecture_latest(id)
-        if architecture is None:
+        latest_architecture = await get_architecture_latest(id)
+        if latest_architecture is None:
             raise ArchitectureStateDoesNotExistError(
-                "Architecture with id, {request.architecture_id}, does not exist"
+                "Architecture with id, {id}, does not exist"
             )
-        elif architecture.state != state:
-            raise ArchitecutreStateNotLatestError(
-                f"Architecture state is not the latest. Expected {architecture.state}, got {state}"
-            )
+        if not body.overwrite:
+            architecture = latest_architecture
+            if architecture.state != state:
+                raise ArchitecutreStateNotLatestError(
+                    f"Architecture state is not the latest. Expected {architecture.state}, got {state}"
+                )
+        else:
+            architecture = await get_architecture_at_state(id, state)
+            if architecture is None:
+                raise ArchitectureStateDoesNotExistError(
+                    "Architecture with id, {id}, and state, {state} does not exist"
+                )
 
         guardrails = await get_guardrails(architecture.owner)
         input_graph = await get_state_from_fs(architecture)
@@ -62,7 +73,7 @@ async def copilot_run(
         arch = Architecture(
             id=id,
             name=architecture.name,
-            state=state + 1,
+            state=latest_architecture.state + 1,
             constraints=body.constraints,
             owner=architecture.owner,
             created_at=architecture.created_at,
@@ -73,6 +84,8 @@ async def copilot_run(
         state_location = await write_state_to_fs(arch, result)
         arch.state_location = state_location
         await add_architecture(arch)
+        if body.overwrite:
+            await delete_future_states(id, state)
         return Response(
             headers={
                 "Content-Type": "application/octet-stream"
@@ -82,6 +95,7 @@ async def copilot_run(
             content=jsons.dumps(
                 {
                     "id": arch.id,
+                    "version": arch.state,
                     "name": arch.name,
                     "owner": arch.owner,
                     "engineVersion": arch.engine_version,

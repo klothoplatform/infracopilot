@@ -16,6 +16,8 @@ from src.guardrails_manager.guardrails_store import get_guardrails
 from src.state_manager.architecture_data import (
     get_architecture_changelog_history,
     get_architecture_latest,
+    get_previous_state,
+    get_next_state,
     add_architecture,
     Architecture,
 )
@@ -81,6 +83,7 @@ async def copilot_get_state(id: str, accept: Optional[str] = None):
         decisions = await get_architecture_changelog_history(id)
         payload = {
             "id": arch.id,
+            "version": arch.state,
             "name": arch.name,
             "owner": arch.owner,
             "engineVersion": arch.engine_version,
@@ -108,6 +111,68 @@ async def copilot_get_state(id: str, accept: Optional[str] = None):
         raise HTTPException(status_code=500, detail="internal server error")
 
 
+async def copilot_get_previous_state(id: str, state: int, accept: Optional[str] = None):
+    arch = await get_previous_state(id, state)
+    if arch is None:
+        raise HTTPException(status_code=404, detail="Architecture state not found")
+    state = await get_state_from_fs(arch)
+    decisions = await get_architecture_changelog_history(id)
+    payload = {
+        "id": arch.id,
+        "version": arch.state,
+        "name": arch.name,
+        "owner": arch.owner,
+        "engineVersion": arch.engine_version,
+        "version": arch.state if arch.state is not None else 0,
+        "decisions": decisions,
+        "state": {
+            "resources_yaml": state.resources_yaml,
+            "topology_yaml": state.topology_yaml,
+        }
+        if state is not None
+        else None,
+    }
+    return (
+        Response(
+            headers={"Content-Type": "application/octet-stream"},
+            content=jsons.dumps(payload),
+        )
+        if accept == "application/octet-stream"
+        else JSONResponse(content=jsons.dump(payload))
+    )
+
+
+async def copilot_get_next_state(id: str, state: int, accept: Optional[str] = None):
+    arch = await get_next_state(id, state)
+    if arch is None:
+        raise HTTPException(status_code=404, detail="Architecture state not found")
+    state = await get_state_from_fs(arch)
+    decisions = await get_architecture_changelog_history(id)
+    payload = {
+        "id": arch.id,
+        "version": arch.state,
+        "name": arch.name,
+        "owner": arch.owner,
+        "engineVersion": arch.engine_version,
+        "version": arch.state if arch.state is not None else 0,
+        "decisions": decisions,
+        "state": {
+            "resources_yaml": state.resources_yaml,
+            "topology_yaml": state.topology_yaml,
+        }
+        if state is not None
+        else None,
+    }
+    return (
+        Response(
+            headers={"Content-Type": "application/octet-stream"},
+            content=jsons.dumps(payload),
+        )
+        if accept == "application/octet-stream"
+        else JSONResponse(content=jsons.dump(payload))
+    )
+
+
 async def rename_architecture(id: str, name: str, accept: Optional[str] = None):
     try:
         arch = await get_architecture_latest(id)
@@ -123,6 +188,7 @@ async def rename_architecture(id: str, name: str, accept: Optional[str] = None):
         decisions = await get_architecture_changelog_history(id)
         payload = {
             "id": arch.id,
+            "version": arch.state,
             "name": name,
             "owner": arch.owner,
             "engineVersion": arch.engine_version,
