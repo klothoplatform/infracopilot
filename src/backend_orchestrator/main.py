@@ -19,6 +19,9 @@ from src.backend_orchestrator.architecture_handler import (
     copilot_get_resource_types,
     copilot_list_architectures,
     copilot_new_architecture,
+    copilot_get_next_state,
+    copilot_get_previous_state,
+    rename_architecture,
     CreateArchitectureRequest,
     rename_architecture,
 )
@@ -135,6 +138,38 @@ async def get_state(request: Request, id: str):
         )
     accept = request.headers.get("accept")
     return await copilot_get_state(id, accept)
+
+
+@app.get("/api/architecture/{id}/{state}/prev")
+async def get_previous_state(request: Request, id: str, state: int):
+    user_id = get_user_id(request)
+    authorized = await can_read_architecture(User(id=user_id), id)
+    if not authorized:
+        raise AuthError(
+            detail=f"User {user_id} is not authorized to read architecture {id}",
+            error={
+                "code": "unauthorized",
+                "description": f"User is not authorized to write to architecture {id}",
+            },
+        )
+    accept = request.headers.get("accept")
+    return await copilot_get_previous_state(id, state, accept)
+
+
+@app.get("/api/architecture/{id}/{state}/next")
+async def get_previous_state(request: Request, id: str, state: int):
+    user_id = get_user_id(request)
+    authorized = await can_read_architecture(User(id=user_id), id)
+    if not authorized:
+        raise AuthError(
+            detail=f"User {user_id} is not authorized to read architecture {id}",
+            error={
+                "code": "unauthorized",
+                "description": f"User is not authorized to write to architecture {id}",
+            },
+        )
+    accept = request.headers.get("accept")
+    return await copilot_get_next_state(id, state, accept)
 
 
 @app.get("/api/architecture/{id}/resource_types")
