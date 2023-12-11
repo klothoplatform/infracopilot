@@ -105,7 +105,7 @@ async def run_engine(request: RunEngineRequest) -> RunEngineResult:
             with open(dir / "resources.yaml") as file:
                 resources_yaml = file.read()
 
-            config_errors_json = {}
+            config_errors_json = []
             if "config_errors.json" in os.listdir(tmp_dir):
                 with open(dir / "config_errors.json") as file:
                     raw_str = file.read()
@@ -118,7 +118,7 @@ async def run_engine(request: RunEngineRequest) -> RunEngineResult:
                 config_errors_json=config_errors_json,
             )
         except ConfigValidationException as cve:
-            config_errors_json = {}
+            config_errors_json = []
             if "config_errors.json" in os.listdir(tmp_dir):
                 with open(dir / "config_errors.json") as file:
                     raw_str = file.read()
