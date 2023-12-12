@@ -63,6 +63,7 @@ const AccountDropdown: FC = function () {
 
   return (
     <Dropdown
+      className="z-50"
       arrowIcon={false}
       inline
       label={
