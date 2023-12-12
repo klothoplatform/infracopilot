@@ -1,5 +1,10 @@
 import { type FC, type PropsWithChildren, useState } from "react";
-import { DarkThemeToggle, Dropdown, Navbar } from "flowbite-react";
+import {
+  DarkThemeToggle,
+  Dropdown,
+  Navbar,
+  useThemeMode,
+} from "flowbite-react";
 import LoginButton from "../auth/Login";
 import useApplicationStore from "../pages/store/ApplicationStore";
 import { Link } from "react-router-dom";
@@ -8,6 +13,7 @@ interface NavbarProps {}
 
 const NavBar: FC<PropsWithChildren<NavbarProps>> = function ({ children }) {
   const { user, isAuthenticated } = useApplicationStore();
+  const [mode, setMode, toggleMode] = useThemeMode();
 
   return (
     <Navbar fluid>
@@ -25,7 +31,13 @@ const NavBar: FC<PropsWithChildren<NavbarProps>> = function ({ children }) {
           <div className="w-full items-start">{children}</div>
           <div className="flex items-center lg:gap-3">
             <div className="flex items-center">
-              <DarkThemeToggle />
+              <DarkThemeToggle
+                onClick={() => {
+                  let newMode = mode == "dark" ? "light" : "dark";
+                  localStorage.setItem("theme", newMode);
+                  toggleMode();
+                }}
+              />
             </div>
             <div className="hidden lg:block">
               {isAuthenticated && user ? <AccountDropdown /> : <LoginButton />}
