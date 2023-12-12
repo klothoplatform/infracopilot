@@ -4,6 +4,12 @@ from sqlalchemy import select, JSON
 from src.util.entity import Entity
 from src.util.orm import Base, session
 from typing import Any, List
+import re
+from enum import Enum
+
+
+class ExtraFieldKeys(Enum):
+    STACK_NAME = "stack_name"
 
 
 class Architecture(Base):
@@ -38,6 +44,27 @@ class Architecture(Base):
 
     def __str__(self):
         return f"architecture:{self.id}"
+
+
+async def generate_architecture_stack_name(id: str) -> str:
+    stmt = (
+        select(Architecture)
+        .where(Architecture.id == id)
+        .order_by(Architecture.state.desc())
+        .limit(1)
+    )
+    result = session.execute(statement=stmt).fetchone()
+    if result is None:
+        raise Exception(f"Architecture with id, {id}, does not exist")
+    architecture: Architecture = result[0]
+    name = architecture.name if architecture.name is not None else architecture.id
+    stack_name = re.sub(r"[^a-zA-Z0-9\-_]", "", name)
+    architecture.extraFields = (
+        {} if architecture.extraFields is None else architecture.extraFields
+    )
+    architecture.extraFields[ExtraFieldKeys.STACK_NAME.value] = stack_name
+    session.commit()
+    return stack_name
 
 
 async def delete_architecture(id: str):
