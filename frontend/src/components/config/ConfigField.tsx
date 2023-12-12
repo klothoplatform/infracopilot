@@ -35,7 +35,6 @@ export interface ConfigFieldProps {
   valueSelector?: string;
 }
 
-
 type InputProps = {
   qualifiedFieldName: string;
   rules?: RegisterOptions;
@@ -48,7 +47,8 @@ type TextProps = TextInputProps & ConfigFieldProps;
 
 type NumberProps = {
   field: NumberProperty;
-} & TextInputProps & ConfigFieldProps;
+} & TextInputProps &
+  ConfigFieldProps;
 
 type BooleanProps = {
   error?: any;
@@ -285,14 +285,18 @@ export const NumberField: FC<NumberProps> = ({
       inputMode="numeric"
       type="number"
       rules={{
-        min: field.minValue ?  {
-          value: field.minValue,
-          message: `Value must be at least ${field.minValue}`,
-        }: undefined,
-        max: field.maxValue ? {
-          value: field.maxValue,
-          message: `Value must be at most ${field.maxValue}`,
-        } : undefined,
+        min: field.minValue
+          ? {
+              value: field.minValue,
+              message: `Value must be at least ${field.minValue}`,
+            }
+          : undefined,
+        max: field.maxValue
+          ? {
+              value: field.maxValue,
+              message: `Value must be at most ${field.maxValue}`,
+            }
+          : undefined,
       }}
       valueSelector={valueSelector}
       required={field.required}
@@ -316,14 +320,18 @@ export const IntField: FC<NumberProps> = ({
       type="number"
       step="1"
       rules={{
-        min: field.minValue ?  {
-          value: field.minValue,
-          message: `Value must be at least ${field.minValue}`,
-        }: undefined,
-        max: field.maxValue ? {
-          value: field.maxValue,
-          message: `Value must be at most ${field.maxValue}`,
-        } : undefined,
+        min: field.minValue
+          ? {
+              value: field.minValue,
+              message: `Value must be at least ${field.minValue}`,
+            }
+          : undefined,
+        max: field.maxValue
+          ? {
+              value: field.maxValue,
+              message: `Value must be at most ${field.maxValue}`,
+            }
+          : undefined,
       }}
       valueSelector={valueSelector}
       required={field.required}
@@ -476,7 +484,7 @@ export const ResourceField: FC<ResourceProps> = ({
           )}
         </Dropdown>
       </ErrorHelper>
-      {watchValue?.length && (
+      {!!watchValue?.length && (
         <Button
           title={"Show this resource"}
           className={"h-[16px] w-[16px] rounded-md"}
