@@ -60,12 +60,23 @@
     .react-flow__edge:focus marker {
       fill: var(--connection-color);
     }
+  }
+}
 
-    // TODO: style the react flow controls for dark mode
-    //.react-flow__controls-button {
-    //  background: #a2a2a2 !important;
-    //  border-bottom-color: #252525 !important;
-    //}
+.dark {
+  .react-flow__controls-button {
+    background: theme('colors.gray.800') !important;
+    border-bottom-color: theme('colors.gray.900') !important;
+    fill: theme('colors.gray.300') !important;
+    stroke: theme('colors.gray.300') !important;
   }
 
+  .react-flow__controls-button:disabled {
+    fill: theme('colors.gray.500') !important;
+    stroke: theme('colors.gray.500') !important;
+
+    svg {
+      fill-opacity: 1 !important;
+    }
+  }
 }
