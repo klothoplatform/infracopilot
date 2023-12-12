@@ -81,7 +81,6 @@ async def run_engine_command(*args, **kwargs) -> tuple[str, str]:
         engine_executable_path,
         *args,
     ]
-    print("Running engine command: %s", " ".join(cmd))
     log.debug("Running engine command: %s", " ".join(cmd))
 
     result = subprocess.run(cmd, capture_output=True, cwd=cwd, env=env)

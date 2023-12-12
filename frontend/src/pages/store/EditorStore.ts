@@ -65,9 +65,14 @@ import { customConfigMappings } from "../ArchitectureEditor/config/CustomConfigM
 import modifyArchitecture from "../../api/ModifyArchitecture";
 import { getValidEdgeTargets } from "../../api/GetValidEdgeTargets";
 import { ApplicationError } from "../../shared/errors";
+import { getNextState } from "../../api/GetNextState";
+import { getPrevState } from "../../api/GetPreviousState";
 
 interface EditorStoreState {
   architecture: Architecture;
+  previousState?: Architecture;
+  nextState?: Architecture;
+  willOverwriteState: boolean;
   canApplyConstraints: boolean;
   connectionSourceId?: string;
   decisions: Decision[];
@@ -122,6 +127,7 @@ const initialState: () => EditorStoreState = () => ({
     },
   },
   failures: [],
+  willOverwriteState: false,
   isEditorInitialized: false,
   isEditorInitializing: false,
   selectedNode: undefined,
@@ -183,6 +189,8 @@ interface EditorStoreActions {
   updateEdgeTargets: (sources?: NodeId[]) => Promise<void>;
   navigateBackRightSidebar: () => void;
   navigateForwardRightSidebar: () => void;
+  goToPreviousState: () => Promise<void>;
+  goToNextState: () => Promise<void>;
 }
 
 type EditorStoreBase = EditorStoreState & EditorStoreActions;
@@ -419,6 +427,15 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       ArchitectureView.DataFlow,
     );
     const { nodes, edges } = await autoLayout(elements.nodes, elements.edges);
+    (async () => {
+      const nextState = await getNextState(architecture.id, await get().getIdToken(), architecture.version);
+      const prevState = await getPrevState(architecture.id, await get().getIdToken(), architecture.version);
+      set({
+        nextState: nextState,
+        previousState: prevState,
+        willOverwriteState: nextState === undefined,
+      });
+    })();
     set(
       {
         architecture: architecture,
@@ -585,10 +602,22 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     }
     await get().applyConstraints();
   },
-  applyConstraints: async (constraints?: Constraint[]) => {
+  clearAttemptedOverwrite: () => {
+    set(
+      {
+        attemptedOverwrite: false,
+        unappledConstraints: [],
+        canOverwriteState: false,
+      },
+      false,
+      "editor/clearAttemptedOverwrite",
+    );
+  },
+  applyConstraints: async (constraints?: Constraint[], overwrite?: boolean) => {
     if (!get().canApplyConstraints) {
       throw new Error("cannot apply constraints, already applying");
     }
+    
     const architecture = get().architecture;
     if (!architecture) {
       throw new Error("cannot apply constraints, no architecture in context");
@@ -596,18 +625,32 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
 
     let navigateToChanges = true;
 
+    const allConstraints = [
+      ...get().unappliedConstraints,
+      ...(constraints ?? []),
+    ];
+
+    if (get().willOverwriteState && !get().canOverwriteState && !overwrite) {
+      set({
+        attemptedOverwrite: true,
+        unappliedConstraints: allConstraints,
+      })
+      return [];
+    }
+
     try {
       set(
         {
           canApplyConstraints: false,
+          attemptedOverwrite: false,
+          canOverwriteState: false
         },
         false,
         "editor/applyConstraints:start",
       );
-      const allConstraints = [
-        ...get().unappliedConstraints,
-        ...(constraints ?? []),
-      ];
+     
+
+
       console.log("applying constraints", allConstraints);
 
       const response = await applyConstraints(
@@ -615,6 +658,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
         architecture.version,
         allConstraints,
         await get().getIdToken(),
+        get().willOverwriteState,
       );
       console.log("response from apply constraints", response);
       if (response.errorType == ApplyConstraintsErrorType.ConfigValidation) {
@@ -678,7 +722,10 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
           unappliedConstraints: [],
           canApplyConstraints: true,
           edgeTargetState: initialState().edgeTargetState,
+          previousState: get().architecture,
+          nextState: undefined,
           architecture: response.architecture,
+          willOverwriteState: false,
         },
         false,
         "editor/applyConstraints:end",
@@ -1106,4 +1153,58 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     }
     return targets.includes(targetId);
   },
+  goToPreviousState: async (): Promise<void> => {
+    const prev = get().previousState!;
+    const resourceTypeKB = await get().resourceTypeKB
+    const elements = toReactFlowElements(
+      prev,
+      resourceTypeKB,
+      ArchitectureView.DataFlow,
+    );
+    const { nodes, edges } = await autoLayout(elements.nodes, elements.edges);
+    set({
+      architecture: prev,
+      nextState: get().architecture,
+      willOverwriteState: true,
+      nodes,
+      edges,
+    })
+    try {
+      const newPrev = await getPrevState(get().architecture.id, await get().getIdToken(), get().previousState!.version);
+      set({
+        previousState: newPrev,
+      })
+    } catch (e) {
+      set({
+        previousState: undefined,
+      })
+    }
+  },
+  goToNextState: async (): Promise<void> => {
+    const next = get().nextState!;
+    const resourceTypeKB = await get().resourceTypeKB
+    const elements = toReactFlowElements(
+      next,
+      resourceTypeKB,
+      ArchitectureView.DataFlow,
+    );
+    const { nodes, edges } = await autoLayout(elements.nodes, elements.edges);
+    set({
+      architecture: next,
+      previousState: get().architecture,
+      nodes,
+      edges,
+    })
+    try {
+      const newNext = await getNextState(get().architecture.id, await get().getIdToken(), get().nextState!.version);
+      set({
+        nextState: newNext,
+        willOverwriteState: newNext !== undefined,
+      })
+    } catch (e) {
+      set({
+        nextState: undefined,
+      })
+    }
+  }
 });

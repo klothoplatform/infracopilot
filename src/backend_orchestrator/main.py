@@ -89,6 +89,7 @@ async def run(
             },
         )
     accept = request.headers.get("accept")
+    print(body)
     return await copilot_run(id, state, body, accept)
 
 

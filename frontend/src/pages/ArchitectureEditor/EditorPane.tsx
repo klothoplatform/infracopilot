@@ -4,6 +4,7 @@ import ReactFlow, {
   BackgroundVariant,
   ConnectionLineType,
   Controls,
+  Panel,
   useReactFlow,
   useStore,
 } from "reactflow";
@@ -25,6 +26,8 @@ import { trackError } from "../store/ErrorStore";
 import ConnectionLine from "../../shared/reactflow/ConnectionLine";
 import { shallow } from "zustand/shallow";
 import classNames from "classnames";
+import { VersionNavigator } from "./VersionNavigation";
+import OverwriteWarningModal from "../../components/OverwriteWarningModal";
 
 export default function EditorPane() {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
@@ -45,6 +48,7 @@ export default function EditorPane() {
     deselectNode,
     deselectEdge,
     addError,
+    architecture,
   } = useApplicationStore();
 
   const connectionNodeId = useStore((s) => s.connectionNodeId, shallow);
@@ -292,9 +296,13 @@ export default function EditorPane() {
             "[&_div]:cursor-crosshair": isConnecting, // overrides the default grab cursor when you're connecting nodes
           })}
         >
+          <OverwriteWarningModal 
+            name={architecture.name}
+          />
           <Background variant={BackgroundVariant.Dots} gap={25} size={1} />
           {menu && <ContextMenu {...menu} />}
-          <Controls />
+          <Controls/>
+          <VersionNavigator/>
         </ReactFlow>
         <WorkingOverlay show={showSpinner} message={"Autocompleting..."} />
       </div>
