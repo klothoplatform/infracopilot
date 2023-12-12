@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import useApplicationStore from "../../pages/store/ApplicationStore";
 import modifyArchitecture from "../../api/ModifyArchitecture";
 import { UIError } from "../../shared/errors";
+import { AiOutlineLoading } from "react-icons/ai";
 
 interface ModifyArchitectureModalProps {
   onClose: () => void;
@@ -30,10 +31,12 @@ export default function NewArchitectureModal({
     formState: { errors },
   } = useForm<ModifyArchitectureFormState>({ defaultValues: { name: name } });
 
-  const { getIdToken, getArchitectures, addError, architecture } = useApplicationStore();
-
+  const { getIdToken, getArchitectures, addError, architecture } =
+    useApplicationStore();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const onSubmit = async (state: ModifyArchitectureFormState) => {
     let success = false;
+    setIsSubmitting(true);
     try {
       await modifyArchitecture({
         name: state.name,
@@ -59,10 +62,13 @@ export default function NewArchitectureModal({
           },
         }),
       );
+    } finally {
+      setIsSubmitting(false);
     }
     if (success) {
-      await getArchitectures(true);
       onClose();
+      reset();
+      await getArchitectures(true);
     }
   };
 
@@ -79,7 +85,8 @@ export default function NewArchitectureModal({
     },
     pattern: {
       value: /^[a-zA-Z0-9-_]+$/,
-      message:"Name must only contain alphanumeric characters, dashes and underscores",
+      message:
+        "Name must only contain alphanumeric characters, dashes and underscores",
     },
     onChange: async () => {
       await trigger("name");
@@ -118,10 +125,7 @@ export default function NewArchitectureModal({
       }}
     >
       <form
-        onSubmit={handleSubmit((state) => {
-          onSubmit(state);
-          reset();
-        })}
+        onSubmit={handleSubmit(onSubmit)}
         onReset={() => {
           reset();
           onClose?.();
@@ -158,6 +162,8 @@ export default function NewArchitectureModal({
           <Button
             type="submit"
             color="purple"
+            isProcessing={isSubmitting}
+            processingSpinner={<AiOutlineLoading className="animate-spin" />}
             disabled={Object.entries(errors).length > 0}
           >
             Rename

@@ -18,9 +18,7 @@ export const ExportIacButton: FC<ExportIacButtonProps> = (
   const [isExporting, setIsExporting] = useState(false);
 
   let onClickExportIac = async () => {
-    if (setIsExporting) {
-      setIsExporting(true);
-    }
+    setIsExporting(true);
     try {
       const iacZip = await ExportIaC(
         architecture.id,
@@ -44,9 +42,7 @@ export const ExportIacButton: FC<ExportIacButtonProps> = (
     } finally {
       setTimeout(() => {
         // reduce flickering for fast requests
-        if (setIsExporting) {
-          setIsExporting(false);
-        }
+        setIsExporting(false);
       }, 200);
     }
   };

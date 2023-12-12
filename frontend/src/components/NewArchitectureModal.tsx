@@ -5,6 +5,7 @@ import createArchitecture from "../api/CreateArchitecture";
 import useApplicationStore from "../pages/store/ApplicationStore";
 import { useNavigate } from "react-router-dom";
 import { UIError } from "../shared/errors";
+import { AiOutlineLoading } from "react-icons/ai";
 
 interface NewArchitectureModalProps {
   onClose: () => void;
@@ -30,13 +31,14 @@ export default function NewArchitectureModal({
 
   const { getIdToken, user, resetEditorState, addError } =
     useApplicationStore();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
   let onSubmit = useCallback(
     async (state: NewArchitectureFormState) => {
       let id;
+      setIsSubmitting(true);
       try {
-        onClose();
         const architecture = await createArchitecture({
           name: state.name,
           owner: user?.sub ?? "public",
@@ -53,6 +55,9 @@ export default function NewArchitectureModal({
           }),
         );
       }
+      setIsSubmitting(false);
+      onClose();
+
       if (id) {
         try {
           resetEditorState();
@@ -81,7 +86,8 @@ export default function NewArchitectureModal({
     // Remove any spaces
     pattern: {
       value: /^[a-zA-Z0-9-_]+$/,
-      message:"Name must only contain alphanumeric characters, dashes and underscores",
+      message:
+        "Name must only contain alphanumeric characters, dashes and underscores",
     },
     onChange: async () => {
       await trigger("name");
@@ -155,6 +161,8 @@ export default function NewArchitectureModal({
             type="submit"
             color="purple"
             disabled={Object.entries(errors).length > 0}
+            isProcessing={isSubmitting}
+            processingSpinner={<AiOutlineLoading className="animate-spin" />}
           >
             Create
           </Button>

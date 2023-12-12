@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import useApplicationStore from "../../pages/store/ApplicationStore";
 import deleteArchitecture from "../../api/DeleteArchitecture";
 import { UIError } from "../../shared/errors";
+import { AiOutlineLoading } from "react-icons/ai";
 
 interface DeleteArchitectureModalProps {
   onClose: () => void;
@@ -33,8 +34,10 @@ export default function DeleteArchitectureModal({
 
   const { getIdToken, getArchitectures, addError } = useApplicationStore();
   const watchConfirmation = watch("confirmation");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const onSubmit = async () => {
     let success = false;
+    setIsSubmitting(true);
     try {
       await deleteArchitecture({
         id: id,
@@ -57,10 +60,12 @@ export default function DeleteArchitectureModal({
           },
         }),
       );
+    } finally {
+      setIsSubmitting(false);
     }
     if (success) {
-      await getArchitectures(true);
       onClose();
+      await getArchitectures(true);
     }
   };
 
@@ -149,6 +154,8 @@ export default function DeleteArchitectureModal({
             type="submit"
             color="purple"
             disabled={Object.entries(errors).length > 0 || !watchConfirmation}
+            isProcessing={isSubmitting}
+            processingSpinner={<AiOutlineLoading className="animate-spin" />}
           >
             Delete
           </Button>

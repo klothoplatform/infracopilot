@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import useApplicationStore from "../../pages/store/ApplicationStore";
 import cloneArchitecture from "../../api/CloneArchitecture";
 import { UIError } from "../../shared/errors";
+import { AiOutlineLoading } from "react-icons/ai";
 
 interface CloneArchitectureModalProps {
   onClose: () => void;
@@ -33,9 +34,11 @@ export default function CloneArchitectureModal({
   });
 
   const { getIdToken, getArchitectures, addError } = useApplicationStore();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const onSubmit = async (state: CloneArchitectureFormState) => {
     let success = false;
+    setIsSubmitting(true);
     try {
       await cloneArchitecture({
         id: id,
@@ -61,10 +64,13 @@ export default function CloneArchitectureModal({
           },
         }),
       );
+    } finally {
+      setIsSubmitting(false);
     }
     if (success) {
-      await getArchitectures(true);
       onClose();
+      reset();
+      await getArchitectures(true);
     }
   };
 
@@ -76,8 +82,9 @@ export default function CloneArchitectureModal({
       message: "Name must be at most 80 characters long",
     },
     pattern: {
-        value: /^[a-zA-Z0-9-_]+$/,
-        message:"Name must only contain alphanumeric characters, dashes and underscores",
+      value: /^[a-zA-Z0-9-_]+$/,
+      message:
+        "Name must only contain alphanumeric characters, dashes and underscores",
     },
     onChange: async () => {
       await trigger("name");
@@ -116,10 +123,7 @@ export default function CloneArchitectureModal({
       }}
     >
       <form
-        onSubmit={handleSubmit((state) => {
-          onSubmit(state);
-          reset();
-        })}
+        onSubmit={handleSubmit(onSubmit)}
         onReset={() => {
           reset();
           onClose?.();
@@ -161,6 +165,8 @@ export default function CloneArchitectureModal({
             type="submit"
             color="purple"
             disabled={Object.entries(errors).length > 0}
+            isProcessing={isSubmitting}
+            processingSpinner={<AiOutlineLoading className="animate-spin" />}
           >
             Clone
           </Button>
