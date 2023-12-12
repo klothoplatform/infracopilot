@@ -13,7 +13,7 @@ export async function getPrevState(
 ): Promise<Architecture | undefined> {
   let response: AxiosResponse;
   try {
-    response = await axios.get(`/api/architecture/${id}/${version}/prev`, {
+    response = await axios.get(`/api/architecture/${id}/version/${version}/prev`, {
       responseType: "json",
       decompress: true,
       headers: {

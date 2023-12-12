@@ -89,7 +89,6 @@ async def run(
             },
         )
     accept = request.headers.get("accept")
-    print(body)
     return await copilot_run(id, state, body, accept)
 
 
@@ -141,7 +140,7 @@ async def get_state(request: Request, id: str):
     return await copilot_get_state(id, accept)
 
 
-@app.get("/api/architecture/{id}/{state}/prev")
+@app.get("/api/architecture/{id}/version/{state}/prev")
 async def get_previous_state(request: Request, id: str, state: int):
     user_id = get_user_id(request)
     authorized = await can_read_architecture(User(id=user_id), id)
@@ -157,7 +156,7 @@ async def get_previous_state(request: Request, id: str, state: int):
     return await copilot_get_previous_state(id, state, accept)
 
 
-@app.get("/api/architecture/{id}/{state}/next")
+@app.get("/api/architecture/{id}/version/{state}/next")
 async def get_previous_state(request: Request, id: str, state: int):
     user_id = get_user_id(request)
     authorized = await can_read_architecture(User(id=user_id), id)

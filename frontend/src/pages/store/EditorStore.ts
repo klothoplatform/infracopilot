@@ -602,18 +602,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     }
     await get().applyConstraints();
   },
-  clearAttemptedOverwrite: () => {
-    set(
-      {
-        attemptedOverwrite: false,
-        unappledConstraints: [],
-        canOverwriteState: false,
-      },
-      false,
-      "editor/clearAttemptedOverwrite",
-    );
-  },
-  applyConstraints: async (constraints?: Constraint[], overwrite?: boolean) => {
+  applyConstraints: async (constraints?: Constraint[]) => {
     if (!get().canApplyConstraints) {
       throw new Error("cannot apply constraints, already applying");
     }
@@ -630,20 +619,11 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       ...(constraints ?? []),
     ];
 
-    if (get().willOverwriteState && !get().canOverwriteState && !overwrite) {
-      set({
-        attemptedOverwrite: true,
-        unappliedConstraints: allConstraints,
-      })
-      return [];
-    }
 
     try {
       set(
         {
           canApplyConstraints: false,
-          attemptedOverwrite: false,
-          canOverwriteState: false
         },
         false,
         "editor/applyConstraints:start",

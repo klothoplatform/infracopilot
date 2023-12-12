@@ -39,7 +39,6 @@ class CopilotRunRequest(BaseModel):
 async def copilot_run(
     id: str, state: int, body: CopilotRunRequest, accept: Optional[str] = None
 ):
-    print(body.overwrite, state)
     try:
         latest_architecture = await get_architecture_latest(id)
         if latest_architecture is None:
@@ -49,7 +48,6 @@ async def copilot_run(
         if not body.overwrite:
             architecture = latest_architecture
             if architecture.state != state:
-                print("states dont line up ", architecture.state, state)
                 raise ArchitecutreStateNotLatestError(
                     f"Architecture state is not the latest. Expected {architecture.state}, got {state}"
                 )
@@ -83,7 +81,6 @@ async def copilot_run(
             engine_version=1.0,
             state_location=None,
         )
-        print("saving", arch.id, arch.state)
         if body.overwrite:
             print(f"deleting any architecture for id {id} greater than state {state}")
             await delete_future_states(id, state)
@@ -99,7 +96,6 @@ async def copilot_run(
             content=jsons.dumps(
                 {
                     "id": arch.id,
-                    "version": arch.state,
                     "name": arch.name,
                     "owner": arch.owner,
                     "engineVersion": arch.engine_version,

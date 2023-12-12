@@ -83,7 +83,6 @@ async def copilot_get_state(id: str, accept: Optional[str] = None):
         decisions = await get_architecture_changelog_history(id)
         payload = {
             "id": arch.id,
-            "version": arch.state,
             "name": arch.name,
             "owner": arch.owner,
             "engineVersion": arch.engine_version,
@@ -119,7 +118,6 @@ async def copilot_get_previous_state(id: str, state: int, accept: Optional[str] 
     decisions = await get_architecture_changelog_history(id)
     payload = {
         "id": arch.id,
-        "version": arch.state,
         "name": arch.name,
         "owner": arch.owner,
         "engineVersion": arch.engine_version,
@@ -150,7 +148,6 @@ async def copilot_get_next_state(id: str, state: int, accept: Optional[str] = No
     decisions = await get_architecture_changelog_history(id)
     payload = {
         "id": arch.id,
-        "version": arch.state,
         "name": arch.name,
         "owner": arch.owner,
         "engineVersion": arch.engine_version,
@@ -188,7 +185,6 @@ async def rename_architecture(id: str, name: str, accept: Optional[str] = None):
         decisions = await get_architecture_changelog_history(id)
         payload = {
             "id": arch.id,
-            "version": arch.state,
             "name": name,
             "owner": arch.owner,
             "engineVersion": arch.engine_version,

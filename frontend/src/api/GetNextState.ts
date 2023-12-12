@@ -13,7 +13,7 @@ export async function getNextState(
 ): Promise<Architecture | undefined> {
   let response: AxiosResponse;
   try {
-    response = await axios.get(`/api/architecture/${id}/${version}/next`, {
+    response = await axios.get(`/api/architecture/${id}/version/${version}/next`, {
       responseType: "json",
       decompress: true,
       headers: {

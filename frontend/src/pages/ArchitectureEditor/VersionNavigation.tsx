@@ -18,13 +18,13 @@ export const VersionNavigator: React.FC = () => {
     const [navigatingMessage, setNavigatingMessage] = useState("");
 
     const onUndo = async () => {
-        setNavigatingMessage("Undoing...");
+        setNavigatingMessage("Undoing Change...");
         await goToPreviousState();
         setNavigatingMessage("");
     }
 
     const onRedo = async () => {
-        setNavigatingMessage("Redoing...");
+        setNavigatingMessage("Redoing Change...");
         await goToNextState();
         setNavigatingMessage("");
     }
@@ -33,22 +33,20 @@ export const VersionNavigator: React.FC = () => {
         <Panel position="top-left">
             <WorkingOverlay show={navigatingMessage != ""} message={navigatingMessage} />
             <div className="flex gap-1">
-                <Tooltip content="previous state">
-                    <ControlButton 
-                        disabled={previousState === undefined}
-                        onClick={onUndo}
-                    >
-                        <FaUndo/>
-                    </ControlButton>
-                </Tooltip>
-                <Tooltip content="next state">
-                    <ControlButton 
-                        disabled={nextState === undefined}
-                        onClick={onRedo}
-                    >
-                        <FaRedo/>
-                    </ControlButton>
-                </Tooltip>
+                <ControlButton 
+                title='undo change'
+                    disabled={previousState === undefined}
+                    onClick={onUndo}
+                >
+                    <FaUndo/>
+                </ControlButton>
+                <ControlButton 
+                title='redo change'
+                    disabled={nextState === undefined}
+                    onClick={onRedo}
+                >
+                    <FaRedo/>
+                </ControlButton>
             </div>
         </Panel>
     )
