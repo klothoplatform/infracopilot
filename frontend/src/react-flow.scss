@@ -63,11 +63,22 @@
 }
 
 .dark {
+
+  .react-flow__controls-button:hover {
+    background: theme("colors.gray.600") !important;
+  }
+
   .react-flow__controls-button {
     background: theme("colors.gray.800") !important;
     border-bottom-color: theme("colors.gray.900") !important;
     fill: theme("colors.gray.300") !important;
     stroke: theme("colors.gray.300") !important;
+
+    svg {
+      fill-opacity: 1 !important;
+      fill: theme("colors.gray.300") !important;
+      stroke: theme("colors.gray.300") !important;
+    }
   }
 
   .react-flow__controls-button:disabled {
@@ -76,6 +87,8 @@
 
     svg {
       fill-opacity: 1 !important;
+      fill: theme("colors.gray.500") !important;
+      stroke: theme("colors.gray.500") !important;
     }
   }
 }
