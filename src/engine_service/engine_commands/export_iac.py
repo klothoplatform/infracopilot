@@ -2,7 +2,7 @@ import tempfile
 from io import BytesIO
 from pathlib import Path
 from typing import NamedTuple
-
+import re
 from src.engine_service.engine_commands.util import run_iac_command, IacException
 from src.util.compress import zip_directory_recurse
 
@@ -20,6 +20,7 @@ class ExportIacResult(NamedTuple):
 async def export_iac(request: ExportIacRequest) -> ExportIacResult:
     out_logs = None
     err_logs = None
+    app_name = re.sub(r"[^a-zA-Z0-9\-_]", "", request.name)
     try:
         with tempfile.TemporaryDirectory() as tmp_dir:
             dir = Path(tmp_dir)
@@ -38,7 +39,7 @@ async def export_iac(request: ExportIacRequest) -> ExportIacResult:
                     "--output-dir",
                     tmp_dir,
                     "--app-name",
-                    request.name,
+                    app_name,
                 ]
             )
 
