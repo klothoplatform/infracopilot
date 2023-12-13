@@ -38,7 +38,13 @@ async def get_state_from_fs(arch: Architecture) -> Optional[RunEngineResult]:
                 raise ArchitectureStateDoesNotExistError(
                     f"No architecture exists at location: {get_path_for_architecture(arch)}"
                 )
-            return jsons.loads(state_raw, RunEngineResult)
+            data = jsons.loads(state_raw)
+            return RunEngineResult(
+                resources_yaml=data.get("resources_yaml", ""),
+                topology_yaml=data.get("topology_yaml", ""),
+                iac_topology=data.get("iac_topology", ""),
+                config_errors_json=data.get("config_errors_json", []),
+            )
     except FileNotFoundError:
         raise ArchitectureStateDoesNotExistError(
             f"No architecture exists at location: {get_path_for_architecture(arch)}"
