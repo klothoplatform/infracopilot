@@ -224,10 +224,10 @@ export default function ConfigForm() {
       {(resourceType?.properties?.length ?? 0) > 0 && (
         <FormProvider {...methods}>
           <form
-            className="flex h-full w-full flex-col"
+            className="flex h-full min-h-0 w-full flex-col justify-between"
             onSubmit={methods.handleSubmit(submitConfigChanges)}
           >
-            <div className="w-full basis-full overflow-auto pb-6 [&>*:not(:last-child)]:mb-2">
+            <div className="mb-2 max-h-full min-h-0 w-full overflow-y-auto overflow-x-hidden pb-2 [&>*:not(:last-child)]:mb-2">
               <ConfigGroup fields={resourceType?.properties} />
               {selectedResource &&
                 Object.entries(
@@ -241,7 +241,7 @@ export default function ConfigForm() {
                 })}
             </div>
             {isDirty && (
-              <Button type="submit" color="purple" className="my-2 w-full">
+              <Button type="submit" color="purple" fullSized={true}>
                 Apply Changes
               </Button>
             )}
@@ -283,7 +283,9 @@ function toFormState(metadata: any, fields: Property[] = []) {
         });
         break;
       default:
-        formState[key] = value;
+        if (field) {
+          formState[key] = value;
+        }
     }
   });
   return formState;

@@ -60,9 +60,18 @@ function AdditionalResources() {
   }
 
   return (
-    <Table hoverable striped className="w-full">
-      <Table.Body>{resourceRows}</Table.Body>
-    </Table>
+    <div className="border-box relative h-full w-full overflow-auto">
+      <Table
+        hoverable
+        theme={{
+          root: {
+            wrapper: "relative w-full overflow-auto",
+          },
+        }}
+      >
+        <Table.Body className="divide-y">{resourceRows}</Table.Body>
+      </Table>
+    </div>
   );
 }
 
@@ -76,17 +85,17 @@ const ResourceItem: FC<ResourceItemProps> = function ({ icon, resourceId }) {
 
   return (
     <Table.Row
-      className="border-gray-300 bg-white dark:border-gray-500 dark:bg-gray-700"
+      className="border-box relative w-full"
       onClick={() => {
         selectResource(resourceId);
       }}
     >
       <Table.Cell className="pr-0 font-medium text-gray-900 dark:text-white">
-        <Tooltip content={resourceId.type}>
-          <div className="block h-5 w-5">{icon}</div>
-        </Tooltip>
+        <div className="block h-5 w-5">{icon}</div>
       </Table.Cell>
-      <Table.Cell className="pl-4">{resourceId.toString()}</Table.Cell>
+      <Table.Cell className="w-full pl-4 dark:text-white">
+        {resourceId.toString()}
+      </Table.Cell>
     </Table.Row>
   );
 };

@@ -17,8 +17,8 @@ import reducer from "../../helpers/reducer";
 import { NodeId } from "../architecture/TopologyNode";
 import classNames from "classnames";
 import {
-  RightSidebarDetailsTabs,
-  RightSidebarTabs,
+  RightSidebarDetailsTab,
+  RightSidebarMenu,
 } from "../../shared/sidebar-nav";
 import { TbDotsCircleHorizontal } from "react-icons/tb";
 import { ThemeContext } from "flowbite-react/lib/esm/components/Flowbite/ThemeContext";
@@ -68,8 +68,8 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
     selectResource(data.resourceId);
     selectNode(id);
     navigateRightSidebar([
-      RightSidebarTabs.Details,
-      RightSidebarDetailsTabs.Config,
+      RightSidebarMenu.Details,
+      RightSidebarDetailsTab.Config,
     ]);
   };
 
@@ -102,8 +102,8 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
     const onClickQuickAction = (element: NodeId) => {
       selectResource(element);
       navigateRightSidebar([
-        RightSidebarTabs.Details,
-        RightSidebarDetailsTabs.Config,
+        RightSidebarMenu.Details,
+        RightSidebarDetailsTab.Config,
       ]);
     };
 
@@ -388,8 +388,8 @@ const AdditionalResourcesAction: FC<AdditionalResourcesProps> = ({
         onClick={() => {
           selectResource(resourceId);
           navigateRightSidebar([
-            RightSidebarTabs.Details,
-            RightSidebarDetailsTabs.AdditionalResources,
+            RightSidebarMenu.Details,
+            RightSidebarDetailsTab.AdditionalResources,
           ]);
         }}
       >

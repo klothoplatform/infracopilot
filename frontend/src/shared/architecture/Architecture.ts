@@ -26,11 +26,11 @@ export interface ReactFlowElements {
   edges: Edge[];
 }
 
-export interface ConfigurationError  {
-  resource: NodeId
-  property: string
-  value?: any
-  error: string
+export interface ConfigurationError {
+  resource: NodeId;
+  property: string;
+  value?: any;
+  error: string;
 }
 
 export interface Architecture {

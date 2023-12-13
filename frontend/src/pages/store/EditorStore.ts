@@ -38,13 +38,21 @@ import {
   EdgeConstraint,
   parseConstraints,
 } from "../../shared/architecture/Constraints";
-import { ApplyConstraintsErrorType, applyConstraints } from "../../api/ApplyConstraints";
+import {
+  applyConstraints,
+  ApplyConstraintsErrorType,
+} from "../../api/ApplyConstraints";
 import TopologyEdge from "../../shared/architecture/TopologyEdge";
 import { NodeId } from "../../shared/architecture/TopologyNode";
-import type { RightSidebarTabSelector } from "../../shared/sidebar-nav";
+import type {
+  NavHistory,
+  RightSidebarTabSelector,
+} from "../../shared/sidebar-nav";
 import {
-  RightSidebarDetailsTabs,
-  RightSidebarTabs,
+  getNextRelevantHistoryEntry,
+  getPreviousRelevantHistoryEntry,
+  RightSidebarDetailsTab,
+  RightSidebarMenu,
 } from "../../shared/sidebar-nav";
 import { Decision, Failure } from "../../shared/architecture/Decision";
 import { getResourceTypes } from "../../api/GetResourceTypes";
@@ -65,6 +73,22 @@ interface EditorStoreState {
   decisions: Decision[];
   deletingNodes: boolean;
   edges: Edge[];
+  edgeTargetState: {
+    architectureVersion: number;
+    engineVersion: number;
+    validTargets: Map<string, string[]>;
+    existingEdges: Map<string, string[]>;
+    updating: boolean;
+  };
+  editorSidebarState: {
+    right: {
+      isOpen: boolean;
+      currentTab: RightSidebarMenu;
+      detailsTab: {
+        navHistory: NavHistory;
+      };
+    };
+  };
   isEditorInitialized: boolean;
   isEditorInitializing: boolean;
   failures: Failure[];
@@ -77,13 +101,6 @@ interface EditorStoreState {
   selectedNode?: string;
   selectedResource?: NodeId;
   unappliedConstraints: Constraint[];
-  edgeTargetState: {
-    architectureVersion: number;
-    engineVersion: number;
-    validTargets: Map<string, string[]>;
-    existingEdges: Map<string, string[]>;
-    updating: boolean;
-  };
 }
 
 const initialState: () => EditorStoreState = () => ({
@@ -91,9 +108,22 @@ const initialState: () => EditorStoreState = () => ({
   edges: [],
   decisions: [],
   configErrors: [],
+  editorSidebarState: {
+    right: {
+      isOpen: false,
+      currentTab: RightSidebarMenu.Changes,
+      detailsTab: {
+        navHistory: {
+          maxHistoryLength: 100,
+          currentIndex: undefined,
+          entries: [],
+        },
+      },
+    },
+  },
+  failures: [],
   isEditorInitialized: false,
   isEditorInitializing: false,
-  failures: [],
   selectedNode: undefined,
   selectedEdge: undefined,
   selectedResource: undefined,
@@ -104,10 +134,7 @@ const initialState: () => EditorStoreState = () => ({
   architecture: {} as Architecture,
   canApplyConstraints: true,
   connectionSourceId: undefined,
-  rightSidebarSelector: [
-    RightSidebarTabs.Changes,
-    RightSidebarDetailsTabs.Config,
-  ],
+  rightSidebarSelector: [undefined, RightSidebarDetailsTab.Config],
   unappliedConstraints: [],
   edgeTargetState: {
     architectureVersion: 0,
@@ -123,7 +150,9 @@ interface EditorStoreActions {
     elements: Partial<ReactFlowElements>,
     generateConstraints?: boolean,
   ) => Promise<void>;
-  applyConstraints: (constraints?: Constraint[]) => Promise<ConfigurationError[]>;
+  applyConstraints: (
+    constraints?: Constraint[],
+  ) => Promise<ConfigurationError[]>;
   deleteElements: (elements: Partial<ReactFlowElements>) => Promise<void>;
   deselectEdge: (edgeId: string) => void;
   deselectNode: (nodeId: string) => void;
@@ -152,6 +181,8 @@ interface EditorStoreActions {
   setIsEditorInitialized: (isEditorInitialized: boolean) => void;
   renameArchitecture: (newName: string) => Promise<void>;
   updateEdgeTargets: (sources?: NodeId[]) => Promise<void>;
+  navigateBackRightSidebar: () => void;
+  navigateForwardRightSidebar: () => void;
 }
 
 type EditorStoreBase = EditorStoreState & EditorStoreActions;
@@ -192,27 +223,22 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
           ),
         );
       }) ?? [];
-    const removedNodeIds = nodeConstraints.map((c) => c.node.toString());
-    const removedEdgeIds = edgeConstraints.map((c) => c.target.id);
-    const newNodes = nodes.filter((n) => !(n.id in removedNodeIds));
-    newNodes.forEach((node) => {
-      if (node.parentNode && node.parentNode in removedNodeIds) {
-        node.parentNode = undefined;
-      }
-    });
-    const newEdges = get().edges.filter((e) => !(e.id in removedEdgeIds));
 
-    set({
-      nodes: newNodes,
-      edges: newEdges,
-      unappliedConstraints: [
-        ...get().unappliedConstraints,
-        ...nodeConstraints,
-        ...edgeConstraints,
-      ],
-    });
+    set(
+      {
+        selectedNode: undefined,
+        selectedResource: undefined,
+        selectedEdge: undefined,
+        unappliedConstraints: [
+          ...get().unappliedConstraints,
+          ...nodeConstraints,
+          ...edgeConstraints,
+        ],
+      },
+      false,
+      "editor/deleteElements",
+    );
     await get().applyConstraints();
-    await get().refreshLayout();
     if (nodeConstraints.length > 0) {
       analytics.track("deleteNodes", {
         nodes: nodeConstraints.map((c) => c.node),
@@ -301,7 +327,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       "editor/selectNode",
     );
     get().navigateRightSidebar([
-      RightSidebarTabs.Details,
+      RightSidebarMenu.Details,
       get().rightSidebarSelector[1],
     ]);
     console.log("selected node", nodeId);
@@ -338,19 +364,13 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       );
     }
 
-    get().navigateRightSidebar([
-      RightSidebarTabs.Changes,
-      get().rightSidebarSelector[1],
-    ]);
+    get().navigateRightSidebar([undefined, get().rightSidebarSelector[1]]);
     console.log("deselected node", nodeId);
   },
   selectResource: (resourceId: NodeId) => {
     const node = resourceId
       ? get().nodes?.find((n) => n.data?.resourceId?.equals(resourceId))
       : undefined;
-    if (node) {
-      get().selectNode(node.id);
-    }
     set(
       {
         selectedResource: resourceId,
@@ -361,6 +381,13 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     analytics.track("selectResource", {
       ...resourceId,
     });
+    if (node) {
+      get().selectNode(node.id);
+    }
+    get().navigateRightSidebar([
+      RightSidebarMenu.Details,
+      get().rightSidebarSelector[1],
+    ]);
   },
   deselectResource: (resourceId: NodeId) => {
     if (get().selectedResource?.equals(resourceId)) {
@@ -371,6 +398,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
         false,
         "editor/deselectResource",
       );
+      get().deselectNode(get().selectedResource?.toString() ?? "");
     }
   },
   refreshArchitecture: async (architectureId?: string, version?: number) => {
@@ -479,13 +507,6 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     generateConstraints = true,
   ) => {
     const nodes = [...get().nodes, ...(elements.nodes ?? [])];
-    const edges = [...get().edges, ...(elements.edges ?? [])];
-    const result = await autoLayout(nodes, edges, get().layoutOptions);
-    set({
-      nodes: result.nodes,
-      edges: result.edges,
-      unappliedConstraints: [...get().unappliedConstraints],
-    });
 
     if (!generateConstraints) {
       return;
@@ -596,32 +617,11 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
         await get().getIdToken(),
       );
       console.log("response from apply constraints", response);
-      // TODO: look into enabling this again once we have decisions in the engine again
-      // if (newArchitecture.failures.length > 0) {
-      //   console.log(newArchitecture.failures);
-      //   const failures = [
-      //     new Failure(get().unappliedConstraints, newArchitecture.failures),
-      //   ];
-      //   console.log("failures that we should be setting", failures);
-      //   await get().refreshArchitecture(get().architecture.id);
-      //   set(
-      //     {
-      //       unappliedConstraints: [],
-      //       canApplyConstraints: true,
-      //       failures: failures,
-      //     },
-      //     false,
-      //     "editor/applyConstraints:error",
-      //   );
-      //   return;
-      // }
       if (response.errorType == ApplyConstraintsErrorType.ConfigValidation) {
         navigateToChanges = false;
-        set(
-          {
-            canApplyConstraints: true,
-          },
-        );
+        set({
+          canApplyConstraints: true,
+        });
         return response.architecture.config_errors ?? [];
       }
 
@@ -636,11 +636,6 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
         elements.edges,
         get().layoutOptions,
       );
-      // TODO: look into enabling this again once we have decisions in the engine again
-      // const decision = new Decision(
-      //   get().unappliedConstraints,
-      //   newArchitecture.decisions,
-      // );
 
       // temporary workaround for decisions
       const groupByKey = (list: any[], key: string) =>
@@ -714,7 +709,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     } finally {
       if (navigateToChanges) {
         get().navigateRightSidebar([
-          RightSidebarTabs.Changes,
+          RightSidebarMenu.Changes,
           get().rightSidebarSelector[1],
         ]);
       }
@@ -739,8 +734,8 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     get().deselectNode(get().selectedNode ?? "");
     get().deselectResource(get().selectedResource ?? NodeId.parse(""));
     get().navigateRightSidebar([
-      RightSidebarTabs.Details,
-      RightSidebarDetailsTabs.AdditionalResources,
+      RightSidebarMenu.Details,
+      RightSidebarDetailsTab.AdditionalResources,
     ]);
     set({
       edges: get().edges.map((edge) => {
@@ -782,12 +777,138 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     await get().applyConstraints();
   },
   navigateRightSidebar: (selector: RightSidebarTabSelector) => {
+    const sidebarState = get().editorSidebarState;
+    const navHistory = sidebarState.right.detailsTab.navHistory;
+    const selectedResource = get().selectedResource;
+    let historyEntries = navHistory.entries;
+
+    if (selector[0] === RightSidebarMenu.Details && selectedResource) {
+      historyEntries = [...navHistory.entries];
+      if (
+        navHistory.currentIndex &&
+        historyEntries.length - 1 > navHistory.currentIndex
+      ) {
+        historyEntries = historyEntries.slice(0, navHistory.currentIndex + 1);
+      }
+      console.log("history entries", historyEntries);
+
+      historyEntries.push({
+        tab: get().rightSidebarSelector[1],
+        resourceId: get().selectedResource,
+        index: historyEntries.length,
+      });
+      if (
+        navHistory.maxHistoryLength &&
+        historyEntries.length > navHistory.maxHistoryLength
+      ) {
+        const startIndex = historyEntries.length - navHistory.maxHistoryLength;
+        historyEntries = historyEntries.slice(startIndex);
+      }
+    }
+
+    console.log("navigate right sidebar", selector, historyEntries);
+
     set(
       {
         rightSidebarSelector: selector,
+        editorSidebarState: {
+          ...sidebarState,
+          currentTab: selector[0],
+          right: {
+            ...sidebarState.right,
+            detailsTab: {
+              ...sidebarState.right.detailsTab,
+              navHistory: {
+                ...navHistory,
+                currentIndex: historyEntries.length - 1,
+                entries: historyEntries,
+              },
+            },
+          },
+        },
       },
       false,
       "editor/navigateRightSidebar",
+    );
+  },
+  navigateBackRightSidebar: () => {
+    // go back one entry in the history. if we're at the beginning, do nothing. if the resource is no longer in the graph, continue going back until we find an entry with one that is.
+    const sidebarState = get().editorSidebarState;
+    const navHistory = sidebarState.right.detailsTab.navHistory;
+    const rightSidebarSelector = get().rightSidebarSelector;
+    const selectedResource = get().selectedResource;
+    const newEntry = getPreviousRelevantHistoryEntry(
+      navHistory,
+      rightSidebarSelector,
+      selectedResource,
+      get().architecture,
+    );
+
+    if (!newEntry) {
+      return;
+    }
+
+    set(
+      {
+        rightSidebarSelector: [RightSidebarMenu.Details, newEntry.tab],
+        selectedResource: newEntry.resourceId,
+        editorSidebarState: {
+          ...sidebarState,
+          right: {
+            ...sidebarState.right,
+            detailsTab: {
+              ...sidebarState.right.detailsTab,
+              navHistory: {
+                ...navHistory,
+                currentIndex: newEntry.index,
+              },
+            },
+          },
+        },
+      },
+      false,
+      "editor/navigateBackRightSidebar",
+    );
+  },
+  navigateForwardRightSidebar: () => {
+    // go forward one entry in the history. if we're at the end, do nothing.
+    const sidebarState = get().editorSidebarState;
+    const navHistory = sidebarState.right.detailsTab.navHistory;
+    const rightSidebarSelector = get().rightSidebarSelector;
+    const selectedResource = get().selectedResource;
+    const newEntry = getNextRelevantHistoryEntry(
+      navHistory,
+      rightSidebarSelector,
+      selectedResource,
+      get().architecture,
+    );
+
+    if (!newEntry) {
+      return;
+    }
+
+    console.log("navigate forward right sidebar", newEntry);
+
+    set(
+      {
+        rightSidebarSelector: [RightSidebarMenu.Details, newEntry.tab],
+        selectedResource: newEntry.resourceId,
+        editorSidebarState: {
+          ...sidebarState,
+          right: {
+            ...sidebarState.right,
+            detailsTab: {
+              ...sidebarState.right.detailsTab,
+              navHistory: {
+                ...navHistory,
+                currentIndex: newEntry.index,
+              },
+            },
+          },
+        },
+      },
+      false,
+      "editor/navigateForwardRightSidebar",
     );
   },
   getResourceTypeKB: async (architectureId: string, refresh?: boolean) => {

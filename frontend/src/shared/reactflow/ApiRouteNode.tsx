@@ -4,7 +4,7 @@ import useApplicationStore from "../../pages/store/ApplicationStore";
 
 import "./NodeStyles.scss";
 import classNames from "classnames";
-import { RightSidebarDetailsTabs, RightSidebarTabs } from "../sidebar-nav";
+import { RightSidebarDetailsTab, RightSidebarMenu } from "../sidebar-nav";
 
 interface RouteNodeProps {
   id: string;
@@ -47,8 +47,8 @@ const ApiRouteNode = memo(({ id, data, isConnectable }: RouteNodeProps) => {
     selectResource(data.resourceId);
     selectNode(id);
     navigateRightSidebar([
-      RightSidebarTabs.Details,
-      RightSidebarDetailsTabs.Config,
+      RightSidebarMenu.Details,
+      RightSidebarDetailsTab.Config,
     ]);
   };
 

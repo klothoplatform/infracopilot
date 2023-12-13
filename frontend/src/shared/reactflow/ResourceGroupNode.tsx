@@ -13,7 +13,7 @@ import reducer from "../../helpers/reducer";
 import useApplicationStore from "../../pages/store/ApplicationStore";
 import classNames from "classnames";
 import { NodeId } from "../architecture/TopologyNode";
-import { RightSidebarDetailsTabs, RightSidebarTabs } from "../sidebar-nav";
+import { RightSidebarDetailsTab, RightSidebarMenu } from "../sidebar-nav";
 
 interface GroupNodeProps {
   id: string;
@@ -59,8 +59,8 @@ const ResourceGroupNode = memo(
       selectResource(data.resourceId);
       selectNode(id);
       navigateRightSidebar([
-        RightSidebarTabs.Details,
-        RightSidebarDetailsTabs.Config,
+        RightSidebarMenu.Details,
+        RightSidebarDetailsTab.Config,
       ]);
     };
 

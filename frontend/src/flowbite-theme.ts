@@ -119,26 +119,6 @@ const flowbiteTheme: CustomFlowbiteTheme = {
     content: "relative z-20 max-w-max w-max",
     target: "",
   },
-  tab: {
-    tablist: {
-      base: "max-h-12 bg-transparent",
-      tabitem: {
-        styles: {
-          fullWidth: {
-            base: "rounded-t-lg max-h-12 focus:ring-primary-300",
-            active: {
-              on: "bg-primary-600 text-white dark:bg-primary-700 dark:white active:border-primary-300",
-              off: "text-gray-500 hover:bg-gray-50 hover:text-gray-600 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-300",
-            },
-          },
-        },
-      },
-    },
-    tabpanel: "h-[calc(100%-5.25rem)]",
-    tabitemcontainer: {
-      base: "h-full",
-    },
-  },
   table: {
     row: {
       hovered:
