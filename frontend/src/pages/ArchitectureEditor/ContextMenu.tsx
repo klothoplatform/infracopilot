@@ -78,17 +78,17 @@ export default function ContextMenu({
           icon={<BiX />}
           onClick={node ? deleteNode : deleteEdge}
         >
-          Delete {node ? "Node" : "edge"}
+          Delete {node ? "Resource" : "Connection"}
         </ContextMenuButton>
       )}
-      <ContextMenuButton
-        icon={<BiImage />}
-        onClick={async () =>
-          downloadFile("Diagram.png", await exportImage(nodes, edges, "png"))
-        }
-      >
-        Export Diagram (.png)
-      </ContextMenuButton>
+      {/*<ContextMenuButton*/}
+      {/*  icon={<BiImage />}*/}
+      {/*  onClick={async () =>*/}
+      {/*    downloadFile("Diagram.png", await exportImage(nodes, edges, "png"))*/}
+      {/*  }*/}
+      {/*>*/}
+      {/*  Export Diagram (.png)*/}
+      {/*</ContextMenuButton>*/}
     </div>
   );
 }
