@@ -31,8 +31,7 @@ export default function NewArchitectureModal({
     formState: { errors },
   } = useForm<ModifyArchitectureFormState>({ defaultValues: { name: name } });
 
-  const { getIdToken, getArchitectures, addError, architecture } =
-    useApplicationStore();
+  const { getIdToken, getArchitectures, addError } = useApplicationStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const onSubmit = async (state: ModifyArchitectureFormState) => {
     let success = false;

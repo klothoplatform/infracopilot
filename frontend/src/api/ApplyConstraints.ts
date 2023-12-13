@@ -49,9 +49,12 @@ export async function applyConstraints(
     data = response.data;
     console.log("response from apply constraints", data);
   } catch (e: any) {
-    console.log("error from apply constraints", e)
-    if (e.response.status === 400 && e.response.data?.error_type === "ConfigValidation") {
-      console.log(e.response.data.config_errors)
+    console.log("error from apply constraints", e);
+    if (
+      e.response.status === 400 &&
+      e.response.data?.error_type === "ConfigValidation"
+    ) {
+      console.log(e.response.data.config_errors);
       return {
         architecture: parseArchitecture(e.response.data),
         errorType: ApplyConstraintsErrorType.ConfigValidation,

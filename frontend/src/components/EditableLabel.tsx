@@ -43,7 +43,7 @@ export const EditableLabel: FC<EditableLabelProps> = ({
       try {
         if (regexRule) {
           if (!regexRule.pattern.test(state.label)) {
-            throw new UIError({message: regexRule.message});
+            throw new UIError({ message: regexRule.message });
           }
         }
         if (state.label?.length > 0 && state.label !== initialValue) {

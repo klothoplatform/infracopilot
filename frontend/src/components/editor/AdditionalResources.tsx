@@ -1,4 +1,4 @@
-import { Table, Tooltip } from "flowbite-react";
+import { Table } from "flowbite-react";
 import type { FC, ReactNode } from "react";
 import * as React from "react";
 import { useContext, useEffect, useState } from "react";

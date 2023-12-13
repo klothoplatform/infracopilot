@@ -1,5 +1,8 @@
 import axios from "axios";
-import { parseArchitecture, type Architecture } from "../shared/architecture/Architecture";
+import {
+  parseArchitecture,
+  type Architecture,
+} from "../shared/architecture/Architecture";
 import { analytics } from "../App";
 import { ApiError } from "../shared/errors";
 import { trackError } from "../pages/store/ErrorStore";
@@ -42,5 +45,5 @@ export default async function modifyArchitecture(
     id: request.id,
   });
 
-  return parseArchitecture(response.data)
+  return parseArchitecture(response.data);
 }

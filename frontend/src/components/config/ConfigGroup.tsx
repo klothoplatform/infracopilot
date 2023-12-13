@@ -64,8 +64,5 @@ export const ConfigGroup: FC<ConfigGroupProps> = ({
       );
     });
 
-
-  
-
   return <>{rows}</>;
 };

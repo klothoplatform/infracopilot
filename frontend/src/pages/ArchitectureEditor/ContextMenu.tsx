@@ -2,9 +2,7 @@ import React, { useCallback, useEffect, useRef } from "react";
 import type { Edge, Node } from "reactflow";
 
 import useApplicationStore from "../store/ApplicationStore";
-import { BiImage, BiX } from "react-icons/bi";
-import { exportImage } from "../../shared/export/ExportImage";
-import { downloadFile } from "../../helpers/download-file";
+import { BiX } from "react-icons/bi";
 
 interface ContextMenuProps {
   node?: Node;
@@ -26,7 +24,7 @@ export default function ContextMenu({
   onAction,
   ...props
 }: ContextMenuProps) {
-  const { deleteElements, nodes, edges } = useApplicationStore();
+  const { deleteElements } = useApplicationStore();
 
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {

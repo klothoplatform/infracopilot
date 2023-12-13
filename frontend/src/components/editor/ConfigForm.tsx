@@ -13,7 +13,7 @@ import {
 } from "../../shared/resources/ResourceTypes";
 import { Button } from "flowbite-react";
 import type { SubmitHandler } from "react-hook-form";
-import { FormProvider, useForm, useFormState } from "react-hook-form";
+import { FormProvider, useForm } from "react-hook-form";
 import React, { useCallback, useEffect } from "react";
 
 import useApplicationStore from "../../pages/store/ApplicationStore";
@@ -28,7 +28,10 @@ import {
 } from "../../shared/architecture/Constraints";
 import { ConfigGroup } from "../config/ConfigGroup";
 import type { NodeId } from "../../shared/architecture/TopologyNode";
-import type { Architecture, ConfigurationError } from "../../shared/architecture/Architecture";
+import type {
+  Architecture,
+  ConfigurationError,
+} from "../../shared/architecture/Architecture";
 import { analytics } from "../../App";
 import { ErrorBoundary } from "react-error-boundary";
 import { FallbackRenderer } from "../FallbackRenderer";
@@ -64,8 +67,11 @@ export default function ConfigForm() {
       : {},
   });
   const formState = methods.formState;
-  const { defaultValues, dirtyFields, isSubmitSuccessful, isDirty, errors } = formState;
-  const [configErrors, setConfigErrors] = React.useState<ConfigurationError[]>([]);
+  const { defaultValues, dirtyFields, isSubmitSuccessful, isDirty, errors } =
+    formState;
+  const [configErrors, setConfigErrors] = React.useState<ConfigurationError[]>(
+    [],
+  );
 
   // add errors to the fields which failed server side validation
   const { selectedNode } = useApplicationStore();
@@ -75,7 +81,7 @@ export default function ConfigForm() {
         errors[e.property] = {
           message: e.error,
           type: "manual",
-        }
+        };
       }
     });
   }
@@ -179,7 +185,7 @@ export default function ConfigForm() {
       }
       try {
         const currConfigErrs = await applyConstraints(constraints);
-        console.log("currConfigErrs", currConfigErrs)
+        console.log("currConfigErrs", currConfigErrs);
         setConfigErrors(currConfigErrs);
       } catch (e: any) {
         if (e instanceof ApplicationError) {
@@ -205,7 +211,6 @@ export default function ConfigForm() {
       selectedResource,
     ],
   );
-
 
   return (
     <ErrorBoundary

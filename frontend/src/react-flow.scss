@@ -10,8 +10,7 @@
 
 /* see https://reactflow.dev/docs/guides/theming/ */
 .react-flow__edges {
-  --connection-color: theme('colors.primary.600');
-
+  --connection-color: theme("colors.primary.600");
 
   ///* lowering the z index of edges makes it easier to overlay other divs on top of them (make sure group nodes have an even lower z index) */
   cursor: default;
@@ -65,15 +64,15 @@
 
 .dark {
   .react-flow__controls-button {
-    background: theme('colors.gray.800') !important;
-    border-bottom-color: theme('colors.gray.900') !important;
-    fill: theme('colors.gray.300') !important;
-    stroke: theme('colors.gray.300') !important;
+    background: theme("colors.gray.800") !important;
+    border-bottom-color: theme("colors.gray.900") !important;
+    fill: theme("colors.gray.300") !important;
+    stroke: theme("colors.gray.300") !important;
   }
 
   .react-flow__controls-button:disabled {
-    fill: theme('colors.gray.500') !important;
-    stroke: theme('colors.gray.500') !important;
+    fill: theme("colors.gray.500") !important;
+    stroke: theme("colors.gray.500") !important;
 
     svg {
       fill-opacity: 1 !important;
