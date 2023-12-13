@@ -99,7 +99,7 @@ async def copilot_run(
                     "name": arch.name,
                     "owner": arch.owner,
                     "engineVersion": arch.engine_version,
-                    "version": arch.state if arch.state is not None else 0,
+                    "version": arch.state,
                     "state": {
                         "resources_yaml": result.resources_yaml,
                         "topology_yaml": result.topology_yaml,

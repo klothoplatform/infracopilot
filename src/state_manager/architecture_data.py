@@ -4,12 +4,12 @@ from sqlalchemy import select, JSON
 from src.util.entity import Entity
 from src.util.orm import Base, session
 from typing import Any, List
-import re
 from enum import Enum
+from sqlalchemy.orm.attributes import flag_modified
 
 
-class ExtraFieldKeys(Enum):
-    STACK_NAME = "stack_name"
+class ExtraFields(Enum):
+    CURRENT = "current"
 
 
 class Architecture(Base):
@@ -44,6 +44,50 @@ class Architecture(Base):
 
     def __str__(self):
         return f"architecture:{self.id}"
+
+
+async def set_current_state(id: str, state: int):
+    stmt = select(Architecture).where(Architecture.id == id)
+    result = session.execute(statement=stmt).fetchall()
+    for r in result:
+        architecture: Architecture = r[0]
+        if architecture.state == state:
+            print("setting current state to ", architecture.state)
+            architecture.extraFields = (
+                {} if architecture.extraFields is None else architecture.extraFields
+            )
+            architecture.extraFields[ExtraFields.CURRENT.value] = True
+        else:
+            print("setting current state to false", architecture.state)
+            architecture.extraFields = (
+                {} if architecture.extraFields is None else architecture.extraFields
+            )
+            architecture.extraFields[ExtraFields.CURRENT.value] = False
+        flag_modified(architecture, "extraFields")
+        session.commit()
+    return
+
+
+async def get_architecture_current(id: str) -> Architecture:
+    stmt = select(Architecture).where(Architecture.id == id)
+    result = session.execute(statement=stmt).fetchall()
+    if result is None:
+        raise Exception(f"Architecture with id, {id}, does not exist")
+    for r in result:
+        architecture: Architecture = r[0]
+        print(architecture.state, architecture.extraFields)
+    for r in result:
+        architecture: Architecture = r[0]
+        if (
+            architecture.extraFields is not None
+            and architecture.extraFields[ExtraFields.CURRENT.value] == True
+        ):
+            return architecture
+    arch = await get_architecture_latest(id)
+    if arch is not None:
+        await set_current_state(id, arch.state)
+        return arch
+    return None
 
 
 async def delete_future_states(id: str, state: int):
@@ -137,6 +181,7 @@ class ArchitectureAlreadyExistsError(Exception):
 async def add_architecture(architecture: Architecture):
     try:
         session.add(architecture)
+        await set_current_state(architecture.id, architecture.state)
         session.commit()
     except Exception as e:
         if isinstance(e, IntegrityError):

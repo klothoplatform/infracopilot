@@ -33,6 +33,7 @@ from src.backend_orchestrator.iac_handler import copilot_get_iac
 from src.backend_orchestrator.run_engine_handler import copilot_run, CopilotRunRequest
 from src.state_manager.architecture_data import (
     delete_architecture as copilot_delete_architecture,
+    set_current_state,
 )
 from src.util.entity import User
 from src.util.orm import Base, engine
@@ -170,6 +171,22 @@ async def get_previous_state(request: Request, id: str, state: int):
         )
     accept = request.headers.get("accept")
     return await copilot_get_next_state(id, state, accept)
+
+
+@app.post("/api/architecture/{id}/version/{state}/set")
+async def get_previous_state(request: Request, id: str, state: int):
+    user_id = get_user_id(request)
+    authorized = await can_write_to_architecture(User(id=user_id), id)
+    if not authorized:
+        raise AuthError(
+            detail=f"User {user_id} is not authorized to read architecture {id}",
+            error={
+                "code": "unauthorized",
+                "description": f"User is not authorized to write to architecture {id}",
+            },
+        )
+    accept = request.headers.get("accept")
+    return await set_current_state(id, state)
 
 
 @app.get("/api/architecture/{id}/resource_types")

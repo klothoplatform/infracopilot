@@ -67,6 +67,7 @@ import { getValidEdgeTargets } from "../../api/GetValidEdgeTargets";
 import { ApplicationError } from "../../shared/errors";
 import { getNextState } from "../../api/GetNextState";
 import { getPrevState } from "../../api/GetPreviousState";
+import { setCurrentState } from "../../api/SetCurrentState";
 
 interface EditorStoreState {
   architecture: Architecture;
@@ -1150,6 +1151,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       edges,
     })
     try {
+      await setCurrentState(get().architecture.id, await get().getIdToken(), get().previousState!.version);
       const newPrev = await getPrevState(get().architecture.id, await get().getIdToken(), get().previousState!.version);
       set({
         previousState: newPrev,
@@ -1176,6 +1178,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       edges,
     })
     try {
+      await setCurrentState(get().architecture.id, await get().getIdToken(), get().nextState!.version);
       const newNext = await getNextState(get().architecture.id, await get().getIdToken(), get().nextState!.version);
       set({
         nextState: newNext,

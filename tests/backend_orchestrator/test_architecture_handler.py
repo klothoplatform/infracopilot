@@ -89,7 +89,7 @@ class TestGetState(aiounittest.AsyncTestCase):
         new_callable=mock.AsyncMock,
     )
     @mock.patch(
-        "src.backend_orchestrator.architecture_handler.get_architecture_latest",
+        "src.backend_orchestrator.architecture_handler.get_architecture_current",
         new_callable=mock.AsyncMock,
     )
     @mock.patch(

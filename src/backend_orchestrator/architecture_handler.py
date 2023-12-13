@@ -19,6 +19,7 @@ from src.state_manager.architecture_data import (
     get_previous_state,
     get_next_state,
     add_architecture,
+    get_architecture_current,
     Architecture,
 )
 from src.state_manager.architecture_storage import (
@@ -74,7 +75,7 @@ async def copilot_new_architecture(
 
 async def copilot_get_state(id: str, accept: Optional[str] = None):
     try:
-        arch = await get_architecture_latest(id)
+        arch = await get_architecture_current(id)
         if arch is None:
             raise ArchitectureStateDoesNotExistError(
                 f"No architecture exists for id {id}"
@@ -86,7 +87,7 @@ async def copilot_get_state(id: str, accept: Optional[str] = None):
             "name": arch.name,
             "owner": arch.owner,
             "engineVersion": arch.engine_version,
-            "version": arch.state if arch.state is not None else 0,
+            "version": arch.state,
             "decisions": decisions,
             "state": {
                 "resources_yaml": state.resources_yaml,
@@ -121,7 +122,7 @@ async def copilot_get_previous_state(id: str, state: int, accept: Optional[str] 
         "name": arch.name,
         "owner": arch.owner,
         "engineVersion": arch.engine_version,
-        "version": arch.state if arch.state is not None else 0,
+        "version": arch.state,
         "decisions": decisions,
         "state": {
             "resources_yaml": state.resources_yaml,
@@ -151,7 +152,7 @@ async def copilot_get_next_state(id: str, state: int, accept: Optional[str] = No
         "name": arch.name,
         "owner": arch.owner,
         "engineVersion": arch.engine_version,
-        "version": arch.state if arch.state is not None else 0,
+        "version": arch.state,
         "decisions": decisions,
         "state": {
             "resources_yaml": state.resources_yaml,
@@ -188,7 +189,7 @@ async def rename_architecture(id: str, name: str, accept: Optional[str] = None):
             "name": name,
             "owner": arch.owner,
             "engineVersion": arch.engine_version,
-            "version": arch.state if arch.state is not None else 0,
+            "version": arch.state,
             "decisions": decisions,
             "state": {
                 "resources_yaml": state.resources_yaml,
