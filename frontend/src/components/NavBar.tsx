@@ -13,7 +13,7 @@ interface NavbarProps {}
 
 const NavBar: FC<PropsWithChildren<NavbarProps>> = function ({ children }) {
   const { user, isAuthenticated } = useApplicationStore();
-  const [mode, toggleMode] = useThemeMode();
+  const [mode, setMode, toggleMode] = useThemeMode();
 
   return (
     <Navbar fluid>
@@ -33,7 +33,7 @@ const NavBar: FC<PropsWithChildren<NavbarProps>> = function ({ children }) {
             <div className="flex items-center">
               <DarkThemeToggle
                 onClick={() => {
-                  let newMode = mode === "dark" ? "light" : "dark";
+                  const newMode = mode === "dark" ? "light" : "dark";
                   localStorage.setItem("theme", newMode);
                   toggleMode();
                 }}
