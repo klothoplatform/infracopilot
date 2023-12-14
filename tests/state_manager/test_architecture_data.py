@@ -3,6 +3,7 @@ from src.util.orm import Base, engine, session
 from src.state_manager.architecture_data import (
     Architecture,
     delete_architecture,
+    generate_architecture_stack_name,
     get_architecture_changelog_history,
     get_architecture_latest,
     get_architecture_history,
@@ -74,6 +75,53 @@ class TestArchitectureData(aiounittest.AsyncTestCase):
                 constraints={},
                 created_at=1,
                 updated_by="bob",
+            ),
+        )
+
+    async def test_generate_architecture_stack_name(self):
+        await generate_architecture_stack_name("test")
+        result = await get_architecture_latest("test")
+        self.assertEqual(
+            result,
+            Architecture(
+                id="test",
+                state=2,
+                owner="user:bob",
+                engine_version=1.0,
+                constraints={},
+                created_at=1,
+                updated_by="bob",
+                extraFields={"stack_name": "test"},
+            ),
+        )
+
+    async def test_generate_architecture_stack_name_gets_sanitized(self):
+        self.session.add(
+            Architecture(
+                id="test",
+                name="asjh@#$ flkjsn 1234",
+                state=3,
+                owner="user:bob",
+                engine_version=1.0,
+                constraints={},
+                created_at=1,
+                updated_by="bob",
+                decisions=[{"id": "another test"}],
+            )
+        )
+        await generate_architecture_stack_name("test")
+        result = await get_architecture_latest("test")
+        self.assertEqual(
+            result,
+            Architecture(
+                id="test",
+                state=3,
+                owner="user:bob",
+                engine_version=1.0,
+                constraints={},
+                created_at=1,
+                updated_by="bob",
+                extraFields={"stack_name": "asjhflkjsn1234"},
             ),
         )
 

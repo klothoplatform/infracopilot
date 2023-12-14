@@ -83,11 +83,9 @@ export default function NewArchitectureModal({
       value: 80,
       message: "Name must be at most 80 characters long",
     },
-    // Remove any spaces
-    pattern: {
-      value: /^[a-zA-Z0-9-_]+$/,
-      message:
-        "Name must only contain alphanumeric characters, dashes and underscores",
+    minLength: {
+      value: 1,
+      message: "Name must be at least 1 character long",
     },
     onChange: async () => {
       await trigger("name");
