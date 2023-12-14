@@ -71,10 +71,11 @@ async def copilot_run(
             guardrails=guardrails,
         )
         result = await run_engine(request)
+        latest_architecture = await get_architecture_latest(id)
         arch = Architecture(
             id=id,
             name=architecture.name,
-            state=current_architecture.state + 1,
+            state=latest_architecture.state + 1,
             constraints=body.constraints,
             owner=architecture.owner,
             created_at=architecture.created_at,

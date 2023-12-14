@@ -68,8 +68,13 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
         "src.backend_orchestrator.run_engine_handler.get_architecture_current",
         new_callable=mock.AsyncMock,
     )
+    @mock.patch(
+        "src.backend_orchestrator.run_engine_handler.get_architecture_latest",
+        new_callable=mock.AsyncMock,
+    )
     async def test_run_engine(
         self,
+        mock_get_architecture_latest: mock.Mock,
         mock_get_architecture_current: mock.Mock,
         mock_get_state: mock.Mock,
         mock_add: mock.Mock,
@@ -79,6 +84,7 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
     ):
         mock_get_architecture_current.return_value = self.test_architecture
         mock_get_state.return_value = self.test_result
+        mock_get_architecture_latest.return_value = self.test_architecture
         mock_get_guardrails.return_value = None
         mock_run_engine.return_value = self.test_result
         mock_add.return_value = None
@@ -101,6 +107,7 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
             )
         )
         mock_add.assert_called_once()
+        mock_get_architecture_latest.assert_called_once()
         mock_write_state_to_fs.assert_called_once()
         self.assertEqual(mock_write_state_to_fs.call_args.args[0].id, self.test_id)
         self.assertEqual(mock_write_state_to_fs.call_args.args[1], self.test_result)
@@ -143,6 +150,10 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
         new_callable=mock.AsyncMock,
     )
     @mock.patch(
+        "src.backend_orchestrator.run_engine_handler.get_architecture_latest",
+        new_callable=mock.AsyncMock,
+    )
+    @mock.patch(
         "src.backend_orchestrator.run_engine_handler.get_architecture_at_state",
         new_callable=mock.AsyncMock,
     )
@@ -154,6 +165,7 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
         self,
         mock_delete_future_states: mock.Mock,
         mock_get_architecture_at_state: mock.Mock,
+        mock_get_architecture_latest: mock.Mock,
         mock_get_architecture_current: mock.Mock,
         mock_get_state: mock.Mock,
         mock_add: mock.Mock,
@@ -163,6 +175,17 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
     ):
         mock_get_architecture_current.return_value = self.test_architecture_1
         mock_get_architecture_at_state.return_value = self.test_architecture
+        mock_get_architecture_latest.return_value = Architecture(
+            id=self.test_id,
+            name="test-new",
+            state=10,
+            constraints={},
+            owner="test-owner",
+            created_at=mock.ANY,
+            updated_by="test-owner",
+            engine_version=0.0,
+        )
+
         mock_delete_future_states.return_value = None
         mock_get_state.return_value = self.test_result
         mock_get_guardrails.return_value = None
@@ -186,6 +209,7 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
                 guardrails=None,
             )
         )
+        mock_get_architecture_latest.assert_called_once()
         mock_add.assert_called_once()
         mock_write_state_to_fs.assert_called_once()
         mock_delete_future_states.assert_called_once_with(self.test_id, 0)
@@ -194,11 +218,11 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
         self.assertEqual(mock_write_state_to_fs.call_args.args[1], self.test_result)
         self.test_architecture.state = 1
         self.test_architecture.state_location = mock.ANY
-        self.assertEqual(mock_add.call_args.args[0].state, 2)
+        self.assertEqual(mock_add.call_args.args[0].state, 11)
         self.assertEqual(mock_add.call_args.args[0].state_location, "test-location")
         response = jsons.loads(result.body.decode("utf-8"))
         self.assertEqual(result.status_code, 200)
-        self.assertEqual(response["version"], 2)
+        self.assertEqual(response["version"], 11)
         self.assertEqual(
             response["state"],
             {
