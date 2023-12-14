@@ -1143,12 +1143,18 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       ArchitectureView.DataFlow,
     );
     const { nodes, edges } = await autoLayout(elements.nodes, elements.edges);
+    const selectedNode = get().selectedNode;
+    const selectedEdge = get().selectedEdge;
+    const selectedResource = get().selectedResource;
     set({
       architecture: prev,
       nextState: get().architecture,
       willOverwriteState: true,
       nodes,
       edges,
+      selectedEdge: selectedEdge && edges.find(e => e.id === selectedEdge) ? selectedEdge : undefined,
+      selectedNode: selectedNode && nodes.find(n => n.id === selectedNode) ? selectedNode : undefined,
+      selectedResource: selectedResource && nodes.find(n => n.data.resourceId.equals(selectedResource)) ? selectedResource : undefined,
     })
     try {
       await setCurrentState(get().architecture.id, await get().getIdToken(), get().previousState!.version);
@@ -1171,11 +1177,17 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       ArchitectureView.DataFlow,
     );
     const { nodes, edges } = await autoLayout(elements.nodes, elements.edges);
+    const selectedNode = get().selectedNode;
+    const selectedEdge = get().selectedEdge;
+    const selectedResource = get().selectedResource;
     set({
       architecture: next,
       previousState: get().architecture,
       nodes,
       edges,
+      selectedEdge: selectedEdge && edges.find(e => e.id === selectedEdge) ? selectedEdge : undefined,
+      selectedNode: selectedNode && nodes.find(n => n.id === selectedNode) ? selectedNode : undefined,
+      selectedResource: selectedResource && nodes.find(n => n.data.resourceId.equals(selectedResource)) ? selectedResource : undefined,
     })
     try {
       await setCurrentState(get().architecture.id, await get().getIdToken(), get().nextState!.version);

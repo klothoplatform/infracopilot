@@ -65,19 +65,19 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
         new_callable=mock.AsyncMock,
     )
     @mock.patch(
-        "src.backend_orchestrator.run_engine_handler.get_architecture_latest",
+        "src.backend_orchestrator.run_engine_handler.get_architecture_current",
         new_callable=mock.AsyncMock,
     )
     async def test_run_engine(
         self,
-        mock_get_architecture_latest: mock.Mock,
+        mock_get_architecture_current: mock.Mock,
         mock_get_state: mock.Mock,
         mock_add: mock.Mock,
         mock_get_guardrails: mock.Mock,
         mock_run_engine: mock.Mock,
         mock_write_state_to_fs: mock.Mock,
     ):
-        mock_get_architecture_latest.return_value = self.test_architecture
+        mock_get_architecture_current.return_value = self.test_architecture
         mock_get_state.return_value = self.test_result
         mock_get_guardrails.return_value = None
         mock_run_engine.return_value = self.test_result
@@ -87,7 +87,7 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
         requset = CopilotRunRequest(constraints=self.test_constraints)
 
         result: StreamingResponse = await copilot_run(self.test_id, 0, requset)
-        mock_get_architecture_latest.assert_called_once_with(self.test_id)
+        mock_get_architecture_current.assert_called_once_with(self.test_id)
         mock_get_guardrails.assert_called_once_with(self.test_architecture.owner)
         mock_get_state.assert_called_once_with(self.test_architecture)
         mock_run_engine.assert_called_once_with(
@@ -139,7 +139,7 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
         new_callable=mock.AsyncMock,
     )
     @mock.patch(
-        "src.backend_orchestrator.run_engine_handler.get_architecture_latest",
+        "src.backend_orchestrator.run_engine_handler.get_architecture_current",
         new_callable=mock.AsyncMock,
     )
     @mock.patch(
@@ -154,14 +154,14 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
         self,
         mock_delete_future_states: mock.Mock,
         mock_get_architecture_at_state: mock.Mock,
-        mock_get_architecture_latest: mock.Mock,
+        mock_get_architecture_current: mock.Mock,
         mock_get_state: mock.Mock,
         mock_add: mock.Mock,
         mock_get_guardrails: mock.Mock,
         mock_run_engine: mock.Mock,
         mock_write_state_to_fs: mock.Mock,
     ):
-        mock_get_architecture_latest.return_value = self.test_architecture_1
+        mock_get_architecture_current.return_value = self.test_architecture_1
         mock_get_architecture_at_state.return_value = self.test_architecture
         mock_delete_future_states.return_value = None
         mock_get_state.return_value = self.test_result
@@ -173,7 +173,7 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
         requset = CopilotRunRequest(constraints=self.test_constraints, overwrite=True)
 
         result: StreamingResponse = await copilot_run(self.test_id, 0, requset)
-        mock_get_architecture_latest.assert_called_once_with(self.test_id)
+        mock_get_architecture_current.assert_called_once_with(self.test_id)
         mock_get_guardrails.assert_called_once_with(self.test_architecture.owner)
         mock_get_state.assert_called_once_with(self.test_architecture)
         mock_run_engine.assert_called_once_with(

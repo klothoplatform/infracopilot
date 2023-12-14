@@ -52,13 +52,11 @@ async def set_current_state(id: str, state: int):
     for r in result:
         architecture: Architecture = r[0]
         if architecture.state == state:
-            print("setting current state to ", architecture.state)
             architecture.extraFields = (
                 {} if architecture.extraFields is None else architecture.extraFields
             )
             architecture.extraFields[ExtraFields.CURRENT.value] = True
         else:
-            print("setting current state to false", architecture.state)
             architecture.extraFields = (
                 {} if architecture.extraFields is None else architecture.extraFields
             )
@@ -75,7 +73,6 @@ async def get_architecture_current(id: str) -> Architecture:
         raise Exception(f"Architecture with id, {id}, does not exist")
     for r in result:
         architecture: Architecture = r[0]
-        print(architecture.state, architecture.extraFields)
     for r in result:
         architecture: Architecture = r[0]
         if (

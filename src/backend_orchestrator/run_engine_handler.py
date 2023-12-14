@@ -19,6 +19,7 @@ from src.state_manager.architecture_data import (
     delete_future_states,
     get_architecture_at_state,
     get_architecture_latest,
+    get_architecture_current,
     add_architecture,
     Architecture,
 )
@@ -40,13 +41,13 @@ async def copilot_run(
     id: str, state: int, body: CopilotRunRequest, accept: Optional[str] = None
 ):
     try:
-        latest_architecture = await get_architecture_latest(id)
-        if latest_architecture is None:
+        current_architecture = await get_architecture_current(id)
+        if current_architecture is None:
             raise ArchitectureStateDoesNotExistError(
                 "Architecture with id, {id}, does not exist"
             )
         if not body.overwrite:
-            architecture = latest_architecture
+            architecture = current_architecture
             if architecture.state != state:
                 raise ArchitecutreStateNotLatestError(
                     f"Architecture state is not the latest. Expected {architecture.state}, got {state}"
@@ -73,7 +74,7 @@ async def copilot_run(
         arch = Architecture(
             id=id,
             name=architecture.name,
-            state=latest_architecture.state + 1,
+            state=current_architecture.state + 1,
             constraints=body.constraints,
             owner=architecture.owner,
             created_at=architecture.created_at,
