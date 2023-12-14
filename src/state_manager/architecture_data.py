@@ -4,12 +4,12 @@ from sqlalchemy import select, JSON
 from src.util.entity import Entity
 from src.util.orm import Base, session
 from typing import Any, List
-import re
 from enum import Enum
+from sqlalchemy.orm.attributes import flag_modified
 
 
-class ExtraFieldKeys(Enum):
-    STACK_NAME = "stack_name"
+class ExtraFields(Enum):
+    CURRENT = "current"
 
 
 class Architecture(Base):
@@ -46,25 +46,57 @@ class Architecture(Base):
         return f"architecture:{self.id}"
 
 
-async def generate_architecture_stack_name(id: str) -> str:
+async def set_current_state(id: str, state: int):
+    stmt = select(Architecture).where(Architecture.id == id)
+    result = session.execute(statement=stmt).fetchall()
+    for r in result:
+        architecture: Architecture = r[0]
+        if architecture.state == state:
+            architecture.extraFields = (
+                {} if architecture.extraFields is None else architecture.extraFields
+            )
+            architecture.extraFields[ExtraFields.CURRENT.value] = True
+        else:
+            architecture.extraFields = (
+                {} if architecture.extraFields is None else architecture.extraFields
+            )
+            architecture.extraFields[ExtraFields.CURRENT.value] = False
+        flag_modified(architecture, "extraFields")
+        session.commit()
+    return
+
+
+async def get_architecture_current(id: str) -> Architecture:
+    stmt = select(Architecture).where(Architecture.id == id)
+    result = session.execute(statement=stmt).fetchall()
+    if result is None:
+        raise Exception(f"Architecture with id, {id}, does not exist")
+    for r in result:
+        architecture: Architecture = r[0]
+    for r in result:
+        architecture: Architecture = r[0]
+        if (
+            architecture.extraFields is not None
+            and architecture.extraFields[ExtraFields.CURRENT.value] == True
+        ):
+            return architecture
+    arch = await get_architecture_latest(id)
+    if arch is not None:
+        await set_current_state(id, arch.state)
+        return arch
+    return None
+
+
+async def delete_future_states(id: str, state: int):
     stmt = (
         select(Architecture)
         .where(Architecture.id == id)
-        .order_by(Architecture.state.desc())
-        .limit(1)
+        .where(Architecture.state > state)
     )
-    result = session.execute(statement=stmt).fetchone()
-    if result is None:
-        raise Exception(f"Architecture with id, {id}, does not exist")
-    architecture: Architecture = result[0]
-    name = architecture.name if architecture.name is not None else architecture.id
-    stack_name = re.sub(r"[^a-zA-Z0-9\-_]", "", name)
-    architecture.extraFields = (
-        {} if architecture.extraFields is None else architecture.extraFields
-    )
-    architecture.extraFields[ExtraFieldKeys.STACK_NAME.value] = stack_name
+    result = session.execute(statement=stmt).fetchall()
+    for r in result:
+        session.delete(r[0])
     session.commit()
-    return stack_name
 
 
 async def delete_architecture(id: str):
@@ -92,6 +124,38 @@ async def get_architecture_latest(id: str) -> Architecture:
     return None if result is None else result[0]
 
 
+async def get_architecture_at_state(id: str, state: int) -> Architecture:
+    stmt = (
+        select(Architecture)
+        .where(Architecture.id == id)
+        .where(Architecture.state == state)
+    )
+    result = session.execute(statement=stmt).fetchone()
+    return None if result is None else result[0]
+
+
+async def get_previous_state(id: str, state: int) -> Architecture:
+    stmt = (
+        select(Architecture)
+        .where(Architecture.id == id)
+        .where(Architecture.state < state)
+        .order_by(Architecture.state.desc())
+    )
+    result = session.execute(statement=stmt).fetchone()
+    return None if result is None else result[0]
+
+
+async def get_next_state(id: str, state: int) -> Architecture:
+    stmt = (
+        select(Architecture)
+        .where(Architecture.id == id)
+        .where(Architecture.state > state)
+        .order_by(Architecture.state.asc())
+    )
+    result = session.execute(statement=stmt).fetchone()
+    return None if result is None else result[0]
+
+
 async def get_architecture_history(id: str) -> List[Architecture]:
     stmt = select(Architecture).where(Architecture.id == id)
     results = session.execute(statement=stmt).fetchall()
@@ -114,6 +178,7 @@ class ArchitectureAlreadyExistsError(Exception):
 async def add_architecture(architecture: Architecture):
     try:
         session.add(architecture)
+        await set_current_state(architecture.id, architecture.state)
         session.commit()
     except Exception as e:
         if isinstance(e, IntegrityError):

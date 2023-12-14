@@ -54,6 +54,8 @@ export default function ConfigForm() {
     );
   }
 
+
+
   const methods = useForm({
     shouldFocusError: true,
     defaultValues: selectedResource
@@ -66,6 +68,21 @@ export default function ConfigForm() {
         }
       : {},
   });
+
+  useEffect(() => {
+    methods.reset(
+      selectedResource
+        ? {
+            ...toFormState(
+              architecture.resources.get(selectedResource.toString()),
+              resourceType?.properties,
+            ),
+            ...getCustomConfigState(selectedResource, architecture),
+          }
+        : {},
+    );
+  }, [architecture]);
+
   const formState = methods.formState;
   const { defaultValues, dirtyFields, isSubmitSuccessful, isDirty, errors } =
     formState;
@@ -85,7 +102,6 @@ export default function ConfigForm() {
       }
     });
   }
-
   useEffect(() => {
     if (!isSubmitSuccessful) {
       return;

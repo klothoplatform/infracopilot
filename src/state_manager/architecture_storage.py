@@ -36,7 +36,7 @@ async def get_state_from_fs(arch: Architecture) -> Optional[RunEngineResult]:
             state_raw = await f.read()
             if state_raw is None:
                 raise ArchitectureStateDoesNotExistError(
-                    f"No architecture exists at location: {get_path_for_architecture(arch)}"
+                    f"No architecture exists at location: {arch.state_location}"
                 )
             data = jsons.loads(state_raw)
             return RunEngineResult(
@@ -47,14 +47,14 @@ async def get_state_from_fs(arch: Architecture) -> Optional[RunEngineResult]:
             )
     except FileNotFoundError:
         raise ArchitectureStateDoesNotExistError(
-            f"No architecture exists at location: {get_path_for_architecture(arch)}"
+            f"No architecture exists at location: {arch.state_location}"
         )
     except ClientError as err:
         # This is only necessary because Klotho's fs implementation
         # doesn't convert this to FileNotFoundError
         if err.response["Error"]["Code"] == "NoSuchKey":
             raise ArchitectureStateDoesNotExistError(
-                f"No architecture exists at location: {get_path_for_architecture(arch)}"
+                f"No architecture exists at location: {arch.state_location}"
             )
         raise
 
@@ -67,7 +67,7 @@ async def get_iac_from_fs(arch: Architecture) -> Optional[BytesIO]:
             state_raw = await f.read()
             if state_raw is None:
                 raise ArchitectureStateDoesNotExistError(
-                    f"No architecture exists at location: {get_path_for_architecture(arch)}"
+                    f"No architecture exists at location: {arch.iac_location}"
                 )
             if isinstance(state_raw, str):
                 state_raw = state_raw.encode()
@@ -75,14 +75,14 @@ async def get_iac_from_fs(arch: Architecture) -> Optional[BytesIO]:
 
     except FileNotFoundError:
         raise ArchitectureStateDoesNotExistError(
-            f"No architecture exists at location: {get_path_for_architecture(arch)}"
+            f"No architecture exists at location: {arch.iac_location}"
         )
     except ClientError as err:
         # This is only necessary because Klotho's fs implementation
         # doesn't convert this to FileNotFoundError
         if err.response["Error"]["Code"] == "NoSuchKey":
             raise ArchitectureStateDoesNotExistError(
-                f"No architecture exists at location: {get_path_for_architecture(arch)}"
+                f"No architecture exists at location: {arch.iac_location}"
             )
         raise
 
@@ -113,4 +113,4 @@ async def write_file_to_fs(
 
 
 def get_path_for_architecture(arch: Architecture) -> Path:
-    return root_path / arch.id
+    return root_path / arch.id / str(arch.state)
