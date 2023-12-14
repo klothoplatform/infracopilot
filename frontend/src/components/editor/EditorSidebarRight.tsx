@@ -340,7 +340,7 @@ const ChangesSidebar: FC<{
         }
         fallbackRender={FallbackRenderer}
       >
-        <div className="flex h-full flex-col justify-between px-2 py-4">
+        <div className="flex h-full flex-col justify-between overflow-y-auto px-2 py-4">
           <EventNotifications events={notifications} />
         </div>
       </ErrorBoundary>
@@ -689,7 +689,7 @@ interface EventNotificationsProps {
 
 const EventNotifications: FC<EventNotificationsProps> = function ({ events }) {
   return (
-    <div className="flex flex-col space-y-4">
+    <div className="flex max-h-full flex-col space-y-4">
       {events.map((event, index) => (
         <EventNotification key={index} {...event} />
       ))}
