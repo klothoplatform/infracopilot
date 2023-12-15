@@ -2,7 +2,7 @@ import classNames from "classnames";
 import { Accordion, Sidebar, TextInput } from "flowbite-react";
 import type { ChangeEvent, ForwardedRef } from "react";
 import React, { forwardRef, useCallback, useState } from "react";
-import { HiFilter } from "react-icons/hi";
+import { HiSearch } from "react-icons/hi";
 
 import { useSidebarContext } from "../../context/SidebarContext";
 import type { FilterFunction } from "./ResourceAccordion";
@@ -127,9 +127,9 @@ const EditorSidebarLeft = forwardRef(
           >
             <div className="flex flex-col justify-between gap-2 py-2">
               <TextInput
-                icon={HiFilter}
+                icon={HiSearch}
                 type="search"
-                placeholder="filter"
+                placeholder="Search for a resource"
                 required
                 size={32}
                 onChange={debouncedHandleInputChange}
