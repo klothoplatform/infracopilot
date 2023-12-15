@@ -203,7 +203,7 @@ export class Cloudfront {
     /* CUSTOM RESOURCES START */
 
     const invalidationCommand = new local.Command("invalidate-cache", {
-      create: pulumi.interpolate`aws cloudfront create-invalidation --distribution-id ${distribution.id} --paths /*`,
+      create: pulumi.interpolate`aws cloudfront create-invalidation --distribution-id ${distribution.id} --paths "/*"`,
       triggers: [Math.random()],
     });
 
