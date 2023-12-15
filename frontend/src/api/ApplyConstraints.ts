@@ -34,7 +34,10 @@ export async function applyConstraints(
   try {
     const response = await axios.post(
       `/api/architecture/${architectureId}/run`,
-      { constraints: JSON.parse(formatConstraints(constraints)), overwrite: overwrite ?? false},
+      {
+        constraints: JSON.parse(formatConstraints(constraints)),
+        overwrite: overwrite ?? false,
+      },
       {
         params: {
           state: latestState,
@@ -69,7 +72,12 @@ export async function applyConstraints(
       url: e.request?.url,
       cause: e,
     });
-    trackError(error);
+
+    console.log((window as any).CommandBar);
+    (async () => {
+      (window as any).CommandBar?.trackEvent("apply_constraints_500", {});
+      trackError(error);
+    })();
     throw error;
   }
   return {
