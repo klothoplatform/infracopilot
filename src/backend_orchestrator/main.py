@@ -1,13 +1,17 @@
 # @klotho::execution_unit {
 #    id = "main"
 # }
+import asyncio
 import logging
-from typing import Annotated, Optional
+import os
+from typing import Annotated, Optional, Callable
 
 from fastapi import FastAPI, Response, Header
 from fastapi import Request
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
+from pyinstrument import Profiler
+from pyinstrument.renderers import HTMLRenderer, SpeedscopeRenderer
 
 from src.auth_service.main import can_read_architecture, can_write_to_architecture
 from src.auth_service.token import PUBLIC_USER, AuthError, get_user_id
@@ -158,7 +162,7 @@ async def get_previous_state(request: Request, id: str, state: int):
 
 
 @app.get("/api/architecture/{id}/version/{state}/next")
-async def get_previous_state(request: Request, id: str, state: int):
+async def get_next_state(request: Request, id: str, state: int):
     user_id = get_user_id(request)
     authorized = await can_read_architecture(User(id=user_id), id)
     if not authorized:
@@ -174,7 +178,7 @@ async def get_previous_state(request: Request, id: str, state: int):
 
 
 @app.post("/api/architecture/{id}/version/{state}/set")
-async def get_previous_state(request: Request, id: str, state: int):
+async def set_current_state(request: Request, id: str, state: int):
     user_id = get_user_id(request)
     authorized = await can_write_to_architecture(User(id=user_id), id)
     if not authorized:
@@ -261,3 +265,47 @@ async def list_architectures(request: Request):
 def handle_auth_error(ex: AuthError):
     response = JSONResponse(content=ex.error, status_code=ex.status_code)
     return response
+
+
+if os.getenv("PROFILING", "false").lower() == "true":
+
+    @app.on_event("startup")
+    async def startup_event():
+        loop = asyncio.get_event_loop()
+        loop.set_debug(True)
+        loop.slow_callback_duration = 0.001
+
+    @app.middleware("http")
+    async def profile_request(request: Request, call_next: Callable):
+        """Profile the current request"""
+        # we map a profile type to a file extension, as well as a pyinstrument profile renderer
+        profile_type_to_ext = {"html": "html", "speedscope": "speedscope.json"}
+        profile_type_to_renderer = {
+            "html": HTMLRenderer,
+            "speedscope": SpeedscopeRenderer,
+        }
+
+        # if the `profile=true` HTTP query argument is passed, we profile the request
+        if request.query_params.get("profile", False):
+            # The default profile format is speedscope
+            profile_type = request.query_params.get(
+                "profile_format", "speedscope"
+            ).lower()
+
+            # we profile the request along with all additional middlewares, by interrupting
+            # the program every 1ms1 and records the entire stack at that point
+            with Profiler(interval=0.001, async_mode="enabled") as profiler:
+                response = await call_next(request)
+
+            # we dump the profiling into a file
+            extension = profile_type_to_ext[profile_type]
+            renderer = profile_type_to_renderer[profile_type]()
+            with open(
+                f"profile_{request.query_params.get('profile_name', 'request')}.{extension}",
+                "w",
+            ) as out:
+                out.write(profiler.output(renderer=renderer))
+            return response
+
+        # Proceed without profiling
+        return await call_next(request)

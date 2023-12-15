@@ -15,6 +15,8 @@ audience = os.getenv("AUTH0_AUDIENCE", "AeIvquQVLg9jy2V6Jq5Bz48cKQOmIPDw")
 
 PUBLIC_USER = "public"
 
+jwks_client = PyJWKClient(key_url, cache_keys=True)
+
 
 class AuthError(HTTPException):
     detail: str
@@ -46,7 +48,6 @@ def get_id_token(request: Request):
     # then download token signing public keys and return that matching the kid.
     # This key will then be cached for future JWTs with the same kid.
     # The client will reliably handle new kids if keys are recycled.
-    jwks_client = PyJWKClient(key_url)
     signing_key = jwks_client.get_signing_key_from_jwt(token)
     try:
         payload = jwt.decode(
