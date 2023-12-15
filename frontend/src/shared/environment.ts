@@ -40,8 +40,7 @@ export const env: Environment = {
   analytics: {
     writeKey: "GKCsKtwCdTQO75tRzBPKAw82xVPYPqEz",
     trackErrors:
-      (process.env.REACT_APP_ANALYTICS_TRACK_ERRORS ?? "true").toLowerCase() ===
-      "true",
+      process.env.REACT_APP_ANALYTICS_TRACK_ERRORS?.toLowerCase() !== "false",
   },
   hiddenResources:
     process.env.REACT_APP_HIDDEN_RESOURCES === undefined
