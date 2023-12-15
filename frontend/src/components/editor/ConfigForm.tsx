@@ -54,8 +54,6 @@ export default function ConfigForm() {
     );
   }
 
-
-
   const methods = useForm({
     shouldFocusError: true,
     defaultValues: selectedResource
@@ -69,23 +67,15 @@ export default function ConfigForm() {
       : {},
   });
 
-  useEffect(() => {
-    methods.reset(
-      selectedResource
-        ? {
-            ...toFormState(
-              architecture.resources.get(selectedResource.toString()),
-              resourceType?.properties,
-            ),
-            ...getCustomConfigState(selectedResource, architecture),
-          }
-        : {},
-    );
-  }, [architecture]);
-
   const formState = methods.formState;
-  const { defaultValues, dirtyFields, isSubmitSuccessful, isDirty, errors } =
-    formState;
+  const {
+    defaultValues,
+    dirtyFields,
+    isSubmitted,
+    isSubmitSuccessful,
+    isDirty,
+    errors,
+  } = formState;
   const [configErrors, setConfigErrors] = React.useState<ConfigurationError[]>(
     [],
   );
@@ -103,10 +93,11 @@ export default function ConfigForm() {
     });
   }
   useEffect(() => {
-    if (!isSubmitSuccessful) {
+    if (isSubmitted && !isSubmitSuccessful) {
       return;
     }
 
+    console.log(defaultValues, dirtyFields, isSubmitted, isSubmitSuccessful);
     methods.reset(
       selectedResource
         ? {
@@ -121,6 +112,7 @@ export default function ConfigForm() {
   }, [
     architecture,
     isSubmitSuccessful,
+    isSubmitted,
     methods,
     resourceType,
     selectedResource,
@@ -281,12 +273,22 @@ function toFormState(metadata: any, fields: Property[] = []) {
   fields = fields.filter(
     (field) => !field.deployTime && !field.configurationDisabled,
   );
-  Object.keys(metadata).forEach((key) => {
+
+  const keys = [
+    ...new Set([
+      ...Object.keys(metadata),
+      ...fields.map((f) => f.name),
+    ]).values(),
+  ].sort();
+
+  keys.forEach((key) => {
     const value = metadata[key];
     const field = fields.find((field) => field.name === key);
     switch (field?.type) {
       case CollectionTypes.Map:
-        if (isCollection((field as MapProperty).valueType)) {
+        if (!value) {
+          formState[key] = [];
+        } else if (isCollection((field as MapProperty).valueType)) {
           formState[key] = toFormState(value, field.properties);
         } else {
           formState[key] = Object.entries(value).map(([key, value]) => {
@@ -296,6 +298,10 @@ function toFormState(metadata: any, fields: Property[] = []) {
         break;
       case CollectionTypes.Set:
       case CollectionTypes.List:
+        if (!value) {
+          formState[key] = [];
+          break;
+        }
         formState[key] = value.map((value: any) => {
           if (isCollection((field as ListProperty).itemType)) {
             return toFormState(value, field.properties);
@@ -305,7 +311,7 @@ function toFormState(metadata: any, fields: Property[] = []) {
         break;
       default:
         if (field) {
-          formState[key] = value;
+          formState[key] = value ?? null;
         }
     }
   });
