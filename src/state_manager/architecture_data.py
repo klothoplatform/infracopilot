@@ -3,7 +3,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import select, JSON
 from src.util.entity import Entity
 from src.util.orm import Base, session
-from typing import Any, List
+from typing import Any, List, Optional
 from enum import Enum
 from sqlalchemy.orm.attributes import flag_modified
 
@@ -66,18 +66,16 @@ async def set_current_state(id: str, state: int):
     return
 
 
-async def get_architecture_current(id: str) -> Architecture:
+async def get_architecture_current(id: str) -> Optional[Architecture]:
     stmt = select(Architecture).where(Architecture.id == id)
     result = session.execute(statement=stmt).fetchall()
     if result is None:
         raise Exception(f"Architecture with id, {id}, does not exist")
     for r in result:
         architecture: Architecture = r[0]
-    for r in result:
-        architecture: Architecture = r[0]
         if (
             architecture.extraFields is not None
-            and architecture.extraFields[ExtraFields.CURRENT.value] == True
+            and architecture.extraFields[ExtraFields.CURRENT.value] is True
         ):
             return architecture
     arch = await get_architecture_latest(id)

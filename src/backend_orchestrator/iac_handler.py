@@ -12,6 +12,7 @@ from src.engine_service.engine_commands.export_iac import export_iac, ExportIacR
 from src.state_manager.architecture_data import (
     get_architecture_latest,
     add_architecture,
+    get_architecture_current,
 )
 from src.state_manager.architecture_storage import (
     get_iac_from_fs,
@@ -25,7 +26,7 @@ log = logging.getLogger(__name__)
 
 async def copilot_get_iac(id, state: int, accept: Optional[str] = None):
     try:
-        arch = await get_architecture_latest(id)
+        arch = await get_architecture_current(id)
 
         if arch is None:
             raise ArchitectureStateDoesNotExistError(
@@ -33,7 +34,7 @@ async def copilot_get_iac(id, state: int, accept: Optional[str] = None):
             )
         elif arch.state != state:
             raise ArchitecutreStateNotLatestError(
-                f"Architecture state is not the latest. Expected {arch.state}, got {state}"
+                f"Architecture state is not current. Expected {arch.state}, got {state}"
             )
 
         iac = await get_iac_from_fs(arch)
@@ -66,9 +67,7 @@ async def copilot_get_iac(id, state: int, accept: Optional[str] = None):
             },
         )
     except ArchitecutreStateNotLatestError as e:
-        raise HTTPException(
-            status_code=400, detail="Architecture state is not the latest"
-        )
+        raise HTTPException(status_code=400, detail="Architecture state is not current")
     except ArchitectureStateDoesNotExistError as e:
         raise HTTPException(
             status_code=404, detail=f"No architecture exists for id {id}"
