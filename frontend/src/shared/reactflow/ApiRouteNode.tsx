@@ -25,7 +25,7 @@ const ApiRouteNode = memo(({ id, data, isConnectable }: RouteNodeProps) => {
 
   const connectionNodeId = useStore(connectionNodeIdSelector);
   const isConnecting = !!connectionNodeId;
-  const isSelected = selectedResource === data.resourceId;
+  const isSelected = selectedResource?.equals(data.resourceId);
   const [mouseOverNode, setMouseOverNode] = useState(false);
   const [mouseOverHandle] = useState(false);
   const showSourceHandle = !isConnecting && (mouseOverNode || mouseOverHandle);
