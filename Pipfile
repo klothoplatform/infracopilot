@@ -17,6 +17,7 @@ pyjwt = "*"
 pem = "*"
 cryptography = "*"
 requests = "*"
+pyinstrument = "*"
 
 [dev-packages]
 black = "*"
