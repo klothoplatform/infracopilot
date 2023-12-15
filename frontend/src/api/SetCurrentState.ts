@@ -11,17 +11,21 @@ export async function setCurrentState(
   idToken: string,
   version: number,
 ): Promise<void> {
-  console.log(idToken)
+  console.log(idToken);
   let response: AxiosResponse;
   try {
-    response = await axios.post(`/api/architecture/${id}/version/${version}/set`, {}, {
-      responseType: "json",
-      decompress: true,
-      headers: {
-        accept: "application/octet-stream",
-        ...(idToken && { Authorization: `Bearer ${idToken}` }),
+    response = await axios.post(
+      `/api/architecture/${id}/version/${version}/set`,
+      {},
+      {
+        responseType: "json",
+        decompress: true,
+        headers: {
+          accept: "application/octet-stream",
+          ...(idToken && { Authorization: `Bearer ${idToken}` }),
+        },
       },
-    });
+    );
   } catch (e: any) {
     const error = new ApiError({
       errorId: "SetCurrentState",

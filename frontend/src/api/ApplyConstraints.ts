@@ -34,7 +34,10 @@ export async function applyConstraints(
   try {
     const response = await axios.post(
       `/api/architecture/${architectureId}/run`,
-      { constraints: JSON.parse(formatConstraints(constraints)), overwrite: overwrite ?? false},
+      {
+        constraints: JSON.parse(formatConstraints(constraints)),
+        overwrite: overwrite ?? false,
+      },
       {
         params: {
           state: latestState,

@@ -13,14 +13,17 @@ export async function getNextState(
 ): Promise<Architecture | undefined> {
   let response: AxiosResponse;
   try {
-    response = await axios.get(`/api/architecture/${id}/version/${version}/next`, {
-      responseType: "json",
-      decompress: true,
-      headers: {
-        accept: "application/octet-stream",
-        ...(idToken && { Authorization: `Bearer ${idToken}` }),
+    response = await axios.get(
+      `/api/architecture/${id}/version/${version}/next`,
+      {
+        responseType: "json",
+        decompress: true,
+        headers: {
+          accept: "application/octet-stream",
+          ...(idToken && { Authorization: `Bearer ${idToken}` }),
+        },
       },
-    });
+    );
   } catch (e: any) {
     if (e.response.status === 404) {
       return undefined;
