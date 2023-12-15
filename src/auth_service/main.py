@@ -81,7 +81,6 @@ async def can_write_to_architecture(entity: Entity, architecture_id: str) -> boo
 async def can_read_architecture(entity: Entity, architecture_id: str) -> bool:
     configuration = await get_client_configuration()
     async with OpenFgaClient(configuration) as fga_client:
-        models = await fga_client.read_authorization_models()
         body = ClientCheckRequest(
             user=entity.to_auth_string(),
             relation=ArchitecturePermissions.CAN_READ.value,
