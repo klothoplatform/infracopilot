@@ -4,7 +4,6 @@ import ReactFlow, {
   BackgroundVariant,
   ConnectionLineType,
   Controls,
-  Panel,
   useReactFlow,
   useStore,
 } from "reactflow";
@@ -191,6 +190,15 @@ export default function EditorPane() {
     [setMenu],
   );
 
+  const onPaneContextMenu = useCallback(
+    // close the context menu if it's open since we don't have pane-specific actions
+    (event: ReactMouseEvent) => {
+      event.preventDefault();
+      setMenu(null);
+    },
+    [setMenu],
+  );
+
   const onEdgeContextMenu = useCallback(
     (event: ReactMouseEvent, edge: Edge) => {
       // Prevent native context menu from showing
@@ -267,6 +275,7 @@ export default function EditorPane() {
           onEdgesChange={onEdgesChange}
           onNodeContextMenu={onNodeContextMenu}
           onEdgeContextMenu={onEdgeContextMenu}
+          onPaneContextMenu={onPaneContextMenu}
           onConnect={onConnect}
           onConnectStart={onConnectStart}
           onDrop={onDrop}
@@ -297,8 +306,8 @@ export default function EditorPane() {
         >
           <Background variant={BackgroundVariant.Dots} gap={25} size={1} />
           {menu && <ContextMenu {...menu} />}
-          <Controls/>
-          <VersionNavigator/>
+          <Controls />
+          <VersionNavigator />
         </ReactFlow>
         <WorkingOverlay show={showSpinner} message={"Autocompleting..."} />
       </div>

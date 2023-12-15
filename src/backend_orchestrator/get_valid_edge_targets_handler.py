@@ -16,6 +16,7 @@ from src.engine_service.engine_commands.get_valid_edge_targets import (
 from src.guardrails_manager.guardrails_store import get_guardrails
 from src.state_manager.architecture_data import (
     get_architecture_latest,
+    get_architecture_current,
 )
 from src.state_manager.architecture_storage import (
     get_state_from_fs,
@@ -36,14 +37,14 @@ async def copilot_get_valid_edge_targets(
     accept: Optional[str] = None,
 ):
     try:
-        architecture = await get_architecture_latest(id)
+        architecture = await get_architecture_current(id)
         if architecture is None:
             raise ArchitectureStateDoesNotExistError(
                 "Architecture with id, {request.architecture_id}, does not exist"
             )
         if architecture.state != state:
             raise ArchitecutreStateNotLatestError(
-                f"Architecture state is not the latest. Expected {architecture.state}, got {state}"
+                f"Architecture state is not current. Expected {architecture.state}, got {state}"
             )
         valid_edge_targets = []
         if architecture.state_location is not None:

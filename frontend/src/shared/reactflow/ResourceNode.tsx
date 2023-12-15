@@ -46,7 +46,7 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
 
   const connectionNodeId = useStore(connectionNodeIdSelector);
   const isConnecting = !!connectionNodeId;
-  const isSelected = selectedResource === data.resourceId;
+  const isSelected = selectedResource?.equals(data.resourceId);
   const [mouseOverNode, setMouseOverNode] = useState(false);
   // this could be a map by handle id
   const showSourceHandle = !isConnecting && mouseOverNode;

@@ -176,11 +176,6 @@ export class Cloudfront {
           responseCode: 200,
           responsePagePath: "/index.html",
         },
-        {
-          errorCode: 404,
-          responseCode: 200,
-          responsePagePath: "/index.html",
-        },
       ],
       orderedCacheBehaviors: [
         {

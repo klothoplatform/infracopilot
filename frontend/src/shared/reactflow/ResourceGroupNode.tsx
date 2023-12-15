@@ -40,7 +40,7 @@ const ResourceGroupNode = memo(
 
     const connectionNodeId = useStore(connectionNodeIdSelector);
     const isConnecting = !!connectionNodeId;
-    const isSelected = selectedResource === data.resourceId;
+    const isSelected = selectedResource?.equals(data.resourceId);
     const hasChildren = !!nodes.find((node) => node.parentNode === id);
     const [mouseOverNode, setMouseOverNode] = useState(false);
 
