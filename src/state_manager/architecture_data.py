@@ -46,7 +46,7 @@ class Architecture(Base):
         return f"architecture:{self.id}"
 
 
-async def set_current_state(id: str, state: int):
+async def copilot_set_current_state(id: str, state: int):
     stmt = select(Architecture).where(Architecture.id == id)
     result = session.execute(statement=stmt).fetchall()
     for r in result:
@@ -80,7 +80,7 @@ async def get_architecture_current(id: str) -> Optional[Architecture]:
             return architecture
     arch = await get_architecture_latest(id)
     if arch is not None:
-        await set_current_state(id, arch.state)
+        await copilot_set_current_state(id, arch.state)
         return arch
     return None
 
@@ -176,7 +176,7 @@ class ArchitectureAlreadyExistsError(Exception):
 async def add_architecture(architecture: Architecture):
     try:
         session.add(architecture)
-        await set_current_state(architecture.id, architecture.state)
+        await copilot_set_current_state(architecture.id, architecture.state)
         session.commit()
     except Exception as e:
         if isinstance(e, IntegrityError):

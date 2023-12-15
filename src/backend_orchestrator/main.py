@@ -37,7 +37,7 @@ from src.backend_orchestrator.iac_handler import copilot_get_iac
 from src.backend_orchestrator.run_engine_handler import copilot_run, CopilotRunRequest
 from src.state_manager.architecture_data import (
     delete_architecture as copilot_delete_architecture,
-    set_current_state,
+    copilot_set_current_state,
 )
 from src.util.entity import User
 from src.util.orm import Base, engine
@@ -189,8 +189,7 @@ async def set_current_state(request: Request, id: str, state: int):
                 "description": f"User is not authorized to write to architecture {id}",
             },
         )
-    accept = request.headers.get("accept")
-    return await set_current_state(id, state)
+    return await copilot_set_current_state(id, state)
 
 
 @app.get("/api/architecture/{id}/resource_types")

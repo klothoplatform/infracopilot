@@ -13,7 +13,7 @@ from src.state_manager.architecture_data import (
     get_next_state,
     get_previous_state,
     get_architecture_current,
-    set_current_state,
+    copilot_set_current_state,
 )
 import aiounittest
 
@@ -60,7 +60,7 @@ class TestArchitectureData(aiounittest.AsyncTestCase):
         self.session.query(Architecture).delete()
 
     async def test_set_current_state(self):
-        await set_current_state("test", 1)
+        await copilot_set_current_state("test", 1)
         result = await get_architecture_current("test")
         self.assertEqual(
             result,
@@ -79,8 +79,8 @@ class TestArchitectureData(aiounittest.AsyncTestCase):
         self.assertEqual(result.extraFields["current"], True)
 
     async def test_set_current_state_sets_other_states_to_false(self):
-        await set_current_state("test", 1)
-        await set_current_state("test", 2)
+        await copilot_set_current_state("test", 1)
+        await copilot_set_current_state("test", 2)
         result = await get_architecture_current("test")
         self.assertEqual(
             result,
