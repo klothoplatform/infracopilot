@@ -1,22 +1,17 @@
 from io import BytesIO
-from pathlib import Path, PosixPath
-import aiounittest
-import tempfile
-import shutil
-import jsons
 from unittest import mock
 
-from fastapi.responses import JSONResponse, StreamingResponse
+import aiounittest
+from fastapi.responses import StreamingResponse
 from starlette.concurrency import iterate_in_threadpool
 
-
 from src.backend_orchestrator.iac_handler import copilot_get_iac
-from src.state_manager.architecture_data import Architecture
-from src.engine_service.engine_commands.run import RunEngineResult
 from src.engine_service.engine_commands.export_iac import (
     ExportIacResult,
     ExportIacRequest,
 )
+from src.engine_service.engine_commands.run import RunEngineResult
+from src.state_manager.architecture_data import Architecture
 
 
 class TestGetIac(aiounittest.AsyncTestCase):
@@ -59,26 +54,25 @@ class TestGetIac(aiounittest.AsyncTestCase):
         new_callable=mock.AsyncMock,
     )
     @mock.patch(
-        "src.backend_orchestrator.iac_handler.get_architecture_latest",
+        "src.backend_orchestrator.iac_handler.get_architecture_current",
         new_callable=mock.AsyncMock,
     )
     async def test_get_iac_no_iac(
         self,
-        mock_get_architecture_latest: mock.Mock,
+        mock_get_architecture_current: mock.Mock,
         mock_get_iac: mock.Mock,
         mock_get_state: mock.Mock,
         mock_export_iac: mock.Mock,
         mock_write_iac: mock.Mock,
         mock_add: mock.Mock,
     ):
-        mock_get_architecture_latest.return_value = self.test_architecture
+        mock_get_architecture_current.return_value = self.test_architecture
         mock_get_iac.return_value = None
         mock_get_state.return_value = self.test_result
         mock_export_iac.return_value = self.export_iac_result
         mock_write_iac.return_value = "test-location"
 
         result: StreamingResponse = await copilot_get_iac(self.test_id, 0)
-        mock_get_architecture_latest.assert_called_once_with(self.test_id)
         mock_get_iac.assert_called_once_with(self.test_architecture)
         mock_get_state.assert_called_once_with(self.test_architecture)
         mock_export_iac.assert_called_once_with(
