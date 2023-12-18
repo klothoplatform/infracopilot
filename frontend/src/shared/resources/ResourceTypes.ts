@@ -16,6 +16,7 @@ export interface Property {
   configurationDisabled: boolean;
   deployTime: boolean;
   name: string;
+  description?: string;
   properties?: Property[];
   qualifiedName: string;
   required?: boolean;
@@ -102,6 +103,7 @@ export interface ResourceTypeFilter {
 type RawProperty = {
   name: string;
   type: string;
+  description?: string;
   configurationDisabled: boolean;
   deployTime: boolean;
   properties: object;
@@ -157,6 +159,7 @@ export function parseProperty(
   const {
     name,
     type: rawType,
+    description,
     configurationDisabled,
     deployTime,
     allowedValues,
@@ -180,6 +183,7 @@ export function parseProperty(
     name,
     qualifiedName,
     type,
+    description,
     configurationDisabled,
     deployTime,
     required,

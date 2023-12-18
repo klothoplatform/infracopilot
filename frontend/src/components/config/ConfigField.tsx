@@ -24,6 +24,8 @@ import classNames from "classnames";
 import { BiChevronRight, BiSolidHand, BiSolidPencil } from "react-icons/bi";
 import { env } from "../../shared/environment";
 import { HiMiniArrowUpRight } from "react-icons/hi2";
+import { IoInformationCircleOutline } from "react-icons/io5";
+import { Tooltip } from "flowbite-react";
 
 export interface ConfigFieldProps {
   qualifiedFieldName: string;
@@ -203,6 +205,7 @@ export const ConfigField: FC<ConfigFieldProps> = ({
               className={"flex w-full"}
               color={error ? "failure" : "default"}
             >
+
               <div
                 className={
                   "inline-flex max-w-[95%] items-center [&>span:first-child]:hidden"
@@ -241,7 +244,14 @@ export const ConfigField: FC<ConfigFieldProps> = ({
                   )}
                 </div>
               )}
-              {}
+              { field.description &&
+                <Tooltip content={<div className="max-w-sm">
+                  {field.description}
+                </div>}>
+                  <IoInformationCircleOutline/>
+                </Tooltip>
+              }
+              
             </Label>
             {element}
           </div>

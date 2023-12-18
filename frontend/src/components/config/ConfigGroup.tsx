@@ -9,6 +9,7 @@ import { ConfigField } from "./ConfigField";
 import { useFormState } from "react-hook-form";
 import useApplicationStore from "../../pages/store/ApplicationStore";
 
+
 type ConfigGroupProps = {
   qualifiedFieldName?: string;
   valueSelector?: string;
@@ -43,6 +44,7 @@ export const ConfigGroup: FC<ConfigGroupProps> = ({
     .forEach((property: Property, index: number) => {
       rows.push(
         <div key={index} className="h-fit max-w-full p-1">
+
           <ConfigField
             field={property}
             qualifiedFieldName={
