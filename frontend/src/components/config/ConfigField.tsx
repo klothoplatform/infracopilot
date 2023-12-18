@@ -205,7 +205,6 @@ export const ConfigField: FC<ConfigFieldProps> = ({
               className={"flex w-full"}
               color={error ? "failure" : "default"}
             >
-
               <div
                 className={
                   "inline-flex max-w-[95%] items-center [&>span:first-child]:hidden"
@@ -229,6 +228,16 @@ export const ConfigField: FC<ConfigFieldProps> = ({
                     );
                   })}
               </div>
+              {field.description && (
+                <Tooltip
+                  content={<div className="flex max-w-sm">{field.description}</div>}
+                >
+                  <IoInformationCircleOutline
+                    size={12}
+                    className="inline-flex"
+                  />
+                </Tooltip>
+              )}
               {field.required && <div className={"text-red-600"}>*</div>}
               {env.debug.has("config-state") && (
                 <div className={"flex flex-row"}>
@@ -244,14 +253,6 @@ export const ConfigField: FC<ConfigFieldProps> = ({
                   )}
                 </div>
               )}
-              { field.description &&
-                <Tooltip content={<div className="max-w-sm">
-                  {field.description}
-                </div>}>
-                  <IoInformationCircleOutline/>
-                </Tooltip>
-              }
-              
             </Label>
             {element}
           </div>
