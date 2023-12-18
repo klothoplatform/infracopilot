@@ -53,7 +53,7 @@ export const ExportIacButton: FC<ExportIacButtonProps> = (
       className="flex"
       onClick={onClickExportIac}
       isProcessing={isExporting}
-      disabled={props.disabled}
+      disabled={props.disabled || !architecture?.resources?.size}
       processingSpinner={<AiOutlineLoading className="animate-spin" />}
     >
       {!isExporting && <TbFileExport className="mr-1" />}
