@@ -37,6 +37,7 @@ export default function NewArchitectureModal({
   let onSubmit = useCallback(
     async (state: NewArchitectureFormState) => {
       let id;
+      let success = false;
       setIsSubmitting(true);
       try {
         const architecture = await createArchitecture({
@@ -46,6 +47,7 @@ export default function NewArchitectureModal({
           idToken: await getIdToken(),
         });
         id = architecture.id;
+        success = true;
       } catch (e: any) {
         addError(
           new UIError({
@@ -56,24 +58,34 @@ export default function NewArchitectureModal({
         );
       }
       setIsSubmitting(false);
-      onClose();
-
-      if (id) {
-        try {
-          resetEditorState();
-          navigate(`/editor/${id}`);
-        } catch (e: any) {
-          addError(
-            new UIError({
-              errorId: "NewArchitectureModal:Submit",
-              message: "Loading new architecture failed!",
-              cause: e,
-            }),
-          );
+      if (success) {
+        onClose();
+        reset();
+        if (id) {
+          try {
+            resetEditorState();
+            navigate(`/editor/${id}`);
+          } catch (e: any) {
+            addError(
+              new UIError({
+                errorId: "NewArchitectureModal:Submit",
+                message: "Loading new architecture failed!",
+                cause: e,
+              }),
+            );
+          }
         }
       }
     },
-    [addError, getIdToken, navigate, onClose, resetEditorState, user?.sub],
+    [
+      addError,
+      getIdToken,
+      navigate,
+      onClose,
+      reset,
+      resetEditorState,
+      user?.sub,
+    ],
   );
 
   // required for ref sharing with react-hook-form: https://www.react-hook-form.com/faqs/#Howtosharerefusage
@@ -123,12 +135,7 @@ export default function NewArchitectureModal({
         onClose?.();
       }}
     >
-      <form
-        onSubmit={handleSubmit((state) => {
-          onSubmit(state);
-          reset();
-        })}
-      >
+      <form onSubmit={handleSubmit(onSubmit)}>
         <Modal.Header>Create a New Architecture</Modal.Header>
         <Modal.Body>
           <div>
