@@ -168,7 +168,6 @@ const ResourceGroupNode = memo(
                   ? `${data.resourceId.type}:${data.resourceId.name}`
                   : data.resourceId.toString()
               }
-              disabled
               onSubmit={async (newValue) => {
                 const { provider, type, namespace } = data.resourceId;
                 await replaceResource(
