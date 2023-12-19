@@ -210,7 +210,6 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
 
         <EditableLabel
           label={data.label}
-          disabled
           onSubmit={async (newValue) => {
             const { provider, type, namespace } = data.resourceId;
             await replaceResource(
