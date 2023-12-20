@@ -24,6 +24,8 @@ import classNames from "classnames";
 import { BiChevronRight, BiSolidHand, BiSolidPencil } from "react-icons/bi";
 import { env } from "../../shared/environment";
 import { HiMiniArrowUpRight } from "react-icons/hi2";
+import { IoInformationCircleOutline } from "react-icons/io5";
+import { Tooltip } from "flowbite-react";
 
 export interface ConfigFieldProps {
   qualifiedFieldName: string;
@@ -205,7 +207,7 @@ export const ConfigField: FC<ConfigFieldProps> = ({
             >
               <div
                 className={
-                  "inline-flex max-w-[95%] items-center [&>span:first-child]:hidden"
+                  "flex max-w-[95%] items-center gap-1 [&>span:first-child]:hidden"
                 }
               >
                 {(title ?? qualifiedFieldName ?? "")
@@ -225,23 +227,31 @@ export const ConfigField: FC<ConfigFieldProps> = ({
                       </Fragment>
                     );
                   })}
+                {field.description && (
+                  <Tooltip
+                    content={
+                      <div className="max-w-sm">{field.description}</div>
+                    }
+                  >
+                    <IoInformationCircleOutline size={12} />
+                  </Tooltip>
+                )}
+                {field.required && <div className={"text-red-600"}>*</div>}
+                {env.debug.has("config-state") && (
+                  <div className={"flex flex-row"}>
+                    {touched === true && (
+                      <span className={"inline-flex text-blue-500"}>
+                        <BiSolidHand />
+                      </span>
+                    )}
+                    {dirty === true && (
+                      <span className={"inline-flex  text-yellow-700"}>
+                        <BiSolidPencil />
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
-              {field.required && <div className={"text-red-600"}>*</div>}
-              {env.debug.has("config-state") && (
-                <div className={"flex flex-row"}>
-                  {touched === true && (
-                    <span className={"inline-flex text-blue-500"}>
-                      <BiSolidHand />
-                    </span>
-                  )}
-                  {dirty === true && (
-                    <span className={"inline-flex  text-yellow-700"}>
-                      <BiSolidPencil />
-                    </span>
-                  )}
-                </div>
-              )}
-              {}
             </Label>
             {element}
           </div>
