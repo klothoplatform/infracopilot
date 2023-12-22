@@ -103,6 +103,8 @@ export const ConfigField: FC<ConfigFieldProps> = ({
           field={field}
           valueSelector={valueSelector}
           {...props}
+          color={error ? "failure" : undefined}
+          helperText={error && <span>{error.message?.toString()}</span>}
         />
       );
       break;
@@ -113,6 +115,8 @@ export const ConfigField: FC<ConfigFieldProps> = ({
           field={field as NumberProperty}
           valueSelector={valueSelector}
           {...props}
+          color={error ? "failure" : undefined}
+          helperText={error && <span>{error.message?.toString()}</span>}
         />
       );
       break;
@@ -123,6 +127,8 @@ export const ConfigField: FC<ConfigFieldProps> = ({
           field={field as NumberProperty}
           valueSelector={valueSelector}
           {...props}
+          color={error ? "failure" : undefined}
+          helperText={error && <span>{error.message?.toString()}</span>}
         />
       );
       break;
@@ -133,6 +139,7 @@ export const ConfigField: FC<ConfigFieldProps> = ({
           field={field}
           valueSelector={valueSelector}
           {...props}
+          color={error ? "failure" : undefined}
           required={required}
           error={error}
         />
@@ -163,6 +170,7 @@ export const ConfigField: FC<ConfigFieldProps> = ({
           qualifiedFieldName={qualifiedFieldName ?? "UNKNOWN-RESOURCE"}
           readOnly={configurationDisabled}
           resourceTypes={(field as ResourceProperty).resourceTypes}
+          valueSelector={valueSelector}
           required={required}
           error={error}
           {...props}
@@ -174,6 +182,7 @@ export const ConfigField: FC<ConfigFieldProps> = ({
         <EnumField
           qualifiedFieldName={qualifiedFieldName ?? "UNKNOWN-ENUM"}
           allowedValues={(field as EnumProperty).allowedValues}
+          valueSelector={valueSelector}
           readOnly={configurationDisabled}
           required={required}
           error={error}
