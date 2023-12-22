@@ -28,6 +28,7 @@ class TestResourceTemplateData(aiounittest.AsyncTestCase):
                 resource="klotho-test", version=1.0, owner="klotho", location="test"
             )
         )
+        self.session.commit()
 
     @classmethod
     def tearDownClass(self):
@@ -93,6 +94,7 @@ class TestEdgeTemplateData(aiounittest.AsyncTestCase):
                 location="test",
             )
         )
+        self.session.commit()
 
     @classmethod
     def tearDownClass(self):

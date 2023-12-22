@@ -55,6 +55,7 @@ class TestArchitectureData(aiounittest.AsyncTestCase):
                 decisions=[{"id": "another test"}],
             )
         )
+        self.session.commit()
 
     def tearDown(self):
         self.session.query(Architecture).delete()
