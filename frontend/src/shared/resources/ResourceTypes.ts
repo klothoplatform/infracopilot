@@ -27,6 +27,9 @@ export interface Property {
   // UI flag for indicating that a property is not part of the resource definition (e.g. when it is handled by a custom config section)
   // and should be ignored when serializing configuration form data
   synthetic?: boolean;
+  // Whether the property is "important". There are many reasons why a property might be important, but the effect is that it should
+  // be highlighted in the UI.
+  important?: boolean;
 }
 
 export interface ListProperty extends Property {
@@ -112,6 +115,7 @@ type RawProperty = {
   allowedValues?: string[];
   minValue?: number;
   maxValue?: number;
+  important?: boolean;
 };
 
 function toList(rawProperties: any): RawProperty[] {
@@ -168,6 +172,7 @@ export function parseProperty(
     defaultValue,
     minValue,
     maxValue,
+    important,
   }: RawProperty = rawProperty as any;
 
   if (!name) {
@@ -188,6 +193,7 @@ export function parseProperty(
     deployTime,
     required,
     defaultValue,
+    important,
   };
 
   switch (type) {

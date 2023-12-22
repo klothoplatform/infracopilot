@@ -11,7 +11,6 @@ if db != "":
 #   id = "ifcporm"
 # }
 engine = create_engine(f"sqlite://{db}", echo=False, future=True)
-session = Session(engine)
 
 
 class Base(DeclarativeBase):

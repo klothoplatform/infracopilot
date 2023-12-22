@@ -28,14 +28,12 @@ import {
 } from "../../shared/architecture/Constraints";
 import { ConfigGroup } from "../config/ConfigGroup";
 import type { NodeId } from "../../shared/architecture/TopologyNode";
-import type {
-  Architecture,
-  ConfigurationError,
-} from "../../shared/architecture/Architecture";
+import { resourceProperties, type Architecture, type ConfigurationError, isPropertyPromoted } from "../../shared/architecture/Architecture";
 import { analytics } from "../../App";
 import { ErrorBoundary } from "react-error-boundary";
 import { FallbackRenderer } from "../FallbackRenderer";
 import { ApplicationError, UIError } from "../../shared/errors";
+import { ConfigSection } from "../config/ConfigSection";
 
 export default function ConfigForm() {
   const {
@@ -47,11 +45,40 @@ export default function ConfigForm() {
   } = useApplicationStore();
 
   let resourceType: ResourceType | undefined;
+  let promotedProperties: Map<NodeId, Property[]> | undefined;
+  let remainingProperties: Map<NodeId, Property[]> | undefined;
   if (selectedResource) {
     resourceType = resourceTypeKB.getResourceType(
       selectedResource.provider,
       selectedResource.type,
     );
+
+    const allProperties = resourceProperties(architecture, resourceTypeKB, selectedResource);
+    promotedProperties = new Map<NodeId, Property[]>();
+    remainingProperties = new Map<NodeId, Property[]>();
+    for (const [resourceId, properties] of allProperties) {
+      const promotedProps = properties.filter(p => isPropertyPromoted(p));
+      if (promotedProps.length > 0) {
+        promotedProperties.set(
+          resourceId,
+          promotedProps,
+        );
+      }
+      const remainingProps = properties.filter(p => !promotedProps.includes(p));
+      if (remainingProps.length > 0) {
+        remainingProperties.set(
+          resourceId,
+          remainingProps,
+        );
+      }
+    }
+    if (promotedProperties.size === 0) {
+      promotedProperties = remainingProperties;
+      remainingProperties = undefined;
+    }
+    if (remainingProperties?.size === 0) {
+      remainingProperties = undefined;
+    }
   }
 
   const methods = useForm({
@@ -234,24 +261,31 @@ export default function ConfigForm() {
       }
       fallbackRender={FallbackRenderer}
     >
-      {(resourceType?.properties?.length ?? 0) > 0 && (
+      {promotedProperties?.size && (
         <FormProvider {...methods}>
           <form
             className="flex h-full min-h-0 w-full flex-col justify-between"
             onSubmit={methods.handleSubmit(submitConfigChanges)}
           >
             <div className="mb-2 max-h-full min-h-0 w-full overflow-y-auto overflow-x-hidden pb-2 [&>*:not(:last-child)]:mb-2">
-              <ConfigGroup fields={resourceType?.properties} />
-              {selectedResource &&
-                Object.entries(
-                  getCustomConfigSections(
-                    selectedResource.provider,
-                    selectedResource.type,
-                  ),
-                ).map((entry, index) => {
-                  const Component = entry[1].component;
-                  return Component ? <Component key={index} /> : null;
-                })}
+                <ConfigSection id="promoted" title="Properties" removable={false} defaultOpened={true}>
+                    {selectedResource &&
+                        Object.entries(
+                            getCustomConfigSections(
+                                selectedResource.provider,
+                                selectedResource.type,
+                            ),
+                        ).map((entry, index) => {
+                            const Component = entry[1].component;
+                            return Component ? <Component key={index} /> : null;
+                        })}
+                    <ConfigGroup selectedResource={selectedResource!} fields={promotedProperties} />
+                </ConfigSection>
+                {remainingProperties?.size && (
+                    <ConfigSection id="remaining" title="more properties" removable={false} defaultOpened={false}>
+                        <ConfigGroup selectedResource={selectedResource!} fields={remainingProperties} />
+                    </ConfigSection>
+                )}
             </div>
             {isDirty && (
               <Button type="submit" color="purple" fullSized={true}>

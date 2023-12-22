@@ -1,5 +1,5 @@
 from src.util.entity import User
-from src.util.orm import Base, engine, session
+from src.util.orm import Base, engine
 from src.state_manager.architecture_data import (
     Architecture,
     delete_architecture,
@@ -16,17 +16,17 @@ from src.state_manager.architecture_data import (
     copilot_set_current_state,
 )
 import aiounittest
+from sqlalchemy.orm import Session
 
 
 class TestArchitectureData(aiounittest.AsyncTestCase):
     @classmethod
     def setUpClass(self):
         Base.metadata.create_all(engine)
-        self.session = session
+        self.session = Session(engine)
 
     @classmethod
     def tearDownClass(self):
-        self.session.rollback()
         self.session.close()
         Base.metadata.drop_all(engine)
 

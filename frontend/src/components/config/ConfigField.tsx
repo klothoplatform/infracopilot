@@ -28,6 +28,7 @@ import { IoInformationCircleOutline } from "react-icons/io5";
 import { Tooltip } from "flowbite-react";
 
 export interface ConfigFieldProps {
+  displayedResource?: NodeId;
   qualifiedFieldName: string;
   field: Property;
   title?: string;
@@ -76,6 +77,7 @@ type EnumProps = {
 };
 
 export const ConfigField: FC<ConfigFieldProps> = ({
+  displayedResource,
   field,
   qualifiedFieldName,
   title,
@@ -101,8 +103,6 @@ export const ConfigField: FC<ConfigFieldProps> = ({
           field={field}
           valueSelector={valueSelector}
           {...props}
-          color={error ? "failure" : undefined}
-          helperText={error && <span>{error.message?.toString()}</span>}
         />
       );
       break;
@@ -113,8 +113,6 @@ export const ConfigField: FC<ConfigFieldProps> = ({
           field={field as NumberProperty}
           valueSelector={valueSelector}
           {...props}
-          color={error ? "failure" : undefined}
-          helperText={error && <span>{error.message?.toString()}</span>}
         />
       );
       break;
@@ -125,8 +123,6 @@ export const ConfigField: FC<ConfigFieldProps> = ({
           field={field as NumberProperty}
           valueSelector={valueSelector}
           {...props}
-          color={error ? "failure" : undefined}
-          helperText={error && <span>{error.message?.toString()}</span>}
         />
       );
       break;
@@ -137,7 +133,6 @@ export const ConfigField: FC<ConfigFieldProps> = ({
           field={field}
           valueSelector={valueSelector}
           {...props}
-          color={error ? "failure" : undefined}
           required={required}
           error={error}
         />
@@ -168,7 +163,6 @@ export const ConfigField: FC<ConfigFieldProps> = ({
           qualifiedFieldName={qualifiedFieldName ?? "UNKNOWN-RESOURCE"}
           readOnly={configurationDisabled}
           resourceTypes={(field as ResourceProperty).resourceTypes}
-          valueSelector={valueSelector}
           required={required}
           error={error}
           {...props}
@@ -180,7 +174,6 @@ export const ConfigField: FC<ConfigFieldProps> = ({
         <EnumField
           qualifiedFieldName={qualifiedFieldName ?? "UNKNOWN-ENUM"}
           allowedValues={(field as EnumProperty).allowedValues}
-          valueSelector={valueSelector}
           readOnly={configurationDisabled}
           required={required}
           error={error}
@@ -193,6 +186,7 @@ export const ConfigField: FC<ConfigFieldProps> = ({
       element = <></>;
   }
 
+  // TODO do something with displayedResource
   return (
     <>
       {type !== CollectionTypes.Map ||

@@ -8,19 +8,19 @@ import React from "react";
 import { ConfigField } from "./ConfigField";
 import { useFormState } from "react-hook-form";
 import useApplicationStore from "../../pages/store/ApplicationStore";
+import type { NodeId } from "../../shared/architecture/TopologyNode";
 
 
 type ConfigGroupProps = {
+  selectedResource?: NodeId;
   qualifiedFieldName?: string;
   valueSelector?: string;
-  fields?: Property[];
+  fields?: Map<NodeId, Property[]> | Property[];
   hidePrefix?: boolean;
 };
 
-const fieldDisplayFilter = (field: Property) =>
-  !field.deployTime && !field.configurationDisabled && !field.hidden;
-
 export const ConfigGroup: FC<ConfigGroupProps> = ({
+  selectedResource,
   qualifiedFieldName,
   valueSelector,
   fields,
@@ -29,42 +29,58 @@ export const ConfigGroup: FC<ConfigGroupProps> = ({
   const rows: ReactNode[] = [];
 
   const parentLength = qualifiedFieldName?.split(".").length;
-  fields
-    ?.map((property) =>
-      property.type === CollectionTypes.Map &&
-      (property as MapProperty).valueType === CollectionTypes.Map
-        ? property.properties?.map((child) => ({
-            ...child,
-            name: `${property.name}.${child.name}`,
-          })) ?? property
-        : property,
-    )
-    .flat()
-    ?.filter(fieldDisplayFilter)
-    .forEach((property: Property, index: number) => {
-      rows.push(
-        <div key={index} className="h-fit max-w-full p-1">
+  const addRow = (property: Property, resourceId?: NodeId) => {
+    rows.push(
+      <div key={rows.length} className="h-fit max-w-full p-1">
+        <ConfigField
+        // only show the resource if it isn't the one selected
+        displayedResource={resourceId === selectedResource ? undefined : resourceId}
+          field={property}
+          qualifiedFieldName={
+            qualifiedFieldName
+              ? `${qualifiedFieldName}.${property.name}`
+              : property.qualifiedName
+          }
+          valueSelector={valueSelector}
+          title={
+            parentLength && hidePrefix
+              ? qualifiedFieldName.split(".").slice(parentLength).join(".") +
+                property.name
+              : property.qualifiedName
+          }
+          required={property.required}
+          readOnly={property.configurationDisabled}
+        />
+      </div>,
+    );
+  }
+  const addProperties = (properties: Property[], resourceId?: NodeId) => {
+    properties
+      ?.map((property) =>
+        property.type === CollectionTypes.Map &&
+        (property as MapProperty).valueType === CollectionTypes.Map
+          ? property.properties?.map((child) => ({
+              ...child,
+              name: `${property.name}.${child.name}`,
+            })) ?? property
+          : property,
+      )
+      .flat()
+      .forEach((property: Property, index: number) => {
+        addRow(property, resourceId);
+      });
+  };
 
-          <ConfigField
-            field={property}
-            qualifiedFieldName={
-              qualifiedFieldName
-                ? `${qualifiedFieldName}.${property.name}`
-                : property.qualifiedName
-            }
-            valueSelector={valueSelector}
-            title={
-              parentLength && hidePrefix
-                ? qualifiedFieldName.split(".").slice(parentLength).join(".") +
-                  property.name
-                : property.qualifiedName
-            }
-            required={property.required}
-            readOnly={property.configurationDisabled}
-          />
-        </div>,
-      );
-    });
+
+  if (fields instanceof Map) {
+    for (const [resourceId, properties] of fields ?? []) {
+      addProperties(properties, resourceId);
+    }
+  } else {
+    addProperties(fields ?? []);
+  }
+
+
 
   return <>{rows}</>;
 };

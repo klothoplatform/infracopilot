@@ -2,8 +2,8 @@ from sqlite3 import IntegrityError
 from typing import List
 
 from src.util.entity import KlothoEntity
-from src.util.orm import Base, session
-from sqlalchemy.orm import Mapped, mapped_column
+from src.util.orm import Base, engine
+from sqlalchemy.orm import Mapped, mapped_column, Session
 from sqlalchemy import select
 
 
@@ -27,27 +27,27 @@ class ResourceTemplateData(Base):
 
 
 async def get_klotho_supported_resource_template_data() -> List[ResourceTemplateData]:
-    stmt = select(ResourceTemplateData).where(
-        ResourceTemplateData.owner == KlothoEntity.id
-    )
-    results = session.execute(statement=stmt).fetchall()
-    return [item[0] for item in results]
+    with Session(engine) as session:
+        stmt = select(ResourceTemplateData).where(
+            ResourceTemplateData.owner == KlothoEntity.id
+        )
+        results = session.execute(statement=stmt).fetchall()
+        return [item[0] for item in results]
 
 
 async def get_resource_templates_data_for_owner(owner_id) -> List[ResourceTemplateData]:
-    stmt = select(ResourceTemplateData).where(ResourceTemplateData.owner == owner_id)
-    results = session.execute(statement=stmt).fetchall()
-    return [item[0] for item in results]
+    with Session(engine) as session:
+        stmt = select(ResourceTemplateData).where(
+            ResourceTemplateData.owner == owner_id
+        )
+        results = session.execute(statement=stmt).fetchall()
+        return [item[0] for item in results]
 
 
 async def add_resource_template(template_data: ResourceTemplateData):
-    try:
-        session.add(template_data)
-        session.commit()
-    except Exception as e:
-        if isinstance(e, IntegrityError):
-            session.rollback()
-        raise e
+    with Session(engine) as session:
+        with session.begin():
+            session.add(template_data)
 
 
 class EdgeTemplateData(Base):
@@ -72,22 +72,20 @@ class EdgeTemplateData(Base):
 
 
 async def get_klotho_supported_edge_template_data() -> List[EdgeTemplateData]:
-    stmt = select(EdgeTemplateData).where(EdgeTemplateData.owner == KlothoEntity.id)
-    results = session.execute(statement=stmt).fetchall()
-    return [item[0] for item in results]
+    with Session(engine) as session:
+        stmt = select(EdgeTemplateData).where(EdgeTemplateData.owner == KlothoEntity.id)
+        results = session.execute(statement=stmt).fetchall()
+        return [item[0] for item in results]
 
 
 async def get_edge_templates_data_for_owner(owner_id) -> List[EdgeTemplateData]:
-    stmt = select(EdgeTemplateData).where(EdgeTemplateData.owner == owner_id)
-    results = session.execute(statement=stmt).fetchall()
-    return [item[0] for item in results]
+    with Session(engine) as session:
+        stmt = select(EdgeTemplateData).where(EdgeTemplateData.owner == owner_id)
+        results = session.execute(statement=stmt).fetchall()
+        return [item[0] for item in results]
 
 
 async def add_edge_template(template_data: EdgeTemplateData):
-    try:
-        session.add(template_data)
-        session.commit()
-    except Exception as e:
-        if isinstance(e, IntegrityError):
-            session.rollback()
-        raise e
+    with Session(engine) as session:
+        with session.begin():
+            session.add(template_data)

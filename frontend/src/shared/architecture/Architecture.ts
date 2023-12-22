@@ -9,6 +9,7 @@ import { customNodeMappings, NodeType } from "../reactflow/NodeTypes";
 import { customConfigMappings } from "../../pages/ArchitectureEditor/config/CustomConfigMappings";
 import { ApplicationError } from "../errors";
 import { isObject } from "../object-util";
+import type { Property } from "../resources/ResourceTypes";
 
 export enum ArchitectureView {
   DataFlow = "dataflow",
@@ -255,7 +256,8 @@ export function parseArchitecture(rawArchitecture: any): Architecture {
       }
       if (parsedState?.edges) {
         architecture.edges = Object.keys(parsedState.edges).map((key) => {
-          const [source, destination] = key.split("->").map((id) => id.trim());
+          const delim = key.includes("->") ? "->" : "→";
+          const [source, destination] = key.split(delim).map((id) => id.trim());
           return {
             source: NodeId.parse(source),
             destination: NodeId.parse(destination),
@@ -276,4 +278,65 @@ export function parseArchitecture(rawArchitecture: any): Architecture {
       },
     });
   }
+}
+
+export function isPropertyPromoted(property: Property): boolean {
+  return (
+    property.important ||
+    (property.required && !property.deployTime && !property.configurationDisabled && !property.hidden)
+  ) ?? false;
+}
+
+export function resourceProperties(
+  architecture: Architecture,
+  resourceTypes: ResourceTypeKB,
+  resourceId: NodeId,
+): Map<NodeId, Property[]> {
+  const resType = resourceTypes.getResourceType(
+    resourceId.provider,
+    resourceId.type,
+  );
+  const properties = new Map<NodeId, Property[]>();
+  if (resType?.properties?.length) {
+    // Filter out the properties which should not be shown
+    const props = resType.properties.filter(p => !p.deployTime && !p.configurationDisabled && !p.hidden);
+    if (props.length > 0) {
+      properties.set(resourceId, props);
+    }
+  }
+  const resNode = architecture.views.get(ArchitectureView.DataFlow)?.Nodes.find(n => n.resourceId === resourceId);
+  // Look deep into the property for potentially nested important properties
+  const promotedProp = (p: Property): Property | undefined => {
+    if (isPropertyPromoted(p)) {
+      return p;
+    }
+    if (p.properties?.length) {
+      const props = p.properties.filter(promotedProp);
+      if (props.length > 0) {
+        return {...p, properties: props};
+      }
+    }
+    return undefined;
+  }
+  resNode?.vizMetadata?.children?.forEach((child) => {
+    const childResType = resourceTypes.getResourceType(
+      child.provider,
+      child.type,
+    );
+    // Only pull up the important or required properties from children
+    const important = childResType?.properties?.reduce(
+      (acc: Property[], p) => {
+        const prop = promotedProp(p);
+        if (prop) {
+          acc.push(prop);
+        }
+        return acc;
+      },
+      [],
+    ) ?? [];
+    if (important.length > 0) {
+      properties.set(child, important);
+    }
+  });
+  return properties;
 }

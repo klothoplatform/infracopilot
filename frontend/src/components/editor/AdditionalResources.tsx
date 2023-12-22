@@ -2,10 +2,10 @@ import { Table } from "flowbite-react";
 import type { FC, ReactNode } from "react";
 import * as React from "react";
 import { useContext, useEffect, useState } from "react";
-import { getDownstreamResources } from "../../shared/architecture/Architecture";
 import { ThemeContext } from "flowbite-react/lib/esm/components/Flowbite/ThemeContext";
 import useApplicationStore from "../../pages/store/ApplicationStore";
 import { NodeIcon } from "../../shared/resources/ResourceMappings";
+import { ArchitectureView } from "../../shared/architecture/Architecture";
 import type { NodeId } from "../../shared/architecture/TopologyNode";
 
 function AdditionalResources() {
@@ -22,11 +22,9 @@ function AdditionalResources() {
 
     let connectedNodes: NodeId[] = [];
     if (selectedResource !== undefined) {
-      const downstreamNodes = getDownstreamResources(
-        architecture,
-        selectedResource,
-      );
-      connectedNodes = downstreamNodes;
+      connectedNodes = architecture.views.get(ArchitectureView.DataFlow)
+        ?.Nodes.find(n => n.resourceId === selectedResource)
+        ?.vizMetadata.children ?? [];
     } else {
       edges
         .filter((edge) => edge.id === selectedEdge)
