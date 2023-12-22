@@ -184,12 +184,11 @@ class ArchitectureAlreadyExistsError(Exception):
 
 
 async def add_architecture(architecture: Architecture):
-    with Session(engine) as session:
+    with Session(engine, expire_on_commit=False) as session:
         with session.begin():
             try:
                 session.add(architecture)
                 await copilot_set_current_state(architecture.id, architecture.state)
-                session.commit()
             except Exception as e:
                 if isinstance(e, IntegrityError):
                     session.rollback()
