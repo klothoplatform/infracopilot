@@ -80,11 +80,13 @@ async def get_architecture_current(id: str) -> Optional[Architecture]:
                 and architecture.extraFields[ExtraFields.CURRENT.value] is True
             ):
                 return architecture
+    # TODO once sessions are passed around, we won't need to re-fetch this data
+    arch = await get_architecture_latest(id)
+    if arch is not None:
+        await copilot_set_current_state(id, arch.state)
         arch = await get_architecture_latest(id)
-        if arch is not None:
-            await copilot_set_current_state(id, arch.state)
-            return arch
-        return None
+        return arch
+    return None
 
 
 async def delete_future_states(id: str, state: int):
