@@ -25,39 +25,48 @@ export class TopologyGraph {
     const edgeDefinedNodes: NodeId[] = [];
     if (resources) {
       Object.keys(resources).forEach((k: string) => {
-        let source, target;
-        if (k.includes("->") || k.includes("<-")) {
-          if (k.includes("->")) {
-            [source, target] = k.split("->");
+        const resource = resources[k];
+
+        const keyDelim = k.includes("->") ? "->" : 
+          k.includes("<-") ? "<-" : 
+          k.includes("→") ? "→" :
+          "←";
+        if (k.includes(keyDelim)) {
+          let source, target;
+          if (keyDelim === "->" || keyDelim === "→") {
+            [source, target] = k.split(keyDelim);
           } else {
-            [target, source] = k.split("<-");
+            [target, source] = k.split(keyDelim);
           }
           const sourceId = NodeId.fromTopologyId(source, graph.Provider);
           const targetId = NodeId.fromTopologyId(target, graph.Provider);
-          console.log("resources of k ", resources[k], k, sourceId, targetId);
+          const pathDelim = resource?.path?.includes(",") ? "," : 
+            resource?.path?.includes("→") ? "→" :
+            "->";
+          const path = resource?.path?.split(pathDelim).map((p: string) => NodeId.parse(p.trim()));
+          console.log("resources of k ", {resource, k, sourceId, targetId, path});
           graph.Edges.push(
             new TopologyEdge(sourceId, targetId, {
-              path: resources[k]?.path
-                ? resources[k]?.path
-                    .split(",")
-                    .map((p: string) => NodeId.parse(p))
-                : undefined,
+              path,
             }),
           );
           console.log(graph.Edges);
           edgeDefinedNodes.push(sourceId, targetId);
         } else {
+          let children = resource?.children;
+          if (typeof children === "string") {
+            children = children.split(",");
+          }
+          if (children) {
+            children = children.map((c: string) => NodeId.parse(c));
+          }
           graph.Nodes.push(
             new TopologyNode(NodeId.fromTopologyId(k, graph.Provider), {
-              ...resources[k],
-              parent: resources[k]?.parent
-                ? NodeId.fromTopologyId(resources[k]?.parent, graph.Provider)
+              ...resource,
+              parent: resource?.parent
+                ? NodeId.fromTopologyId(resource?.parent, graph.Provider)
                 : undefined,
-              children: resources[k]?.children
-                ? resources[k]?.children
-                    .split(",")
-                    .map((c: string) => NodeId.parse(c))
-                : undefined,
+              children,
             }),
           );
         }

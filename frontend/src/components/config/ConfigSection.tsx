@@ -9,6 +9,8 @@ type ConfigSectionProps = {
   id: string;
   title?: string;
   removable?: boolean;
+  defaultOpened?: boolean;
+  alwaysOpen?: boolean;
 };
 
 export const ConfigSection: FC<PropsWithChildren<ConfigSectionProps>> = ({
@@ -16,6 +18,7 @@ export const ConfigSection: FC<PropsWithChildren<ConfigSectionProps>> = ({
   title,
   removable,
   children,
+  defaultOpened,
 }) => {
   const { unregister, getValues } = useFormContext();
 
@@ -27,7 +30,7 @@ export const ConfigSection: FC<PropsWithChildren<ConfigSectionProps>> = ({
   }, [getValues, id, unregister]);
 
   return (
-    <Accordion>
+    <Accordion collapseAll={!(defaultOpened ?? true)}>
       <Accordion.Panel isOpen>
         <Accordion.Title
           title={title}

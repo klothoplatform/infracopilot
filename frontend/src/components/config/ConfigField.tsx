@@ -28,6 +28,7 @@ import { IoInformationCircleOutline } from "react-icons/io5";
 import { Tooltip } from "flowbite-react";
 
 export interface ConfigFieldProps {
+  displayedResource?: NodeId;
   qualifiedFieldName: string;
   field: Property;
   title?: string;
@@ -76,6 +77,7 @@ type EnumProps = {
 };
 
 export const ConfigField: FC<ConfigFieldProps> = ({
+  displayedResource,
   field,
   qualifiedFieldName,
   title,
@@ -91,6 +93,9 @@ export const ConfigField: FC<ConfigFieldProps> = ({
   const error = findChildProperty(errors, id);
   const touched = findChildProperty(touchedFields, id);
   const dirty = findChildProperty(dirtyFields, id);
+  if (displayedResource) {
+    qualifiedFieldName = `${displayedResource.toString()}#${qualifiedFieldName}`
+  }
 
   let element: React.ReactElement;
   switch (type) {
@@ -193,6 +198,7 @@ export const ConfigField: FC<ConfigFieldProps> = ({
       element = <></>;
   }
 
+  // TODO do something with displayedResource
   return (
     <>
       {type !== CollectionTypes.Map ||

@@ -1,14 +1,15 @@
-from src.util.orm import Base, engine, session
+from src.util.orm import Base, engine
 from src.template_manager.template_data import ResourceTemplateData, EdgeTemplateData
 from src.template_manager.main import get_owner_templates
 import aiounittest
+from sqlalchemy.orm import Session
 
 
 class TestResourceTemplateData(aiounittest.AsyncTestCase):
     @classmethod
     def setUpClass(self):
         Base.metadata.create_all(engine)
-        self.session = session
+        self.session = Session(engine)
         self.session.add(
             ResourceTemplateData(
                 resource="test", version=1.0, owner="bob", location="test"
@@ -83,7 +84,6 @@ class TestResourceTemplateData(aiounittest.AsyncTestCase):
 
     @classmethod
     def tearDownClass(self):
-        self.session.rollback()
         self.session.close()
         Base.metadata.drop_all(engine)
 
