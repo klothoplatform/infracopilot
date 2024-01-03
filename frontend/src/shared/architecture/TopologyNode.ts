@@ -89,4 +89,17 @@ export class NodeId {
       this.provider === other.provider
     );
   }
+
+  public compare(other: NodeId): number {
+    if (this.provider !== other.provider) {
+      return this.provider.localeCompare(other.provider);
+    }
+    if (this.type !== other.type) {
+      return this.type.localeCompare(other.type);
+    }
+    if (this.namespace !== other.namespace) {
+      return this.namespace.localeCompare(other.namespace);
+    }
+    return this.name.localeCompare(other.name);
+  }
 }

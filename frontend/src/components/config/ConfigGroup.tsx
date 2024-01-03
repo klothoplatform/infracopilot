@@ -66,15 +66,21 @@ export const ConfigGroup: FC<ConfigGroupProps> = ({
           : property,
       )
       .flat()
-      .forEach((property: Property, index: number) => {
-        addRow(property, resourceId);
-      });
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .forEach((property: Property) => addRow(property, resourceId));
   };
 
 
   if (fields instanceof Map) {
-    for (const [resourceId, properties] of fields ?? []) {
-      addProperties(properties, resourceId);
+    const keys = [...fields.keys()];
+    keys.sort((a, b) => a.compare(b));
+    if (selectedResource !== undefined && keys.includes(selectedResource)) {
+      // Move the selected resource to the beginning
+      keys.splice(keys.indexOf(selectedResource), 1);
+      keys.unshift(selectedResource);
+    }
+    for (const resourceId of keys) {
+      addProperties(fields.get(resourceId)!, resourceId);
     }
   } else {
     addProperties(fields ?? []);

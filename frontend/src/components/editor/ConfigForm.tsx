@@ -27,7 +27,7 @@ import {
   ResourceConstraint,
 } from "../../shared/architecture/Constraints";
 import { ConfigGroup } from "../config/ConfigGroup";
-import type { NodeId } from "../../shared/architecture/TopologyNode";
+import { NodeId } from "../../shared/architecture/TopologyNode";
 import { resourceProperties, type Architecture, type ConfigurationError, isPropertyPromoted } from "../../shared/architecture/Architecture";
 import { analytics } from "../../App";
 import { ErrorBoundary } from "react-error-boundary";
@@ -44,54 +44,65 @@ export default function ConfigForm() {
     addError,
   } = useApplicationStore();
 
-  let resourceType: ResourceType | undefined;
-  let promotedProperties: Map<NodeId, Property[]> | undefined;
-  let remainingProperties: Map<NodeId, Property[]> | undefined;
-  if (selectedResource) {
-    resourceType = resourceTypeKB.getResourceType(
-      selectedResource.provider,
-      selectedResource.type,
-    );
+  const [resourceType, setResourceType] = React.useState<ResourceType>();
+  
+  const [promotedProperties, setPromotedProperties] = React.useState<Map<NodeId, Property[]> | undefined>();
+  const [remainingProperties, setRemainingProperties] = React.useState<Property[] | undefined>();
+  useEffect(() => {
+    if (selectedResource) {
+      const resourceType = resourceTypeKB.getResourceType(selectedResource.provider, selectedResource.type);
+      setResourceType(resourceType);
 
-    const allProperties = resourceProperties(architecture, resourceTypeKB, selectedResource);
-    promotedProperties = new Map<NodeId, Property[]>();
-    remainingProperties = new Map<NodeId, Property[]>();
-    for (const [resourceId, properties] of allProperties) {
-      const promotedProps = properties.filter(p => isPropertyPromoted(p));
-      if (promotedProps.length > 0) {
-        promotedProperties.set(
-          resourceId,
-          promotedProps,
-        );
+      const allProperties = resourceProperties(architecture, resourceTypeKB, selectedResource);
+      const promotedProperties = new Map<NodeId, Property[]>();
+      for (const [resourceId, properties] of allProperties) {
+        const promotedProps = properties.filter(p => isPropertyPromoted(p));
+        if (promotedProps.length > 0) {
+          promotedProperties.set(
+            resourceId,
+            promotedProps,
+          );
+        }
       }
-      const remainingProps = properties.filter(p => !promotedProps.includes(p));
-      if (remainingProps.length > 0) {
-        remainingProperties.set(
-          resourceId,
-          remainingProps,
-        );
+      let remainingProperties = allProperties.get(selectedResource)?.filter(p => !promotedProperties?.get(selectedResource)?.includes(p));
+      if (promotedProperties.size === 0) {
+        promotedProperties.set(selectedResource, remainingProperties ?? []);
+        remainingProperties = undefined;
       }
+      if (remainingProperties?.length === 0) {
+        remainingProperties = undefined;
+      }
+      setPromotedProperties(promotedProperties);
+      setRemainingProperties(remainingProperties);
     }
-    if (promotedProperties.size === 0) {
-      promotedProperties = remainingProperties;
-      remainingProperties = undefined;
-    }
-    if (remainingProperties?.size === 0) {
-      remainingProperties = undefined;
-    }
-  }
+  }, [
+    selectedResource,
+    architecture,
+    resourceTypeKB,
+  ])
 
   const methods = useForm({
     shouldFocusError: true,
-    defaultValues: selectedResource
-      ? {
-          ...toFormState(
-            architecture.resources.get(selectedResource.toString()),
-            resourceType?.properties,
-          ),
-          ...getCustomConfigState(selectedResource, architecture),
-        }
-      : {},
+    defaultValues: (promotedProperties && selectedResource)
+    ? {
+        ...[...promotedProperties.entries()].reduce((acc, [resourceId, properties]): any => {
+          const fs = toFormState(
+            architecture.resources.get(resourceId.toString()),
+            properties,
+            resourceId === selectedResource ? undefined : resourceId,
+          )
+          return {
+            ...acc,
+            ...fs,
+          };
+        }, {}),
+        ...toFormState(
+          architecture.resources.get(selectedResource.toString()),
+          remainingProperties, // remaining properties are always on the selected resource
+        ),
+        ...getCustomConfigState(selectedResource, architecture),
+      }
+    : {},
   });
 
   const formState = methods.formState;
@@ -124,18 +135,27 @@ export default function ConfigForm() {
       return;
     }
 
-    console.log(defaultValues, dirtyFields, isSubmitted, isSubmitSuccessful);
-    methods.reset(
-      selectedResource
-        ? {
-            ...toFormState(
-              architecture.resources.get(selectedResource.toString()),
-              resourceType?.properties,
-            ),
-            ...getCustomConfigState(selectedResource, architecture),
-          }
-        : {},
-    );
+    console.log("reset to default", {defaultValues, dirtyFields, isSubmitted, isSubmitSuccessful});
+    methods.reset((promotedProperties && selectedResource)
+    ? {
+        ...[...promotedProperties.entries()].reduce((acc, [resourceId, properties]): any => {
+          const fs = toFormState(
+            architecture.resources.get(resourceId.toString()),
+            properties,
+            resourceId === selectedResource ? undefined : resourceId,
+          )
+          return {
+            ...acc,
+            ...fs,
+          };
+        }, {}),
+        ...toFormState(
+          architecture.resources.get(selectedResource.toString()),
+          remainingProperties, // remaining properties are always on the selected resource
+        ),
+        ...getCustomConfigState(selectedResource, architecture),
+      }
+    : {});
   }, [
     architecture,
     isSubmitSuccessful,
@@ -151,53 +171,73 @@ export default function ConfigForm() {
         return;
       }
 
+      const valuesByResource = new Map<NodeId, {values: any, dirty: any}>();
+      for (let [key, value] of Object.entries(submittedValues)) {
+        const parts = key.split("#", 2);
+        let resourceId, property;
+        if (parts.length === 2) {
+          resourceId = NodeId.parse(parts[0]);
+          property = parts[1];
+        } else {
+          resourceId = selectedResource;
+          property = key;
+        }
+        const res = valuesByResource.get(resourceId) ?? {values: {}, dirty: {}};
+        res.values[property] = value;
+        res.dirty[property] = dirtyFields[key];
+        valuesByResource.set(resourceId, res);
+      }
+
       console.log("submitting config changes");
       let constraints: Constraint[] = [];
       try {
-        const modifiedFormFields = getModifiedFormFields(
-          submittedValues,
-          { ...defaultValues },
-          dirtyFields,
-          resourceType?.properties,
-        );
-
-        const modifiedRootProperties = Object.fromEntries(
-          [...modifiedFormFields.keys()].map((key) => {
-            const rootKey = key.split(".", 2)[0].replaceAll(/\[\d+]/g, "");
-            const value = submittedValues[rootKey];
-            return [rootKey, value];
-          }),
-        );
-
-        constraints = Object.entries(
-          toResourceMetadata(
-            modifiedRootProperties,
-            resourceType?.properties,
-          ) as any,
-        )
-          .filter(
-            ([key]) =>
-              !resourceType?.properties?.find((field) => field.name === key)
-                ?.synthetic,
-          )
-          .map(([key, value]): ResourceConstraint => {
-            return new ResourceConstraint(
-              ConstraintOperator.Equals,
-              selectedResource,
-              key,
-              value,
-            );
-          });
-
-        constraints.push(
-          ...applyCustomizers(
-            selectedResource,
-            submittedValues,
+        for (const [resourceId, {values, dirty}] of valuesByResource) {
+          const resourceType = resourceTypeKB.getResourceType(resourceId.provider, resourceId.type);
+          const modifiedFormFields = getModifiedFormFields(
+            values,
             { ...defaultValues },
-            modifiedFormFields,
-            architecture,
-          ),
-        );
+            dirty,
+            resourceType?.properties,
+          );
+
+          const modifiedRootProperties = Object.fromEntries(
+            [...modifiedFormFields.keys()].map((key) => {
+              const rootKey = key.split(".", 2)[0].replaceAll(/\[\d+]/g, "");
+              const value = values[rootKey];
+              return [rootKey, value];
+            }),
+          );
+
+          const resConstraints: Constraint[] = Object.entries(
+            toResourceMetadata(
+              modifiedRootProperties,
+              resourceType?.properties,
+            ) as any,
+          )
+            .filter(
+              ([key]) =>
+                !resourceType?.properties?.find((field) => field.name === key)
+                  ?.synthetic,
+            )
+            .map(([key, value]): ResourceConstraint => {
+              return new ResourceConstraint(
+                ConstraintOperator.Equals,
+                resourceId,
+                key,
+                value,
+              );
+            });
+
+            resConstraints.push(
+            ...applyCustomizers(
+              resourceId,
+              values,
+              { ...defaultValues },
+              modifiedFormFields,
+              architecture,
+            ));
+            constraints.push(...resConstraints);
+        }
       } catch (e: any) {
         addError(
           new UIError({
@@ -281,7 +321,7 @@ export default function ConfigForm() {
                         })}
                     <ConfigGroup selectedResource={selectedResource!} fields={promotedProperties} />
                 </ConfigSection>
-                {remainingProperties?.size && (
+                {remainingProperties?.length && (
                     <ConfigSection id="remaining" title="more properties" removable={false} defaultOpened={false}>
                         <ConfigGroup selectedResource={selectedResource!} fields={remainingProperties} />
                     </ConfigSection>
@@ -299,7 +339,7 @@ export default function ConfigForm() {
   );
 }
 
-function toFormState(metadata: any, fields: Property[] = []) {
+function toFormState(metadata: any, fields: Property[] = [], resourceId?: NodeId) {
   const formState: any = {};
   if (!metadata) {
     return formState;
@@ -308,16 +348,31 @@ function toFormState(metadata: any, fields: Property[] = []) {
     (field) => !field.deployTime && !field.configurationDisabled,
   );
 
-  const keys = [
-    ...new Set([
-      ...Object.keys(metadata),
-      ...fields.map((f) => f.name),
-    ]).values(),
-  ].sort();
+  const resourcePrefix = resourceId !== undefined ? `${resourceId}#` : undefined;
+
+  const keySet = new Set([
+    ...Object.keys(metadata),
+    ...fields.map((f) => f.name),
+  ]);
+  if (resourceId !== undefined) {
+    for (const key of [...keySet]) {
+      if (key.startsWith(resourcePrefix!)) {
+        continue;
+      }
+      keySet.add(`${resourcePrefix}${key}`);
+      keySet.delete(key);
+    }
+  }
+
+  const keys = [...keySet].sort();
 
   keys.forEach((key) => {
-    const value = metadata[key];
-    const field = fields.find((field) => field.name === key);
+    let property = key;
+    if (resourcePrefix && key.startsWith(resourcePrefix)) {
+      property = key.substring(resourcePrefix.length);
+    }
+    const value = metadata[property];
+    const field = fields.find((field) => field.name === property);
     switch (field?.type) {
       case CollectionTypes.Map:
         if (!value) {

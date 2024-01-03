@@ -93,6 +93,9 @@ export const ConfigField: FC<ConfigFieldProps> = ({
   const error = findChildProperty(errors, id);
   const touched = findChildProperty(touchedFields, id);
   const dirty = findChildProperty(dirtyFields, id);
+  if (displayedResource) {
+    qualifiedFieldName = `${displayedResource.toString()}#${qualifiedFieldName}`
+  }
 
   let element: React.ReactElement;
   switch (type) {

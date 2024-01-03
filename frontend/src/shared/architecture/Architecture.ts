@@ -256,8 +256,7 @@ export function parseArchitecture(rawArchitecture: any): Architecture {
       }
       if (parsedState?.edges) {
         architecture.edges = Object.keys(parsedState.edges).map((key) => {
-          const delim = key.includes("->") ? "->" : "→";
-          const [source, destination] = key.split(delim).map((id) => id.trim());
+          const [source, destination] = key.split("->").map((id) => id.trim());
           return {
             source: NodeId.parse(source),
             destination: NodeId.parse(destination),
@@ -304,7 +303,7 @@ export function resourceProperties(
       properties.set(resourceId, props);
     }
   }
-  const resNode = architecture.views.get(ArchitectureView.DataFlow)?.Nodes.find(n => n.resourceId === resourceId);
+  const resNode = architecture.views.get(ArchitectureView.DataFlow)?.Nodes.find(n => n.resourceId.equals(resourceId));
   // Look deep into the property for potentially nested important properties
   const promotedProp = (p: Property): Property | undefined => {
     if (isPropertyPromoted(p)) {

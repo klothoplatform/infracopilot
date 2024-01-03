@@ -10,6 +10,7 @@ type ConfigSectionProps = {
   title?: string;
   removable?: boolean;
   defaultOpened?: boolean;
+  alwaysOpen?: boolean;
 };
 
 export const ConfigSection: FC<PropsWithChildren<ConfigSectionProps>> = ({
