@@ -12,6 +12,7 @@ import {
   CollectionTypes,
   PrimitiveTypes,
 } from "../../../../shared/resources/ResourceTypes";
+import type { NodeId } from "../../../../shared/architecture/TopologyNode";
 
 const RoutesField: ListProperty = {
   name: "Routes",
@@ -68,10 +69,14 @@ const RoutesField: ListProperty = {
 export function restApiIntegrationResourceCustomizer(type: ResourceType) {
   type.properties?.push(RoutesField);
 }
-export const RestApiRouteConfig: FC = (props) => {
+export const RestApiRouteConfig: FC<{
+  configResource: NodeId
+}> = ({
+  configResource
+}) => {
   return (
     <ConfigSection id="Routes" title="Routes">
-      <ListField qualifiedFieldName="Routes" field={RoutesField} />
+      <ListField configResource={configResource} qualifiedFieldName={`${configResource}#Routes`} field={RoutesField} />
     </ConfigSection>
   );
 };

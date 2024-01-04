@@ -27,10 +27,11 @@ import { ConfigGroup } from "./ConfigGroup";
 import classNames from "classnames";
 import { env } from "../../shared/environment";
 import { BiSolidHand, BiSolidPencil } from "react-icons/bi";
+import type { NodeId } from "../../shared/architecture/TopologyNode";
 
 type ListProps = ConfigFieldProps;
 
-export const ListField: FC<ListProps> = ({ qualifiedFieldName, field }) => {
+export const ListField: FC<ListProps> = ({ configResource, qualifiedFieldName, field }) => {
   qualifiedFieldName = qualifiedFieldName ?? "UNKNOWN-LIST";
 
   const { register, control, formState } = useFormContext();
@@ -60,6 +61,7 @@ export const ListField: FC<ListProps> = ({ qualifiedFieldName, field }) => {
               <PrimitiveListItem
                 key={formField.id}
                 index={index}
+                configResource={configResource}
                 qualifiedFieldName={`${qualifiedFieldName}[${index}]`}
                 type={itemType}
                 required={field.required}
@@ -96,6 +98,7 @@ export const ListField: FC<ListProps> = ({ qualifiedFieldName, field }) => {
               <CollectionListItem
                 key={formField.id}
                 index={index}
+                configResource={configResource}
                 qualifiedFieldName={`${qualifiedFieldName}[${index}]`}
                 type={itemType}
                 properties={properties}
@@ -134,6 +137,7 @@ export const ListField: FC<ListProps> = ({ qualifiedFieldName, field }) => {
 
 const PrimitiveListItem: FC<{
   index: number;
+  configResource: NodeId;
   qualifiedFieldName: string;
   type: PrimitiveTypes;
   allowedValues?: string[];
@@ -143,6 +147,7 @@ const PrimitiveListItem: FC<{
   remove: (index: number) => void;
 }> = ({
   index,
+  configResource,
   qualifiedFieldName,
   type,
   allowedValues,
@@ -213,6 +218,7 @@ const PrimitiveListItem: FC<{
     case PrimitiveTypes.Resource:
       item = (
         <ResourceField
+          configResource={configResource}
           qualifiedFieldName={qualifiedFieldName}
           valueSelector={".value"}
           readOnly={readOnly}
@@ -225,6 +231,7 @@ const PrimitiveListItem: FC<{
     case PrimitiveTypes.Enum:
       item = (
         <EnumField
+          configResource={configResource}
           qualifiedFieldName={qualifiedFieldName}
           valueSelector={".value"}
           allowedValues={allowedValues}
@@ -272,6 +279,7 @@ const PrimitiveListItem: FC<{
 
 const CollectionListItem: FC<{
   index: number;
+  configResource: NodeId;
   qualifiedFieldName: string;
   type: CollectionTypes;
   properties?: Property[];
@@ -280,6 +288,7 @@ const CollectionListItem: FC<{
   remove: (index: number) => void;
 }> = ({
   index,
+  configResource,
   qualifiedFieldName,
   type,
   properties,
@@ -293,6 +302,7 @@ const CollectionListItem: FC<{
       item = (
         <ConfigSection id={qualifiedFieldName}>
           <ConfigGroup
+            configResource={configResource}
             qualifiedFieldName={qualifiedFieldName}
             fields={properties}
             hidePrefix
@@ -305,6 +315,7 @@ const CollectionListItem: FC<{
       item = (
         <ConfigSection id={qualifiedFieldName}>
           <ConfigGroup
+            configResource={configResource}
             qualifiedFieldName={qualifiedFieldName}
             fields={properties}
             hidePrefix

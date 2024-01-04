@@ -279,7 +279,7 @@ export const restApiFormStateBuilder = (
     });
 
   return {
-    Routes: routes,
+    [`${resourceId}#Routes`]: routes,
   };
 };
 
@@ -328,10 +328,17 @@ function getRouteChanges(
   const modifiedIndices = [
     ...new Set<string>(
       [...modifiedValues.keys()]
-        .map((k) => k.split(".")[0])
-        .filter((k) => k.startsWith("Routes[")),
+        .filter((k) => {
+          return k.split('#', 2)[1].split(".")[0].startsWith("Routes[")
+        })
+        .map((k) => {
+          const [res, prop] = k.split('#', 2);
+          const [index] = prop.split(".", 0);
+          return `${res}#${index}`;
+        }),
     ),
   ];
+  console.log("getRouteChanges", {submittedValues, defaultValues, modifiedValues, modifiedIndices})
 
   const removedRoutes = modifiedIndices
     .filter(
