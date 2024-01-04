@@ -323,30 +323,37 @@ function getRouteChanges(
   modifiedValues: Map<string, any>,
 ): RouteModification[] {
   const routeChanges: RouteModification[] = [];
-  const submittedRoutes = submittedValues.Routes as any[];
-  const defaultRoutes = defaultValues.Routes as any[];
-  const modifiedIndices = [
+  const submittedRoutes = (Object.entries(submittedValues).find(([key]) => key.endsWith("#Routes"))?.[1] ?? []) as any[];
+  const defaultRoutes = (Object.entries(defaultValues).find(([key]) => key.endsWith("#Routes"))?.[1] ?? []) as any[];
+  if (!submittedRoutes) {
+    return routeChanges;
+  }
+  const modifiedKeys = [
     ...new Set<string>(
       [...modifiedValues.keys()]
         .filter((k) => {
           return k.split('#', 2)[1].split(".")[0].startsWith("Routes[")
         })
         .map((k) => {
-          const [res, prop] = k.split('#', 2);
-          const [index] = prop.split(".", 0);
-          return `${res}#${index}`;
+          const m = k.match(/(.*#Routes\[(\d+)\])/)
+          return m ? m[1] : ""
         }),
     ),
   ];
-  console.log("getRouteChanges", {submittedValues, defaultValues, modifiedValues, modifiedIndices})
 
-  const removedRoutes = modifiedIndices
+  const removedRoutes = modifiedKeys
     .filter(
-      (index) =>
-        !modifiedValues.get(`${index}.Path`) &&
-        !modifiedValues.get(`${index}.Method`),
+      (index) => {
+        const path = modifiedValues.get(`${index}.Path`)
+        const method = modifiedValues.get(`${index}.Method`)
+        const result = !path && !method
+        return result
+      }
     )
-    .map((index) => parseInt(index.split("[")[1].split("]")[0]))
+    .map((index) => {
+      const m = index.match(/\[(\d+)\]/)
+      return m ? parseInt(m[1]) : 0
+    })
     .map((index) => ({
       oldMethod: defaultRoutes[index].Method,
       oldPath: defaultRoutes[index].Path,
@@ -355,13 +362,16 @@ function getRouteChanges(
       index,
     }));
 
-  const modifiedRoutes = modifiedIndices
+  const modifiedRoutes = modifiedKeys
     .filter(
       (index) =>
         modifiedValues.get(`${index}.Path`) ||
         modifiedValues.get(`${index}.Method`),
     )
-    .map((index) => parseInt(index.split("[")[1].split("]")[0]))
+    .map((index) => {
+      const m = index.match(/\[(\d+)\]/)
+      return m ? parseInt(m[1]) : 0
+    })
     .filter((index) => defaultRoutes[index])
     .map((index) => ({
       integrationResource: defaultRoutes[index].IntegrationResource,
@@ -372,8 +382,12 @@ function getRouteChanges(
       newMethod: submittedRoutes[index].Method,
       index,
     }));
-  const addedRoutes = modifiedIndices
-    .map((index) => parseInt(index.split("[")[1].split("]")[0]))
+
+  const addedRoutes = modifiedKeys
+    .map((index) => {
+      const m = index.match(/\[(\d+)\]/)
+      return m ? parseInt(m[1]) : 0
+    })
     .filter((index) => !defaultRoutes[index])
     .map((index) => ({
       newMethod: submittedRoutes[index].Method,

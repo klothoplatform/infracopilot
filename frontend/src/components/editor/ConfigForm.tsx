@@ -469,9 +469,10 @@ function applyCustomizers(
     }
     const prop = key.split("#", 2)[1];
     console.log("submit", {key, value, prop, section: sections[prop]})
-    if (sections[prop]?.stateHandler) {
+    const handler = sections[prop]?.stateHandler
+    if (handler) {
       constraints.push(
-        ...(sections[key]?.stateHandler?.(
+        ...(handler(
           submittedValues,
           defaultValues,
           modifiedValues,
@@ -531,13 +532,14 @@ function getModifiedFormFields(
 ): Map<string, any> {
   const modifiedFormFields = new Map<string, any>();
   Object.keys(dirtyFields).forEach((key) => {
+    const prop = key.split("#", 2)[1] ?? key;
     const fieldValue = formFields?.[key];
     const defaultValue = defaultValues?.[key];
     const dirtyField = dirtyFields?.[key];
     const resourceField = resourceFields.find(
-      (field) => field.name === key.replaceAll(/\[\d+]/g, ""),
+      (field) => field.name === prop.replaceAll(/\[\d+]/g, ""),
     );
-    const qualifiedKey = parentKey ? `${parentKey}.${key}` : key;
+    const qualifiedKey = parentKey ? `${parentKey}.${prop}` : prop;
     if (!resourceField) {
       return;
     }
