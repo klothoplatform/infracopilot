@@ -296,11 +296,13 @@ const CollectionListItem: FC<{
   required,
   remove,
 }) => {
+  // Trim the resource name from the field name for the title.
+  const title = qualifiedFieldName.split("#", 2)[1];
   let item: React.ReactNode;
   switch (type) {
     case CollectionTypes.Map:
       item = (
-        <ConfigSection id={qualifiedFieldName}>
+        <ConfigSection id={qualifiedFieldName} title={title}>
           <ConfigGroup
             configResource={configResource}
             qualifiedFieldName={qualifiedFieldName}
@@ -313,7 +315,7 @@ const CollectionListItem: FC<{
     case CollectionTypes.Set:
     case CollectionTypes.List:
       item = (
-        <ConfigSection id={qualifiedFieldName}>
+        <ConfigSection id={qualifiedFieldName} title={title}>
           <ConfigGroup
             configResource={configResource}
             qualifiedFieldName={qualifiedFieldName}

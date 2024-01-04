@@ -4,7 +4,6 @@ import type {
 } from "../../shared/resources/ResourceTypes";
 import { CollectionTypes } from "../../shared/resources/ResourceTypes";
 import type { FC, ReactNode } from "react";
-import React from "react";
 import { ConfigField } from "./ConfigField";
 import type { NodeId } from "../../shared/architecture/TopologyNode";
 
