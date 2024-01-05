@@ -27,27 +27,29 @@ export class TopologyGraph {
       Object.keys(resources).forEach((k: string) => {
         const resource = resources[k];
 
-        const keyDelim = k.includes("->") ? "->" : 
-          k.includes("<-") ? "<-" : 
-          k.includes("→") ? "→" :
-          "←";
+        const keyDelim = k.includes("->") ? "->" :  "<-" ;
         if (k.includes(keyDelim)) {
           let source, target;
-          if (keyDelim === "->" || keyDelim === "→") {
+          if (keyDelim === "->") {
             [source, target] = k.split(keyDelim);
           } else {
             [target, source] = k.split(keyDelim);
           }
           const sourceId = NodeId.fromTopologyId(source, graph.Provider);
           const targetId = NodeId.fromTopologyId(target, graph.Provider);
-          const pathDelim = resource?.path?.includes(",") ? "," : 
-            resource?.path?.includes("→") ? "→" :
-            "->";
-          const path = resource?.path?.split(pathDelim).map((p: string) => NodeId.parse(p.trim()));
-          console.log("resources of k ", {resource, k, sourceId, targetId, path});
+          let path: string|string[]|undefined = resource?.path;
+          if (typeof path === "string") {
+            const pathDelim = resource?.path?.includes(",") ? "," : 
+              resource?.path?.includes("→") ? "→" :
+              "->";
+            
+            path = path?.split(pathDelim);
+          }
+          const edgeNodes = path?.map((p) => NodeId.parse(p.trim()));
+          console.log("resources of k ", {resource, k, sourceId, targetId, edgeNodes});
           graph.Edges.push(
             new TopologyEdge(sourceId, targetId, {
-              path,
+              path: edgeNodes,
             }),
           );
           console.log(graph.Edges);
