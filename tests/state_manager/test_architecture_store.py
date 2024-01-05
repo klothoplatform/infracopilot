@@ -193,7 +193,7 @@ class TestArchitectureStore(aiounittest.AsyncTestCase):
     async def test_can_write_iac(self, put_object_mock: mock.Mock):
         mock_object = Mock()
         self.mock_s3.Object.return_value = mock_object
-        content = BytesIO(b"test-content")
+        content = b"test-content"
         self.arch_storage.write_iac_to_fs(self.test_env, content)
         put_object_mock.assert_called_once_with(
             self.mock_s3.Object.return_value,

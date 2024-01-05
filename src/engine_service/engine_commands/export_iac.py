@@ -13,7 +13,7 @@ class ExportIacRequest(NamedTuple):
 
 
 class ExportIacResult(NamedTuple):
-    iac_bytes: BytesIO
+    iac_bytes: bytes
 
 
 def export_iac(request: ExportIacRequest) -> ExportIacResult:
@@ -47,8 +47,7 @@ def export_iac(request: ExportIacRequest) -> ExportIacResult:
                 cwd=dir,
             )
 
-            iac_bytes = BytesIO()
-            zip_directory_recurse(iac_bytes, str(dir))
+            iac_bytes = zip_directory_recurse(BytesIO(), str(dir))
 
             return ExportIacResult(
                 iac_bytes=iac_bytes,

@@ -108,11 +108,11 @@ class ArchitectureStorage:
                 f"Failed to write state to S3 bucket {self._bucket.name} and key {key}: {e}"
             )
 
-    def write_iac_to_fs(self, arch: EnvironmentVersion, content: BytesIO) -> str:
+    def write_iac_to_fs(self, arch: EnvironmentVersion, content: bytes) -> str:
         key = ArchitectureStorage.get_path_for_architecture(arch) + "/iac.zip"
         try:
-            if not isinstance(content, BytesIO):
-                raise TypeError(f"content must be of type BytesIO, not {type(content)}")
+            if not isinstance(content, bytes):
+                raise TypeError(f"content must be of type bytes, not {type(content)}")
             obj = self._bucket.Object(key)
             put_object(obj, content)
             return key

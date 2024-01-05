@@ -44,7 +44,7 @@ class TestGetIac(aiounittest.AsyncTestCase):
         topology_yaml="test-yaml",
         iac_topology="test-yaml",
     )
-    iobytes = BytesIO(b"test-bytes")
+    iobytes = b"test-bytes"
     export_iac_result = ExportIacResult(iobytes)
 
     @classmethod
@@ -82,9 +82,7 @@ class TestGetIac(aiounittest.AsyncTestCase):
         self.mock_ev_dao.update_environment_version = mock.AsyncMock()
         result = await self.iac_orchestrator.get_iac(self.test_id, self.test_id, 0)
         content = await read_streaming_response(result)
-        self.assertEqual(
-            content.decode(), self.export_iac_result.iac_bytes.getvalue().decode()
-        )
+        self.assertEqual(content.decode(), self.export_iac_result.iac_bytes.decode())
         self.assertEqual(result.status_code, 200)
         self.assertEqual(result.media_type, "application/x-zip-compressed")
         self.mock_ev_dao.get_current_version.assert_called_once_with(
@@ -128,9 +126,7 @@ class TestGetIac(aiounittest.AsyncTestCase):
         )
         result = await self.iac_orchestrator.get_iac(self.test_id, self.test_id, 0)
         content = await read_streaming_response(result)
-        self.assertEqual(
-            content.decode(), self.export_iac_result.iac_bytes.getvalue().decode()
-        )
+        self.assertEqual(content.decode(), self.export_iac_result.iac_bytes.decode())
         self.assertEqual(result.status_code, 200)
         self.assertEqual(result.media_type, "application/x-zip-compressed")
         self.mock_ev_dao.get_current_version.assert_called_once_with(

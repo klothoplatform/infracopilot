@@ -77,7 +77,7 @@ class IaCOrchestrator:
                 env_version.iac_location = iac_location
                 await self.ev_dao.update_environment_version(env_version)
             return StreamingResponse(
-                iter([iac.getvalue()]),
+                iter([iac]),
                 media_type="application/x-zip-compressed",
                 headers={
                     "Content-Type": "application/octet-stream"
