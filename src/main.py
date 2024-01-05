@@ -180,7 +180,7 @@ async def export_iac(
             },
         )
     iac_handler = get_iac_orchestrator(db)
-    return iac_handler.get_iac(id, env_id, state, accept)
+    return await iac_handler.get_iac(id, env_id, state, accept)
 
 
 @app.post("/api/architecture/{id}/environment/{env_id}/run")
