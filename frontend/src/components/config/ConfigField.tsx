@@ -28,7 +28,9 @@ import { IoInformationCircleOutline } from "react-icons/io5";
 import { Tooltip } from "flowbite-react";
 
 export interface ConfigFieldProps {
-  displayedResource?: NodeId;
+  configResource: NodeId;
+  // qualifiedFieldName is the qualified name of the field, including the resource id prefix
+  // in the format `${resourceId}#${fieldName}`.
   qualifiedFieldName: string;
   field: Property;
   title?: string;
@@ -38,6 +40,7 @@ export interface ConfigFieldProps {
 }
 
 type InputProps = {
+  configResource: NodeId;
   qualifiedFieldName: string;
   rules?: RegisterOptions;
   required?: boolean;
@@ -59,6 +62,7 @@ type BooleanProps = {
   ConfigFieldProps;
 
 type ResourceProps = {
+  configResource: NodeId;
   qualifiedFieldName: string;
   resourceTypes?: string[];
   readOnly?: boolean;
@@ -68,6 +72,7 @@ type ResourceProps = {
 };
 
 type EnumProps = {
+  configResource: NodeId;
   qualifiedFieldName: string;
   allowedValues?: string[];
   readOnly?: boolean;
@@ -77,7 +82,6 @@ type EnumProps = {
 };
 
 export const ConfigField: FC<ConfigFieldProps> = ({
-  displayedResource,
   field,
   qualifiedFieldName,
   title,
@@ -93,9 +97,6 @@ export const ConfigField: FC<ConfigFieldProps> = ({
   const error = findChildProperty(errors, id);
   const touched = findChildProperty(touchedFields, id);
   const dirty = findChildProperty(dirtyFields, id);
-  if (displayedResource) {
-    qualifiedFieldName = `${displayedResource.toString()}#${qualifiedFieldName}`
-  }
 
   let element: React.ReactElement;
   switch (type) {
@@ -357,6 +358,7 @@ export const IntField: FC<NumberProps> = ({
 };
 
 const InputField: FC<InputProps> = ({
+  configResource,
   qualifiedFieldName,
   required,
   valueSelector,
@@ -386,6 +388,7 @@ const InputField: FC<InputProps> = ({
 };
 
 export const BooleanField: FC<BooleanProps> = ({
+  configResource,
   qualifiedFieldName,
   field,
   valueSelector,

@@ -4,23 +4,20 @@ import type {
 } from "../../shared/resources/ResourceTypes";
 import { CollectionTypes } from "../../shared/resources/ResourceTypes";
 import type { FC, ReactNode } from "react";
-import React from "react";
 import { ConfigField } from "./ConfigField";
-import { useFormState } from "react-hook-form";
-import useApplicationStore from "../../pages/store/ApplicationStore";
 import type { NodeId } from "../../shared/architecture/TopologyNode";
 
 
 type ConfigGroupProps = {
-  selectedResource?: NodeId;
+  configResource: NodeId;
   qualifiedFieldName?: string;
   valueSelector?: string;
-  fields?: Map<NodeId, Property[]> | Property[];
+  fields?: Property[];
   hidePrefix?: boolean;
 };
 
 export const ConfigGroup: FC<ConfigGroupProps> = ({
-  selectedResource,
+  configResource,
   qualifiedFieldName,
   valueSelector,
   fields,
@@ -29,17 +26,22 @@ export const ConfigGroup: FC<ConfigGroupProps> = ({
   const rows: ReactNode[] = [];
 
   const parentLength = qualifiedFieldName?.split(".").length;
+  // Make sure that all field names are fully qualified with the configResource prefix
+  const prefix = qualifiedFieldName?.startsWith(`${configResource}#`) ? "" : `${configResource}#`;
   const addRow = (property: Property, resourceId?: NodeId) => {
+    if (property.deployTime || property.configurationDisabled || property.hidden) {
+      return
+    }
     rows.push(
       <div key={rows.length} className="h-fit max-w-full p-1">
         <ConfigField
         // only show the resource if it isn't the one selected
-        displayedResource={resourceId === selectedResource ? undefined : resourceId}
           field={property}
+          configResource={configResource}
           qualifiedFieldName={
             qualifiedFieldName
-              ? `${qualifiedFieldName}.${property.name}`
-              : property.qualifiedName
+              ? `${prefix}${qualifiedFieldName}.${property.name}`
+              : `${prefix}${property.qualifiedName}`
           }
           valueSelector={valueSelector}
           title={
@@ -54,8 +56,8 @@ export const ConfigGroup: FC<ConfigGroupProps> = ({
       </div>,
     );
   }
-  const addProperties = (properties: Property[], resourceId?: NodeId) => {
-    properties
+
+  fields
       ?.map((property) =>
         property.type === CollectionTypes.Map &&
         (property as MapProperty).valueType === CollectionTypes.Map
@@ -67,26 +69,7 @@ export const ConfigGroup: FC<ConfigGroupProps> = ({
       )
       .flat()
       .sort((a, b) => a.name.localeCompare(b.name))
-      .forEach((property: Property) => addRow(property, resourceId));
-  };
-
-
-  if (fields instanceof Map) {
-    const keys = [...fields.keys()];
-    keys.sort((a, b) => a.compare(b));
-    if (selectedResource !== undefined && keys.includes(selectedResource)) {
-      // Move the selected resource to the beginning
-      keys.splice(keys.indexOf(selectedResource), 1);
-      keys.unshift(selectedResource);
-    }
-    for (const resourceId of keys) {
-      addProperties(fields.get(resourceId)!, resourceId);
-    }
-  } else {
-    addProperties(fields ?? []);
-  }
-
-
+      .forEach((property: Property) => addRow(property, configResource));
 
   return <>{rows}</>;
 };
