@@ -218,7 +218,7 @@ export default function ConfigForm() {
               return new ResourceConstraint(
                 ConstraintOperator.Equals,
                 resourceId,
-                key,
+                key.split("#", 2)[1] ?? key,
                 value,
               );
             });
@@ -357,16 +357,13 @@ function toFormState(metadata: any, fields: Property[] = [], resourceId: NodeId|
     (field) => !field.deployTime && !field.configurationDisabled,
   );
 
-  const resourcePrefix = `${resourceId}#`;
-
-  const keySet = new Set([
+  const props = new Set([
     ...Object.keys(metadata),
     ...fields.map((f) => f.name),
   ]);
-  const keys = [...keySet].sort().map((k) => `${resourcePrefix}${k}`);
 
-  keys.forEach((key) => {
-    const property =  key.substring(resourcePrefix.length);
+  props.forEach((property) => {
+    const key = `${resourceId}#${property}`;
     const value = metadata[property];
     const field = fields.find((field) => field.name === property);
     switch (field?.type) {
@@ -389,7 +386,11 @@ function toFormState(metadata: any, fields: Property[] = [], resourceId: NodeId|
         }
         formState[key] = value.map((value: any) => {
           if (isCollection((field as ListProperty).itemType)) {
-            return toFormState(value, field.properties, resourceId);
+            const inner = toFormState(value, field.properties, resourceId);
+            return Object.fromEntries(Object.entries(inner).map(([key, value]) => {
+              // remove the resource id prefix from the key for nested fields
+              return [key.split('#', 2)[1], value];
+            }))
           }
           return { value };
         });
