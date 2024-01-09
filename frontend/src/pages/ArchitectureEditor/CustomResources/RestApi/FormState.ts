@@ -7,6 +7,7 @@ import {
   createRemoveRouteConstraints,
   RouteOperation,
 } from "./Constraints";
+import type {EnvironmentVersion} from "../../../../shared/architecture/EnvironmentVersion";
 
 interface RouteModification {
   oldPath?: string;
@@ -21,7 +22,7 @@ interface RouteModification {
 
 export const restApiFormStateBuilder = (
   resourceId: NodeId,
-  architecture: Architecture,
+  architecture: EnvironmentVersion,
 ) => {
   const integrationIds = architecture.edges
     .map((edge) => {

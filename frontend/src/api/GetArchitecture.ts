@@ -1,19 +1,17 @@
 import { analytics } from "../App";
-import type { Architecture } from "../shared/architecture/Architecture";
-import { parseArchitecture } from "../shared/architecture/Architecture";
 import type { AxiosResponse } from "axios";
 import axios from "axios";
 import { ApiError } from "../shared/errors";
 import { trackError } from "../pages/store/ErrorStore";
+import { parseArchitecture, type Architecture } from "../shared/architecture/Architecture";
 
 export async function getArchitecture(
-  id: string,
+  architectureId: string,
   idToken: string,
-  version?: number,
 ): Promise<Architecture> {
   let response: AxiosResponse;
   try {
-    response = await axios.get(`/api/architecture/${id}`, {
+    response = await axios.get(`/api/architecture/${architectureId}`, {
       responseType: "json",
       decompress: true,
       headers: {
@@ -23,20 +21,20 @@ export async function getArchitecture(
     });
   } catch (e: any) {
     const error = new ApiError({
-      errorId: "GetArchitecture",
-      message: "An error occurred while getting architecture.",
+      errorId: "GetEnvironmentVersion",
+      message: "An error occurred while getting environment version.",
       status: e.status,
       statusText: e.message,
       url: e.request?.url,
       cause: e,
       data: {
-        id: id,
+        id: architectureId,
       },
     });
     trackError(error);
     throw error;
   }
 
-  analytics.track("GetArchitecture", { status: response.status, id });
+  analytics.track("GetEnvironmentVersion", { status: response.status, architectureId });
   return parseArchitecture(response.data);
 }

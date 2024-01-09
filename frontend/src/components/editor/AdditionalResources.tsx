@@ -11,7 +11,7 @@ import type { NodeId } from "../../shared/architecture/TopologyNode";
 function AdditionalResources() {
   const { mode } = useContext(ThemeContext);
   const [resourceRows, setResourceRows] = useState<ReactNode[]>([]);
-  const { architecture, nodes, edges, selectedResource, selectedEdge } =
+  const { environmentVersion, nodes, edges, selectedResource, selectedEdge } =
     useApplicationStore();
 
   useEffect(() => {
@@ -54,7 +54,7 @@ function AdditionalResources() {
         ))
         .filter((e) => e !== null),
     );
-  }, [nodes, edges, selectedResource, selectedEdge, architecture, mode]);
+  }, [nodes, edges, selectedResource, selectedEdge, environmentVersion, mode]);
   if (resourceRows.length === 0) {
     return null;
   }

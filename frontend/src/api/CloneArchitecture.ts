@@ -55,6 +55,5 @@ export default async function cloneArchitecture(
   return {
     name: request.name,
     id: response.data.id,
-    version: 0,
   } as Architecture;
 }

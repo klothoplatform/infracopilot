@@ -14,19 +14,20 @@ interface ExportIacButtonProps {
 export const ExportIacButton: FC<ExportIacButtonProps> = (
   props: ExportIacButtonProps,
 ) => {
-  const { getIdToken, architecture, addError } = useApplicationStore();
+  const { getIdToken, environmentVersion, addError } = useApplicationStore();
   const [isExporting, setIsExporting] = useState(false);
 
   let onClickExportIac = async () => {
     setIsExporting(true);
     try {
       const iacZip = await ExportIaC(
-        architecture.id,
-        architecture.version,
+        environmentVersion.architecture_id,
+        environmentVersion.id,
+        environmentVersion.version,
         await getIdToken(),
       );
       const url = URL.createObjectURL(iacZip);
-      downloadFile(architecture.name + ".zip", url);
+      downloadFile(environmentVersion.id + ".zip", url);
     } catch (e: any) {
       if (e instanceof ApplicationError) {
         addError(e);
@@ -53,7 +54,7 @@ export const ExportIacButton: FC<ExportIacButtonProps> = (
       className="flex"
       onClick={onClickExportIac}
       isProcessing={isExporting}
-      disabled={props.disabled || !architecture?.resources?.size}
+      disabled={props.disabled || !environmentVersion?.resources?.size}
       processingSpinner={<AiOutlineLoading className="animate-spin" />}
     >
       {!isExporting && <TbFileExport className="mr-1" />}

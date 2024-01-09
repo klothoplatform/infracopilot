@@ -1,12 +1,17 @@
+from datetime import datetime
 import logging
+from logging import config
 from typing import List, Optional
+import uuid
 
 import jsons
 from fastapi import HTTPException, Response
 from pydantic import BaseModel
 
 from src.backend_orchestrator.architecture_handler import (
-    ArchitecutreStateNotLatestError,
+    EnvironmentVersionNotLatestError,
+    EnvironmentVersionResponseObject,
+    VersionState,
 )
 from src.engine_service.binaries.fetcher import write_binary_to_disk, Binary
 from src.engine_service.engine_commands.run import (
@@ -14,19 +19,25 @@ from src.engine_service.engine_commands.run import (
     run_engine,
     RunEngineRequest,
 )
-from src.guardrails_manager.guardrails_store import get_guardrails
-from src.state_manager.architecture_data import (
-    delete_future_states,
-    get_architecture_at_state,
-    get_architecture_latest,
-    get_architecture_current,
-    add_architecture,
-    Architecture,
+
+from src.environment_management.environment_version import (
+    EnvironmentVersionDAO,
+    EnvironmentVersion,
+    EnvironmentVersionDoesNotExistError,
 )
+
+from src.environment_management.environment import (
+    EnvironmentDAO,
+    EnvironmentDoesNotExistError,
+)
+
 from src.state_manager.architecture_storage import (
-    get_state_from_fs,
-    write_state_to_fs,
+    ArchitectureStorage,
     ArchitectureStateDoesNotExistError,
+)
+
+from src.engine_service.engine_commands.get_resource_types import (
+    get_resource_types,
 )
 
 log = logging.getLogger(__name__)
@@ -37,105 +48,154 @@ class CopilotRunRequest(BaseModel):
     overwrite: bool = False
 
 
-async def copilot_run(
-    id: str, state: int, body: CopilotRunRequest, accept: Optional[str] = None
-):
-    try:
-        current_architecture = await get_architecture_current(id)
-        if current_architecture is None:
-            raise ArchitectureStateDoesNotExistError(
-                "Architecture with id, {id}, does not exist"
+class EngineOrchestrator:
+    def __init__(
+        self,
+        architecture_storage: ArchitectureStorage,
+        ev_dao: EnvironmentVersionDAO,
+        env_dao: EnvironmentDAO,
+    ):
+        self.architecture_storage = architecture_storage
+        self.ev_dao = ev_dao
+        self.env_dao = env_dao
+
+    async def run(
+        self,
+        architecture_id: str,
+        env_id: str,
+        version: int,
+        body: CopilotRunRequest,
+        accept: Optional[str] = None,
+    ):
+        try:
+            current_architecture: EnvironmentVersion = (
+                await self.ev_dao.get_current_version(architecture_id, env_id)
             )
-        if not body.overwrite:
-            architecture = current_architecture
-            if architecture.state != state:
-                raise ArchitecutreStateNotLatestError(
-                    f"Architecture state is not the latest. Expected {architecture.state}, got {state}"
-                )
-        else:
-            architecture = await get_architecture_at_state(id, state)
-            if architecture is None:
+            if current_architecture is None:
                 raise ArchitectureStateDoesNotExistError(
-                    "Architecture with id, {id}, and state, {state} does not exist"
+                    "Architecture with id, {id}, does not exist"
+                )
+            if not body.overwrite:
+                architecture = current_architecture
+                if architecture.version != version:
+                    raise EnvironmentVersionNotLatestError(
+                        f"Architecture state is not the latest. Expected {architecture.version}, got {version}"
+                    )
+            else:
+                architecture = await self.ev_dao.get_environment_version(
+                    architecture_id, env_id, version
+                )
+                if architecture is None:
+                    raise ArchitectureStateDoesNotExistError(
+                        "Architecture with id, {id}, and state, {state} does not exist"
+                    )
+
+            input_graph = self.architecture_storage.get_state_from_fs(architecture)
+            write_binary_to_disk(Binary.ENGINE)
+            request = RunEngineRequest(
+                id=architecture_id,
+                input_graph=input_graph.resources_yaml
+                if input_graph is not None
+                else None,
+                templates=[],
+                engine_version=1.0,
+                constraints=body.constraints,
+            )
+            result = run_engine(request)
+            latest_architecture: EnvironmentVersion = (
+                await self.ev_dao.get_latest_version(architecture_id, env_id)
+            )
+            current_version = latest_architecture.version + 1
+            arch = EnvironmentVersion(
+                architecture_id=architecture.architecture_id,
+                id=architecture.id,
+                version=current_version,
+                version_hash=str(uuid.uuid4()),
+                constraints=body.constraints,
+                created_at=datetime.utcnow(),
+                created_by=architecture.created_by,
+                state_location=None,
+                env_resource_configuration=architecture.env_resource_configuration,
+            )
+            if body.overwrite:
+                print(
+                    f"deleting any architecture for id {architecture_id} and envirnomnet {env_id} greater than state {version}"
+                )
+                await self.ev_dao.delete_future_versions(
+                    architecture_id, env_id, version
                 )
 
-        guardrails = await get_guardrails(architecture.owner)
-        input_graph = await get_state_from_fs(architecture)
-        await write_binary_to_disk(Binary.ENGINE)
-        request = RunEngineRequest(
-            id=id,
-            input_graph=input_graph.resources_yaml if input_graph is not None else None,
-            templates=[],
-            engine_version=1.0,
-            constraints=body.constraints,
-            guardrails=guardrails,
-        )
-        result = await run_engine(request)
-        latest_architecture = await get_architecture_latest(id)
-        arch = Architecture(
-            id=id,
-            name=architecture.name,
-            state=latest_architecture.state + 1,
-            constraints=body.constraints,
-            owner=architecture.owner,
-            created_at=architecture.created_at,
-            updated_by=architecture.owner,
-            engine_version=1.0,
-            state_location=None,
-        )
-        if body.overwrite:
-            print(f"deleting any architecture for id {id} greater than state {state}")
-            await delete_future_states(id, state)
-        state_location = await write_state_to_fs(arch, result)
-        arch.state_location = state_location
-        await add_architecture(arch)
-        return Response(
-            headers={
-                "Content-Type": "application/octet-stream"
-                if accept == "application/octet-stream"
-                else "application/json"
-            },
-            content=jsons.dumps(
-                {
-                    "id": arch.id,
-                    "name": arch.name,
-                    "owner": arch.owner,
-                    "engineVersion": arch.engine_version,
-                    "version": arch.state,
-                    "state": {
-                        "resources_yaml": result.resources_yaml,
-                        "topology_yaml": result.topology_yaml,
-                    },
-                    "config_errors": result.config_errors_json,
-                }
-            ),
-        )
-    except FailedRunException as e:
-        print(
-            jsons.dumps(
-                {
-                    "error_type": e.error_type,
-                    "config_errors": e.config_errors_json,
-                }
+            state_location = self.architecture_storage.write_state_to_fs(arch, result)
+            arch.state_location = state_location
+            self.ev_dao.add_environment_version(arch)
+            await self.env_dao.set_current_version(
+                architecture_id, env_id, current_version
             )
-        )
-        return Response(
-            status_code=400,
-            content=jsons.dumps(
-                {
-                    "error_type": e.error_type,
-                    "config_errors": e.config_errors_json,
-                }
-            ),
-        )
-    except ArchitecutreStateNotLatestError:
-        raise HTTPException(
-            status_code=400, detail="Architecture state is not the latest"
-        )
-    except ArchitectureStateDoesNotExistError:
-        raise HTTPException(
-            status_code=404, detail=f"No architecture exists for id {id}"
-        )
-    except Exception:
-        log.error("Error running engine", exc_info=True)
-        raise HTTPException(status_code=500, detail="internal server error")
+            payload = EnvironmentVersionResponseObject(
+                architecture_id=arch.architecture_id,
+                id=arch.id,
+                version=arch.version,
+                state=VersionState(
+                    resources_yaml=result.resources_yaml,
+                    topology_yaml=result.topology_yaml,
+                ),
+                env_resource_configuration=arch.env_resource_configuration,
+                config_errors=result.config_errors_json,
+            )
+            return Response(
+                headers={
+                    "Content-Type": "application/octet-stream"
+                    if accept == "application/octet-stream"
+                    else "application/json"
+                },
+                content=payload.model_dump(mode="json"),
+            )
+        except FailedRunException as e:
+            print(
+                jsons.dumps(
+                    {
+                        "error_type": e.error_type,
+                        "config_errors": e.config_errors_json,
+                    }
+                )
+            )
+            return Response(
+                status_code=400,
+                content=jsons.dumps(
+                    {
+                        "error_type": e.error_type,
+                        "config_errors": e.config_errors_json,
+                    }
+                ),
+            )
+        except EnvironmentVersionNotLatestError:
+            raise HTTPException(
+                status_code=400, detail="Environment version is not the latest"
+            )
+        except ArchitectureStateDoesNotExistError:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No architecture exists for id {architecture_id}",
+            )
+        except EnvironmentVersionDoesNotExistError:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No environment version exists for id {architecture_id} environment {env_id} and version {version}",
+            )
+        except Exception:
+            log.error("Error running engine", exc_info=True)
+            raise HTTPException(status_code=500, detail="internal server error")
+
+    async def get_resource_types(self, architecture_id: str, env_id: str):
+        try:
+            await self.ev_dao.get_latest_version(architecture_id, env_id)
+            response = get_resource_types()
+            return Response(content=response, media_type="application/json")
+        except EnvironmentVersionDoesNotExistError as e:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No architecture exists for id {architecture_id}",
+            )
+        except Exception:
+            log.error("Error getting resource types", exc_info=True)
+            raise HTTPException(status_code=500, detail="internal server error")

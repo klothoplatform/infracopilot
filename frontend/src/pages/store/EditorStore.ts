@@ -19,9 +19,8 @@ import type {
 } from "../../shared/architecture/Architecture";
 import {
   ArchitectureView,
-  toReactFlowElements,
 } from "../../shared/architecture/Architecture";
-import { getArchitecture } from "../../api/GetArchitecture";
+import { getEnvironmentVersion } from "../../api/GetEnvironmentVersion";
 import type { LayoutOptions } from "../../shared/reactflow/AutoLayout";
 import {
   autoLayout,
@@ -62,27 +61,30 @@ import { type ErrorStore } from "./ErrorStore";
 
 import { analytics } from "../../App";
 import { customConfigMappings } from "../ArchitectureEditor/config/CustomConfigMappings";
-import modifyArchitecture from "../../api/ModifyArchitecture";
 import { getValidEdgeTargets } from "../../api/GetValidEdgeTargets";
 import { ApplicationError } from "../../shared/errors";
 import { getNextState } from "../../api/GetNextState";
 import { getPrevState } from "../../api/GetPreviousState";
 import { setCurrentState } from "../../api/SetCurrentState";
+import modifyArchitecture from "../../api/ModifyArchitecture";
 import { refreshSelection } from "../../shared/editor-util";
+import { type EnvironmentVersion, toReactFlowElements } from "../../shared/architecture/EnvironmentVersion";
+import { getArchitecture } from "../../api/GetArchitecture";
 import { env } from "../../shared/environment";
 
 interface EditorStoreState {
   architecture: Architecture;
-  previousState?: Architecture;
-  nextState?: Architecture;
+  environmentVersion: EnvironmentVersion;
+  previousState?: EnvironmentVersion;
+  nextState?: EnvironmentVersion;
   willOverwriteState: boolean;
   canApplyConstraints: boolean;
   connectionSourceId?: string;
-  decisions: Decision[];
   deletingNodes: boolean;
+  decisions: Decision[];
   edges: Edge[];
   edgeTargetState: {
-    architectureVersion: number;
+    environmentVersion: number;
     engineVersion: number;
     validTargets: Map<string, string[]>;
     existingEdges: Map<string, string[]>;
@@ -112,6 +114,7 @@ interface EditorStoreState {
 }
 
 const initialState: () => EditorStoreState = () => ({
+  architecture: {} as Architecture,
   nodes: [],
   edges: [],
   decisions: [],
@@ -140,13 +143,13 @@ const initialState: () => EditorStoreState = () => ({
   deletingNodes: false,
   layoutOptions: DefaultLayoutOptions,
   resourceTypeKB: new ResourceTypeKB(),
-  architecture: {} as Architecture,
+  environmentVersion: {} as EnvironmentVersion,
   canApplyConstraints: true,
   connectionSourceId: undefined,
   rightSidebarSelector: [undefined, RightSidebarDetailsTab.Config],
   unappliedConstraints: [],
   edgeTargetState: {
-    architectureVersion: 0,
+    environmentVersion: 0,
     engineVersion: 0,
     validTargets: new Map<string, string[]>(),
     existingEdges: new Map<string, string[]>(),
@@ -168,9 +171,10 @@ interface EditorStoreActions {
   deselectResource: (resourceId: NodeId) => void;
   getResourceTypeKB: (
     architectureId: string,
+    environment: string,
     refresh?: boolean,
   ) => Promise<ResourceTypeKB>;
-  initializeEditor: (id: string, version?: number) => Promise<void>;
+  initializeEditor: (id: string, environment?: string, version?: number) => Promise<void>;
   isValidConnection: IsValidConnection;
   navigateRightSidebar: (selector: RightSidebarTabSelector) => void;
   onNodesChange: OnNodesChange;
@@ -182,6 +186,7 @@ interface EditorStoreActions {
   refreshLayout: () => Promise<void>;
   refreshArchitecture: (
     architectureId?: string,
+    environment?: string,
     version?: number,
   ) => Promise<void>;
   replaceResource: (oldId: NodeId, newId: NodeId) => Promise<void>;
@@ -307,10 +312,10 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       return;
     }
 
-    const { architectureVersion, validTargets } = get().edgeTargetState;
+    const { environmentVersion, validTargets } = get().edgeTargetState;
     if (
-      architectureVersion !== get().architecture.version ||
-      (architectureVersion === get().architecture.version &&
+      environmentVersion !== get().environmentVersion.version ||
+      (environmentVersion === get().environmentVersion.version &&
         !validTargets.has(nodeId))
     ) {
       // if we don't have valid targets for this node/version combination, update them
@@ -412,20 +417,25 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       get().deselectNode(get().selectedResource?.toString() ?? "");
     }
   },
-  refreshArchitecture: async (architectureId?: string, version?: number) => {
+  refreshArchitecture: async (architectureId?: string, environment?: string, version?: number) => {
     architectureId = architectureId ?? get().architecture?.id;
-    version = version ?? get().architecture?.version;
+    environment = environment ?? get().environmentVersion?.id;
+    version = version ?? get().environmentVersion?.version;
     if (!architectureId) {
       throw new Error("no architecture id");
     }
-    const architecture = await getArchitecture(
+    const architecture = await getArchitecture(architectureId, await get().getIdToken());
+    console.log("refresh got architecture", architecture);
+    const ev = await getEnvironmentVersion(
       architectureId,
       await get().getIdToken(),
+      environment,
       version,
     );
-    const resourceTypeKB = await get().getResourceTypeKB(architectureId, true);
+    console.log("refresh got environment version", ev);
+    const resourceTypeKB = await get().getResourceTypeKB(architectureId, environment, true);
     const elements = toReactFlowElements(
-      architecture,
+      ev,
       resourceTypeKB,
       ArchitectureView.DataFlow,
     );
@@ -436,14 +446,16 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     );
     (async () => {
       const nextState = await getNextState(
-        architecture.id,
+        ev.architecture_id,
+        ev.id,
         await get().getIdToken(),
-        architecture.version,
+        ev.version,
       );
       const prevState = await getPrevState(
-        architecture.id,
+        ev.architecture_id,
+        ev.id,
         await get().getIdToken(),
-        architecture.version,
+        ev.version,
       );
       set({
         nextState: nextState,
@@ -452,7 +464,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       });
     })();
     const { selectedNode, selectedEdge, selectedResource } = refreshSelection({
-      architecture,
+      environmentVersion: ev,
       nodes,
       edges,
       selectedNode: get().selectedNode,
@@ -461,15 +473,13 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     });
     set(
       {
-        architecture: architecture,
+        architecture,
+        environmentVersion: ev,
         nodes,
         edges,
         selectedNode,
         selectedEdge,
         selectedResource,
-        decisions: architecture.decisions.map(
-          (d) => new Decision(parseConstraints(d.constraints), d.decisions),
-        ),
       },
       false,
       "editor/refreshArchitecture",
@@ -477,7 +487,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     console.log("architecture refreshed");
     get().updateEdgeTargets();
   },
-  initializeEditor: async (architectureId: string, version?: number) => {
+  initializeEditor: async (architectureId: string, environment?: string, version?: number) => {
     if (get().isEditorInitializing) {
       return;
     }
@@ -490,7 +500,8 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     );
     get().resetEditorState({ isEditorInitializing: true });
     try {
-      await get().refreshArchitecture(architectureId, version);
+      environment = environment ?? "default";
+      await get().refreshArchitecture(architectureId, environment, version);
       set(
         {
           isEditorInitializing: false,
@@ -580,7 +591,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
               ?.creationConstraintsModifier;
           if (constraintsModifier) {
             nodeConstraints =
-              constraintsModifier(node, get().architecture, nodeConstraints) ??
+              constraintsModifier(node, get().environmentVersion, nodeConstraints) ??
               nodeConstraints;
           }
           return nodeConstraints;
@@ -634,10 +645,11 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       throw new Error("cannot apply constraints, already applying");
     }
 
-    const architecture = get().architecture;
-    if (!architecture) {
-      throw new Error("cannot apply constraints, no architecture in context");
+    const ev = get().environmentVersion;
+    if (!ev) {
+      throw new Error("cannot apply constraints, no environment version in context");
     }
+    console.log(ev)
 
     let navigateToChanges = true;
 
@@ -658,8 +670,9 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       console.log("applying constraints", allConstraints);
 
       const response = await applyConstraints(
-        architecture.id,
-        architecture.version,
+        ev.architecture_id,
+        ev.id,
+        ev.version,
         allConstraints,
         await get().getIdToken(),
         get().willOverwriteState,
@@ -670,24 +683,24 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
         set({
           canApplyConstraints: true,
         });
-        return response.architecture.config_errors ?? [];
+        return response.environmentVersion.config_errors ?? [];
       }
 
-      console.log("new architecture", response.architecture);
+      console.log("new environment version", response.environmentVersion);
       const elements = toReactFlowElements(
-        response.architecture!,
-        await get().getResourceTypeKB(response.architecture.id),
+        response.environmentVersion!,
+        await get().getResourceTypeKB(response.environmentVersion.architecture_id, response.environmentVersion.id),
         ArchitectureView.DataFlow,
       );
       const result = await autoLayout(
-        response.architecture,
+        response.environmentVersion,
         elements.nodes,
         elements.edges,
         get().layoutOptions,
       );
       const { selectedNode, selectedEdge, selectedResource } = refreshSelection(
         {
-          architecture: response.architecture,
+          environmentVersion: response.environmentVersion,
           nodes: result.nodes,
           edges: result.edges,
           selectedNode: get().selectedNode,
@@ -719,17 +732,18 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
               ).values(),
             ];
             return uniqueResourceConstraints.map(
-              (c) => new Decision([c], architecture.decisions),
+              (c) => new Decision([c], []),
             );
           }
           return [
-            new Decision(constraints as Constraint[], architecture.decisions),
+            new Decision(constraints as Constraint[], []),
           ];
         })
         .flat();
 
       set(
         {
+          environmentVersion: response.environmentVersion,
           nodes: result.nodes,
           edges: result.edges,
           selectedNode,
@@ -740,9 +754,8 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
           unappliedConstraints: [],
           canApplyConstraints: true,
           edgeTargetState: initialState().edgeTargetState,
-          previousState: get().architecture,
+          previousState: get().environmentVersion,
           nextState: undefined,
-          architecture: response.architecture,
           willOverwriteState: false,
         },
         false,
@@ -750,10 +763,10 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       );
       console.log("new nodes", elements.nodes);
       get().updateEdgeTargets();
-      return response.architecture.config_errors ?? [];
+      return response.environmentVersion.config_errors ?? [];
     } catch (e) {
       console.error("error applying constraints", e);
-      await get().refreshArchitecture(get().architecture.id);
+      await get().refreshArchitecture(get().environmentVersion.architecture_id, get().environmentVersion.id);
       set(
         {
           unappliedConstraints: [],
@@ -901,7 +914,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       navHistory,
       rightSidebarSelector,
       selectedResource,
-      get().architecture,
+      get().environmentVersion,
     );
 
     if (!newEntry) {
@@ -940,7 +953,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       navHistory,
       rightSidebarSelector,
       selectedResource,
-      get().architecture,
+      get().environmentVersion,
     );
 
     if (!newEntry) {
@@ -969,7 +982,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       "editor/navigateForwardRightSidebar",
     );
   },
-  getResourceTypeKB: async (architectureId: string, refresh?: boolean) => {
+  getResourceTypeKB: async (architectureId: string, environment: string, refresh?: boolean) => {
     if (
       get().resourceTypeKB.getResourceTypes().length !== 0 &&
       !(refresh ?? false)
@@ -979,6 +992,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
 
     const types = await getResourceTypes(
       architectureId,
+      environment,
       await get().getIdToken(),
     );
     types.applyCustomizations();
@@ -1020,7 +1034,8 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     );
   },
   updateEdgeTargets: async (sources) => {
-    let architecture = get().architecture;
+    let environmentVersion = get().environmentVersion;
+    console.log(environmentVersion)
     const idToken = await get().getIdToken();
     set(
       {
@@ -1036,8 +1051,9 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     const isPartial = sources && sources.length > 0;
     try {
       const response = await getValidEdgeTargets(
-        architecture.id,
-        architecture.version,
+        environmentVersion.architecture_id,
+        environmentVersion.id,
+        environmentVersion.version,
         {
           resources: { sources },
           tags: ["big", "parent"],
@@ -1045,11 +1061,11 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
         idToken,
       );
 
-      const { validTargets, architectureVersion, architectureId } = response;
+      const { validTargets, architectureVersion, architectureId, environment } = response;
 
-      architecture = get().architecture;
-      if (architectureId !== architecture.id) {
-        console.log("architecture id mismatch, ignoring");
+      environmentVersion = get().environmentVersion;
+      if (architectureId !== environmentVersion.architecture_id) {
+        console.log("architecture id mismatch, ignoring", architectureId, environmentVersion.architecture_id);
         set(
           {
             edgeTargetState: {
@@ -1062,7 +1078,21 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
         );
         return;
       }
-      if (architectureVersion !== architecture.version) {
+      if (environment !== environmentVersion.id) {
+        console.log("environment id mismatch, ignoring");
+        set(
+          {
+            edgeTargetState: {
+              ...get().edgeTargetState,
+              updating: false,
+            },
+          },
+          false,
+          "editor/updateEdgeTargets:idMismatch",
+        );
+        return;
+      }
+      if (architectureVersion !== environmentVersion.version) {
         console.log("architecture version mismatch, ignoring");
         set(
           {
@@ -1110,8 +1140,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
         {
           edgeTargetState: {
             updating: false,
-            architectureVersion: architecture.version,
-            engineVersion: architecture.engineVersion,
+            environmentVersion: environmentVersion.version,
             validTargets: validTargets,
             existingEdges: existingEdges,
           },
@@ -1150,9 +1179,9 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       return true;
     }
 
-    const { validTargets, architectureVersion } = get().edgeTargetState;
-    const architecture = get().architecture;
-    if (architectureVersion !== architecture.version) {
+    const { validTargets, environmentVersion } = get().edgeTargetState;
+    const ev = get().environmentVersion;
+    if (environmentVersion !== ev.version) {
       // we don't have valid targets for this version, so allow the connection and let the engine handle it
       return true;
     }
@@ -1182,7 +1211,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       elements.edges,
     );
     const { selectedNode, selectedEdge, selectedResource } = refreshSelection({
-      architecture: prev,
+      environmentVersion: prev,
       nodes,
       edges,
       selectedNode: get().selectedNode,
@@ -1190,8 +1219,8 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       selectedResource: get().selectedResource,
     });
     set({
-      architecture: prev,
-      nextState: get().architecture,
+      environmentVersion: prev,
+      nextState: get().environmentVersion,
       willOverwriteState: true,
       nodes,
       edges,
@@ -1199,14 +1228,17 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       selectedNode,
       selectedResource,
     });
+    console.log("previous", prev)
     try {
       await setCurrentState(
-        get().architecture.id,
+        get().environmentVersion.architecture_id,
+        get().environmentVersion.id,
         await get().getIdToken(),
         get().previousState!.version,
       );
       const newPrev = await getPrevState(
-        get().architecture.id,
+        get().environmentVersion.architecture_id,
+        get().environmentVersion.id,
         await get().getIdToken(),
         get().previousState!.version,
       );
@@ -1233,7 +1265,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       elements.edges,
     );
     const { selectedNode, selectedEdge, selectedResource } = refreshSelection({
-      architecture: next,
+      environmentVersion: next,
       nodes,
       edges,
       selectedNode: get().selectedNode,
@@ -1241,22 +1273,25 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       selectedResource: get().selectedResource,
     });
     set({
-      architecture: next,
-      previousState: get().architecture,
+      environmentVersion: next,
+      previousState: get().environmentVersion,
       nodes,
       edges,
       selectedEdge,
       selectedNode,
       selectedResource,
     });
+    console.log("prev at next", get().previousState)
     try {
       await setCurrentState(
-        get().architecture.id,
+        get().environmentVersion.architecture_id,
+        get().environmentVersion.id,
         await get().getIdToken(),
         get().nextState!.version,
       );
       const newNext = await getNextState(
-        get().architecture.id,
+        get().environmentVersion.architecture_id,
+        get().environmentVersion.id,
         await get().getIdToken(),
         get().nextState!.version,
       );

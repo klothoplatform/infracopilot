@@ -361,7 +361,7 @@ const DetailsSidebar: FC<DetailsSidebarProps> = ({
     editorSidebarState,
     rightSidebarSelector,
     selectedResource,
-    architecture,
+    environmentVersion,
   } = useApplicationStore();
 
   const [previousHistoryEntry, setPreviousHistoryEntry] = useState<
@@ -377,7 +377,7 @@ const DetailsSidebar: FC<DetailsSidebarProps> = ({
         editorSidebarState.right.detailsTab.navHistory,
         rightSidebarSelector,
         selectedResource,
-        architecture,
+        environmentVersion,
       ),
     );
     setNextHistoryEntry(
@@ -385,13 +385,13 @@ const DetailsSidebar: FC<DetailsSidebarProps> = ({
         editorSidebarState.right.detailsTab.navHistory,
         rightSidebarSelector,
         selectedResource,
-        architecture,
+        environmentVersion,
       ),
     );
   }, [
     rightSidebarSelector,
     selectedResource,
-    architecture,
+    environmentVersion,
     editorSidebarState.right.detailsTab.navHistory,
   ]);
 

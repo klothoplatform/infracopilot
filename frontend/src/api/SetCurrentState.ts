@@ -1,22 +1,20 @@
 import { analytics } from "../App";
-import type { Architecture } from "../shared/architecture/Architecture";
-import { parseArchitecture } from "../shared/architecture/Architecture";
 import type { AxiosResponse } from "axios";
 import axios from "axios";
 import { ApiError } from "../shared/errors";
 import { trackError } from "../pages/store/ErrorStore";
 
 export async function setCurrentState(
-  id: string,
+  architectureId: string,
+  environment: string,
   idToken: string,
   version: number,
 ): Promise<void> {
-  console.log(idToken);
   let response: AxiosResponse;
   try {
     response = await axios.post(
-      `/api/architecture/${id}/version/${version}/set`,
-      {},
+      `/api/architecture/${architectureId}/environment/${environment}`,
+      {version: version},
       {
         responseType: "json",
         decompress: true,
@@ -35,13 +33,15 @@ export async function setCurrentState(
       url: e.request?.url,
       cause: e,
       data: {
-        id: id,
+        architectureId,
+        environment,
+        version,
       },
     });
     trackError(error);
     throw error;
   }
 
-  analytics.track("SetCurrentState", { status: response.status, id });
+  analytics.track("SetCurrentState", { status: response.status, architectureId, environment, version });
   return;
 }
