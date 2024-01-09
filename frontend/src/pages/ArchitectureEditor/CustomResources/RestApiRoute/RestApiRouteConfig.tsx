@@ -9,6 +9,7 @@ import {
   EdgeConstraint,
   ResourceConstraint,
 } from "../../../../shared/architecture/Constraints";
+import { EnvironmentVersion } from "../../../../shared/architecture/EnvironmentVersion";
 
 enum RouteOperation {
   Add = "Add",
@@ -32,7 +33,7 @@ export const handleRoutesState = (
   defaultValues: any,
   modifiedValues: Map<string, any>,
   restApi: NodeId,
-  architecture: Architecture,
+  architecture: EnvironmentVersion,
 ) => {
   const routeChanges = getRouteChanges(
     submittedValues,
@@ -166,7 +167,7 @@ function createAddRouteConstraints(
   restApiId: NodeId,
   method: string,
   route: string,
-  architecture: Architecture,
+  architecture: EnvironmentVersion,
   index: number,
 ) {
   const existingIntegrations = architecture.edges
@@ -243,7 +244,7 @@ function createAddRouteConstraints(
 
 export const restApiFormStateBuilder = (
   resourceId: NodeId,
-  architecture: Architecture,
+  architecture: EnvironmentVersion,
 ) => {
   const integrationIds = architecture.edges
     .map((edge) => {
@@ -285,7 +286,7 @@ export const restApiFormStateBuilder = (
 
 export function restApiCreationConstraintsModifier(
   node: Node,
-  architecture: Architecture,
+  architecture: EnvironmentVersion,
   defaultConstraints: Constraint[],
 ) {
   // eslint-disable-next-line no-template-curly-in-string
@@ -301,7 +302,7 @@ export function restApiCreationConstraintsModifier(
 
 export function apiIntegrationNodeModifier(
   node: Node,
-  architecture: Architecture,
+  architecture: EnvironmentVersion,
 ) {
   let routeInfo = { method: "UNKNOWN", path: "UNKNOWN" };
   const resource = architecture.resources?.get(node.data.resourceId.toString());

@@ -27,7 +27,7 @@ const connectionNodeIdSelector = (state: any) => state.connectionNodeId;
 const ResourceGroupNode = memo(
   ({ id, data, isConnectable }: GroupNodeProps) => {
     const {
-      architecture,
+      environmentVersion,
       selectedResource,
       replaceResource,
       selectNode,
@@ -164,7 +164,7 @@ const ResourceGroupNode = memo(
             </div>
             <EditableLabel
               label={
-                data.resourceId.provider === architecture.provider
+                data.resourceId.provider === environmentVersion.provider
                   ? `${data.resourceId.type}:${data.resourceId.name}`
                   : data.resourceId.toString()
               }

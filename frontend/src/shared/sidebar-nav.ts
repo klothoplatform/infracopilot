@@ -1,5 +1,7 @@
+import { Environment } from "vitest";
 import type { Architecture } from "./architecture/Architecture";
 import type { NodeId } from "./architecture/TopologyNode";
+import { EnvironmentVersion } from "./architecture/EnvironmentVersion";
 
 export enum RightSidebarMenu {
   Changes = "Changes",
@@ -32,7 +34,7 @@ export function getPreviousRelevantHistoryEntry(
   navHistory: NavHistory,
   rightSidebarSelector: RightSidebarTabSelector,
   selectedResource?: NodeId,
-  architecture?: Architecture,
+  environmentVersion?: EnvironmentVersion,
 ): NavHistoryEntry | undefined {
   const historyEntries = navHistory.entries;
   let currentIndex = navHistory.currentIndex ?? 0;
@@ -46,7 +48,7 @@ export function getPreviousRelevantHistoryEntry(
     const entry = historyEntries[previousIndex];
     if (
       !entry.resourceId ||
-      ![...(architecture?.resources.keys() ?? [])].find(
+      ![...(environmentVersion?.resources.keys() ?? [])].find(
         (id) => id === entry.resourceId?.toString(),
       )
     ) {
@@ -69,7 +71,7 @@ export function getNextRelevantHistoryEntry(
   navHistory: NavHistory,
   rightSidebarSelector: RightSidebarTabSelector,
   selectedResource?: NodeId,
-  architecture?: Architecture,
+  environmentVersion?: EnvironmentVersion,
 ): NavHistoryEntry | undefined {
   const historyEntries = navHistory.entries;
   let currentIndex = navHistory.currentIndex ?? 0;
@@ -83,7 +85,7 @@ export function getNextRelevantHistoryEntry(
     const entry = historyEntries[nextIndex];
     if (
       !entry.resourceId ||
-      ![...(architecture?.resources.keys() ?? [])].find(
+      ![...(environmentVersion?.resources.keys() ?? [])].find(
         (id) => id === entry.resourceId?.toString(),
       )
     ) {

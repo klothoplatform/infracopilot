@@ -14,12 +14,13 @@ import { trackError } from "../pages/store/ErrorStore";
 
 export async function getResourceTypes(
   architectureId: string,
+  environment: string,
   idToken: string,
 ): Promise<ResourceTypeKB> {
   let response: AxiosResponse;
   try {
     response = await axios.get(
-      `/api/architecture/${architectureId}/resource_types`,
+      `/api/architecture/${architectureId}/environment/${environment}/resource_types`,
       {
         headers: {
           ...(idToken && { Authorization: `Bearer ${idToken}` }),
@@ -35,7 +36,8 @@ export async function getResourceTypes(
       url: e.request?.url,
       cause: e,
       data: {
-        id: architectureId,
+        architectureId,
+        environment,
       },
     });
     trackError(error);

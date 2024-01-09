@@ -1,39 +1,45 @@
-# @klotho::execution_unit {
-#    id = "main"
-# }
-import json
-import os
 from io import BytesIO
-from pathlib import Path
 from typing import Optional
-
-# @klotho::persist {
-#   id = "architecturestore"
-# }
-import aiofiles
-import jsons
+import boto3
+from pathlib import Path
+import logging
 from botocore.exceptions import ClientError
-
 from src.engine_service.engine_commands.run import RunEngineResult
-from src.state_manager.architecture_data import Architecture
+import jsons
+from src.environment_management.environment_version import EnvironmentVersion
 
-root_path = Path("state")
+
+from src.util.aws.s3 import put_object, get_object, delete_object, delete_objects
+
+logger = logging.getLogger(__name__)
 
 
 class ArchitectureStateDoesNotExistError(Exception):
     pass
 
 
-async def get_state_from_fs(arch: Architecture) -> Optional[RunEngineResult]:
-    if arch.state_location == None and arch.state == 0:
-        return None
-    elif arch.state_location == None:
-        raise ArchitectureStateDoesNotExistError(
-            f"No architecture exists for id {arch.id} and state {arch.state}"
-        )
-    try:
-        async with aiofiles.open(arch.state_location, mode="r") as f:
-            state_raw = await f.read()
+class WriteStateError(Exception):
+    pass
+
+
+class WriteIacError(Exception):
+    pass
+
+
+class ArchitectureStorage:
+    def __init__(self, bucket):
+        self._bucket = bucket
+
+    def get_state_from_fs(self, arch: EnvironmentVersion) -> Optional[RunEngineResult]:
+        if arch.state_location == None and arch.version == 0:
+            return None
+        elif arch.state_location == None:
+            raise ArchitectureStateDoesNotExistError(
+                f"No architecture exists for id {arch.id} and state {arch.version}"
+            )
+        try:
+            obj = self._bucket.Object(arch.state_location)
+            state_raw = get_object(obj)
             if state_raw is None:
                 raise ArchitectureStateDoesNotExistError(
                     f"No architecture exists at location: {arch.state_location}"
@@ -45,72 +51,89 @@ async def get_state_from_fs(arch: Architecture) -> Optional[RunEngineResult]:
                 iac_topology=data.get("iac_topology", ""),
                 config_errors_json=data.get("config_errors_json", []),
             )
-    except FileNotFoundError:
-        raise ArchitectureStateDoesNotExistError(
-            f"No architecture exists at location: {arch.state_location}"
-        )
-    except ClientError as err:
-        # This is only necessary because Klotho's fs implementation
-        # doesn't convert this to FileNotFoundError
-        if err.response["Error"]["Code"] == "NoSuchKey":
+        except FileNotFoundError as e:
             raise ArchitectureStateDoesNotExistError(
                 f"No architecture exists at location: {arch.state_location}"
             )
-        raise
+        except ClientError as err:
+            # This is only necessary because Klotho's fs implementation
+            # doesn't convert this to FileNotFoundError
+            if err.response["Error"]["Code"] == "NoSuchKey":
+                raise ArchitectureStateDoesNotExistError(
+                    f"No architecture exists at location: {arch.state_location}"
+                )
+            raise
 
-
-async def get_iac_from_fs(arch: Architecture) -> Optional[BytesIO]:
-    if arch.iac_location is None:
-        return None
-    try:
-        async with aiofiles.open(arch.iac_location, mode="rb") as f:
-            state_raw = await f.read()
-            if state_raw is None:
+    def get_iac_from_fs(self, arch: EnvironmentVersion) -> Optional[BytesIO]:
+        if arch.iac_location is None:
+            return None
+        try:
+            obj = self._bucket.Object(arch.iac_location)
+            iac_raw = get_object(obj)
+            if iac_raw is None:
                 raise ArchitectureStateDoesNotExistError(
                     f"No architecture exists at location: {arch.iac_location}"
                 )
-            if isinstance(state_raw, str):
-                state_raw = state_raw.encode()
-            return BytesIO(state_raw)
+            if isinstance(iac_raw, str):
+                iac_raw = iac_raw.encode()
+            return BytesIO(iac_raw)
 
-    except FileNotFoundError:
-        raise ArchitectureStateDoesNotExistError(
-            f"No architecture exists at location: {arch.iac_location}"
-        )
-    except ClientError as err:
-        # This is only necessary because Klotho's fs implementation
-        # doesn't convert this to FileNotFoundError
-        if err.response["Error"]["Code"] == "NoSuchKey":
+        except FileNotFoundError:
             raise ArchitectureStateDoesNotExistError(
                 f"No architecture exists at location: {arch.iac_location}"
             )
-        raise
+        except ClientError as err:
+            # This is only necessary because Klotho's fs implementation
+            # doesn't convert this to FileNotFoundError
+            if err.response["Error"]["Code"] == "NoSuchKey":
+                raise ArchitectureStateDoesNotExistError(
+                    f"No architecture exists at location: {arch.iac_location}"
+                )
+            raise
 
+    def write_state_to_fs(
+        self, arch: EnvironmentVersion, content: RunEngineResult
+    ) -> str:
+        key = ArchitectureStorage.get_path_for_architecture(arch) + "/state.json"
+        try:
+            if not isinstance(content, RunEngineResult):
+                raise TypeError(
+                    f"content must be of type RunEngineResult, not {type(content)}"
+                )
+            obj = self._bucket.Object(key)
+            put_object(obj, bytes(jsons.dumps(content), "utf-8"))
+            return key
+        except Exception as e:
+            raise WriteStateError(
+                f"Failed to write state to S3 bucket {self._bucket.name} and key {key}: {e}"
+            )
 
-async def write_state_to_fs(arch: Architecture, content: RunEngineResult) -> str:
-    if not isinstance(content, RunEngineResult):
-        raise TypeError(f"content must be of type RunEngineResult, not {type(content)}")
-    return await write_file_to_fs(arch, jsons.dumps(content), "state.json", "w")
+    def write_iac_to_fs(self, arch: EnvironmentVersion, content: BytesIO) -> str:
+        key = ArchitectureStorage.get_path_for_architecture(arch) + "/iac.zip"
+        try:
+            if not isinstance(content, BytesIO):
+                raise TypeError(f"content must be of type BytesIO, not {type(content)}")
+            obj = self._bucket.Object(key)
+            put_object(obj, content)
+            return key
+        except Exception as e:
+            raise WriteIacError(
+                f"Failed to write iac to S3 bucket {self._bucket.name} and key {key}: {e}"
+            )
 
+    def delete_state_from_fs(self, arch: EnvironmentVersion):
+        keys = [
+            ArchitectureStorage.get_path_for_architecture(arch) + "/state.json",
+            ArchitectureStorage.get_path_for_architecture(arch) + "/iac.zip",
+        ]
+        try:
+            delete_objects(self._bucket, keys)
+        except Exception as e:
+            raise WriteStateError(
+                f"Failed to delete state from S3 bucket {self._bucket.name} and key {keys}: {e}"
+            )
 
-async def write_iac_to_fs(arch: Architecture, content: BytesIO) -> str:
-    if not isinstance(content, BytesIO):
-        raise TypeError(f"content must be of type BytesIO, not {type(content)}")
-    return await write_file_to_fs(arch, content.getvalue(), "iac.zip", "wb")
-
-
-async def write_file_to_fs(
-    arch: Architecture, content: any, filename: str, mode: str
-) -> str:
-    path = str(Path(get_path_for_architecture(arch)) / filename)
-    if os.getenv("EXECUNIT_NAME") is None:
-        # When running in local dev, we need to create the directory.
-        # When running in the cloud, the path is just the S3 object's id - no parent creation necessary.
-        Path(os.path.dirname(path)).mkdir(parents=True, exist_ok=True)
-    async with aiofiles.open(path, mode=mode) as f:
-        await f.write(content)
-    return path
-
-
-def get_path_for_architecture(arch: Architecture) -> Path:
-    return root_path / arch.id / str(arch.state)
+    @staticmethod
+    def get_path_for_architecture(env: EnvironmentVersion) -> str:
+        root_path = "state"
+        return "/".join([root_path, env.architecture_id, env.id, str(env.version)])

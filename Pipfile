@@ -18,6 +18,9 @@ pem = "*"
 cryptography = "*"
 requests = "*"
 pyinstrument = "*"
+moto = "*"
+aiosqlite = "*"
+greenlet = "*"
 
 [dev-packages]
 black = "*"

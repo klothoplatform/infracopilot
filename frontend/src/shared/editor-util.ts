@@ -1,9 +1,10 @@
 import type { Architecture } from "./architecture/Architecture";
 import type { Edge, Node } from "reactflow";
 import type { NodeId } from "./architecture/TopologyNode";
+import { EnvironmentVersion } from "./architecture/EnvironmentVersion";
 
 export function refreshSelection({
-  architecture,
+  environmentVersion,
   nodes,
   edges,
   selectedNode,
@@ -37,7 +38,7 @@ export function refreshSelection({
       node.selected = true;
       result.selectedNode = node.id;
       result.selectedResource = selectedResource;
-    } else if (architecture?.resources?.has(selectedResource.toString())) {
+    } else if (environmentVersion?.resources?.has(selectedResource.toString())) {
       result.selectedResource = selectedResource;
       result.selectedNode = undefined;
     }
@@ -47,7 +48,7 @@ export function refreshSelection({
 }
 
 type RefreshSelectionArgs = {
-  architecture: Architecture;
+  environmentVersion: EnvironmentVersion;
   nodes?: Node[];
   edges?: Edge[];
   selectedNode?: string;

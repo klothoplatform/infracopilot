@@ -38,7 +38,7 @@ class TestRunEngine(aiounittest.AsyncTestCase):
 
     @mock.patch(
         "src.engine_service.engine_commands.run.run_engine_command",
-        new_callable=mock.AsyncMock,
+        new_callable=mock.Mock,
     )
     @mock.patch("tempfile.TemporaryDirectory")
     async def test_run_engine(self, mock_temp_dir: mock.Mock, mock_eng_cmd: mock.Mock):
@@ -46,7 +46,6 @@ class TestRunEngine(aiounittest.AsyncTestCase):
             id="test",
             templates=[],
             constraints=[],
-            guardrails=None,
             input_graph="test",
             engine_version=0.0,
         )
@@ -57,7 +56,7 @@ class TestRunEngine(aiounittest.AsyncTestCase):
             "",
         )
         mock_eng_cmd.side_effect = self.run_engine_side_effect(self.temp_dir.name)
-        result = await run_engine(request)
+        result = run_engine(request)
         mock_temp_dir.assert_called_once()
         mock_eng_cmd.assert_called_once_with(
             "Run",
@@ -83,7 +82,7 @@ class TestRunEngine(aiounittest.AsyncTestCase):
 
     @mock.patch(
         "src.engine_service.engine_commands.run.run_engine_command",
-        new_callable=mock.AsyncMock,
+        new_callable=mock.Mock,
     )
     @mock.patch("tempfile.TemporaryDirectory")
     async def test_run_engine_failure(
@@ -93,7 +92,6 @@ class TestRunEngine(aiounittest.AsyncTestCase):
             id="test",
             templates=[],
             constraints=[],
-            guardrails=None,
             input_graph="test",
             engine_version=0.0,
         )
@@ -106,7 +104,7 @@ class TestRunEngine(aiounittest.AsyncTestCase):
         mock_eng_cmd.side_effect = self.run_engine_side_effect(self.temp_dir.name)
         mock_eng_cmd.side_effect = ConfigValidationException("test", "", "")
         with self.assertRaises(FailedRunException) as fre:
-            await run_engine(request)
+            run_engine(request)
             self.assertEqual(fre.error_type, "ConfigValidationException")
         mock_temp_dir.assert_called_once()
         mock_eng_cmd.assert_called_once_with(

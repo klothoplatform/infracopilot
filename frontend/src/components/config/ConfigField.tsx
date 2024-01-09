@@ -424,7 +424,7 @@ export const ResourceField: FC<ResourceProps> = ({
     errors,
     qualifiedFieldName + (valueSelector ?? ""),
   );
-  const { architecture, selectResource } = useApplicationStore();
+  const { environmentVersion, selectResource } = useApplicationStore();
   const onClick = (value: string) => {
     setValue(id, value, {
       shouldTouch: true,
@@ -441,14 +441,14 @@ export const ResourceField: FC<ResourceProps> = ({
   const refreshItems = useCallback(() => {
     const emptyFilter = resourceTypes?.length === 1 && !resourceTypes[0];
     return emptyFilter
-      ? [...architecture.resources.keys()]
-      : [...architecture.resources.keys()].filter((resourceId: string) => {
+      ? [...environmentVersion.resources.keys()]
+      : [...environmentVersion.resources.keys()].filter((resourceId: string) => {
           const providerType = resourceId.split(":").slice(0, 2).join(":");
           return (
             !resourceTypes?.length || resourceTypes?.includes(providerType)
           );
         });
-  }, [architecture, resourceTypes]);
+  }, [environmentVersion, resourceTypes]);
 
   useEffect(() => {
     setItems(refreshItems());

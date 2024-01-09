@@ -18,13 +18,15 @@ CAPTURE_ENGINE_FAILURES = os.getenv("CAPTURE_ENGINE_FAILURES", False)
 class EngineException(Exception):
     type: str
 
-    def __init__(self, message, stdout: str, stderr: str):
+    def __init__(self, message, stdout: str | None = None, stderr: str | None = None):
         super().__init__(message)
         self.stdout = stdout
         self.stderr = stderr
         self.type = "Engine"
 
     def err_log_str(self):
+        if self.stderr is None:
+            return ""
         err_logs = [
             json.loads(line)
             for line in self.stderr.splitlines()
@@ -72,7 +74,7 @@ class IacException(Exception):
         )
 
 
-async def run_engine_command(*args, **kwargs) -> tuple[str, str]:
+def run_engine_command(*args, **kwargs) -> tuple[str, str]:
     cwd = kwargs.get("cwd", None)
 
     env = os.environ.copy()
@@ -111,7 +113,7 @@ async def run_engine_command(*args, **kwargs) -> tuple[str, str]:
     return out_logs, err_logs
 
 
-async def run_iac_command(*args, **kwargs) -> tuple[str, str]:
+def run_iac_command(*args, **kwargs) -> tuple[str, str]:
     cwd = kwargs.get("cwd", None)
 
     env = os.environ.copy()

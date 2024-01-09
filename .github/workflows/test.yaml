@@ -24,9 +24,7 @@ jobs:
           pipenv install --dev
       - name: Run Backend Tests
         continue-on-error: true
-        run: |
-          PYTHONPATH=. pipenv run coverage run -m unittest discover
-          PYTHONPATH=. pipenv run coverage report -m --fail-under 80 --skip-empty
+        run: make test-coverage
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ env.NODE_VERSION }}

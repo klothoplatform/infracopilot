@@ -17,7 +17,7 @@ import {
   RestApiRouteConfig,
 } from "../CustomResources/RestApiRoute/ConfigCustomizer";
 import { restApiLayoutModifier } from "../CustomResources/RestApiRoute/LayoutModifier";
-
+import { EnvironmentVersion } from "../../../shared/architecture/EnvironmentVersion";
 export type ConfigSections = {
   [key: string]: {
     component?: FC<any>;
@@ -26,7 +26,7 @@ export type ConfigSections = {
       defaultValues: any,
       modifiedValues: Map<string, any>,
       resourceId: NodeId,
-      architecture: Architecture,
+      architecture: EnvironmentVersion,
     ) => any;
   };
 };
@@ -38,13 +38,13 @@ export interface CustomConfigMap {
 export interface CustomConfigMapping {
   creationConstraintsModifier?: (
     node: Node,
-    architecture: Architecture,
+    architecture: EnvironmentVersion,
     defaultConstraints: Constraint[],
   ) => Constraint[];
   sections: ConfigSections;
   stateBuilder: FormStateBuilder;
   constraintBuilder?: ConstraintBuilder;
-  nodeModifier?: (node: Node, architecture: Architecture) => void;
+  nodeModifier?: (node: Node, architecture: EnvironmentVersion) => void;
   resourceTypeModifier?: ResourceTypeModifier;
   layoutModifier?: LayoutModifier;
 }
@@ -78,7 +78,7 @@ export function getCustomConfigSections(
 
 export function getCustomConfigState(
   resourceId: NodeId,
-  architecture: Architecture,
+  architecture: EnvironmentVersion,
 ): any {
   return customConfigMappings[
     `${resourceId.provider}:${resourceId.type}`
@@ -89,7 +89,7 @@ export type ResourceTypeModifier = (resourceType: ResourceType) => void;
 
 export type FormStateBuilder = (
   resourceId: NodeId,
-  architecture: Architecture,
+  architecture: EnvironmentVersion,
 ) => object;
 
 export type ConstraintBuilder = (

@@ -14,10 +14,12 @@ export interface GetValidEdgeTargetsResponse {
   validTargets: Map<string, string[]>;
   architectureVersion: number;
   architectureId: string;
+  environment: string;
 }
 
 export async function getValidEdgeTargets(
   architectureId: string,
+  environment: string,
   latestState: number,
   config: GetValidEdgeTargetsConfig,
   idToken: string,
@@ -28,7 +30,7 @@ export async function getValidEdgeTargets(
 
   try {
     const response = await axios.post(
-      `/api/architecture/${architectureId}/valid-edge-targets`,
+      `/api/architecture/${architectureId}/environment/${environment}/valid-edge-targets`,
       { config: formatConfig(config) },
       {
         params: {
@@ -58,6 +60,7 @@ export async function getValidEdgeTargets(
 
   return {
     architectureId: data.id,
+    environment: data.environment,
     architectureVersion: data.version,
     validTargets: formatResponse(data),
   };

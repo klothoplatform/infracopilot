@@ -23,7 +23,6 @@ class RunEngineRequest(NamedTuple):
     templates: List[str]
     input_graph: str
     constraints: List[dict]
-    guardrails: str
     engine_version: float
 
 
@@ -53,14 +52,13 @@ def tempdir():
             yield tmp_dir
 
 
-async def run_engine(request: RunEngineRequest) -> RunEngineResult:
+def run_engine(request: RunEngineRequest) -> RunEngineResult:
     print(request.constraints)
     out_logs = None
     err_logs = None
     with tempdir() as tmp_dir:
+        dir = Path(tmp_dir)
         try:
-            dir = Path(tmp_dir)
-
             args = []
 
             if request.input_graph is not None:
@@ -68,12 +66,6 @@ async def run_engine(request: RunEngineRequest) -> RunEngineResult:
                     file.write(request.input_graph)
                 args.append("--input-graph")
                 args.append(f"{tmp_dir}/graph.yaml")
-
-            if request.guardrails is not None:
-                with open(dir / "guardrails.yaml", "w") as file:
-                    file.write(request.guardrails)
-                args.append("--guardrails")
-                args.append(f"{tmp_dir}/guardrails.yaml")
 
             if request.constraints is not None:
                 with open(dir / "constraints.yaml", "w") as file:
@@ -90,7 +82,7 @@ async def run_engine(request: RunEngineRequest) -> RunEngineResult:
                 ]
             )
 
-            out_logs, err_logs = await run_engine_command(
+            out_logs, err_logs = run_engine_command(
                 "Run",
                 *args,
                 cwd=dir,

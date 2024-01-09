@@ -38,7 +38,7 @@ const EditorSidebarLeft = forwardRef(
   ) => {
     const {
       getResourceTypeKB,
-      architecture: { id },
+      environmentVersion: { architecture_id, id },
     } = useApplicationStore();
 
     const { isOpenOnSmallScreens: isSidebarOpenOnSmallScreens } =
@@ -122,7 +122,7 @@ const EditorSidebarLeft = forwardRef(
             }
             fallbackRender={FallbackRenderer}
             onReset={() => {
-              getResourceTypeKB(id, true);
+              getResourceTypeKB(architecture_id, id, true);
             }}
           >
             <div className="flex flex-col justify-between gap-2 py-2">

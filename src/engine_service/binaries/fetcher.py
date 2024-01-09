@@ -41,12 +41,12 @@ class BinaryNotFoundException(Exception):
     pass
 
 
-async def get_binary(binary: Binary) -> Optional[bytes]:
+def get_binary(binary: Binary) -> Optional[bytes]:
     path = engine_path if binary == Binary.ENGINE else iac_cli_path
     try:
         log.info(f"Reading binary from {path}")
-        async with aiofiles.open(path, mode="rb") as f:
-            b_raw = await f.read()
+        with open(path, mode="rb") as f:
+            b_raw = f.read()
             return b_raw
     except FileNotFoundError:
         log.error(f"Binary not found at {path}")
@@ -61,12 +61,12 @@ async def get_binary(binary: Binary) -> Optional[bytes]:
 
 
 # write binary to disk checks to see if the binary passed in exists otherwise it will read it and write it to disk
-async def write_binary_to_disk(binary: Binary):
+def write_binary_to_disk(binary: Binary):
     path = (
         engine_executable_path if binary == Binary.ENGINE else iac_cli_executable_path
     )
     if not os.path.exists(path):
-        raw = await get_binary(binary)
+        raw = get_binary(binary)
         with open(path, "wb") as file:
             file.write(raw)
         os.chmod(path, 0o755)

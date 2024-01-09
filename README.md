@@ -26,6 +26,11 @@ echo "$FGA_NOTE" | grep 'store id:' | sed 's#.*: ##' > fga_store_id.key
 unset FGA_NOTE
 ```
 
+ensure you have the minio docker container running
+```sh
+docker-compose up
+```
+
 ```sh
 PORT=3000 ENGINE_PATH=/Path/to/klotho/engine/binary IAC_CLI_PATH=/Path/to/klotho/iac/binary  make run
 ```

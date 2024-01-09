@@ -28,18 +28,19 @@ import {
 } from "../../shared/architecture/Constraints";
 import { ConfigGroup } from "../config/ConfigGroup";
 import { NodeId } from "../../shared/architecture/TopologyNode";
-import { resourceProperties, type Architecture, type ConfigurationError, isPropertyPromoted } from "../../shared/architecture/Architecture";
+import { type ConfigurationError } from "../../shared/architecture/Architecture";
 import { analytics } from "../../App";
 import { ErrorBoundary } from "react-error-boundary";
 import { FallbackRenderer } from "../FallbackRenderer";
 import { ApplicationError, UIError } from "../../shared/errors";
 import { ConfigSection } from "../config/ConfigSection";
+import { type EnvironmentVersion, isPropertyPromoted, resourceProperties } from "../../shared/architecture/EnvironmentVersion";
 
 export default function ConfigForm() {
   const {
     selectedResource,
     resourceTypeKB,
-    architecture,
+    environmentVersion,
     applyConstraints,
     addError,
   } = useApplicationStore();
@@ -53,7 +54,7 @@ export default function ConfigForm() {
       const resourceType = resourceTypeKB.getResourceType(selectedResource.provider, selectedResource.type);
       setResourceType(resourceType);
 
-      const allProperties = resourceProperties(architecture, resourceTypeKB, selectedResource);
+      const allProperties = resourceProperties(environmentVersion, resourceTypeKB, selectedResource);
       const promotedProperties = new Map<string, Property[]>();
       for (const [resourceId, properties] of allProperties) {
         const promotedProps = properties.filter(p => isPropertyPromoted(p));
@@ -77,7 +78,7 @@ export default function ConfigForm() {
     }
   }, [
     selectedResource,
-    architecture,
+    environmentVersion,
     resourceTypeKB,
   ])
 
@@ -87,7 +88,7 @@ export default function ConfigForm() {
     ? {
         ...[...promotedProperties.entries()].reduce((acc, [resourceId, properties]): any => {
           const fs = toFormState(
-            architecture.resources.get(resourceId),
+            environmentVersion.resources.get(resourceId),
             properties,
             resourceId,
           )
@@ -97,11 +98,11 @@ export default function ConfigForm() {
           };
         }, {}),
         ...toFormState(
-          architecture.resources.get(selectedResource.toString()),
+          environmentVersion.resources.get(selectedResource.toString()),
           remainingProperties,
           selectedResource, // remaining properties are always on the selected resource
         ),
-        ...getCustomConfigState(selectedResource, architecture),
+        ...getCustomConfigState(selectedResource, environmentVersion),
       }
     : {},
   });
@@ -141,7 +142,7 @@ export default function ConfigForm() {
     ? {
         ...[...promotedProperties.entries()].reduce((acc, [resourceId, properties]): any => {
           const fs = toFormState(
-            architecture.resources.get(resourceId.toString()),
+            environmentVersion.resources.get(resourceId.toString()),
             properties,
             resourceId,
           )
@@ -151,15 +152,15 @@ export default function ConfigForm() {
           };
         }, {}),
         ...toFormState(
-          architecture.resources.get(selectedResource.toString()),
+          environmentVersion.resources.get(selectedResource.toString()),
           remainingProperties,
           selectedResource, // remaining properties are always on the selected resource
         ),
-        ...getCustomConfigState(selectedResource, architecture),
+        ...getCustomConfigState(selectedResource, environmentVersion),
       }
     : {});
   }, [
-    architecture,
+    environmentVersion,
     isSubmitSuccessful,
     isSubmitted,
     methods,
@@ -230,7 +231,7 @@ export default function ConfigForm() {
                 values,
                 { ...defaultValues },
                 modifiedFormFields,
-                architecture,
+                environmentVersion,
               ));
             }
             constraints.push(...resConstraints);
@@ -276,7 +277,7 @@ export default function ConfigForm() {
     [
       addError,
       applyConstraints,
-      architecture,
+      environmentVersion,
       defaultValues,
       dirtyFields,
       resourceType?.properties,
@@ -451,13 +452,13 @@ function applyCustomizers(
   submittedValues: any,
   defaultValues: any,
   modifiedValues: Map<string, any>,
-  architecture: Architecture,
+  environmentVersion: EnvironmentVersion,
 ): Constraint[] {
   const sections = getCustomConfigSections(
     resourceId.provider,
     resourceId.type,
   );
-  console.log("applyCustomizers", {sections, resourceId, submittedValues, defaultValues, modifiedValues, architecture})
+  console.log("applyCustomizers", {sections, resourceId, submittedValues, defaultValues, modifiedValues, environmentVersion})
 
   if (!sections) {
     return [];
@@ -478,7 +479,7 @@ function applyCustomizers(
           defaultValues,
           modifiedValues,
           resourceId,
-          architecture,
+          environmentVersion,
         ) ?? []),
       );
     }

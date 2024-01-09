@@ -6,12 +6,13 @@ import { trackError } from "../pages/store/ErrorStore";
 
 export default async function ExportIaC(
   architectureId: string,
+  environment: string,
   state: number,
   idToken: string,
 ): Promise<any> {
   let response: AxiosResponse;
   try {
-    response = await axios.get(`/api/architecture/${architectureId}/iac`, {
+    response = await axios.get(`/api/architecture/${architectureId}/environment/${environment}/iac`, {
       params: {
         state: `${state}`,
       },
@@ -31,6 +32,7 @@ export default async function ExportIaC(
       cause: e,
       data: {
         id: architectureId,
+        environment: environment,
         state: state,
         hasData: !!e.response?.data,
       },
@@ -40,6 +42,7 @@ export default async function ExportIaC(
   }
   analytics.track("ExportIaC", {
     id: architectureId,
+    environment: environment,
     state: state,
     status: response.status,
     hasData: !!response.data,
