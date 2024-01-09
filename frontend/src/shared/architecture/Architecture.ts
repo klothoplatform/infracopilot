@@ -1,15 +1,7 @@
 import type { Edge, Node } from "reactflow";
-import type TopologyEdge from "./TopologyEdge";
-import yaml from "yaml";
-import { TopologyGraph } from "./TopologyGraph";
-import type { TopologyNode } from "./TopologyNode";
-import { NodeId } from "./TopologyNode";
-import type { ResourceTypeKB } from "../resources/ResourceTypeKB";
-import { customNodeMappings, NodeType } from "../reactflow/NodeTypes";
-import { customConfigMappings } from "../../pages/ArchitectureEditor/config/CustomConfigMappings";
+import { type NodeId } from "./TopologyNode";
 import { ApplicationError } from "../errors";
 import { isObject } from "../object-util";
-import type { Property } from "../resources/ResourceTypes";
 
 export enum ArchitectureView {
   DataFlow = "dataflow",
@@ -48,10 +40,6 @@ export interface GraphEdge {
   destination: NodeId;
   metadata: object;
 }
-
-
-
-
 
 
 export const parseArchitecture = (data: any): Architecture => {

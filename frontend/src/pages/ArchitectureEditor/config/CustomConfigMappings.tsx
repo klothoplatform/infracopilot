@@ -9,13 +9,7 @@ import type { ElkNode } from "elkjs/lib/elk.bundled";
 
 import LoadBalancerConfig from "../CustomResources/LoadBalancer";
 import RestApiConfig from "../CustomResources/RestApi";
-
-import {
-  restApiIntegrationResourceCustomizer,
-  RestApiRouteConfig,
-} from "../CustomResources/RestApiRoute/ConfigCustomizer";
-import { restApiLayoutModifier } from "../CustomResources/RestApiRoute/LayoutModifier";
-import { EnvironmentVersion } from "../../../shared/architecture/EnvironmentVersion";
+import { type EnvironmentVersion } from "../../../shared/architecture/EnvironmentVersion";
 
 export type ConfigSections = {
   [key: string]: {

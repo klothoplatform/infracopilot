@@ -1,13 +1,12 @@
 import { NodeId } from "../../../../shared/architecture/TopologyNode";
-import type { Architecture } from "../../../../shared/architecture/Architecture";
 import type { Constraint } from "../../../../shared/architecture/Constraints";
 import {
-  createAddRouteConstraints,
-  createModifyRouteConstraints,
-  createRemoveRouteConstraints,
-  RouteOperation,
+    createAddRouteConstraints,
+    createModifyRouteConstraints,
+    createRemoveRouteConstraints,
+    RouteOperation
 } from "./Constraints";
-import type {EnvironmentVersion} from "../../../../shared/architecture/EnvironmentVersion";
+import type { EnvironmentVersion } from "../../../../shared/architecture/EnvironmentVersion";
 
 interface RouteModification {
   oldPath?: string;
@@ -179,7 +178,7 @@ export const handleRoutesState = (
   defaultValues: any,
   modifiedValues: Map<string, any>,
   restApi: NodeId,
-  architecture: Architecture,
+  architecture: EnvironmentVersion,
 ): Constraint[] => {
   const routeChanges = getRouteChanges(
     submittedValues,

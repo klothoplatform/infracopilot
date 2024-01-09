@@ -1,7 +1,5 @@
-import { Environment } from "vitest";
-import type { Architecture } from "./architecture/Architecture";
 import type { NodeId } from "./architecture/TopologyNode";
-import { EnvironmentVersion } from "./architecture/EnvironmentVersion";
+import { type EnvironmentVersion } from "./architecture/EnvironmentVersion";
 
 export enum RightSidebarMenu {
   Changes = "Changes",

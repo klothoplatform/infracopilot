@@ -16,9 +16,9 @@ services:
     depends_on:
       - minio
     entrypoint: >
-      /bin/sh -c "
+      /bin/sh -e -c "
       /usr/bin/mc alias set myminio http://minio:9000 minio minio123;
-      /usr/bin/mc mb state/ifcp-architecture-storage;
-      /usr/bin/mc policy set public state/ifcp-architecture-storage;
+      /usr/bin/mc mb myminio/ifcp-architecture-storage;
+      /usr/bin/mc policy set public myminio/ifcp-architecture-storage;
       exit 0;
       "
