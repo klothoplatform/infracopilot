@@ -433,10 +433,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     if (!architectureId) {
       throw new Error("no architecture id");
     }
-    const architecture = await getArchitecture(
-      architectureId,
-      await get().getIdToken(),
-    );
+    const architecture = await getArchitecture(architectureId, await get().getIdToken());
     console.log("refresh got architecture", architecture);
     const ev = await getEnvironmentVersion(
       architectureId,
