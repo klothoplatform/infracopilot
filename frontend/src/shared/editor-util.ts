@@ -1,6 +1,6 @@
 import type { Edge, Node } from "reactflow";
 import type { NodeId } from "./architecture/TopologyNode";
-import { type EnvironmentVersion } from "./architecture/EnvironmentVersion";
+import type { EnvironmentVersion } from "./architecture/EnvironmentVersion";
 
 export function refreshSelection({
   environmentVersion,

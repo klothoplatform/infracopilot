@@ -1,7 +1,7 @@
 import { NodeType } from "../reactflow/NodeTypes";
 import type { Edge, Node } from "reactflow";
 import { type ResourceTypeKB } from "../resources/ResourceTypeKB";
-import { Architecture, type GraphEdge } from "./Architecture";
+import { type GraphEdge } from "./Architecture";
 import { TopologyGraph } from "./TopologyGraph";
 import { NodeId, type TopologyNode } from "./TopologyNode";
 import type TopologyEdge from "./TopologyEdge";
