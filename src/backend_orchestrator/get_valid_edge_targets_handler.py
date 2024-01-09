@@ -42,6 +42,14 @@ class EdgeTargetHandler:
         self.ev_dao = ev_dao
         self.binary_storage = binary_storage
 
+
+class EdgeTargetHandler:
+    def __init__(
+        self, architecture_storage: ArchitectureStorage, ev_dao: EnvironmentVersionDAO
+    ):
+        self.architecture_storage = architecture_storage
+        self.ev_dao = ev_dao
+
     async def get_valid_edge_targets(
         self,
         architecture_id: str,

@@ -14,7 +14,7 @@ export async function setCurrentState(
   try {
     response = await axios.post(
       `/api/architecture/${architectureId}/environment/${environment}`,
-      { version: version },
+      {version: version},
       {
         responseType: "json",
         decompress: true,

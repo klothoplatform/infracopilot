@@ -1,0 +1,48 @@
+name: Store Name # store name, optional
+model_file: ../../src/auth_service/model.fga # a global model that would apply to all tests
+tuples: # global tuples that would apply to all tests, optional
+  - user: user:anne
+    relation: editor
+    object: architecture:1
+tests: # required
+  - name: test-1
+    description: testing that the model works # optional
+    tuples: # tuples that only apply within the scope of this test
+      - user: user:beth
+        relation: viewer
+        object: architecture:2
+    check: # a set of checks to run
+      - user: user:anne
+        object: architecture:1
+        assertions:
+          # a set of expected results for each relation
+          can_read: true
+          can_write: true
+          can_share: false
+          can_change_owner: false
+      - user: user:beth
+        object: architecture:2
+        assertions:
+          # a set of expected results for each relation
+          can_read: true
+          can_write: false
+          can_share: false
+          can_change_owner: false
+    list_objects: # a set of list objects to run
+      - user: user:anne
+        type: architecture
+        assertions:
+          # a set of expected results for each relation
+          can_read:
+            - architecture:1
+          can_write:
+            - architecture:1
+          can_share: []
+      - user: user:beth
+        type: architecture
+        assertions:
+          # a set of expected results for each relation
+          can_read:
+            - architecture:2
+          can_write: []
+          can_share: []

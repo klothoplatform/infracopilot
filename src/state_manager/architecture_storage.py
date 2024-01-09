@@ -13,6 +13,10 @@ from src.util.aws.s3 import put_object, get_object, delete_object, delete_object
 
 logger = logging.getLogger(__name__)
 
+from src.util.aws.s3 import put_object, get_object, delete_object, delete_objects
+
+logger = logging.getLogger(__name__)
+
 
 class ArchitectureStateDoesNotExistError(Exception):
     pass

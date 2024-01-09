@@ -27,7 +27,10 @@ run:
 	KEEP_TMP="True" \
 	AUTH0_DOMAIN="klotho-dev.us.auth0.com" \
 	AUTH0_AUDIENCE="A0sIE3wvh8LpG8mtJEjWPnBqZgBs5cNM" \
-	pipenv run uvicorn src.main:app --port=3000
+	FGA_API_HOST="localhost:8080" \
+	FGA_API_SCHEME="http" \
+	FGA_STORE_NAME="test-store" \
+	pipenv run uvicorn src.main:app --port=3000 --log-level debug
 
 
 test-backend:
@@ -35,7 +38,7 @@ test-backend:
 
 test-coverage:
 	PYTHONPATH=. pipenv run coverage run --source=src -m unittest discover
-	PYTHONPATH=. pipenv run coverage report -m --fail-under 67 --skip-empty
+	PYTHONPATH=. pipenv run coverage report -m --fail-under 75 --skip-empty
 
 black:
 	pipenv run black .

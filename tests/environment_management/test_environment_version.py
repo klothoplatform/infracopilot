@@ -7,7 +7,6 @@ from src.environment_management.environment_version import (
     EnvironmentVersionDoesNotExistError,
 )
 import datetime
-from src.util.entity import User
 
 from src.environment_management.models import (
     ModelsBase,

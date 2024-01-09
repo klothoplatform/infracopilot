@@ -34,6 +34,18 @@ class IaCOrchestrator:
         self.ev_dao = session
         self.binary_storage = binary_storage
 
+
+class IaCOrchestrator:
+    def __init__(
+        self,
+        architecture_storage: ArchitectureStorage,
+        arch_dao: ArchitectureDAO,
+        session: EnvironmentVersionDAO,
+    ):
+        self.architecture_storage = architecture_storage
+        self.arch_dao = arch_dao
+        self.ev_dao = session
+
     async def get_iac(
         self,
         architecture_id: str,
