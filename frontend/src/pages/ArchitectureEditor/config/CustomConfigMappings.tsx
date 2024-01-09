@@ -17,7 +17,8 @@ import {
   RestApiRouteConfig,
 } from "../CustomResources/RestApiRoute/ConfigCustomizer";
 import { restApiLayoutModifier } from "../CustomResources/RestApiRoute/LayoutModifier";
-import { EnvironmentVersion } from "../../../shared/architecture/EnvironmentVersion";
+import { type EnvironmentVersion } from "../../../shared/architecture/EnvironmentVersion";
+
 export type ConfigSections = {
   [key: string]: {
     component?: FC<any>;

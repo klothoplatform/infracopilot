@@ -1,6 +1,5 @@
 import { NodeId } from "../../../../shared/architecture/TopologyNode";
 import TopologyEdge from "../../../../shared/architecture/TopologyEdge";
-import type { Architecture } from "../../../../shared/architecture/Architecture";
 import type { Node } from "reactflow";
 import type { Constraint } from "../../../../shared/architecture/Constraints";
 import {
@@ -9,7 +8,7 @@ import {
   EdgeConstraint,
   ResourceConstraint,
 } from "../../../../shared/architecture/Constraints";
-import { EnvironmentVersion } from "../../../../shared/architecture/EnvironmentVersion";
+import { type EnvironmentVersion } from "../../../../shared/architecture/EnvironmentVersion";
 
 enum RouteOperation {
   Add = "Add",
