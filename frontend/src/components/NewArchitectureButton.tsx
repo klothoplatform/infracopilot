@@ -3,13 +3,13 @@ import { Button } from "flowbite-react";
 import { FaFileCirclePlus } from "react-icons/fa6";
 import NewArchitectureModal from "./NewArchitectureModal";
 
-interface NewArchitectureButtonProprs {
+interface NewArchitectureButtonProps {
   disabled?: boolean;
   onClick?: () => void;
 }
 
-const NewArchitectureButton: FC<NewArchitectureButtonProprs> = (
-  props: NewArchitectureButtonProprs,
+const NewArchitectureButton: FC<NewArchitectureButtonProps> = (
+  props: NewArchitectureButtonProps,
 ) => {
   return (
     <div className="flex">

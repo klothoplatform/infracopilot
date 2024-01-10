@@ -34,6 +34,12 @@ export default function NewArchitectureModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    if (show) {
+      reset();
+    }
+  }, [show, reset]);
+
   let onSubmit = useCallback(
     async (state: NewArchitectureFormState) => {
       let id;
@@ -60,7 +66,6 @@ export default function NewArchitectureModal({
       setIsSubmitting(false);
       if (success) {
         onClose();
-        reset();
         if (id) {
           try {
             resetEditorState();
@@ -116,7 +121,6 @@ export default function NewArchitectureModal({
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        reset();
         onClose?.();
       }
     };
@@ -131,7 +135,6 @@ export default function NewArchitectureModal({
     <Modal
       show={show}
       onClose={() => {
-        reset();
         onClose?.();
       }}
     >
@@ -154,7 +157,7 @@ export default function NewArchitectureModal({
                 }
               }}
               {...rest}
-              defaultValue="UntitledArchitecture"
+              defaultValue="Untitled Architecture"
               type="text"
               color={errors.name ? "failure" : undefined}
               helperText={errors.name?.message}
