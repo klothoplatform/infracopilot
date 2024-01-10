@@ -8,15 +8,15 @@ from datetime import datetime
 from fastapi import HTTPException, Response
 from fastapi.responses import JSONResponse
 from typing import Dict, List, Optional
-from pydantic import BaseModel, field_serializer, validator, model_serializer
-from src.auth_service.main import add_architecture_owner
+from pydantic import BaseModel, validator, model_serializer
+from src.auth_service.main import AuthzService
 from src.engine_service.engine_commands.run import RunEngineResult
 
 from src.state_manager.architecture_storage import (
     ArchitectureStorage,
     ArchitectureStateDoesNotExistError,
 )
-from src.util.entity import Entity, User
+from src.auth_service.entity import Entity, User
 from src.environment_management.environment_version import (
     EnvironmentVersionDAO,
     EnvironmentVersion,
@@ -108,6 +108,20 @@ class ResourceTypeResponse(BaseModel):
 class CloneArchitectureRequest(BaseModel):
     name: str
     owner: str = None
+
+
+class ArchitectureHandler:
+    def __init__(
+        self,
+        architecture_storage: ArchitectureStorage,
+        ev_dao: EnvironmentVersionDAO,
+        env_dao: EnvironmentDAO,
+        arch_dao: ArchitectureDAO,
+    ):
+        self.architecture_storage = architecture_storage
+        self.ev_dao = ev_dao
+        self.env_dao = env_dao
+        self.arch_dao = arch_dao
 
 
 class ArchitectureHandler:
@@ -379,7 +393,9 @@ class ArchitectureHandler:
             log.error("Error listing architectures", exc_info=True)
             raise HTTPException(status_code=500, detail="internal server error")
 
-    async def clone_architecture(self, user_id: str, id: str, name: str, owner: str):
+    async def clone_architecture(
+        self, user_id: str, id: str, name: str, owner: str, authz: AuthzService
+    ):
         try:
             owner: Entity = User(user_id) if owner is None else User(owner)
             await self.arch_dao.get_architecture(id)
@@ -389,7 +405,7 @@ class ArchitectureHandler:
                 owner=owner.to_auth_string(),
                 created_at=datetime.utcnow(),
             )
-            await add_architecture_owner(owner, newArch.id)
+            await authz.add_architecture_owner(owner, newArch.id)
             self.arch_dao.add_architecture(newArch)
             environments: List[
                 Environment

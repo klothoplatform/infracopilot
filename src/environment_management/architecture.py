@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from src.environment_management.environment import Environment
 from src.environment_management.environment_version import EnvironmentVersion
-from src.util.entity import Entity
+from src.auth_service.entity import Entity
 from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 

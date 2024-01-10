@@ -7,10 +7,6 @@ from src.environment_management.environment import (
     EnvironmentDAO,
     EnvironmentDoesNotExistError,
 )
-import datetime
-from src.util.entity import User
-
-from unittest import mock
 
 from src.environment_management.models import (
     ModelsBase,
