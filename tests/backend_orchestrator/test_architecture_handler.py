@@ -30,7 +30,7 @@ class TestArchitectureHandler(aiounittest.AsyncTestCase):
     @classmethod
     def setUpClass(cls):
         test_id = "test-id"
-        cls.created_at = datetime.datetime.fromisoformat("2011-11-04")
+        cls.created_at = datetime.datetime.fromtimestamp(1320382800.0)
         cls.test_architecture = Architecture(
             id=test_id,
             name="test-new",
