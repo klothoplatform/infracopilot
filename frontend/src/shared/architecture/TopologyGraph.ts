@@ -27,7 +27,7 @@ export class TopologyGraph {
       Object.keys(resources).forEach((k: string) => {
         const resource = resources[k];
 
-        const keyDelim = k.includes("->") ? "->" :  "<-" ;
+        const keyDelim = k.includes("->") ? "->" : "<-";
         if (k.includes(keyDelim)) {
           let source, target;
           if (keyDelim === "->") {
@@ -37,16 +37,24 @@ export class TopologyGraph {
           }
           const sourceId = NodeId.fromTopologyId(source, graph.Provider);
           const targetId = NodeId.fromTopologyId(target, graph.Provider);
-          let path: string|string[]|undefined = resource?.path;
+          let path: string | string[] | undefined = resource?.path;
           if (typeof path === "string") {
-            const pathDelim = resource?.path?.includes(",") ? "," : 
-              resource?.path?.includes("→") ? "→" :
-              "->";
-            
+            const pathDelim = resource?.path?.includes(",")
+              ? ","
+              : resource?.path?.includes("→")
+                ? "→"
+                : "->";
+
             path = path?.split(pathDelim);
           }
           const edgeNodes = path?.map((p) => NodeId.parse(p.trim()));
-          console.log("resources of k ", {resource, k, sourceId, targetId, edgeNodes});
+          console.log("resources of k ", {
+            resource,
+            k,
+            sourceId,
+            targetId,
+            edgeNodes,
+          });
           graph.Edges.push(
             new TopologyEdge(sourceId, targetId, {
               path: edgeNodes,

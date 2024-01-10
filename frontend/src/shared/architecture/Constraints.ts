@@ -45,7 +45,7 @@ export type EdgeConstraintOperators = Extract<
 >;
 export type ResourceConstraintOperators = Extract<
   ConstraintOperator,
-  ConstraintOperator.Equals
+  ConstraintOperator.Equals | ConstraintOperator.Add
 >;
 
 export class ApplicationConstraint implements Constraint {

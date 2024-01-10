@@ -76,6 +76,7 @@ import {
   AmazonRds,
 } from "../../components/icons/AwsArchitectureService/Database";
 import {
+  AwsCertificateManager,
   AwsIdentityAndAccessManagement,
   AwsKeyManagementService,
   AwsSecretsManager,
@@ -91,15 +92,12 @@ import {
   AmazonEfs,
   AmazonSimpleStorageService,
 } from "../../components/icons/AwsArchitectureService/Storage";
-import React from "react";
 import type { FC } from "react";
+import React from "react";
 import { PublicSubnet } from "../../components/icons/AwsCustom/PublicSubnet";
 import { PrivateSubnet } from "../../components/icons/AwsCustom/PrivateSubnet";
 import type { TopologyNodeData } from "../architecture/TopologyNode";
-import type {
-  RdsInstanceData,
-  SubnetData,
-} from "../architecture/TopologyMetadata";
+import type { SubnetData } from "../architecture/TopologyMetadata";
 import { LogoWithBorder } from "../../components/icons/K8SLogo/Unlabeled";
 import {
   Deploy,
@@ -161,6 +159,7 @@ export const typeMappings = new Map<
     "aws",
     new Map<string, FC<IconProps> | IconMapping>([
       ["account_id", AwsIdentityAccessManagementAwsSts],
+      ["acm_certificate", AwsCertificateManager],
       ["ami", AmazonEc2Ami],
       ["api_deployment", AmazonApiGateway],
       ["api_integration", AmazonApiGatewayEndpoint],
@@ -243,8 +242,33 @@ export const typeMappings = new Map<
       ["kustomize_directory", AmazonElasticKubernetesService],
       ["lambda_function", AwsLambdaLambdaFunction],
       ["lambda_permission", AwsLambdaLambdaFunction],
-      ["load_balancer", ElasticLoadBalancingNetworkLoadBalancer], // TODO: add differentiation for ALB and NLB
+      [
+        "load_balancer",
+        {
+          nodeIcon: ElasticLoadBalancingNetworkLoadBalancer,
+          groupStyle: {
+            borderColor: AWS_NETWORKING_PRIMARY_COLOR,
+          },
+          groupIcon: ElasticLoadBalancing,
+          discriminator: (n: any) => n?.resource?.Type?.toLowerCase(),
+          variants: new Map<String, IconMapping>([
+            [
+              "application",
+              {
+                nodeIcon: ElasticLoadBalancingNetworkLoadBalancer,
+                groupStyle: {
+                  borderColor: AWS_NETWORKING_PRIMARY_COLOR,
+                },
+                groupIcon: ElasticLoadBalancing,
+                emptyGroupMessage:
+                  "You can add routes to this Application Load Balancer using the configuration menu",
+              },
+            ],
+          ]),
+        },
+      ],
       ["load_balancer_listener", ElasticLoadBalancing],
+      ["load_balancer_listener_rule", ElasticLoadBalancing],
       ["log_group", AmazonCloudWatchLogs],
       ["nat_gateway", AmazonVpcNatGateway],
       ["private_dns_namespace", AmazonElasticContainerService],
@@ -253,8 +277,8 @@ export const typeMappings = new Map<
         "rds_instance",
         {
           nodeIcon: AmazonAuroraAmazonRdsInstance,
-          discriminator: (n: RdsInstanceData) => {
-            const engine = n?.engine?.toLowerCase();
+          discriminator: (n: any) => {
+            const engine = n?.resource?.Engine?.toLowerCase();
             if (engine?.startsWith("aurora")) {
               return "aurora";
             }
@@ -321,8 +345,8 @@ export const typeMappings = new Map<
           groupStyle: {
             borderColor: "#82A036",
           },
-          discriminator: (n: SubnetData) =>
-            n.public === true ? "public" : "private",
+          // discriminator: (n: SubnetData) =>
+          //   n.public === true ? "public" : "private",
           variants: new Map<String, IconMapping>([
             [
               "private",
@@ -443,8 +467,9 @@ export const NodeIcon: FC<
   } & IconProps
 > = ({ provider, type, data, variant, ...iconProps }) => {
   let mapping = typeMappings.get(provider)?.get(type) as any;
-  if (!variant) {
-    variant = mapping?.discriminator?.(data);
+  const dataVariant = mapping?.discriminator?.(data);
+  if (dataVariant) {
+    variant = dataVariant;
   }
   mapping = mapping?.variants?.get(variant) ?? mapping;
   const NodeIcon = mapping?.nodeIcon ?? mapping ?? UnknownIcon;

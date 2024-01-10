@@ -127,6 +127,7 @@ function getNodesFromGraph(
           : node.resourceId.name,
         resourceId: node.resourceId,
         vizMetadata: node.vizMetadata,
+        resource: architecture.resources.get(node.id),
       },
       type: resolveNodeType(node, resourceTypes, view),
       parentNode: topology.Nodes.find((n) =>
@@ -232,7 +233,10 @@ export function parseArchitecture(rawArchitecture: any): Architecture {
       resources: new Map<string, any>(),
       edges: [],
       views: new Map<ArchitectureView, TopologyGraph>(),
-      config_errors: rawArchitecture.config_errors,
+      config_errors: rawArchitecture.config_errors?.map((error: any) => ({
+        ...error,
+        resource: error.resource ? NodeId.parse(error.resource) : undefined,
+      })),
     };
 
     if (rawArchitecture.state?.topology_yaml) {
@@ -281,9 +285,13 @@ export function parseArchitecture(rawArchitecture: any): Architecture {
 
 export function isPropertyPromoted(property: Property): boolean {
   return (
-    property.important ||
-    (property.required && !property.deployTime && !property.configurationDisabled && !property.hidden)
-  ) ?? false;
+    (property.important ||
+      (property.required &&
+        !property.deployTime &&
+        !property.configurationDisabled &&
+        !property.hidden)) ??
+    false
+  );
 }
 
 export function resourceProperties(
@@ -298,12 +306,16 @@ export function resourceProperties(
   const properties = new Map<NodeId, Property[]>();
   if (resType?.properties?.length) {
     // Filter out the properties which should not be shown
-    const props = resType.properties.filter(p => !p.deployTime && !p.configurationDisabled && !p.hidden);
+    const props = resType.properties.filter(
+      (p) => !p.deployTime && !p.configurationDisabled && !p.hidden,
+    );
     if (props.length > 0) {
       properties.set(resourceId, props);
     }
   }
-  const resNode = architecture.views.get(ArchitectureView.DataFlow)?.Nodes.find(n => n.resourceId.equals(resourceId));
+  const resNode = architecture.views
+    .get(ArchitectureView.DataFlow)
+    ?.Nodes.find((n) => n.resourceId.equals(resourceId));
   // Look deep into the property for potentially nested important properties
   const promotedProp = (p: Property): Property | undefined => {
     if (isPropertyPromoted(p)) {
@@ -312,27 +324,25 @@ export function resourceProperties(
     if (p.properties?.length) {
       const props = p.properties.filter(promotedProp);
       if (props.length > 0) {
-        return {...p, properties: props};
+        return { ...p, properties: props };
       }
     }
     return undefined;
-  }
+  };
   resNode?.vizMetadata?.children?.forEach((child) => {
     const childResType = resourceTypes.getResourceType(
       child.provider,
       child.type,
     );
     // Only pull up the important or required properties from children
-    const important = childResType?.properties?.reduce(
-      (acc: Property[], p) => {
+    const important =
+      childResType?.properties?.reduce((acc: Property[], p) => {
         const prop = promotedProp(p);
         if (prop) {
           acc.push(prop);
         }
         return acc;
-      },
-      [],
-    ) ?? [];
+      }, []) ?? [];
     if (important.length > 0) {
       properties.set(child, important);
     }
