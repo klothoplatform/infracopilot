@@ -1,9 +1,3 @@
-import {
-  apiIntegrationNodeModifier,
-  handleRoutesState,
-  restApiCreationConstraintsModifier,
-  restApiFormStateBuilder,
-} from "../CustomResources/RestApiRoute/RestApiRouteConfig";
 import type { FC } from "react";
 import type { Architecture } from "../../../shared/architecture/Architecture";
 import type { NodeId } from "../../../shared/architecture/TopologyNode";
@@ -12,28 +6,24 @@ import type { Constraint } from "../../../shared/architecture/Constraints";
 import type { NodeType } from "../../../shared/reactflow/NodeTypes";
 import type { Edge, Node } from "reactflow";
 import type { ElkNode } from "elkjs/lib/elk.bundled";
-import {
-  restApiIntegrationResourceCustomizer,
-  RestApiRouteConfig,
-} from "../CustomResources/RestApiRoute/ConfigCustomizer";
-import { restApiLayoutModifier } from "../CustomResources/RestApiRoute/LayoutModifier";
+
+import LoadBalancerConfig from "../CustomResources/LoadBalancer";
+import RestApiConfig from "../CustomResources/RestApi";
 
 export type ConfigSections = {
   [key: string]: {
     component?: FC<any>;
-    stateHandler?: (
-      submittedValues: any,
-      defaultValues: any,
-      modifiedValues: Map<string, any>,
-      resourceId: NodeId,
-      architecture: Architecture,
-    ) => any;
+    stateHandler?: FormStateHandler;
   };
 };
 
-export interface CustomConfigMap {
-  [key: string]: CustomConfigMapping;
-}
+export type FormStateHandler = (
+  submittedValues: any,
+  defaultValues: any,
+  modifiedValues: Map<string, any>,
+  resourceId: NodeId,
+  architecture: Architecture,
+) => Constraint[];
 
 export interface CustomConfigMapping {
   creationConstraintsModifier?: (
@@ -47,27 +37,28 @@ export interface CustomConfigMapping {
   nodeModifier?: (node: Node, architecture: Architecture) => void;
   resourceTypeModifier?: ResourceTypeModifier;
   layoutModifier?: LayoutModifier;
+  stateHandler?: FormStateHandler;
 }
 
-export const customConfigMappings: CustomConfigMap = {
-  "aws:rest_api": {
-    creationConstraintsModifier: restApiCreationConstraintsModifier,
-    layoutModifier: restApiLayoutModifier,
-    stateBuilder: restApiFormStateBuilder,
-    resourceTypeModifier: restApiIntegrationResourceCustomizer,
-    sections: {
-      Routes: {
-        component: RestApiRouteConfig,
-        stateHandler: handleRoutesState,
-      },
-    },
-  },
-  "aws:api_integration": {
-    nodeModifier: apiIntegrationNodeModifier,
-    sections: {},
-    stateBuilder: () => ({}),
-  },
-};
+export interface CustomConfigMap {
+  [key: string]: CustomConfigMapping;
+}
+
+export const customConfigMappings: CustomConfigMap =
+  resolveCustomConfigMappings();
+
+function resolveCustomConfigMappings(): CustomConfigMap {
+  return mergeMappings([RestApiConfig, LoadBalancerConfig]);
+}
+
+function mergeMappings(mappings: CustomConfigMap[]): CustomConfigMap {
+  return mappings.reduce((acc, mapping) => {
+    return {
+      ...acc,
+      ...mapping,
+    };
+  }, {});
+}
 
 export function getCustomConfigSections(
   provider: string,
@@ -104,6 +95,7 @@ export type NodeDataPopulator = (
 ) => any;
 
 export interface LayoutContext {
+  architecture: Architecture;
   reactFlow: {
     nodes: Node[];
     edges: Edge[];

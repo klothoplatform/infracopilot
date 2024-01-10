@@ -69,6 +69,7 @@ import { getNextState } from "../../api/GetNextState";
 import { getPrevState } from "../../api/GetPreviousState";
 import { setCurrentState } from "../../api/SetCurrentState";
 import { refreshSelection } from "../../shared/editor-util";
+import { env } from "../../shared/environment";
 
 interface EditorStoreState {
   architecture: Architecture;
@@ -428,7 +429,11 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       resourceTypeKB,
       ArchitectureView.DataFlow,
     );
-    const { nodes, edges } = await autoLayout(elements.nodes, elements.edges);
+    const { nodes, edges } = await autoLayout(
+      architecture,
+      elements.nodes,
+      elements.edges,
+    );
     (async () => {
       const nextState = await getNextState(
         architecture.id,
@@ -520,6 +525,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
         layoutRefreshing: true,
       });
       const { nodes, edges } = await autoLayout(
+        get().architecture,
         get().nodes,
         get().edges,
         get().layoutOptions,
@@ -674,6 +680,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
         ArchitectureView.DataFlow,
       );
       const result = await autoLayout(
+        response.architecture,
         elements.nodes,
         elements.edges,
         get().layoutOptions,
@@ -848,8 +855,6 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       ) {
         historyEntries = historyEntries.slice(0, navHistory.currentIndex + 1);
       }
-      console.log("history entries", historyEntries);
-
       historyEntries.push({
         tab: get().rightSidebarSelector[1],
         resourceId: get().selectedResource,
@@ -863,9 +868,6 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
         historyEntries = historyEntries.slice(startIndex);
       }
     }
-
-    console.log("navigate right sidebar", selector, historyEntries);
-
     set(
       {
         rightSidebarSelector: selector,
@@ -944,8 +946,6 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     if (!newEntry) {
       return;
     }
-
-    console.log("navigate forward right sidebar", newEntry);
 
     set(
       {
@@ -1146,6 +1146,10 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       return false;
     }
 
+    if (env.debug.has("disableEdgeTargetValidation")) {
+      return true;
+    }
+
     const { validTargets, architectureVersion } = get().edgeTargetState;
     const architecture = get().architecture;
     if (architectureVersion !== architecture.version) {
@@ -1172,7 +1176,11 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       resourceTypeKB,
       ArchitectureView.DataFlow,
     );
-    const { nodes, edges } = await autoLayout(elements.nodes, elements.edges);
+    const { nodes, edges } = await autoLayout(
+      prev,
+      elements.nodes,
+      elements.edges,
+    );
     const { selectedNode, selectedEdge, selectedResource } = refreshSelection({
       architecture: prev,
       nodes,
@@ -1219,7 +1227,11 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       resourceTypeKB,
       ArchitectureView.DataFlow,
     );
-    const { nodes, edges } = await autoLayout(elements.nodes, elements.edges);
+    const { nodes, edges } = await autoLayout(
+      next,
+      elements.nodes,
+      elements.edges,
+    );
     const { selectedNode, selectedEdge, selectedResource } = refreshSelection({
       architecture: next,
       nodes,

@@ -3,6 +3,7 @@ import { Position } from "reactflow";
 import type { ElkExtendedEdge, ElkLabel, ElkNode } from "elkjs/lib/elk.bundled";
 import ELK from "elkjs/lib/elk.bundled";
 import { customConfigMappings } from "../../pages/ArchitectureEditor/config/CustomConfigMappings";
+import type { Architecture } from "../architecture/Architecture";
 
 export enum NodePlacementStrategy {
   NETWORK_SIMPLEX = "Network Simplex",
@@ -162,6 +163,7 @@ function handlePosition(
 }
 
 export async function autoLayout(
+  architecture: Architecture,
   nodes?: Node[],
   edges?: Edge[],
   layoutOptions = DefaultLayoutOptions,
@@ -294,6 +296,7 @@ export async function autoLayout(
     ];
     resourceTypes.forEach((type) => {
       customConfigMappings[type]?.layoutModifier?.({
+        architecture: architecture,
         elkGraph: elkGraph,
         reactFlow: { nodes: nodes ?? [], edges: edges ?? [] },
       });
