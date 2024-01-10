@@ -21,6 +21,7 @@ pyinstrument = "*"
 moto = "*"
 aiosqlite = "*"
 greenlet = "*"
+httpx = "*"
 
 [dev-packages]
 black = "*"
