@@ -28,7 +28,12 @@ import {
 } from "../../shared/architecture/Constraints";
 import { ConfigGroup } from "../config/ConfigGroup";
 import { NodeId } from "../../shared/architecture/TopologyNode";
-import { resourceProperties, type Architecture, type ConfigurationError, isPropertyPromoted } from "../../shared/architecture/Architecture";
+import {
+  resourceProperties,
+  type Architecture,
+  type ConfigurationError,
+  isPropertyPromoted,
+} from "../../shared/architecture/Architecture";
 import { analytics } from "../../App";
 import { ErrorBoundary } from "react-error-boundary";
 import { FallbackRenderer } from "../FallbackRenderer";
@@ -45,28 +50,44 @@ export default function ConfigForm() {
   } = useApplicationStore();
 
   const [resourceType, setResourceType] = React.useState<ResourceType>();
-  
-  const [promotedProperties, setPromotedProperties] = React.useState<Map<string, Property[]> | undefined>();
-  const [remainingProperties, setRemainingProperties] = React.useState<Property[] | undefined>();
+
+  const [promotedProperties, setPromotedProperties] = React.useState<
+    Map<string, Property[]> | undefined
+  >();
+  const [remainingProperties, setRemainingProperties] = React.useState<
+    Property[] | undefined
+  >();
   useEffect(() => {
     if (selectedResource) {
-      const resourceType = resourceTypeKB.getResourceType(selectedResource.provider, selectedResource.type);
+      const resourceType = resourceTypeKB.getResourceType(
+        selectedResource.provider,
+        selectedResource.type,
+      );
       setResourceType(resourceType);
 
-      const allProperties = resourceProperties(architecture, resourceTypeKB, selectedResource);
+      const allProperties = resourceProperties(
+        architecture,
+        resourceTypeKB,
+        selectedResource,
+      );
       const promotedProperties = new Map<string, Property[]>();
       for (const [resourceId, properties] of allProperties) {
-        const promotedProps = properties.filter(p => isPropertyPromoted(p));
+        const promotedProps = properties.filter((p) => isPropertyPromoted(p));
         if (promotedProps.length > 0) {
-          promotedProperties.set(
-            resourceId.toString(),
-            promotedProps,
-          );
+          promotedProperties.set(resourceId.toString(), promotedProps);
         }
       }
-      let remainingProperties = allProperties.get(selectedResource)?.filter(p => !promotedProperties?.get(selectedResource.toString())?.includes(p));
+      let remainingProperties = allProperties
+        .get(selectedResource)
+        ?.filter(
+          (p) =>
+            !promotedProperties?.get(selectedResource.toString())?.includes(p),
+        );
       if (promotedProperties.size === 0) {
-        promotedProperties.set(selectedResource.toString(), remainingProperties ?? []);
+        promotedProperties.set(
+          selectedResource.toString(),
+          remainingProperties ?? [],
+        );
         remainingProperties = undefined;
       }
       if (remainingProperties?.length === 0) {
@@ -75,35 +96,35 @@ export default function ConfigForm() {
       setPromotedProperties(promotedProperties);
       setRemainingProperties(remainingProperties);
     }
-  }, [
-    selectedResource,
-    architecture,
-    resourceTypeKB,
-  ])
+  }, [selectedResource, architecture, resourceTypeKB]);
 
   const methods = useForm({
     shouldFocusError: true,
-    defaultValues: (promotedProperties && selectedResource)
-    ? {
-        ...[...promotedProperties.entries()].reduce((acc, [resourceId, properties]): any => {
-          const fs = toFormState(
-            architecture.resources.get(resourceId),
-            properties,
-            resourceId,
-          )
-          return {
-            ...acc,
-            ...fs,
-          };
-        }, {}),
-        ...toFormState(
-          architecture.resources.get(selectedResource.toString()),
-          remainingProperties,
-          selectedResource, // remaining properties are always on the selected resource
-        ),
-        ...getCustomConfigState(selectedResource, architecture),
-      }
-    : {},
+    defaultValues:
+      promotedProperties && selectedResource
+        ? {
+            ...[...promotedProperties.entries()].reduce(
+              (acc, [resourceId, properties]): any => {
+                const fs = toFormState(
+                  architecture.resources.get(resourceId),
+                  properties,
+                  resourceId,
+                );
+                return {
+                  ...acc,
+                  ...fs,
+                };
+              },
+              {},
+            ),
+            ...toFormState(
+              architecture.resources.get(selectedResource.toString()),
+              remainingProperties,
+              selectedResource, // remaining properties are always on the selected resource
+            ),
+            ...getCustomConfigState(selectedResource, architecture),
+          }
+        : {},
   });
 
   const formState = methods.formState;
@@ -121,43 +142,79 @@ export default function ConfigForm() {
 
   // add errors to the fields which failed server side validation
   const { selectedNode } = useApplicationStore();
-  if (configErrors) {
-    configErrors.forEach((e) => {
-      if (e.resource.toString() === selectedNode || promotedProperties?.has(e.resource.toString())) {
-        errors[`${e.resource}#${e.property}`] = {
+
+  useEffect(() => {
+    configErrors?.forEach((e) => {
+      if (
+        e.resource.toString() === selectedNode ||
+        promotedProperties?.has(e.resource.toString())
+      ) {
+        methods.setError(`${e.resource}#${e.property}`, {
           message: e.error,
           type: "manual",
-        };
+        });
       }
     });
-  }
+  }, [
+    configErrors,
+    errors,
+    methods,
+    promotedProperties,
+    selectedNode,
+    selectedResource,
+  ]);
+
   useEffect(() => {
     if (isSubmitted && !isSubmitSuccessful) {
       return;
     }
 
-    console.log("reset to default", {defaultValues, dirtyFields, isSubmitted, isSubmitSuccessful});
-    methods.reset((promotedProperties && selectedResource)
-    ? {
-        ...[...promotedProperties.entries()].reduce((acc, [resourceId, properties]): any => {
-          const fs = toFormState(
-            architecture.resources.get(resourceId.toString()),
-            properties,
-            resourceId,
-          )
-          return {
-            ...acc,
-            ...fs,
-          };
-        }, {}),
-        ...toFormState(
-          architecture.resources.get(selectedResource.toString()),
-          remainingProperties,
-          selectedResource, // remaining properties are always on the selected resource
-        ),
-        ...getCustomConfigState(selectedResource, architecture),
-      }
-    : {});
+    console.log("reset to default", {
+      defaultValues,
+      dirtyFields,
+      isSubmitted,
+      isSubmitSuccessful,
+    });
+    methods.reset(
+      promotedProperties && selectedResource
+        ? {
+            ...[...promotedProperties.entries()].reduce(
+              (acc, [resourceId, properties]): any => {
+                const fs = toFormState(
+                  architecture.resources.get(resourceId.toString()),
+                  properties,
+                  resourceId,
+                );
+                return {
+                  ...acc,
+                  ...fs,
+                };
+              },
+              {},
+            ),
+            ...toFormState(
+              architecture.resources.get(selectedResource.toString()),
+              remainingProperties,
+              selectedResource, // remaining properties are always on the selected resource
+            ),
+            ...getCustomConfigState(selectedResource, architecture),
+          }
+        : {},
+    );
+
+    architecture?.config_errors
+      ?.filter((e) => e.resource.equals(selectedResource))
+      .forEach((e) => {
+        if (
+          e.resource.toString() === selectedNode ||
+          promotedProperties?.has(e.resource.toString())
+        ) {
+          methods.setError(`${e.resource}#${e.property}`, {
+            message: e.error,
+            type: "manual",
+          });
+        }
+      });
   }, [
     architecture,
     isSubmitSuccessful,
@@ -179,7 +236,7 @@ export default function ConfigForm() {
         const res = valuesByResource.get(resourceId) ?? {values: {}, dirty: {}};
         res.values[key] = value;
         res.dirty[key] = dirtyFields[key];
-        valuesByResource.set(resourceId, res);
+        valuesByResource.set(resourceId.toString(), res);
       }
 
       console.log("submitting config changes", {submittedValues, valuesByResource});
@@ -223,8 +280,8 @@ export default function ConfigForm() {
               );
             });
 
-            if (resourceId.equals(selectedResource)) {
-              resConstraints.push(
+          if (resourceId.equals(selectedResource)) {
+            resConstraints.push(
               ...applyCustomizers(
                 selectedResource,
                 values,

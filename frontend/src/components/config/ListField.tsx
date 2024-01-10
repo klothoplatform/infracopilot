@@ -29,18 +29,49 @@ import { env } from "../../shared/environment";
 import { BiSolidHand, BiSolidPencil } from "react-icons/bi";
 import type { NodeId } from "../../shared/architecture/TopologyNode";
 
-type ListProps = ConfigFieldProps;
+type ListProps = ConfigFieldProps & {
+  field: ListProperty;
+};
 
-export const ListField: FC<ListProps> = ({ configResource, qualifiedFieldName, field }) => {
+export const ListField: FC<ListProps> = ({
+  configResource,
+  qualifiedFieldName,
+  field,
+}) => {
   qualifiedFieldName = qualifiedFieldName ?? "UNKNOWN-LIST";
-
   const { register, control, formState } = useFormContext();
   const { fields, append, remove } = useFieldArray({
     control,
     name: qualifiedFieldName,
     rules: {
-      required:
-        field.required && `${qualifiedFieldName} must have at least one entry.`,
+      required: field.required && `${qualifiedFieldName} is required.`,
+      minLength: field.minLength
+        ? {
+            value: field.minLength,
+            message: `${qualifiedFieldName} must have at least ${field.minLength} entries.`,
+          }
+        : undefined,
+      maxLength: field.maxLength
+        ? {
+            value: field.maxLength,
+            message: `${qualifiedFieldName} may have at most ${field.maxLength} entries.`,
+          }
+        : undefined,
+      validate: {
+        uniqueItems: (items: any[]) => {
+          if (field.uniqueItems) {
+            const uniqueValues = new Set();
+            for (const item of items) {
+              const value = JSON.stringify(item);
+              if (uniqueValues.has(value)) {
+                return `${qualifiedFieldName} must have unique values.`;
+              }
+              uniqueValues.add(value);
+            }
+          }
+          return true;
+        },
+      },
     },
   });
   const { errors } = formState;

@@ -13,8 +13,8 @@ export interface ResourceType {
 }
 
 export interface Property {
-  configurationDisabled: boolean;
-  deployTime: boolean;
+  configurationDisabled?: boolean;
+  deployTime?: boolean;
   name: string;
   description?: string;
   properties?: Property[];
@@ -30,16 +30,28 @@ export interface Property {
   // Whether the property is "important". There are many reasons why a property might be important, but the effect is that it should
   // be highlighted in the UI.
   important?: boolean;
+  omitIfConditions?: ResourcePredicate[];
+  uniqueValue?: boolean;
+}
+
+export type ResourcePredicate = (resource: any) => boolean;
+
+export function shouldOmitProperty(property: Property, resource: any): boolean {
+  return (
+    property.deployTime ||
+    property.hidden ||
+    (property.omitIfConditions?.some((condition) => condition(resource)) ??
+      false)
+  );
 }
 
 export interface ListProperty extends Property {
+  allowedValues?: string[];
   itemType: PropertyType;
   properties?: Property[];
-}
-
-export interface ResourceListProperty extends ListProperty {
-  itemType: PropertyType;
-  properties?: Property[];
+  minLength?: number;
+  maxLength?: number;
+  uniqueItems?: boolean;
 }
 
 export interface ResourceListProperty extends ListProperty {
@@ -48,18 +60,30 @@ export interface ResourceListProperty extends ListProperty {
 
 export interface SetProperty extends ListProperty {}
 
+export interface ResourceSetProperty extends SetProperty {
+  resourceTypes?: string[];
+}
+
 export interface MapProperty extends Property {
   keyType: PropertyType;
   valueType: PropertyType;
   properties?: Property[];
+  uniqueKeys?: boolean;
+  minLength?: number;
+  maxLength?: number;
 }
 
 export interface ResourceProperty extends Property {
   resourceTypes?: string[];
 }
 
+export interface StringProperty extends Property {
+  minLength?: number;
+  maxLength?: number;
+}
+
 export interface EnumProperty extends Property {
-  allowedValues: string[];
+  allowedValues?: string[];
 }
 
 export interface NumberProperty extends Property {
@@ -116,6 +140,10 @@ type RawProperty = {
   minValue?: number;
   maxValue?: number;
   important?: boolean;
+  minLength?: number;
+  maxLength?: number;
+  uniqueItems?: boolean;
+  uniqueKeys?: boolean;
 };
 
 function toList(rawProperties: any): RawProperty[] {
@@ -173,6 +201,10 @@ export function parseProperty(
     minValue,
     maxValue,
     important,
+    minLength,
+    maxLength,
+    uniqueItems,
+    uniqueKeys,
   }: RawProperty = rawProperty as any;
 
   if (!name) {
@@ -209,6 +241,10 @@ export function parseProperty(
         (listProperty as ResourceListProperty).resourceTypes =
           extractInnerTypes(rawItemType);
       }
+      listProperty.allowedValues = allowedValues;
+      listProperty.minLength = minLength;
+      listProperty.maxLength = maxLength;
+      listProperty.uniqueItems = uniqueItems;
       break;
     }
     case CollectionTypes.Set: {
@@ -218,6 +254,10 @@ export function parseProperty(
       if (isCollection(itemType)) {
         setProperty.properties = parseProperties(children, qualifiedName);
       }
+      setProperty.allowedValues = allowedValues;
+      setProperty.minLength = minLength;
+      setProperty.maxLength = maxLength;
+      setProperty.uniqueItems = uniqueItems;
       break;
     }
     case CollectionTypes.Map: {
@@ -236,6 +276,10 @@ export function parseProperty(
       const mapProperty = property as MapProperty;
       mapProperty.keyType = keyType;
       mapProperty.valueType = valueType;
+      mapProperty.uniqueKeys = uniqueKeys !== false;
+      mapProperty.minLength = minLength;
+      mapProperty.maxLength = maxLength;
+
       if (isCollection(valueType)) {
         mapProperty.properties = parseProperties(children, qualifiedName);
       }
@@ -249,9 +293,13 @@ export function parseProperty(
     case PrimitiveTypes.String: {
       if (allowedValues) {
         const enumProperty = property as EnumProperty;
-        enumProperty.allowedValues = allowedValues;
         enumProperty.type = PrimitiveTypes.Enum;
+        enumProperty.allowedValues = allowedValues;
+        break;
       }
+      const stringProperty = property as StringProperty;
+      stringProperty.minLength = minLength;
+      stringProperty.maxLength = maxLength;
       break;
     }
     case PrimitiveTypes.Integer:
