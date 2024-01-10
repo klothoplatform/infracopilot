@@ -19,9 +19,7 @@ from pyinstrument.renderers import HTMLRenderer, SpeedscopeRenderer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth_service.main import (
-    add_architecture_owner,
-    can_read_architecture,
-    can_write_to_architecture,
+    AuthzService,
 )
 from src.auth_service.token import PUBLIC_USER, AuthError, get_user_id
 from src.backend_orchestrator.architecture_handler import (
@@ -33,19 +31,24 @@ from src.backend_orchestrator.get_valid_edge_targets_handler import (
     CopilotGetValidEdgeTargetsRequest,
 )
 from src.backend_orchestrator.run_engine_handler import CopilotRunRequest
-from src.util.entity import User
+from src.auth_service.entity import User
 from src.dependency_injection.injection import (
     get_architecture_handler,
     get_db,
     get_edge_target_handler,
     get_iac_orchestrator,
     get_engine_orchestrator,
+    get_authz_service,
 )
+from src.backend_orchestrator.teams_api import router as teams_router
+from src.util.logging import logger
 
 app = FastAPI()
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
-log = logging.getLogger(__name__)
+logger.debug("Starting API")
+
+app.include_router(teams_router)
 
 
 @app.get("/api/ping")
@@ -58,6 +61,7 @@ async def new_architecture(
     request: Request,
     body: CreateArchitectureRequest,
     db: AsyncSession = Depends(get_db),
+    authz: AuthzService = Depends(get_authz_service),
 ):
     user_id = get_user_id(request)
     if user_id == PUBLIC_USER:
@@ -71,12 +75,15 @@ async def new_architecture(
     arch_handler = get_architecture_handler(db)
     id = str(uuid.uuid4())
     owner = User(user_id) if body.owner is None else User(body.owner)
-    await add_architecture_owner(owner, id)
+    await authz.add_architecture_owner(owner, id)
     return await arch_handler.new_architecture(body, user_id, owner, id)
 
 
 @app.get("/api/architectures")
-async def list_architectures(request: Request, db: AsyncSession = Depends(get_db)):
+async def list_architectures(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
     user_id = get_user_id(request)
     arch_handler = get_architecture_handler(db)
     return await arch_handler.list_architectures(user_id)
@@ -84,10 +91,14 @@ async def list_architectures(request: Request, db: AsyncSession = Depends(get_db
 
 @app.get("/api/architecture/{id}")
 async def get_architecture(
-    request: Request, id: str, db: AsyncSession = Depends(get_db)
+    request: Request,
+    id: str,
+    db: AsyncSession = Depends(get_db),
+    authz: AuthzService = Depends(get_authz_service),
 ):
     user_id = get_user_id(request)
-    authorized = await can_read_architecture(User(id=user_id), id)
+    authorized = await authz.can_read_architecture(User(id=user_id), id)
+    print(authorized)
     if not authorized:
         raise AuthError(
             detail=f"User {user_id} is not authorized to modify architecture {id}",
@@ -106,9 +117,10 @@ async def modify_architecture(
     id: str,
     body: ModifyArchitectureRequest,
     db: AsyncSession = Depends(get_db),
+    authz: AuthzService = Depends(get_authz_service),
 ):
     user_id = get_user_id(request)
-    authorized = await can_write_to_architecture(User(id=user_id), id)
+    authorized = await authz.can_write_to_architecture(User(id=user_id), id)
     if not authorized:
         raise AuthError(
             detail=f"User {user_id} is not authorized to modify architecture {id}",
@@ -123,10 +135,13 @@ async def modify_architecture(
 
 @app.delete("/api/architecture/{id}")
 async def delete_architecture(
-    request: Request, id: str, db: AsyncSession = Depends(get_db)
+    request: Request,
+    id: str,
+    db: AsyncSession = Depends(get_db),
+    authz: AuthzService = Depends(get_authz_service),
 ):
     user_id = get_user_id(request)
-    authorized = await can_write_to_architecture(User(id=user_id), id)
+    authorized = await authz.can_write_to_architecture(User(id=user_id), id)
     if not authorized:
         raise AuthError(
             detail=f"User {user_id} is not authorized to delete architecture {id}",
@@ -145,9 +160,10 @@ async def clone_architecture(
     id: str,
     body: CloneArchitectureRequest,
     db: AsyncSession = Depends(get_db),
+    authz: AuthzService = Depends(get_authz_service),
 ):
     user_id = get_user_id(request)
-    authorized = await can_read_architecture(User(id=user_id), id)
+    authorized = await authz.can_read_architecture(User(id=user_id), id)
     if not authorized:
         raise AuthError(
             detail=f"User {user_id} is not authorized to modify architecture {id}",
@@ -157,7 +173,9 @@ async def clone_architecture(
             },
         )
     arch_handler = get_architecture_handler(db)
-    return await arch_handler.clone_architecture(user_id, id, body.name, body.owner)
+    return await arch_handler.clone_architecture(
+        user_id, id, body.name, body.owner, authz
+    )
 
 
 @app.get("/api/architecture/{id}/environment/{env_id}/iac")
@@ -168,9 +186,10 @@ async def export_iac(
     state: int,
     accept: Annotated[Optional[str], Header()] = None,
     db: AsyncSession = Depends(get_db),
+    authz: AuthzService = Depends(get_authz_service),
 ):
     user_id = get_user_id(request)
-    authorized = await can_read_architecture(User(id=user_id), id)
+    authorized = await authz.can_read_architecture(User(id=user_id), id)
     if not authorized:
         raise AuthError(
             detail=f"User {user_id} is not authorized to read architecture {id}",
@@ -191,9 +210,10 @@ async def run(
     state: int,
     body: CopilotRunRequest,
     db: AsyncSession = Depends(get_db),
+    authz: AuthzService = Depends(get_authz_service),
 ):
     user_id = get_user_id(request)
-    authorized = await can_write_to_architecture(User(id=user_id), id)
+    authorized = await authz.can_write_to_architecture(User(id=user_id), id)
     if not authorized:
         raise AuthError(
             detail=f"User {user_id} is not authorized to write to architecture {id}",
@@ -215,10 +235,11 @@ async def get_valid_edge_targets(
     state: int,
     body: CopilotGetValidEdgeTargetsRequest,
     db: AsyncSession = Depends(get_db),
+    authz: AuthzService = Depends(get_authz_service),
 ):
     user_id = get_user_id(request)
     print(user_id, id)
-    authorized = await can_read_architecture(User(id=user_id), id)
+    authorized = await authz.can_read_architecture(User(id=user_id), id)
     if not authorized:
         raise AuthError(
             detail=f"User {user_id} is not authorized to write to architecture {id}",
@@ -234,11 +255,15 @@ async def get_valid_edge_targets(
 
 @app.get("/api/architecture/{id}/environment/{env_id}")
 async def get_current_version(
-    request: Request, id: str, env_id: str, db: AsyncSession = Depends(get_db)
+    request: Request,
+    id: str,
+    env_id: str,
+    db: AsyncSession = Depends(get_db),
+    authz: AuthzService = Depends(get_authz_service),
 ):
     user_id = get_user_id(request)
-    print(user_id, id)
-    authorized = await can_read_architecture(User(id=user_id), id)
+    authorized = await authz.can_read_architecture(User(id=user_id), id)
+    print(authorized)
     if not authorized:
         raise AuthError(
             detail=f"User {user_id} is not authorized to read architecture {id}",
@@ -263,9 +288,10 @@ async def set_current_version(
     env_id: str,
     body: SetCurrentVersionRequest,
     db: AsyncSession = Depends(get_db),
+    authz: AuthzService = Depends(get_authz_service),
 ):
     user_id = get_user_id(request)
-    authorized = await can_write_to_architecture(User(id=user_id), id)
+    authorized = await authz.can_write_to_architecture(User(id=user_id), id)
     if not authorized:
         raise AuthError(
             detail=f"User {user_id} is not authorized to read architecture {id}",
@@ -285,9 +311,10 @@ async def get_previous_state(
     env_id: str,
     version: int,
     db: AsyncSession = Depends(get_db),
+    authz: AuthzService = Depends(get_authz_service),
 ):
     user_id = get_user_id(request)
-    authorized = await can_read_architecture(User(id=user_id), id)
+    authorized = await authz.can_read_architecture(User(id=user_id), id)
     if not authorized:
         raise AuthError(
             detail=f"User {user_id} is not authorized to read architecture {id}",
@@ -310,9 +337,10 @@ async def get_next_state(
     env_id: str,
     version: int,
     db: AsyncSession = Depends(get_db),
+    authz: AuthzService = Depends(get_authz_service),
 ):
     user_id = get_user_id(request)
-    authorized = await can_read_architecture(User(id=user_id), id)
+    authorized = await authz.can_read_architecture(User(id=user_id), id)
     if not authorized:
         raise AuthError(
             detail=f"User {user_id} is not authorized to read architecture {id}",
@@ -328,10 +356,14 @@ async def get_next_state(
 
 @app.get("/api/architecture/{id}/environment/{env_id}/resource_types")
 async def get_resource_types(
-    request: Request, id: str, env_id: str, db: AsyncSession = Depends(get_db)
+    request: Request,
+    id: str,
+    env_id: str,
+    db: AsyncSession = Depends(get_db),
+    authz: AuthzService = Depends(get_authz_service),
 ):
     user_id = get_user_id(request)
-    authorized = await can_read_architecture(User(id=user_id), id)
+    authorized = await authz.can_read_architecture(User(id=user_id), id)
     if not authorized:
         raise AuthError(
             detail=f"User {user_id} is not authorized to read architecture {id}",

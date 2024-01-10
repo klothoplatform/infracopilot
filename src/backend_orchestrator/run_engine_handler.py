@@ -59,6 +59,18 @@ class EngineOrchestrator:
         self.ev_dao = ev_dao
         self.env_dao = env_dao
 
+
+class EngineOrchestrator:
+    def __init__(
+        self,
+        architecture_storage: ArchitectureStorage,
+        ev_dao: EnvironmentVersionDAO,
+        env_dao: EnvironmentDAO,
+    ):
+        self.architecture_storage = architecture_storage
+        self.ev_dao = ev_dao
+        self.env_dao = env_dao
+
     async def run(
         self,
         architecture_id: str,

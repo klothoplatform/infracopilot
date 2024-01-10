@@ -1,12 +1,8 @@
-from cgi import test
-from datetime import date
 import datetime
-from venv import create
 import aiounittest
 from unittest import mock
 from fastapi import HTTPException
 
-from fastapi.responses import JSONResponse
 
 from src.backend_orchestrator.architecture_handler import (
     ArchitectureHandler,
@@ -23,7 +19,23 @@ from src.environment_management.environment_version import (
     EnvironmentVersionDoesNotExistError,
 )
 from src.environment_management.models import Environment, EnvironmentVersion
-from src.util.entity import User
+from src.auth_service.entity import User
+
+from src.backend_orchestrator.architecture_handler import (
+    ArchitectureHandler,
+    CreateArchitectureRequest,
+)
+
+from src.engine_service.engine_commands.run import RunEngineResult
+from src.environment_management.architecture import (
+    Architecture,
+    ArchitectureDoesNotExistError,
+)
+from src.environment_management.environment import EnvironmentDoesNotExistError
+from src.environment_management.environment_version import (
+    EnvironmentVersionDoesNotExistError,
+)
+from src.environment_management.models import Environment, EnvironmentVersion
 
 
 class TestArchitectureHandler(aiounittest.AsyncTestCase):
@@ -376,10 +388,6 @@ class TestArchitectureHandler(aiounittest.AsyncTestCase):
         )
 
     @mock.patch(
-        "src.backend_orchestrator.architecture_handler.add_architecture_owner",
-        new_callable=mock.AsyncMock,
-    )
-    @mock.patch(
         "src.backend_orchestrator.architecture_handler.datetime",
         new_callable=mock.Mock,
     )
@@ -391,7 +399,6 @@ class TestArchitectureHandler(aiounittest.AsyncTestCase):
         self,
         mock_uuid: mock.Mock,
         mock_datetime: mock.Mock,
-        mock_add_architecture_owner: mock.AsyncMock,
     ):
         test_hash = "hash"
         mock_datetime.utcnow.return_value = self.created_at
@@ -410,9 +417,10 @@ class TestArchitectureHandler(aiounittest.AsyncTestCase):
         self.mock_ev_dao.add_environment_version = mock.Mock(return_value=None)
         self.mock_store.get_state_from_fs = mock.Mock(return_value=self.test_result)
         self.mock_store.write_state_to_fs = mock.Mock(return_value="location")
-        mock_add_architecture_owner.return_value = None
+        mock_authz = mock.MagicMock()
+        mock_authz.add_architecture_owner = mock.AsyncMock(return_value=None)
         result = await self.arch_handler.clone_architecture(
-            "test-owner", "test-id", "new-name", "test-owner"
+            "test-owner", "test-id", "new-name", "test-owner", mock_authz
         )
         self.assertEqual(result.body, b'{"id":"hash"}')
         self.assertEqual(result.status_code, 200)
@@ -425,7 +433,9 @@ class TestArchitectureHandler(aiounittest.AsyncTestCase):
                 created_at=self.created_at,
             )
         )
-        mock_add_architecture_owner.assert_called_once_with(User("test-owner"), "hash")
+        mock_authz.add_architecture_owner.assert_called_once_with(
+            User("test-owner"), "hash"
+        )
         self.mock_env_dao.add_environment.assert_called_once_with(
             Environment(
                 architecture_id=test_hash,
@@ -457,20 +467,24 @@ class TestArchitectureHandler(aiounittest.AsyncTestCase):
         self.mock_arch_dao.get_architecture = mock.AsyncMock(
             side_effect=ArchitectureDoesNotExistError
         )
+        mock_authz = mock.MagicMock()
         with self.assertRaises(HTTPException) as e:
             await self.arch_handler.clone_architecture(
-                "test-owner", "test-id", "new-name", "test-owner"
+                "test-owner", "test-id", "new-name", "test-owner", mock_authz
             )
         self.assertEqual(e.exception.detail, "Architecture not found")
         self.assertEqual(e.exception.status_code, 404)
         self.mock_arch_dao.get_architecture.assert_called_once_with("test-id")
+        mock_authz.add_architecture_owner.assert_not_called()
 
     async def test_clone_architecture_causes_error(self):
         self.mock_arch_dao.get_architecture = mock.AsyncMock(side_effect=Exception)
+        mock_authz = mock.MagicMock()
         with self.assertRaises(HTTPException) as e:
             await self.arch_handler.clone_architecture(
-                "test-owner", "test-id", "new-name", "test-owner"
+                "test-owner", "test-id", "new-name", "test-owner", mock_authz
             )
         self.assertEqual(e.exception.detail, "internal server error")
         self.assertEqual(e.exception.status_code, 500)
         self.mock_arch_dao.get_architecture.assert_called_once_with("test-id")
+        mock_authz.add_architecture_owner.assert_not_called()
