@@ -96,7 +96,7 @@ export type NodeDataPopulator = (
 ) => any;
 
 export interface LayoutContext {
-  architecture: Architecture;
+  environmentVersion: EnvironmentVersion;
   reactFlow: {
     nodes: Node[];
     edges: Edge[];
