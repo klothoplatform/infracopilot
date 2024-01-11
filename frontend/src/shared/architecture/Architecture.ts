@@ -2,6 +2,8 @@ import type { Edge, Node } from "reactflow";
 import { type NodeId } from "./TopologyNode";
 import { ApplicationError } from "../errors";
 import { isObject } from "../object-util";
+import { type EnvironmentVersion } from "./EnvironmentVersion";
+import { arch } from "os";
 
 export enum ArchitectureView {
   DataFlow = "dataflow",
@@ -41,8 +43,8 @@ export interface GraphEdge {
   metadata: object;
 }
 
-
-export const parseArchitecture = (data: any): Architecture => {
+export function parseArchitecture(data: any): Architecture {
+  console.log("rawArchitecture: ", data);
   if (!isObject(data)) {
     throw new ApplicationError({
       errorId: "ArchitectureParse",
@@ -59,6 +61,7 @@ export const parseArchitecture = (data: any): Architecture => {
     created_at: data.created_at,
     created_by: data.created_by,
   };
-
   return architecture;
 }
+  
+

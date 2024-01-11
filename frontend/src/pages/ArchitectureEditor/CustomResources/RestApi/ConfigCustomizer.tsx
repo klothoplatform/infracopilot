@@ -1,4 +1,3 @@
-import type { FC } from "react";
 import { ConfigSection } from "../../../../components/config/ConfigSection";
 import { ListField } from "../../../../components/config/ListField";
 import type {
@@ -13,6 +12,8 @@ import {
   PrimitiveTypes,
 } from "../../../../shared/resources/ResourceTypes";
 import type { NodeId } from "../../../../shared/architecture/TopologyNode";
+import type { FC } from "react";
+import React from "react";
 
 const RoutesField: ListProperty = {
   name: "Routes",
@@ -66,17 +67,18 @@ const RoutesField: ListProperty = {
   ],
 };
 
-export function restApiIntegrationResourceCustomizer(type: ResourceType) {
+export function restApiResourceTypeModifier(type: ResourceType) {
   type.properties?.push(RoutesField);
 }
-export const RestApiRouteConfig: FC<{
-  configResource: NodeId
-}> = ({
-  configResource
-}) => {
-  return (
-    <ConfigSection id="Routes" title="Routes">
-      <ListField configResource={configResource} qualifiedFieldName={`${configResource}#Routes`} field={RoutesField} />
-    </ConfigSection>
-  );
-};
+
+export const RestApiRouteConfig: FC<{ configResource: NodeId }> = ({
+  configResource,
+}) => (
+  <ConfigSection id="Routes" title="Routes">
+    <ListField
+      configResource={configResource}
+      qualifiedFieldName={`${configResource}#Routes`}
+      field={RoutesField}
+    />
+  </ConfigSection>
+);

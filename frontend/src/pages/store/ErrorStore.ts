@@ -20,7 +20,7 @@ export const errorStore: StateCreator<ErrorStore, [], [], ErrorStore> = (
   errors: [],
   addError: (error: Error) => {
     const errs = [];
-    for (let c = error; c; c = (c.cause as Error)) {
+    for (let c = error; c; c = c.cause as Error) {
       errs.push(c);
     }
     console.error("addError", errs);

@@ -1,5 +1,12 @@
 import type { CheckboxProps, TextInputProps } from "flowbite-react";
-import { Button, Checkbox, Dropdown, Label, TextInput } from "flowbite-react";
+import {
+  Button,
+  Checkbox,
+  Dropdown,
+  Label,
+  TextInput,
+  Tooltip,
+} from "flowbite-react";
 import type { FC, PropsWithChildren } from "react";
 import React, { Fragment, useCallback, useEffect, useState } from "react";
 
@@ -11,10 +18,12 @@ import { ListField } from "./ListField";
 import { MapField } from "./MapField";
 import type {
   EnumProperty,
+  ListProperty,
   MapProperty,
   NumberProperty,
   Property,
   ResourceProperty,
+  StringProperty,
 } from "../../shared/resources/ResourceTypes";
 import {
   CollectionTypes,
@@ -25,7 +34,6 @@ import { BiChevronRight, BiSolidHand, BiSolidPencil } from "react-icons/bi";
 import { env } from "../../shared/environment";
 import { HiMiniArrowUpRight } from "react-icons/hi2";
 import { IoInformationCircleOutline } from "react-icons/io5";
-import { Tooltip } from "flowbite-react";
 
 export interface ConfigFieldProps {
   configResource: NodeId;
@@ -48,7 +56,10 @@ type InputProps = {
   valueSelector?: string;
 } & TextInputProps;
 
-type TextProps = TextInputProps & ConfigFieldProps;
+type TextProps = TextInputProps &
+  ConfigFieldProps & {
+    field: StringProperty;
+  };
 
 type NumberProps = {
   field: NumberProperty;
@@ -92,7 +103,7 @@ export const ConfigField: FC<ConfigFieldProps> = ({
 }) => {
   const { type, configurationDisabled } = field;
   const { formState } = useFormContext();
-  const { errors, touchedFields, dirtyFields } = formState;
+  const { errors, touchedFields, dirtyFields, defaultValues } = formState;
   const id = qualifiedFieldName + (valueSelector ?? "");
   const error = findChildProperty(errors, id);
   const touched = findChildProperty(touchedFields, id);
@@ -154,7 +165,7 @@ export const ConfigField: FC<ConfigFieldProps> = ({
       element = (
         <ListField
           qualifiedFieldName={qualifiedFieldName}
-          field={field}
+          field={field as ListProperty}
           {...props}
         />
       );
@@ -163,7 +174,7 @@ export const ConfigField: FC<ConfigFieldProps> = ({
       element = (
         <MapField
           qualifiedFieldName={qualifiedFieldName}
-          field={field}
+          field={field as MapProperty}
           {...props}
         />
       );
@@ -200,6 +211,15 @@ export const ConfigField: FC<ConfigFieldProps> = ({
   }
 
   // TODO do something with displayedResource
+  if (!title) {
+    title = qualifiedFieldName || field.qualifiedName || "";
+  }
+
+  const silenceRequired =
+    (required || field.required) &&
+    field.type === PrimitiveTypes.Enum &&
+    defaultValues?.[qualifiedFieldName] !== undefined;
+
   return (
     <>
       {type !== CollectionTypes.Map ||
@@ -207,7 +227,7 @@ export const ConfigField: FC<ConfigFieldProps> = ({
         <>
           <div className="flex flex-col gap-1">
             <Label
-              title={title ?? qualifiedFieldName}
+              title={title}
               htmlFor={qualifiedFieldName}
               className={"flex w-full"}
               color={error ? "failure" : "default"}
@@ -217,23 +237,21 @@ export const ConfigField: FC<ConfigFieldProps> = ({
                   "flex max-w-[95%] items-center gap-1 [&>span:first-child]:hidden"
                 }
               >
-                {(title ?? qualifiedFieldName ?? "")
-                  .split(".")
-                  .map((part, index) => {
-                    return (
-                      <Fragment key={index}>
-                        <span className="px-1">
-                          <BiChevronRight />
-                        </span>
-                        <span
-                          className={"w-fit overflow-hidden text-ellipsis "}
-                          key={index}
-                        >
-                          {part}
-                        </span>
-                      </Fragment>
-                    );
-                  })}
+                {title.split(".").map((part, index) => {
+                  return (
+                    <Fragment key={index}>
+                      <span className="px-1">
+                        <BiChevronRight />
+                      </span>
+                      <span
+                        className={"w-fit overflow-hidden text-ellipsis "}
+                        key={index}
+                      >
+                        {part}
+                      </span>
+                    </Fragment>
+                  );
+                })}
                 {field.description && (
                   <Tooltip
                     content={
@@ -243,7 +261,9 @@ export const ConfigField: FC<ConfigFieldProps> = ({
                     <IoInformationCircleOutline size={12} />
                   </Tooltip>
                 )}
-                {field.required && <div className={"text-red-600"}>*</div>}
+                {field.required && !silenceRequired && (
+                  <div className={"text-red-600"}>*</div>
+                )}
                 {env.debug.has("config-state") && (
                   <div className={"flex flex-row"}>
                     {touched === true && (
@@ -283,6 +303,20 @@ export const StringField: FC<TextProps> = ({
       type="text"
       valueSelector={valueSelector}
       required={field.required}
+      rules={{
+        minLength: field.minLength
+          ? {
+              value: field.minLength,
+              message: `${field.name} must be at least ${field.minLength} characters in length.`,
+            }
+          : undefined,
+        maxLength: field.maxLength
+          ? {
+              value: field.maxLength,
+              message: `${field.name} may be at most ${field.maxLength} characters in length.`,
+            }
+          : undefined,
+      }}
       readOnly={field.configurationDisabled}
       {...rest}
     />
@@ -304,20 +338,19 @@ export const NumberField: FC<NumberProps> = ({
         min: field.minValue
           ? {
               value: field.minValue,
-              message: `Value must be at least ${field.minValue}`,
+              message: `${field.name} must be at least ${field.minValue}`,
             }
           : undefined,
         max: field.maxValue
           ? {
               value: field.maxValue,
-              message: `Value must be at most ${field.maxValue}`,
+              message: `${field.name} may not exceed ${field.maxValue}.`,
             }
           : undefined,
       }}
       valueSelector={valueSelector}
       required={field.required}
       readOnly={field.configurationDisabled}
-      // validate minValue and maxValue
       {...rest}
     />
   );
@@ -339,13 +372,13 @@ export const IntField: FC<NumberProps> = ({
         min: field.minValue
           ? {
               value: field.minValue,
-              message: `Value must be at least ${field.minValue}`,
+              message: `${field.name} must be at least ${field.minValue}`,
             }
           : undefined,
         max: field.maxValue
           ? {
               value: field.maxValue,
-              message: `Value must be at most ${field.maxValue}`,
+              message: `${field.name} may not exceed ${field.maxValue}.`,
             }
           : undefined,
       }}
@@ -373,7 +406,6 @@ const InputField: FC<InputProps> = ({
     <TextInput
       sizing={"sm"}
       id={id}
-      // required={required}
       disabled={rest.readOnly}
       color={error ? "failure" : "default"}
       helperText={error && <span>{error.message?.toString()}</span>}
@@ -527,9 +559,9 @@ export const EnumField: FC<EnumProps> = ({
   valueSelector,
 }) => {
   const id = qualifiedFieldName + (valueSelector ?? "");
-  const { register, unregister, setValue, watch } = useFormContext();
-
-  const onClick = (value: string) => {
+  const { register, unregister, setValue, watch, formState } = useFormContext();
+  const { defaultValues } = formState;
+  const onClick = (value: string | null) => {
     setValue(id, value, {
       shouldTouch: true,
       shouldDirty: true,
@@ -537,13 +569,20 @@ export const EnumField: FC<EnumProps> = ({
     });
   };
 
+  const silenceRequired = defaultValues?.[qualifiedFieldName] !== undefined;
+
   const watchValue = watch(id);
 
   useEffect(() => {
-    register(id, {
-      required:
-        required && `${qualifiedFieldName.split(".").pop()} is required.`,
-    });
+    register(
+      id,
+      silenceRequired
+        ? undefined
+        : {
+            required:
+              required && `${qualifiedFieldName.split(".").pop()} is required.`,
+          },
+    );
     return () => {
       unregister(id, { keepDefaultValue: true });
     };
@@ -559,6 +598,11 @@ export const EnumField: FC<EnumProps> = ({
         disabled={readOnly}
         label={watchValue ?? "Select a value"}
       >
+        {!required && (
+          <Dropdown.Item className={"italic"} onClick={() => onClick(null)}>
+            Select a value
+          </Dropdown.Item>
+        )}
         {allowedValues?.map((value: string) => {
           return (
             <Dropdown.Item key={value} onClick={() => onClick(value)}>
@@ -583,12 +627,10 @@ export const ErrorHelper: FC<PropsWithChildren<{ error?: any }>> = ({
       })}
     >
       {children}
-      <div className="mt-2 text-sm text-red-600 dark:text-red-500">
-        {error.root && (
-          <p className="font-medium">{error.root.message?.toString()}</p>
-        )}
+      <p className="mt-2 text-sm text-red-600 dark:text-red-500">
+        {error.root && <span>{error.root.message?.toString()}</span>}
         <p>{error.message?.toString()}</p>
-      </div>
+      </p>
     </div>
   ) : (
     <>{children}</>

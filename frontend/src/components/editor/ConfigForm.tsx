@@ -46,28 +46,40 @@ export default function ConfigForm() {
   } = useApplicationStore();
 
   const [resourceType, setResourceType] = React.useState<ResourceType>();
-  
-  const [promotedProperties, setPromotedProperties] = React.useState<Map<string, Property[]> | undefined>();
-  const [remainingProperties, setRemainingProperties] = React.useState<Property[] | undefined>();
+
+  const [promotedProperties, setPromotedProperties] = React.useState<
+    Map<string, Property[]> | undefined
+  >();
+  const [remainingProperties, setRemainingProperties] = React.useState<
+    Property[] | undefined
+  >();
   useEffect(() => {
     if (selectedResource) {
-      const resourceType = resourceTypeKB.getResourceType(selectedResource.provider, selectedResource.type);
+      const resourceType = resourceTypeKB.getResourceType(
+        selectedResource.provider,
+        selectedResource.type,
+      );
       setResourceType(resourceType);
 
       const allProperties = resourceProperties(environmentVersion, resourceTypeKB, selectedResource);
       const promotedProperties = new Map<string, Property[]>();
       for (const [resourceId, properties] of allProperties) {
-        const promotedProps = properties.filter(p => isPropertyPromoted(p));
+        const promotedProps = properties.filter((p) => isPropertyPromoted(p));
         if (promotedProps.length > 0) {
-          promotedProperties.set(
-            resourceId.toString(),
-            promotedProps,
-          );
+          promotedProperties.set(resourceId.toString(), promotedProps);
         }
       }
-      let remainingProperties = allProperties.get(selectedResource)?.filter(p => !promotedProperties?.get(selectedResource.toString())?.includes(p));
+      let remainingProperties = allProperties
+        .get(selectedResource)
+        ?.filter(
+          (p) =>
+            !promotedProperties?.get(selectedResource.toString())?.includes(p),
+        );
       if (promotedProperties.size === 0) {
-        promotedProperties.set(selectedResource.toString(), remainingProperties ?? []);
+        promotedProperties.set(
+          selectedResource.toString(),
+          remainingProperties ?? [],
+        );
         remainingProperties = undefined;
       }
       if (remainingProperties?.length === 0) {
@@ -84,27 +96,31 @@ export default function ConfigForm() {
 
   const methods = useForm({
     shouldFocusError: true,
-    defaultValues: (promotedProperties && selectedResource)
-    ? {
-        ...[...promotedProperties.entries()].reduce((acc, [resourceId, properties]): any => {
-          const fs = toFormState(
-            environmentVersion.resources.get(resourceId),
-            properties,
-            resourceId,
-          )
-          return {
-            ...acc,
-            ...fs,
-          };
-        }, {}),
-        ...toFormState(
-          environmentVersion.resources.get(selectedResource.toString()),
-          remainingProperties,
-          selectedResource, // remaining properties are always on the selected resource
-        ),
-        ...getCustomConfigState(selectedResource, environmentVersion),
-      }
-    : {},
+    defaultValues:
+      promotedProperties && selectedResource
+        ? {
+            ...[...promotedProperties.entries()].reduce(
+              (acc, [resourceId, properties]): any => {
+                const fs = toFormState(
+                  environmentVersion.resources.get(resourceId),
+                  properties,
+                  resourceId,
+                );
+                return {
+                  ...acc,
+                  ...fs,
+                };
+              },
+              {},
+            ),
+            ...toFormState(
+              environmentVersion.resources.get(selectedResource.toString()),
+              remainingProperties,
+              selectedResource, // remaining properties are always on the selected resource
+            ),
+            ...getCustomConfigState(selectedResource, environmentVersion),
+          }
+        : {},
   });
 
   const formState = methods.formState;
@@ -122,43 +138,79 @@ export default function ConfigForm() {
 
   // add errors to the fields which failed server side validation
   const { selectedNode } = useApplicationStore();
-  if (configErrors) {
-    configErrors.forEach((e) => {
-      if (e.resource.toString() === selectedNode || promotedProperties?.has(e.resource.toString())) {
-        errors[`${e.resource}#${e.property}`] = {
+
+  useEffect(() => {
+    configErrors?.forEach((e) => {
+      if (
+        e.resource.toString() === selectedNode ||
+        promotedProperties?.has(e.resource.toString())
+      ) {
+        methods.setError(`${e.resource}#${e.property}`, {
           message: e.error,
           type: "manual",
-        };
+        });
       }
     });
-  }
+  }, [
+    configErrors,
+    errors,
+    methods,
+    promotedProperties,
+    selectedNode,
+    selectedResource,
+  ]);
+
   useEffect(() => {
     if (isSubmitted && !isSubmitSuccessful) {
       return;
     }
 
-    console.log("reset to default", {defaultValues, dirtyFields, isSubmitted, isSubmitSuccessful});
-    methods.reset((promotedProperties && selectedResource)
-    ? {
-        ...[...promotedProperties.entries()].reduce((acc, [resourceId, properties]): any => {
-          const fs = toFormState(
-            environmentVersion.resources.get(resourceId.toString()),
-            properties,
-            resourceId,
-          )
-          return {
-            ...acc,
-            ...fs,
-          };
-        }, {}),
-        ...toFormState(
-          environmentVersion.resources.get(selectedResource.toString()),
-          remainingProperties,
-          selectedResource, // remaining properties are always on the selected resource
-        ),
-        ...getCustomConfigState(selectedResource, environmentVersion),
-      }
-    : {});
+    console.log("reset to default", {
+      defaultValues,
+      dirtyFields,
+      isSubmitted,
+      isSubmitSuccessful,
+    });
+    methods.reset(
+      promotedProperties && selectedResource
+        ? {
+            ...[...promotedProperties.entries()].reduce(
+              (acc, [resourceId, properties]): any => {
+                const fs = toFormState(
+                  environmentVersion.resources.get(resourceId.toString()),
+                  properties,
+                  resourceId,
+                );
+                return {
+                  ...acc,
+                  ...fs,
+                };
+              },
+              {},
+            ),
+            ...toFormState(
+              environmentVersion.resources.get(selectedResource.toString()),
+              remainingProperties,
+              selectedResource, // remaining properties are always on the selected resource
+            ),
+            ...getCustomConfigState(selectedResource, environmentVersion),
+          }
+        : {},
+    );
+
+    environmentVersion?.config_errors
+      ?.filter((e) => e.resource.equals(selectedResource))
+      .forEach((e) => {
+        if (
+          e.resource.toString() === selectedNode ||
+          promotedProperties?.has(e.resource.toString())
+        ) {
+          methods.setError(`${e.resource}#${e.property}`, {
+            message: e.error,
+            type: "manual",
+          });
+        }
+      });
   }, [
     environmentVersion,
     isSubmitSuccessful,
@@ -174,20 +226,30 @@ export default function ConfigForm() {
         return;
       }
 
-      const valuesByResource = new Map<NodeId, {values: any, dirty: any}>();
+      const valuesByResource = new Map<string, { values: any; dirty: any }>();
       for (let [key, value] of Object.entries(submittedValues)) {
         const resourceId = NodeId.parse(key.split("#", 2)[0]);
-        const res = valuesByResource.get(resourceId) ?? {values: {}, dirty: {}};
+        const res = valuesByResource.get(resourceId.toString()) ?? {
+          values: {},
+          dirty: {},
+        };
         res.values[key] = value;
         res.dirty[key] = dirtyFields[key];
-        valuesByResource.set(resourceId, res);
+        valuesByResource.set(resourceId.toString(), res);
       }
 
-      console.log("submitting config changes", {submittedValues, valuesByResource});
+      console.log("submitting config changes", {
+        submittedValues,
+        valuesByResource,
+      });
       let constraints: Constraint[] = [];
       try {
-        for (const [resourceId, {values, dirty}] of valuesByResource) {
-          const resourceType = resourceTypeKB.getResourceType(resourceId.provider, resourceId.type);
+        for (const [resourceIdStr, { values, dirty }] of valuesByResource) {
+          const resourceId = NodeId.parse(resourceIdStr);
+          const resourceType = resourceTypeKB.getResourceType(
+            resourceId.provider,
+            resourceId.type,
+          );
           const modifiedFormFields = getModifiedFormFields(
             values,
             { ...defaultValues },
@@ -224,8 +286,8 @@ export default function ConfigForm() {
               );
             });
 
-            if (resourceId.equals(selectedResource)) {
-              resConstraints.push(
+          if (resourceId.equals(selectedResource)) {
+            resConstraints.push(
               ...applyCustomizers(
                 selectedResource,
                 values,
@@ -237,6 +299,7 @@ export default function ConfigForm() {
             constraints.push(...resConstraints);
         }
       } catch (e: any) {
+        console.error(e);
         addError(
           new UIError({
             errorId: "ConfigForm:SubmitConfigChanges",
@@ -280,7 +343,7 @@ export default function ConfigForm() {
       environmentVersion,
       defaultValues,
       dirtyFields,
-      resourceType?.properties,
+      resourceTypeKB,
       selectedResource,
     ],
   );
@@ -306,36 +369,71 @@ export default function ConfigForm() {
             onSubmit={methods.handleSubmit(submitConfigChanges)}
           >
             <div className="mb-2 max-h-full min-h-0 w-full overflow-y-auto overflow-x-hidden pb-2 [&>*:not(:last-child)]:mb-2">
-              <ConfigSection id="promoted" title="Properties" removable={false} defaultOpened={true}>
-                      {selectedResource &&
-                          Object.entries(
-                              getCustomConfigSections(
-                                  selectedResource.provider,
-                                  selectedResource.type,
-                              ),
-                          ).map((entry, index) => {
-                              const Component = entry[1].component;
-                              return Component ? <Component key={index} configResource={selectedResource} /> : null;
-                          })}
-                      {promotedProperties && [...promotedProperties.entries()].map(([resourceId, properties]) => {
-                        if (resourceId === selectedResource!.toString()) {
-                          return <ConfigGroup
+              <ConfigSection
+                id="promoted"
+                title="Properties"
+                removable={false}
+                defaultOpened={true}
+              >
+                {selectedResource &&
+                  Object.entries(
+                    getCustomConfigSections(
+                      selectedResource.provider,
+                      selectedResource.type,
+                    ),
+                  ).map((entry, index) => {
+                    const Component = entry[1].component;
+                    return Component ? (
+                      <Component
+                        key={index}
+                        configResource={selectedResource}
+                        resource={environmentVersion.resources.get(
+                          selectedResource.toString(),
+                        )}
+                      />
+                    ) : null;
+                  })}
+                {promotedProperties &&
+                  [...promotedProperties.entries()].map(
+                    ([resourceId, properties]) => {
+                      if (resourceId === selectedResource!.toString()) {
+                        return (
+                          <ConfigGroup
                             key={resourceId}
                             configResource={NodeId.parse(resourceId)}
                             fields={properties}
                           />
-                        } else {
-                          return <ConfigSection key={resourceId.toString()} id={resourceId.toString()} title={resourceId.toString()}>
-                            <ConfigGroup configResource={NodeId.parse(resourceId)} fields={properties} />
+                        );
+                      } else {
+                        return (
+                          <ConfigSection
+                            key={resourceId.toString()}
+                            id={resourceId.toString()}
+                            title={resourceId.toString()}
+                          >
+                            <ConfigGroup
+                              configResource={NodeId.parse(resourceId)}
+                              fields={properties}
+                            />
                           </ConfigSection>
-                        }
-                        })}
-                  </ConfigSection>
-                {remainingProperties?.length && (
-                    <ConfigSection id="remaining" title="more properties" removable={false} defaultOpened={false}>
-                        <ConfigGroup configResource={selectedResource!} fields={remainingProperties} />
-                    </ConfigSection>
-                )}
+                        );
+                      }
+                    },
+                  )}
+              </ConfigSection>
+              {remainingProperties?.length && (
+                <ConfigSection
+                  id="remaining"
+                  title="more properties"
+                  removable={false}
+                  defaultOpened={false}
+                >
+                  <ConfigGroup
+                    configResource={selectedResource!}
+                    fields={remainingProperties}
+                  />
+                </ConfigSection>
+              )}
             </div>
             {isDirty && (
               <Button type="submit" color="purple" fullSized={true}>
@@ -349,7 +447,11 @@ export default function ConfigForm() {
   );
 }
 
-function toFormState(metadata: any, fields: Property[] = [], resourceId: NodeId|string) {
+function toFormState(
+  metadata: any,
+  fields: Property[] = [],
+  resourceId?: NodeId | string,
+) {
   const formState: any = {};
   if (!metadata) {
     return formState;
@@ -364,7 +466,11 @@ function toFormState(metadata: any, fields: Property[] = [], resourceId: NodeId|
   ]);
 
   props.forEach((property) => {
-    const key = `${resourceId}#${property}`;
+    let key = property;
+    if (resourceId) {
+      key = `${resourceId}#${property}`;
+    }
+
     const value = metadata[property];
     const field = fields.find((field) => field.name === property);
     switch (field?.type) {
@@ -372,7 +478,7 @@ function toFormState(metadata: any, fields: Property[] = [], resourceId: NodeId|
         if (!value) {
           formState[key] = [];
         } else if (isCollection((field as MapProperty).valueType)) {
-          formState[key] = toFormState(value, field.properties, resourceId);
+          formState[key] = toFormState(value, field.properties);
         } else {
           formState[key] = Object.entries(value).map(([key, value]) => {
             return { key, value };
@@ -387,11 +493,13 @@ function toFormState(metadata: any, fields: Property[] = [], resourceId: NodeId|
         }
         formState[key] = value.map((value: any) => {
           if (isCollection((field as ListProperty).itemType)) {
-            const inner = toFormState(value, field.properties, resourceId);
-            return Object.fromEntries(Object.entries(inner).map(([key, value]) => {
-              // remove the resource id prefix from the key for nested fields
-              return [key.split('#', 2)[1], value];
-            }))
+            const inner = toFormState(value, field.properties);
+            return Object.fromEntries(
+              Object.entries(inner).map(([key, value]) => {
+                // remove the resource id prefix from the key for nested fields
+                return [key, value];
+              }),
+            );
           }
           return { value };
         });
@@ -416,8 +524,9 @@ function toResourceMetadata(formState: any, fields: Property[] = []) {
       !field.deployTime && !field.configurationDisabled && !field.synthetic,
   );
 
-  Object.keys(formState).forEach((key) => {
-    const value = formState[key];
+  Object.keys(formState).forEach((rawKey) => {
+    const key = rawKey.includes("#") ? rawKey.split("#", 2)[1] : rawKey;
+    const value = formState[rawKey];
     const field = fields.find((field) => field.name === key);
     switch (field?.type) {
       case CollectionTypes.Map:
@@ -458,7 +567,14 @@ function applyCustomizers(
     resourceId.provider,
     resourceId.type,
   );
-  console.log("applyCustomizers", {sections, resourceId, submittedValues, defaultValues, modifiedValues, environmentVersion})
+  console.log("applyCustomizers", {
+    sections,
+    resourceId,
+    submittedValues,
+    defaultValues,
+    modifiedValues,
+    environmentVersion,
+  });
 
   if (!sections) {
     return [];
@@ -467,11 +583,11 @@ function applyCustomizers(
   const constraints: Constraint[] = [];
   Object.entries(submittedValues).forEach(([key, value]) => {
     if (!key.startsWith(`${resourceId}#`)) {
-      return
+      return;
     }
     const prop = key.split("#", 2)[1];
-    console.log("submit", {key, value, prop, section: sections[prop]})
-    const handler = sections[prop]?.stateHandler
+    console.log("submit", { key, value, prop, section: sections[prop] });
+    const handler = sections[prop]?.stateHandler;
     if (handler) {
       constraints.push(
         ...(handler(
@@ -493,36 +609,6 @@ function applyCustomizers(
  only fields that are either primitive types or have primitive value/item types are considered.
  the qualified field name is the dot-separated path to the field from the root of the form. List and Set items are indexed by their position in the collection.
  the value is the primitive nested value of the field. if the field is a collection, the value is the nested value of the first item.
-
- @formatter:off
-
- e.g. for the following form fields:
-  {
-    "a": 1,
-    "b": {
-      "c": 2,
-      "d": [
-        {
-          "e": 3,
-          "f": 4
-        }
-      ],
-      "g": {
-        "h": 5,
-        "i": 6
-      }
-    }
-  }
-
-returns the following map:
-  {
-    "a": 1,
-    "b.c": 2,
-    "b.d[0].e": 3,
-    "b.d[0].f": 4,
-    "b.g.h": 5,
-    "b.g.i": 6
-  }
  */
 function getModifiedFormFields(
   formFields: any,
@@ -545,6 +631,11 @@ function getModifiedFormFields(
     if (!resourceField) {
       return;
     }
+    if (fieldValue === undefined) {
+      modifiedFormFields.set(qualifiedKey, undefined);
+      return;
+    }
+
     // ignore non-dirty fields
     if (!dirtyField || (Array.isArray(dirtyField) && !dirtyField.length)) {
       return;
@@ -567,10 +658,13 @@ function getModifiedFormFields(
           if (!item?.["key"] && !item?.["value"]) {
             return;
           }
-          modifiedFormFields.set(`${configResource}#${qualifiedKey}[${index}]`, {
-            key: fieldValue[index]?.["key"],
-            value: fieldValue[index]?.["value"],
-          });
+          modifiedFormFields.set(
+            `${configResource}#${qualifiedKey}[${index}]`,
+            {
+              key: fieldValue[index]?.["key"],
+              value: fieldValue[index]?.["value"],
+            },
+          );
         });
       }
     } else if (
@@ -578,7 +672,12 @@ function getModifiedFormFields(
       resourceField.type === CollectionTypes.Set
     ) {
       if (isCollection((resourceField as ListProperty).itemType)) {
-        dirtyField.forEach((item: any, index: number) => {
+        dirtyField.forEach((_: any, index: number) => {
+          const indexValue = fieldValue?.[index];
+          if (indexValue === undefined) {
+            modifiedFormFields.set(`${qualifiedKey}[${index}]`, undefined);
+          }
+
           getModifiedFormFields(
             fieldValue?.[index],
             defaultValue?.[index],
@@ -595,9 +694,12 @@ function getModifiedFormFields(
           if (!item?.["value"]) {
             return;
           }
-          modifiedFormFields.set(`${configResource}#${qualifiedKey}[${index}]`, {
-            value: fieldValue[index]?.["value"],
-          });
+          modifiedFormFields.set(
+            `${configResource}#${qualifiedKey}[${index}]`,
+            {
+              value: fieldValue[index]?.["value"],
+            },
+          );
         });
       }
     } else {

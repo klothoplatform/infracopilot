@@ -35,7 +35,6 @@ import {
   ConstraintOperator,
   ConstraintScope,
   EdgeConstraint,
-  parseConstraints,
 } from "../../shared/architecture/Constraints";
 import {
   applyConstraints,
@@ -70,6 +69,7 @@ import modifyArchitecture from "../../api/ModifyArchitecture";
 import { refreshSelection } from "../../shared/editor-util";
 import { type EnvironmentVersion, toReactFlowElements } from "../../shared/architecture/EnvironmentVersion";
 import { getArchitecture } from "../../api/GetArchitecture";
+import { env } from "../../shared/environment";
 
 interface EditorStoreState {
   architecture: Architecture;
@@ -438,7 +438,11 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       resourceTypeKB,
       ArchitectureView.DataFlow,
     );
-    const { nodes, edges } = await autoLayout(elements.nodes, elements.edges);
+    const { nodes, edges } = await autoLayout(
+      ev,
+      elements.nodes,
+      elements.edges,
+    );
     (async () => {
       const nextState = await getNextState(
         ev.architecture_id,
@@ -531,6 +535,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
         layoutRefreshing: true,
       });
       const { nodes, edges } = await autoLayout(
+        get().environmentVersion,
         get().nodes,
         get().edges,
         get().layoutOptions,
@@ -687,6 +692,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
         ArchitectureView.DataFlow,
       );
       const result = await autoLayout(
+        response.environmentVersion,
         elements.nodes,
         elements.edges,
         get().layoutOptions,
@@ -861,8 +867,6 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       ) {
         historyEntries = historyEntries.slice(0, navHistory.currentIndex + 1);
       }
-      console.log("history entries", historyEntries);
-
       historyEntries.push({
         tab: get().rightSidebarSelector[1],
         resourceId: get().selectedResource,
@@ -876,9 +880,6 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
         historyEntries = historyEntries.slice(startIndex);
       }
     }
-
-    console.log("navigate right sidebar", selector, historyEntries);
-
     set(
       {
         rightSidebarSelector: selector,
@@ -957,8 +958,6 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     if (!newEntry) {
       return;
     }
-
-    console.log("navigate forward right sidebar", newEntry);
 
     set(
       {
@@ -1175,6 +1174,10 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       return false;
     }
 
+    if (env.debug.has("disableEdgeTargetValidation")) {
+      return true;
+    }
+
     const { validTargets, environmentVersion } = get().edgeTargetState;
     const ev = get().environmentVersion;
     if (environmentVersion !== ev.version) {
@@ -1201,7 +1204,11 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       resourceTypeKB,
       ArchitectureView.DataFlow,
     );
-    const { nodes, edges } = await autoLayout(elements.nodes, elements.edges);
+    const { nodes, edges } = await autoLayout(
+      prev,
+      elements.nodes,
+      elements.edges,
+    );
     const { selectedNode, selectedEdge, selectedResource } = refreshSelection({
       environmentVersion: prev,
       nodes,
@@ -1251,7 +1258,11 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       resourceTypeKB,
       ArchitectureView.DataFlow,
     );
-    const { nodes, edges } = await autoLayout(elements.nodes, elements.edges);
+    const { nodes, edges } = await autoLayout(
+      next,
+      elements.nodes,
+      elements.edges,
+    );
     const { selectedNode, selectedEdge, selectedResource } = refreshSelection({
       environmentVersion: next,
       nodes,

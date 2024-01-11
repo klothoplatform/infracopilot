@@ -69,7 +69,7 @@ export const ConfigSection: FC<PropsWithChildren<ConfigSectionProps>> = ({
             </Button>
           )}
         </>
-        <Accordion.Content className={"px-0 py-2 [&>*:not(:last-child)]:mb-2"}>
+        <Accordion.Content className={"p-2 [&>*:not(:last-child)]:mb-2"}>
           {children}
         </Accordion.Content>
       </Accordion.Panel>

@@ -2,7 +2,6 @@ const UNKNOWN_PROVIDER = "UNKNOWN";
 
 export interface TopologyNodeData {
   parent?: NodeId;
-  isNew?: boolean;
   children?: NodeId[];
 }
 
