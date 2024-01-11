@@ -7,6 +7,7 @@ export enum ConstraintOperator {
   MustContain = "must_contain",
   MustNotContain = "must_not_contain",
   Add = "add",
+  Import = "import",
   Remove = "remove",
   Replace = "replace",
   Equals = "equals",
@@ -31,6 +32,7 @@ export type ApplicationConstraintOperators = Extract<
   | ConstraintOperator.Add
   | ConstraintOperator.Remove
   | ConstraintOperator.Replace
+  | ConstraintOperator.Import
 >;
 export type ConstructConstraintOperators = Extract<
   ConstraintOperator,
@@ -65,6 +67,8 @@ export class ApplicationConstraint implements Constraint {
         return `Removed ${this.node.toString()}`;
       case ConstraintOperator.Replace:
         return `Replaced ${this.node.toString()} ➔ ${this.replacementNode?.toString()}`;
+      case ConstraintOperator.Import:
+        return `Imported ${this.node.toString()}`;
     }
   }
 
@@ -76,6 +80,8 @@ export class ApplicationConstraint implements Constraint {
         return `Failed to remove ${this.node.toString()}`;
       case ConstraintOperator.Replace:
         return `Failed to replace ${this.node.toString()} ➔ ${this.replacementNode?.toString()}`;
+      case ConstraintOperator.Import:
+        return `Failed to import ${this.node.toString()}`;
     }
   }
 }

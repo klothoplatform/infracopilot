@@ -7,10 +7,7 @@ from src.backend_orchestrator.run_engine_handler import (
     CopilotRunRequest,
     EngineOrchestrator,
 )
-<<<<<<< HEAD
 from src.engine_service.binaries.fetcher import Binary
-=======
->>>>>>> 8b320a3 (Squashed commit of the following:)
 from src.environment_management.environment_version import (
     EnvironmentVersionDoesNotExistError,
 )

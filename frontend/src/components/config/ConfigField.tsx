@@ -117,6 +117,8 @@ export const ConfigField: FC<ConfigFieldProps> = ({
           qualifiedFieldName={qualifiedFieldName}
           field={field}
           valueSelector={valueSelector}
+          readOnly={readOnly}
+          required={required}
           {...props}
           color={error ? "failure" : undefined}
           helperText={error && <span>{error.message?.toString()}</span>}
@@ -129,6 +131,8 @@ export const ConfigField: FC<ConfigFieldProps> = ({
           qualifiedFieldName={qualifiedFieldName}
           field={field as NumberProperty}
           valueSelector={valueSelector}
+          readOnly={readOnly}
+          required={required}
           {...props}
           color={error ? "failure" : undefined}
           helperText={error && <span>{error.message?.toString()}</span>}
@@ -141,6 +145,8 @@ export const ConfigField: FC<ConfigFieldProps> = ({
           qualifiedFieldName={qualifiedFieldName}
           field={field as NumberProperty}
           valueSelector={valueSelector}
+          readOnly={readOnly}
+          required={required}
           {...props}
           color={error ? "failure" : undefined}
           helperText={error && <span>{error.message?.toString()}</span>}
@@ -153,6 +159,7 @@ export const ConfigField: FC<ConfigFieldProps> = ({
           qualifiedFieldName={qualifiedFieldName}
           field={field}
           valueSelector={valueSelector}
+          readOnly={readOnly}
           {...props}
           color={error ? "failure" : undefined}
           required={required}
@@ -183,7 +190,7 @@ export const ConfigField: FC<ConfigFieldProps> = ({
       element = (
         <ResourceField
           qualifiedFieldName={qualifiedFieldName ?? "UNKNOWN-RESOURCE"}
-          readOnly={configurationDisabled}
+          readOnly={readOnly ?? configurationDisabled}
           resourceTypes={(field as ResourceProperty).resourceTypes}
           valueSelector={valueSelector}
           required={required}
@@ -198,7 +205,7 @@ export const ConfigField: FC<ConfigFieldProps> = ({
           qualifiedFieldName={qualifiedFieldName ?? "UNKNOWN-ENUM"}
           allowedValues={(field as EnumProperty).allowedValues}
           valueSelector={valueSelector}
-          readOnly={configurationDisabled}
+          readOnly={readOnly ?? configurationDisabled}
           required={required}
           error={error}
           {...props}
@@ -302,7 +309,6 @@ export const StringField: FC<TextProps> = ({
       inputMode="text"
       type="text"
       valueSelector={valueSelector}
-      required={field.required}
       rules={{
         minLength: field.minLength
           ? {
@@ -317,7 +323,8 @@ export const StringField: FC<TextProps> = ({
             }
           : undefined,
       }}
-      readOnly={field.configurationDisabled}
+      required={rest.required ?? field.required}
+      readOnly={rest.readOnly ?? field.configurationDisabled}
       {...rest}
     />
   );
@@ -349,8 +356,9 @@ export const NumberField: FC<NumberProps> = ({
           : undefined,
       }}
       valueSelector={valueSelector}
-      required={field.required}
-      readOnly={field.configurationDisabled}
+      required={rest.required ?? field.required}
+      readOnly={rest.readOnly ?? field.configurationDisabled}
+      // validate minValue and maxValue
       {...rest}
     />
   );
@@ -383,8 +391,8 @@ export const IntField: FC<NumberProps> = ({
           : undefined,
       }}
       valueSelector={valueSelector}
-      required={field.required}
-      readOnly={field.configurationDisabled}
+      required={rest.required ?? field.required}
+      readOnly={rest.readOnly ?? field.configurationDisabled}
       {...rest}
     />
   );
@@ -406,6 +414,7 @@ const InputField: FC<InputProps> = ({
     <TextInput
       sizing={"sm"}
       id={id}
+      required={required}
       disabled={rest.readOnly}
       color={error ? "failure" : "default"}
       helperText={error && <span>{error.message?.toString()}</span>}
@@ -433,7 +442,7 @@ export const BooleanField: FC<BooleanProps> = ({
   return (
     <Checkbox
       id={id}
-      readOnly={configurationDisabled}
+      readOnly={props.readOnly ?? configurationDisabled}
       {...props}
       {...register(id, {
         required:
