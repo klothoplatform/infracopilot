@@ -284,14 +284,23 @@ export function parseArchitecture(rawArchitecture: any): Architecture {
 }
 
 export function isPropertyPromoted(property: Property): boolean {
-  return (
+  let important = (
     (property.important ||
       (property.required &&
         !property.deployTime &&
         !property.configurationDisabled &&
         !property.hidden)) ??
     false
-  );
+  )
+  if (important) {
+    return true;
+  }
+  for (const p of property.properties ?? []) {
+    if (isPropertyPromoted(p)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 export function resourceProperties(
@@ -318,16 +327,17 @@ export function resourceProperties(
     ?.Nodes.find((n) => n.resourceId.equals(resourceId));
   // Look deep into the property for potentially nested important properties
   const promotedProp = (p: Property): Property | undefined => {
-    if (isPropertyPromoted(p)) {
-      return p;
+    const isPromoted = isPropertyPromoted(p)
+    if (!isPromoted) {
+      return undefined;
     }
     if (p.properties?.length) {
       const props = p.properties.filter(promotedProp);
       if (props.length > 0) {
-        return { ...p, properties: props };
+        p = { ...p, properties: props };
       }
     }
-    return undefined;
+    return p;
   };
   resNode?.vizMetadata?.children?.forEach((child) => {
     const childResType = resourceTypes.getResourceType(
