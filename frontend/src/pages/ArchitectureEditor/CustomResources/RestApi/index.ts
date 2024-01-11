@@ -1,15 +1,13 @@
 import type { CustomConfigMap } from "../../config/CustomConfigMappings";
+
+import { handleRoutesState, restApiFormStateBuilder } from "./FormState";
+import { restApiResourceTypeModifier } from "./ResourceTypes";
 import {
   apiIntegrationNodeModifier,
-  handleRoutesState,
   restApiCreationConstraintsModifier,
-  restApiFormStateBuilder,
-} from "./RestApiRouteConfig";
-import { restApiLayoutModifier } from "./LayoutModifier";
-import {
-  restApiResourceTypeModifier,
-  RestApiRouteConfig,
-} from "./ConfigCustomizer";
+} from "./Constraints";
+import { restApiLayoutModifier } from "./Visualization";
+import { RestApiRouteConfig } from "./Config";
 
 export const Config: CustomConfigMap = {
   "aws:rest_api": {

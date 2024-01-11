@@ -240,10 +240,11 @@ export function updateListenerRules(
         let existingPathPatternConditionIndex = -1;
         let existingMethodConditionIndex = -1;
         if (existingRule) {
-          existingPathPatternConditionIndex = existingRule.Conditions.findIndex(
-            (c: any) => c.PathPattern?.Values?.length,
-          );
-          existingMethodConditionIndex = existingRule.Conditions.findIndex(
+          existingPathPatternConditionIndex =
+            existingRule.Conditions?.findIndex(
+              (c: any) => c.PathPattern?.Values?.length,
+            );
+          existingMethodConditionIndex = existingRule.Conditions?.findIndex(
             (c: any) => c.HttpRequestMethod?.Values?.length,
           );
         }

@@ -1,21 +1,15 @@
-import { ConfigSection } from "../../../../components/config/ConfigSection";
-import { ListField } from "../../../../components/config/ListField";
 import type {
-  EnumProperty,
-  ListProperty,
-  Property,
-  ResourceProperty,
-  ResourceType,
-} from "../../../../shared/resources/ResourceTypes";
+  ListProperty} from "../../../../shared/resources/ResourceTypes";
 import {
   CollectionTypes,
+  type EnumProperty,
   PrimitiveTypes,
+  type Property,
+  type ResourceProperty,
+  type ResourceType,
 } from "../../../../shared/resources/ResourceTypes";
-import type { NodeId } from "../../../../shared/architecture/TopologyNode";
-import type { FC } from "react";
-import React from "react";
 
-const RoutesField: ListProperty = {
+export const RoutesField: ListProperty = {
   name: "Routes",
   qualifiedName: "Routes",
   type: CollectionTypes.List,
@@ -70,15 +64,3 @@ const RoutesField: ListProperty = {
 export function restApiResourceTypeModifier(type: ResourceType) {
   type.properties?.push(RoutesField);
 }
-
-export const RestApiRouteConfig: FC<{ configResource: NodeId }> = ({
-  configResource,
-}) => (
-  <ConfigSection id="Routes" title="Routes">
-    <ListField
-      configResource={configResource}
-      qualifiedFieldName={`${configResource}#Routes`}
-      field={RoutesField}
-    />
-  </ConfigSection>
-);

@@ -275,14 +275,27 @@ export function parseEnvironmentVersion(rawArchitecture: any): EnvironmentVersio
 }
 
 export function isPropertyPromoted(property: Property): boolean {
-  return (
-    property.important ||
-    (property.required && !property.deployTime && !property.configurationDisabled && !property.hidden)
-  ) ?? false;
+  let important = (
+    (property.important ||
+      (property.required &&
+        !property.deployTime &&
+        !property.configurationDisabled &&
+        !property.hidden)) ??
+    false
+  )
+  if (important) {
+    return true;
+  }
+  for (const p of property.properties ?? []) {
+    if (isPropertyPromoted(p)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 export function resourceProperties(
-  version: EnvironmentVersion,
+  environmentVersion: EnvironmentVersion,
   resourceTypes: ResourceTypeKB,
   resourceId: NodeId,
 ): Map<NodeId, Property[]> {
@@ -293,44 +306,47 @@ export function resourceProperties(
   const properties = new Map<NodeId, Property[]>();
   if (resType?.properties?.length) {
     // Filter out the properties which should not be shown
-    const props = resType.properties.filter(p => !p.deployTime && !p.configurationDisabled && !p.hidden);
+    const props = resType.properties.filter(
+      (p) => !p.deployTime && !p.configurationDisabled && !p.hidden,
+    );
     if (props.length > 0) {
       properties.set(resourceId, props);
     }
   }
-  const resNode = version.views.get(ArchitectureView.DataFlow)?.Nodes.find(n => n.resourceId.equals(resourceId));
+  const resNode = environmentVersion.views
+    .get(ArchitectureView.DataFlow)
+    ?.Nodes.find((n) => n.resourceId.equals(resourceId));
   // Look deep into the property for potentially nested important properties
   const promotedProp = (p: Property): Property | undefined => {
-    if (isPropertyPromoted(p)) {
-      return p;
+    const isPromoted = isPropertyPromoted(p)
+    if (!isPromoted) {
+      return undefined;
     }
     if (p.properties?.length) {
       const props = p.properties.filter(promotedProp);
       if (props.length > 0) {
-        return {...p, properties: props};
+        p = { ...p, properties: props };
       }
     }
-    return undefined;
-  }
+    return p;
+  };
   resNode?.vizMetadata?.children?.forEach((child) => {
     const childResType = resourceTypes.getResourceType(
       child.provider,
       child.type,
     );
     // Only pull up the important or required properties from children
-    const important = childResType?.properties?.reduce(
-      (acc: Property[], p) => {
+    const important =
+      childResType?.properties?.reduce((acc: Property[], p) => {
         const prop = promotedProp(p);
         if (prop) {
           acc.push(prop);
         }
         return acc;
-      },
-      [],
-    ) ?? [];
+      }, []) ?? [];
     if (important.length > 0) {
       properties.set(child, important);
     }
   });
   return properties;
-} 
+}
