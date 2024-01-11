@@ -632,7 +632,7 @@ function getModifiedFormFields(
     const resourceField = resourceFields.find(
       (field) => field.name === prop.replaceAll(/\[\d+]/g, ""),
     );
-    const qualifiedKey = parentKey ? `${parentKey}.${prop}` : prop;
+    const qualifiedKey = parentKey ? `${parentKey}.${prop}` : key;
     if (!resourceField) {
       return;
     }
@@ -663,13 +663,10 @@ function getModifiedFormFields(
           if (!item?.["key"] && !item?.["value"]) {
             return;
           }
-          modifiedFormFields.set(
-            `${configResource}#${qualifiedKey}[${index}]`,
-            {
-              key: fieldValue[index]?.["key"],
-              value: fieldValue[index]?.["value"],
-            },
-          );
+          modifiedFormFields.set(`${qualifiedKey}[${index}]`, {
+            key: fieldValue[index]?.["key"],
+            value: fieldValue[index]?.["value"],
+          });
         });
       }
     } else if (
@@ -699,16 +696,13 @@ function getModifiedFormFields(
           if (!item?.["value"]) {
             return;
           }
-          modifiedFormFields.set(
-            `${configResource}#${qualifiedKey}[${index}]`,
-            {
-              value: fieldValue[index]?.["value"],
-            },
-          );
+          modifiedFormFields.set(`${qualifiedKey}[${index}]`, {
+            value: fieldValue[index]?.["value"],
+          });
         });
       }
     } else {
-      modifiedFormFields.set(`${configResource}#${qualifiedKey}`, fieldValue);
+      modifiedFormFields.set(qualifiedKey, fieldValue);
     }
   });
   return modifiedFormFields;
