@@ -1,5 +1,4 @@
 import type { Node } from "reactflow";
-import type { Architecture } from "../../../../shared/architecture/Architecture";
 import type { Constraint } from "../../../../shared/architecture/Constraints";
 import {
   ApplicationConstraint,
@@ -15,10 +14,11 @@ import {
   getDownstreamListeners,
 } from "./Util";
 import { findChildProperty } from "../../../../components/config/ConfigField";
+import { type EnvironmentVersion } from "../../../../shared/architecture/EnvironmentVersion";
 
 export function loadBalancerCreationConstraintsModifier(
   node: Node,
-  architecture: Architecture,
+  environmentVersion: EnvironmentVersion,
   defaultConstraints: Constraint[],
 ) {
   const albId = node.data.resourceId;
@@ -30,7 +30,7 @@ export function loadBalancerCreationConstraintsModifier(
       "Type",
       "application",
     ),
-    ...addAlbListener(albId, architecture).constraints,
+    ...addAlbListener(albId, environmentVersion).constraints,
   ];
 
   return [...defaultConstraints, ...albConstraints];
@@ -38,7 +38,7 @@ export function loadBalancerCreationConstraintsModifier(
 
 export function addAlbListener(
   albId: NodeId,
-  architecture: Architecture,
+  environmentVersion: EnvironmentVersion,
 ): { listenerId: NodeId; constraints: Constraint[] } {
   const listenerId = new NodeId(
     "load_balancer_listener",
@@ -47,7 +47,7 @@ export function addAlbListener(
     "aws",
   );
   let i = 0;
-  while (architecture.resources?.has(listenerId.toString())) {
+  while (environmentVersion.resources?.has(listenerId.toString())) {
     listenerId.name = `${albId.name}-listener-${++i}`;
   }
   const rule = new NodeId(
@@ -89,12 +89,12 @@ export function addAlbListener(
 }
 
 export function removeExistingListeners(
-  architecture: Architecture,
+  environmentVersion: EnvironmentVersion,
   albId: NodeId,
 ): Constraint[] {
-  const existingListeners = getDownstreamListeners(architecture, albId);
+  const existingListeners = getDownstreamListeners(environmentVersion, albId);
   const constraints = existingListeners.map((listenerId) => {
-    const existingRules = getDownstreamListenerRules(listenerId, architecture);
+    const existingRules = getDownstreamListenerRules(listenerId, environmentVersion);
     const ruleConstraints = existingRules.map((rule) => {
       return new ApplicationConstraint(ConstraintOperator.Remove, rule.id);
     });
@@ -108,24 +108,24 @@ export function removeExistingListeners(
 
 export function convertAlbToNlb(
   albId: NodeId,
-  architecture: Architecture,
+  environmentVersion: EnvironmentVersion,
 ): Constraint[] {
   return [
     new ResourceConstraint(ConstraintOperator.Equals, albId, "Type", "network"),
-    ...removeExistingListeners(architecture, albId),
+    ...removeExistingListeners(environmentVersion, albId),
   ];
 }
 
 export function convertNlbToAlb(
   albId: NodeId,
-  architecture: Architecture,
+  environmentVersion: EnvironmentVersion,
 ): Constraint[] {
   const { constraints: newAlbListenerConstraints } = addAlbListener(
     albId,
-    architecture,
+    environmentVersion,
   );
   const removeExistingListenerConstraints = removeExistingListeners(
-    architecture,
+    environmentVersion,
     albId,
   );
 
@@ -167,7 +167,7 @@ export function updateListenerRules(
   defaultValues: any,
   submittedValues: any,
   modifiedValues: Map<string, any>,
-  architecture: Architecture,
+  environmentVersion: EnvironmentVersion,
 ): Constraint[] {
   const submittedRules = findChildProperty(
     submittedValues,
@@ -200,13 +200,13 @@ export function updateListenerRules(
 
         let ruleId = submittedRule.id;
         const existingRule = ruleId
-          ? architecture.resources?.get(ruleId.toString())
+          ? environmentVersion.resources?.get(ruleId.toString())
           : undefined;
 
         // add new Rule if it doesn't exist
         if (!existingRule) {
           const listenerId = getDownstreamListener(
-            architecture,
+            environmentVersion,
             loadBalancerId,
           );
 
@@ -217,7 +217,7 @@ export function updateListenerRules(
             "aws",
           );
           let j = i;
-          while (architecture.resources?.has(ruleId.toString())) {
+          while (environmentVersion.resources?.has(ruleId.toString())) {
             ruleId = new NodeId(
               "load_balancer_listener_rule",
               listenerId.name,
@@ -300,7 +300,7 @@ export function updateListenerRules(
         const priority = (
           (i === 0
             ? 0
-            : architecture.resources.get(submittedRules[i - 1].id?.toString())
+            : environmentVersion.resources.get(submittedRules[i - 1].id?.toString())
                 ?.Priority ?? i) + 1
         ).toString();
         if (!existingRule?.Priority || priority !== existingRule.Priority) {
@@ -321,16 +321,16 @@ export function updateListenerRules(
 
 export function updateListener(
   resourceId: NodeId,
-  architecture: Architecture,
+  environmentVersion: EnvironmentVersion,
   modifiedValues: Map<string, any>,
 ): Constraint[] {
   let listenerConstraints: Constraint[] = [];
-  let listenerId = getDownstreamListener(architecture, resourceId);
+  let listenerId = getDownstreamListener(environmentVersion, resourceId);
   const existingListener = listenerId
-    ? architecture.resources?.get(listenerId.toString())
+    ? environmentVersion.resources?.get(listenerId.toString())
     : undefined;
   if (!existingListener) {
-    const listener = addAlbListener(resourceId, architecture);
+    const listener = addAlbListener(resourceId, environmentVersion);
     listenerId = listener.listenerId;
     listenerConstraints = listener.constraints;
   }
