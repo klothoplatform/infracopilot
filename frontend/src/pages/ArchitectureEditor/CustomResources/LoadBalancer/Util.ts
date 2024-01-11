@@ -1,12 +1,12 @@
-import type { Architecture } from "../../../../shared/architecture/Architecture";
+import { type EnvironmentVersion } from "../../../../shared/architecture/EnvironmentVersion";
 import type { NodeId } from "../../../../shared/architecture/TopologyNode";
 import { ApplicationError } from "../../../../shared/errors";
 
 export function getDownstreamListener(
-  architecture: Architecture,
+  environmentVersion: EnvironmentVersion,
   resourceId: NodeId,
 ) {
-  const downstreamListeners = architecture.edges.filter(
+  const downstreamListeners = environmentVersion.edges.filter(
     (e) =>
       e.source.equals(resourceId) &&
       e.destination.qualifiedType === "aws:load_balancer_listener",
@@ -21,10 +21,10 @@ export function getDownstreamListener(
 }
 
 export function getDownstreamListeners(
-  architecture: Architecture,
+  environmentVersion: EnvironmentVersion,
   resourceId: NodeId,
 ) {
-  return architecture.edges
+  return environmentVersion.edges
     .filter(
       (e) =>
         e.source.equals(resourceId) &&
@@ -35,10 +35,10 @@ export function getDownstreamListeners(
 
 export function getDownstreamListenerRules(
   listenerId: NodeId,
-  architecture: Architecture,
+  environmentVersion: EnvironmentVersion,
 ) {
   const downstreamRules = listenerId
-    ? architecture.edges
+    ? environmentVersion.edges
         .filter(
           (e) =>
             e.source.equals(listenerId) &&
@@ -48,7 +48,7 @@ export function getDownstreamListenerRules(
     : [];
 
   const rules = downstreamRules
-    .map((ruleId) => architecture.resources?.get(ruleId.toString()))
+    .map((ruleId) => environmentVersion.resources?.get(ruleId.toString()))
     .filter((r) => r?.Listener === listenerId.toString());
   return rules;
 }

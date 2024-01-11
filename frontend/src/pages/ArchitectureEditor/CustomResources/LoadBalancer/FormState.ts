@@ -1,4 +1,3 @@
-import type { Architecture } from "../../../../shared/architecture/Architecture";
 import type { Constraint } from "../../../../shared/architecture/Constraints";
 import {
   convertAlbToNlb,
@@ -10,24 +9,25 @@ import {
 import { getDownstreamListener, getDownstreamListenerRules } from "./Util";
 import { ApplicationError } from "../../../../shared/errors";
 import type { NodeId } from "../../../../shared/architecture/TopologyNode";
+import { type EnvironmentVersion } from "../../../../shared/architecture/EnvironmentVersion";
 
 export function loadBalancerFormStateBuilder(
   resourceId: NodeId,
-  architecture: Architecture,
+  environmentVersion: EnvironmentVersion,
 ) {
-  const lb = architecture.resources?.get(resourceId.toString());
+  const lb = environmentVersion.resources?.get(resourceId.toString());
   if (!lb) {
     return {};
   }
   if (lb.Type !== "application") {
     return {}; // this is an NLB
   }
-  const listenerId = getDownstreamListener(architecture, resourceId);
+  const listenerId = getDownstreamListener(environmentVersion, resourceId);
   if (!listenerId) {
     return {};
   }
-  const rules = getDownstreamListenerRules(listenerId, architecture);
-  const listener = architecture.resources?.get(listenerId.toString());
+  const rules = getDownstreamListenerRules(listenerId, environmentVersion);
+  const listener = environmentVersion.resources?.get(listenerId.toString());
   const formValues: any = {
     Protocol: listener?.Protocol,
     Port: listener?.Port,
@@ -64,7 +64,7 @@ export function handleLBTypeFormState(
   defaultValues: any,
   modifiedValues: Map<string, any>,
   resourceId: NodeId,
-  architecture: Architecture,
+  environmentVersion: EnvironmentVersion,
 ): Constraint[] {
   modifiedValues = new Map(
     [...modifiedValues].map(([k, v]) => [k.replace(/^[^#]*#/, ""), v]),
@@ -74,10 +74,10 @@ export function handleLBTypeFormState(
   if (modifiedValues.has("Type")) {
     switch (modifiedValues.get("Type")) {
       case "network":
-        constraints.push(...convertAlbToNlb(resourceId, architecture));
+        constraints.push(...convertAlbToNlb(resourceId, environmentVersion));
         break;
       case "application":
-        constraints.push(...convertNlbToAlb(resourceId, architecture));
+        constraints.push(...convertNlbToAlb(resourceId, environmentVersion));
         break;
       default:
         throw new ApplicationError({
@@ -94,7 +94,7 @@ export function handleAlbListenerFormState(
   defaultValues: any,
   modifiedValues: Map<string, any>,
   resourceId: NodeId,
-  architecture: Architecture,
+  environmentVersion: EnvironmentVersion,
 ): Constraint[] {
   modifiedValues = new Map(
     [...modifiedValues].map(([k, v]) => [k.replace(/^[^#]*#/, ""), v]),
@@ -105,7 +105,7 @@ export function handleAlbListenerFormState(
     return constraints;
   }
 
-  constraints.push(...updateListener(resourceId, architecture, modifiedValues));
+  constraints.push(...updateListener(resourceId, environmentVersion, modifiedValues));
 
   constraints.push(
     ...updateListenerRules(
@@ -113,7 +113,7 @@ export function handleAlbListenerFormState(
       defaultValues,
       submittedValues,
       modifiedValues,
-      architecture,
+      environmentVersion,
     ),
   );
   constraints.push(

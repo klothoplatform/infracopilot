@@ -6,11 +6,11 @@ import {
 } from "../../../../shared/reactflow/AutoLayout";
 import { NodeId } from "../../../../shared/architecture/TopologyNode";
 import type { Node } from "reactflow";
-import type { Architecture } from "../../../../shared/architecture/Architecture";
 import { NodeType } from "../../../../shared/reactflow/NodeTypes";
+import { type EnvironmentVersion } from "../../../../shared/architecture/EnvironmentVersion";
 
 export const loadBalancerLayoutModifier: LayoutModifier = ({
-  architecture,
+  environmentVersion,
   elkGraph,
   reactFlow: { nodes, edges },
 }) => {
@@ -20,7 +20,7 @@ export const loadBalancerLayoutModifier: LayoutModifier = ({
     .filter(
       (node) =>
         NodeId.fromTopologyId(node.id).qualifiedType === "aws:load_balancer" &&
-        architecture.resources.get(node.id)?.Type === "application",
+        environmentVersion.resources.get(node.id)?.Type === "application",
     )
     .forEach((alb) => {
       alb.layoutOptions = {
@@ -94,7 +94,7 @@ export const loadBalancerLayoutModifier: LayoutModifier = ({
     });
 };
 
-export function LBNodeModifier(node: Node, architecture: Architecture) {
+export function LBNodeModifier(node: Node, environmentVersion: EnvironmentVersion) {
   // don't show nlbs as groups right now
   if (node.data?.resource?.Type === "network") {
     node.type = NodeType.Resource;
@@ -103,10 +103,10 @@ export function LBNodeModifier(node: Node, architecture: Architecture) {
 
 export function AlbListenerRuleNodeModifier(
   node: Node,
-  architecture: Architecture,
+  environmentVersion: EnvironmentVersion,
 ) {
   let vizMetadata = node.data.vizMetadata;
-  const resource = architecture.resources?.get(node.data.resourceId.toString());
+  const resource = environmentVersion.resources?.get(node.data.resourceId.toString());
 
   if (!resource) {
     return;
