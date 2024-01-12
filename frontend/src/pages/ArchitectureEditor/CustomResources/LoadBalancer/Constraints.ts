@@ -84,6 +84,13 @@ export function addAlbListener(
       new ResourceConstraint(ConstraintOperator.Equals, rule, "Tags", {
         Name: "default-rule",
       }),
+      new ResourceConstraint(ConstraintOperator.Equals, rule, "Conditions", [
+        {
+          PathPattern: {
+            Values: ["/*"],
+          },
+        },
+      ]),
     ],
   };
 }
