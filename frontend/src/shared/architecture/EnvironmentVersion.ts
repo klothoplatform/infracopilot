@@ -78,11 +78,11 @@ export interface EnvironmentVersion {
  * to ensure that groups are rendered before their children.
  */
 function getNodesFromGraph(
-    architecture: EnvironmentVersion,
+    environmentVersion: EnvironmentVersion,
     resourceTypes: ResourceTypeKB,
     view: ArchitectureView,
   ): Node[] {
-    const topology = architecture.views?.get(view);
+    const topology = environmentVersion.views?.get(view);
     if (!topology) {
       return [];
     }
@@ -98,6 +98,7 @@ function getNodesFromGraph(
             : node.resourceId.name,
           resourceId: node.resourceId,
           vizMetadata: node.vizMetadata,
+          resource: environmentVersion.resources.get(node.id),
         },
         type: resolveNodeType(node, resourceTypes, view),
         parentNode: topology.Nodes.find((n) =>
@@ -110,7 +111,7 @@ function getNodesFromGraph(
       (node: Node) =>
         customConfigMappings[node.data.resourceId.qualifiedType]?.nodeModifier?.(
           node,
-          architecture,
+          environmentVersion,
         ),
     );
     return rfNodes;
@@ -202,47 +203,50 @@ function getEdgesFromGraph(graph: TopologyGraph): Edge[] {
   }
   
   
-export function parseEnvironmentVersion(rawArchitecture: any): EnvironmentVersion {
-  console.log("rawArchitecture: ", rawArchitecture);
-  if (!isObject(rawArchitecture)) {
+export function parseEnvironmentVersion(rawEnvVersion: any): EnvironmentVersion {
+  console.log("rawEnvVersion: ", rawEnvVersion);
+  if (!isObject(rawEnvVersion)) {
     throw new ApplicationError({
       errorId: "ParseEnvironmentVersion",
-      message: "Architecture state is invalid.",
+      message: "EnvironmentVersion state is invalid.",
       data: {
-        rawArchitecture,
+        rawEnvVersion,
       },
     });
   }
 
   try {
-    const architecture: EnvironmentVersion = {
-      provider: rawArchitecture.provider,
-      id: rawArchitecture.id,
-      architecture_id: rawArchitecture.architecture_id,
+    const environmentVersion: EnvironmentVersion = {
+      provider: rawEnvVersion.provider,
+      id: rawEnvVersion.id,
+      architecture_id: rawEnvVersion.architecture_id,
       raw_state: {
-        resources_yaml: rawArchitecture.state?.resources_yaml,
-        topology_yaml: rawArchitecture.state?.topology_yaml,
+        resources_yaml: rawEnvVersion.state?.resources_yaml,
+        topology_yaml: rawEnvVersion.state?.topology_yaml,
       },
-      version: rawArchitecture.version,
+      version: rawEnvVersion.version,
       resources: new Map<string, any>(),
       edges: [],
       views: new Map<ArchitectureView, TopologyGraph>(),
-      config_errors: rawArchitecture.config_errors,
+      config_errors: rawEnvVersion.config_errors?.map((error: any) => ({
+        ...error,
+        resource: error.resource ? NodeId.parse(error.resource) : undefined,
+      })),
     };
 
-    if (rawArchitecture.state?.topology_yaml) {
-      architecture.views.set(
+    if (rawEnvVersion.state?.topology_yaml) {
+      environmentVersion.views.set(
         ArchitectureView.DataFlow,
         TopologyGraph.parse(
-          (rawArchitecture.state?.topology_yaml as string) ?? "",
+          (rawEnvVersion.state?.topology_yaml as string) ?? "",
         ),
       );
     }
 
-    if (rawArchitecture.state?.resources_yaml) {
-      const parsedState = yaml.parse(rawArchitecture.state?.resources_yaml);
+    if (rawEnvVersion.state?.resources_yaml) {
+      const parsedState = yaml.parse(rawEnvVersion.state?.resources_yaml);
       if (parsedState?.resources) {
-        architecture.resources = new Map<string, any>(
+        environmentVersion.resources = new Map<string, any>(
           Object.keys(parsedState.resources).map((id) => [
             id,
             { ...parsedState.resources[id], id: NodeId.parse(id) },
@@ -250,7 +254,7 @@ export function parseEnvironmentVersion(rawArchitecture: any): EnvironmentVersio
         );
       }
       if (parsedState?.edges) {
-        architecture.edges = Object.keys(parsedState.edges).map((key) => {
+        environmentVersion.edges = Object.keys(parsedState.edges).map((key) => {
           const [source, destination] = key.split("->").map((id) => id.trim());
           return {
             source: NodeId.parse(source),
@@ -260,15 +264,15 @@ export function parseEnvironmentVersion(rawArchitecture: any): EnvironmentVersio
         });
       }
     }
-    console.log("environmentVersion: ", architecture);
-    return architecture;
+    console.log("environmentVersion: ", environmentVersion);
+    return environmentVersion;
   } catch (e: any) {
     throw new ApplicationError({
       errorId: "ParseEnvironmentVersion",
       message: "An error occurred during environment version parsing.",
       cause: e,
       data: {
-        rawArchitecture,
+        rawArchitecture: rawEnvVersion,
       },
     });
   }
