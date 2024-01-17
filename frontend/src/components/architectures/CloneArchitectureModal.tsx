@@ -82,9 +82,9 @@ export default function CloneArchitectureModal({
       message: "Name must be at most 80 characters long",
     },
     pattern: {
-      value: /^[a-zA-Z0-9-_]+$/,
+      value: /^[a-zA-Z0-9-_ ]+$/,
       message:
-        "Name must only contain alphanumeric characters, dashes and underscores",
+        "Name must only contain alphanumeric characters, spaces, dashes and underscores",
     },
     onChange: async () => {
       await trigger("name");

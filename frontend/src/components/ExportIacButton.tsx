@@ -6,9 +6,11 @@ import { Button } from "flowbite-react";
 import { AiOutlineLoading } from "react-icons/ai";
 import { TbFileExport } from "react-icons/tb";
 import { ApplicationError, UIError } from "../shared/errors";
+import { Tooltip } from "./Tooltip";
 
 interface ExportIacButtonProps {
   disabled?: boolean;
+  small: boolean;
 }
 
 export const ExportIacButton: FC<ExportIacButtonProps> = (
@@ -49,16 +51,18 @@ export const ExportIacButton: FC<ExportIacButtonProps> = (
   };
 
   return (
-    <Button
-      color={"purple"}
-      className="flex"
-      onClick={onClickExportIac}
-      isProcessing={isExporting}
-      disabled={props.disabled || !environmentVersion?.resources?.size}
-      processingSpinner={<AiOutlineLoading className="animate-spin" />}
-    >
-      {!isExporting && <TbFileExport className="mr-1" />}
-      <p>{isExporting ? "Exporting..." : "Export IaC"}</p>
-    </Button>
+    <Tooltip content="Export IaC" disabled={!props.small}>
+      <Button
+        color={"purple"}
+        className="flex"
+        onClick={onClickExportIac}
+        isProcessing={isExporting}
+        disabled={props.disabled || !environmentVersion?.resources?.size}
+        processingSpinner={<AiOutlineLoading className="animate-spin" />}
+      >
+        {!isExporting && <TbFileExport className="mr-1" />}
+        {!props.small && <p>{isExporting ? "Exporting..." : "Export IaC"}</p>}
+      </Button>
+    </Tooltip>
   );
 };

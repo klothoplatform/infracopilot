@@ -74,11 +74,11 @@ export function getDownstreamResources(
  * to ensure that groups are rendered before their children.
  */
 function getNodesFromGraph(
-    environmentVersion: EnvironmentVersion,
+  environmentVersion: EnvironmentVersion,
   resourceTypes: ResourceTypeKB,
   view: ArchitectureView,
 ): Node[] {
-    const topology = environmentVersion.views?.get(view);
+  const topology = environmentVersion.views?.get(view);
   if (!topology) {
     return [];
   }
@@ -94,7 +94,7 @@ function getNodesFromGraph(
           : node.resourceId.name,
         resourceId: node.resourceId,
         vizMetadata: node.vizMetadata,
-          resource: environmentVersion.resources.get(node.id),
+        resource: environmentVersion.resources.get(node.id),
       },
       type: resolveNodeType(node, resourceTypes, view),
       parentNode: topology.Nodes.find((n) =>
@@ -107,7 +107,7 @@ function getNodesFromGraph(
     (node: Node) =>
       customConfigMappings[node.data.resourceId.qualifiedType]?.nodeModifier?.(
         node,
-          environmentVersion,
+        environmentVersion,
       ),
   );
   return rfNodes;
