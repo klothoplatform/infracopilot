@@ -22,9 +22,11 @@ function AdditionalResources() {
 
     let connectedNodes: NodeId[] = [];
     if (selectedResource !== undefined) {
-      connectedNodes = environmentVersion.views.get(ArchitectureView.DataFlow)
-        ?.Nodes.find(n => n.resourceId === selectedResource)
-        ?.vizMetadata.children ?? [];
+      connectedNodes =
+        environmentVersion.views
+          .get(ArchitectureView.DataFlow)
+          ?.Nodes.find((n) => n.resourceId === selectedResource)?.vizMetadata
+          .children ?? [];
     } else {
       edges
         .filter((edge) => edge.id === selectedEdge)

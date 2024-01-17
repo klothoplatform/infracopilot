@@ -2,8 +2,6 @@ import type { Edge, Node } from "reactflow";
 import { type NodeId } from "./TopologyNode";
 import { ApplicationError } from "../errors";
 import { isObject } from "../object-util";
-import { type EnvironmentVersion } from "./EnvironmentVersion";
-import { arch } from "os";
 
 export enum ArchitectureView {
   DataFlow = "dataflow",
@@ -63,5 +61,3 @@ export function parseArchitecture(data: any): Architecture {
   };
   return architecture;
 }
-  
-

@@ -34,7 +34,11 @@ import { ErrorBoundary } from "react-error-boundary";
 import { FallbackRenderer } from "../FallbackRenderer";
 import { ApplicationError, UIError } from "../../shared/errors";
 import { ConfigSection } from "../config/ConfigSection";
-import { type EnvironmentVersion, isPropertyPromoted, resourceProperties } from "../../shared/architecture/EnvironmentVersion";
+import {
+  type EnvironmentVersion,
+  isPropertyPromoted,
+  resourceProperties,
+} from "../../shared/architecture/EnvironmentVersion";
 
 export default function ConfigForm() {
   const {
@@ -61,7 +65,11 @@ export default function ConfigForm() {
       );
       setResourceType(resourceType);
 
-      const allProperties = resourceProperties(environmentVersion, resourceTypeKB, selectedResource);
+      const allProperties = resourceProperties(
+        environmentVersion,
+        resourceTypeKB,
+        selectedResource,
+      );
       const promotedProperties = new Map<string, Property[]>();
       for (const [resourceId, properties] of allProperties) {
         const promotedProps = properties.filter((p) => isPropertyPromoted(p));
@@ -88,11 +96,7 @@ export default function ConfigForm() {
       setPromotedProperties(promotedProperties);
       setRemainingProperties(remainingProperties);
     }
-  }, [
-    selectedResource,
-    environmentVersion,
-    resourceTypeKB,
-  ])
+  }, [selectedResource, environmentVersion, resourceTypeKB]);
 
   const methods = useForm({
     shouldFocusError: true,
@@ -294,9 +298,10 @@ export default function ConfigForm() {
                 { ...defaultValues },
                 modifiedFormFields,
                 environmentVersion,
-              ));
-            }
-            constraints.push(...resConstraints);
+              ),
+            );
+          }
+          constraints.push(...resConstraints);
         }
       } catch (e: any) {
         console.error(e);

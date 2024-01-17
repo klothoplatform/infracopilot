@@ -80,7 +80,9 @@ export function createAddRouteConstraints(
     .map((e) => e.destination);
   // a route is a combination of an integration + its upstream method
   const existingRoutes = existingIntegrations.map((integrationId) => {
-    const integration = environmentVersion.resources.get(integrationId.toString());
+    const integration = environmentVersion.resources.get(
+      integrationId.toString(),
+    );
     const methodId = integration?.Method;
     const method = environmentVersion.resources.get(methodId)?.HttpMethod;
     const route = integration?.Route;
@@ -165,7 +167,9 @@ export function apiIntegrationNodeModifier(
   environmentVersion: EnvironmentVersion,
 ) {
   let routeInfo = { method: "UNKNOWN", path: "UNKNOWN" };
-  const resource = environmentVersion.resources?.get(node.data.resourceId.toString());
+  const resource = environmentVersion.resources?.get(
+    node.data.resourceId.toString(),
+  );
   if (!resource) {
     node.data.resourceMeta = routeInfo;
     return;

@@ -3,7 +3,10 @@ import { formatConstraints } from "../shared/architecture/Constraints";
 import axios from "axios";
 import { ApiError } from "../shared/errors";
 import { trackError } from "../pages/store/ErrorStore";
-import { type EnvironmentVersion, parseEnvironmentVersion } from "../shared/architecture/EnvironmentVersion";
+import {
+  type EnvironmentVersion,
+  parseEnvironmentVersion,
+} from "../shared/architecture/EnvironmentVersion";
 
 export enum ApplyConstraintsErrorType {
   ConfigValidation = "ConfigValidation",
