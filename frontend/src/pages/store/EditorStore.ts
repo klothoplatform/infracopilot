@@ -72,6 +72,10 @@ import {
 } from "../../shared/architecture/EnvironmentVersion";
 import { getArchitecture } from "../../api/GetArchitecture";
 import { env } from "../../shared/environment";
+import type { UpdateArchitectureAccessRequest } from "../../api/UpdateArchitectureAccess";
+import { updateArchitectureAccess } from "../../api/UpdateArchitectureAccess";
+import { getArchitectureAccess } from "../../api/GetArchitectureAccess";
+import type { ArchitectureAccess } from "../../shared/architecture/Access";
 
 interface EditorStoreState {
   architecture: Architecture;
@@ -112,10 +116,12 @@ interface EditorStoreState {
   selectedNode?: string;
   selectedResource?: NodeId;
   unappliedConstraints: Constraint[];
+  architectureAccess?: ArchitectureAccess;
 }
 
 const initialState: () => EditorStoreState = () => ({
   architecture: {} as Architecture,
+  architectureAccess: undefined,
   nodes: [],
   edges: [],
   decisions: [],
@@ -198,6 +204,13 @@ interface EditorStoreActions {
   resetEditorState: (newState?: Partial<EditorStoreState>) => void;
   selectEdge: (edgeId: string) => void;
   setIsEditorInitialized: (isEditorInitialized: boolean) => void;
+  updateArchitectureAccess: (
+    request: UpdateArchitectureAccessRequest,
+  ) => Promise<void>;
+  getArchitectureAccess: (
+    architectureId: string,
+    summarized?: boolean,
+  ) => Promise<ArchitectureAccess>;
   renameArchitecture: (newName: string) => Promise<void>;
   updateEdgeTargets: (sources?: NodeId[]) => Promise<void>;
   navigateBackRightSidebar: () => void;
@@ -1344,5 +1357,26 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
         nextState: undefined,
       });
     }
+  },
+  updateArchitectureAccess: async (
+    request: UpdateArchitectureAccessRequest,
+  ) => {
+    const idToken = await get().getIdToken();
+    await updateArchitectureAccess(request, idToken);
+    const access = await get().getArchitectureAccess(request.architectureId);
+    set(
+      {
+        architectureAccess: access,
+      },
+      false,
+      "editor/updateArchitectureAccess",
+    );
+  },
+  getArchitectureAccess: async (
+    architectureId: string,
+    summarized?: boolean,
+  ) => {
+    const idToken = await get().getIdToken();
+    return await getArchitectureAccess({ architectureId, summarized }, idToken);
   },
 });

@@ -2,17 +2,19 @@ import { type FC, useState } from "react";
 import { Button } from "flowbite-react";
 import { FaFileCirclePlus } from "react-icons/fa6";
 import NewArchitectureModal from "./NewArchitectureModal";
+import { Tooltip } from "./Tooltip";
 
 interface NewArchitectureButtonProps {
   disabled?: boolean;
   onClick?: () => void;
+  small: boolean;
 }
 
 const NewArchitectureButton: FC<NewArchitectureButtonProps> = (
   props: NewArchitectureButtonProps,
 ) => {
   return (
-    <div className="flex">
+    <Tooltip content="New Architecture" disabled={!props.small}>
       <Button
         color={"purple"}
         className="mr-2 flex gap-1"
@@ -20,14 +22,15 @@ const NewArchitectureButton: FC<NewArchitectureButtonProps> = (
         disabled={props.disabled}
       >
         <FaFileCirclePlus className="mr-1" />
-        <p>New Architecture</p>
+        {!props.small && <p>New Architecture</p>}
       </Button>
-    </div>
+    </Tooltip>
   );
 };
 
 interface ArchitectureButtonAndModalProps {
   disabled?: boolean;
+  small: boolean;
 }
 
 export const ArchitectureButtonAndModal: FC<ArchitectureButtonAndModalProps> = (
@@ -42,6 +45,7 @@ export const ArchitectureButtonAndModal: FC<ArchitectureButtonAndModalProps> = (
           setShowCreateArchitectureModal(true);
         }}
         disabled={props.disabled}
+        small={props.small}
       />
       <NewArchitectureModal
         onClose={() => {
