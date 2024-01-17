@@ -1,41 +1,32 @@
 import json
+import os
 from typing import List
+
 import openfga_sdk
-from openfga_sdk.client import OpenFgaClient
-from openfga_sdk.models.create_store_request import CreateStoreRequest
-from openfga_sdk.client.models.tuple import ClientTuple
 from openfga_sdk.client import OpenFgaClient, ClientCheckRequest, ClientConfiguration
-from openfga_sdk.models.list_stores_response import ListStoresResponse
-from openfga_sdk.models.store import Store
-from openfga_sdk.models.tuple_change import TupleChange
-from openfga_sdk.models.read_changes_response import ReadChangesResponse
-from openfga_sdk.models.read_response import ReadResponse
-from openfga_sdk.models.tuple_key import TupleKey
-from openfga_sdk.models.tuple import Tuple
+from openfga_sdk.client.models.expand_request import ClientExpandRequest
+from openfga_sdk.client.models.list_objects_request import ClientListObjectsRequest
+from openfga_sdk.client.models.list_relations_request import ClientListRelationsRequest
+from openfga_sdk.client.models.tuple import ClientTuple
 from openfga_sdk.client.models.write_response import ClientWriteResponse
+from openfga_sdk.models.authorization_model import AuthorizationModel
+from openfga_sdk.models.create_store_request import CreateStoreRequest
+from openfga_sdk.models.create_store_response import CreateStoreResponse
+from openfga_sdk.models.expand_response import ExpandResponse
+from openfga_sdk.models.list_objects_response import ListObjectsResponse
+from openfga_sdk.models.list_stores_response import ListStoresResponse
 from openfga_sdk.models.read_authorization_model_response import (
     ReadAuthorizationModelResponse,
 )
-from openfga_sdk.models.authorization_model import AuthorizationModel
-from openfga_sdk.client.models.expand_request import ClientExpandRequest
-from openfga_sdk.models.expand_response import ExpandResponse
-from openfga_sdk.client.models.list_objects_request import ClientListObjectsRequest
-from openfga_sdk.models.list_objects_response import ListObjectsResponse
-from openfga_sdk.client.models.list_relations_request import ClientListRelationsRequest
-from openfga_sdk.models.create_store_response import CreateStoreResponse
+from openfga_sdk.models.read_changes_response import ReadChangesResponse
+from openfga_sdk.models.read_response import ReadResponse
+from openfga_sdk.models.store import Store
+from openfga_sdk.models.tuple import Tuple
+from openfga_sdk.models.tuple_change import TupleChange
+from openfga_sdk.models.tuple_key import TupleKey
 from openfga_sdk.models.write_authorization_model_response import (
     WriteAuthorizationModelResponse,
 )
-import os
-import openfga_sdk
-from openfga_sdk.client import OpenFgaClient
-from openfga_sdk.models.create_store_request import CreateStoreRequest
-from openfga_sdk.client.models.tuple import ClientTuple
-from openfga_sdk.client import OpenFgaClient, ClientCheckRequest, ClientConfiguration
-from openfga_sdk.models.list_stores_response import ListStoresResponse
-from openfga_sdk.models.store import Store
-
-from typing import List
 
 
 class AuthModelNotFoundException(Exception):

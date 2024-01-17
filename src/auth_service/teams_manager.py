@@ -22,7 +22,7 @@ from openfga_sdk.models.userset import Userset
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.auth_service.teams_dao import TeamDoesNotExistError, TeamsDAO
+from src.auth_service.teams_dao import ArchitectureDoesNotExistError, TeamsDAO
 from src.util.logging import logger
 
 
@@ -93,7 +93,9 @@ class TeamsManager:
         for team in team_ids:
             if team not in [l.id for l in t]:
                 logger.error(f"Team, {team}, is not in datastore")
-                raise TeamDoesNotExistError(f"Team, {team}, is not in datastore")
+                raise ArchitectureDoesNotExistError(
+                    f"Team, {team}, is not in datastore"
+                )
 
         logger.info(f"Successfully got teams for user, {user.id}: {t}")
         return t
@@ -152,6 +154,30 @@ class TeamsManager:
         await self.set_team_organization(new_team, org)
         await self.add_team_admin(new_team, user)
         return new_team
+
+    async def get_team(self, team_id: str) -> Team:
+        """
+        Get a team by id.
+
+        Args:
+            team_id (str): The id of the team to get.
+
+        Returns:
+            Team: The team with the given id.
+        """
+        return await self._dao.get_team(team_id)
+
+    async def batch_get_teams(self, team_ids: List[str]) -> List[Team]:
+        """
+        Get a list of teams by id.
+
+        Args:
+            team_ids (List[str]): The ids of the teams to get.
+
+        Returns:
+            List[Team]: The teams with the given ids.
+        """
+        return await self._dao.batch_get_teams(team_ids)
 
     async def get_team_members(self, team: Team) -> List[User]:
         """

@@ -7,7 +7,7 @@ from src.util.logging import logger
 from sqlalchemy.orm import Mapped, mapped_column
 
 
-class TeamDoesNotExistError(Exception):
+class ArchitectureDoesNotExistError(Exception):
     pass
 
 
@@ -44,8 +44,8 @@ class TeamsDAO:
             teams.append(
                 Team.with_org(
                     id=model.id,
-                    organization=Organization(id=model.organization_id),
                     name=model.name,
+                    organization=Organization(id=model.organization_id),
                 )
             )
         return teams

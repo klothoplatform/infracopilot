@@ -54,6 +54,10 @@ class ListTeamsResponse(BaseModel):
     teams: list[Team]
 
 
+class ListTeamMembersResponse(BaseModel):
+    members: list[User]
+
+
 @router.get("/api/teams")
 async def list_teams(
     request: Request, db: AsyncSession = Depends(get_db)
@@ -119,3 +123,31 @@ async def list_teams_for_org(
         )
     teams = await teams_manager.list_teams_for_org(org.id)
     return ListTeamsResponse(teams=teams)
+
+
+@router.get("/api/my-org/members")
+async def list_org_members(
+    request: Request, db: AsyncSession = Depends(get_db)
+) -> ListTeamMembersResponse:
+    user_id = get_user_id(request)
+    if user_id == PUBLIC_USER:
+        raise AuthError(
+            detail=f"User {user_id} is not authorized to list team members",
+            error={
+                "code": "unauthorized",
+                "description": f"User is not authorized to list team members",
+            },
+        )
+    user = User(user_id)
+    teams_manager: TeamsManager = await get_teams_manager(db)
+    org = await teams_manager.get_users_organization(user)
+    if org is None:
+        raise AuthError(
+            detail=f"User {user_id} is not authorized to list team members",
+            error={
+                "code": "unauthorized",
+                "description": f"User is not authorized to list team members",
+            },
+        )
+    members = await teams_manager.get_org_members(org)
+    return ListTeamMembersResponse(members=members)

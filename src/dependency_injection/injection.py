@@ -6,10 +6,24 @@ from src.engine_service.binaries.fetcher import BinaryStorage
 from src.environment_management.environment_version import EnvironmentVersionDAO
 from src.environment_management.environment import EnvironmentDAO
 from src.environment_management.architecture import ArchitectureDAO
+
+import boto3
+from openfga_sdk import ClientConfiguration
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+
+from src.auth_service.auth0_manager import Auth0Manager, Configuration
+from src.auth_service.fga_manager import FGAManager
+from src.auth_service.main import AuthzService
+from src.auth_service.sharing_manager import SharingManager
+from src.auth_service.teams_dao import TeamsDAO
+from src.auth_service.teams_manager import TeamsManager
 from src.backend_orchestrator.architecture_handler import ArchitectureHandler
+from src.backend_orchestrator.get_valid_edge_targets_handler import EdgeTargetHandler
 from src.backend_orchestrator.iac_handler import IaCOrchestrator
 from src.backend_orchestrator.run_engine_handler import EngineOrchestrator
-from src.backend_orchestrator.get_valid_edge_targets_handler import EdgeTargetHandler
+from src.environment_management.architecture import ArchitectureDAO
+from src.environment_management.environment import EnvironmentDAO
+from src.environment_management.environment_version import EnvironmentVersionDAO
 from src.environment_management.models import ModelsBase
 from src.auth_service.main import AuthzService
 from src.auth_service.fga_manager import FGAManager
@@ -18,11 +32,12 @@ import boto3
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from openfga_sdk import ClientConfiguration
 from openfga_sdk.credentials import Credentials, CredentialConfiguration
+from src.state_manager.architecture_storage import ArchitectureStorage
 from src.util.secrets import (
     get_fga_secret,
     get_fga_client,
-    get_fga_model,
-    get_fga_store,
+    get_auth0_client,
+    get_auth0_secret,
 )
 
 log = logging.getLogger(__name__)
@@ -69,6 +84,18 @@ async def get_db():
         await db.close()
 
 
+def get_auth0_manager():
+    mgr = Auth0Manager(
+        Configuration(
+            client_id=get_auth0_client(),
+            client_secret=get_auth0_secret(),
+            domain=os.environ.get("AUTH0_DOMAIN"),
+        )
+    )
+    mgr.get_client()
+    return mgr
+
+
 async def get_fga_manager() -> FGAManager:
     secret = get_fga_secret()
     client_id = get_fga_client()
@@ -112,6 +139,7 @@ async def get_fga_manager() -> FGAManager:
         # authorization_model_id=authorization_model_id,  # Optionally, you can specify a model id to target, which can improve latency, this will need to be changed every time we update the model, so in the future lets bootstrap this
         # credentials=credentials,
     )
+    configuration.client_side_validation = False
 
     manager = FGAManager(configuration=configuration)
     if store_name is None and store_id is None:
@@ -149,6 +177,13 @@ async def get_teams_manager(session: AsyncSession) -> TeamsManager:
     return TeamsManager(
         manager=manager,
         teams_dao=teams_dao,
+    )
+
+
+async def get_architecture_manager() -> SharingManager:
+    manager = await get_fga_manager()
+    return SharingManager(
+        manager=manager,
     )
 
 
@@ -214,4 +249,11 @@ def get_edge_target_handler(session: AsyncSession):
         architecture_storage=get_architecture_storage(),
         ev_dao=get_environment_version_dao(session),
         binary_storage=get_binary_storage(),
+    )
+
+
+def share_architecture_handler(session: AsyncSession):
+    return ArchitectureHandler(
+        architecture_storage=get_architecture_storage(),
+        ev_dao=get_environment_version_dao(session),
     )
