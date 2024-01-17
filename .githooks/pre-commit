@@ -1,4 +1,5 @@
-#!/bin/sh
+#!/bin/bash
+
 
 # make sure black is available
 if ! command -v black >/dev/null 2>&1 ; then
@@ -9,18 +10,28 @@ fi
 
 # find any staged py files
 files="$(git diff --name-only --cached | grep '.*\.py$' | paste -sd ' ' -)"
-if [ -z "$files" ]; then
-    echo "ℹ️ No files to reformat, skipping"
-    exit 0
+if [ -n "$files" ]; then
+  # run the autoformatting, your settings from pyproject.toml will be picked up.
+  echo '╭────────────────────────╮'
+  echo '│ Reformatting .py files │'
+  echo '╰────────────────────────╯'
+  black $files
+  echo '✅'
+else
+  echo "ℹ️ No python files to reformat, skipping"
 fi
 
-# run the autoformatting, your settings from pyproject.toml will be picked up.
-echo '╭────────────────────────╮'
-echo '│ Reformatting .py files │'
-echo '╰────────────────────────╯'
-black $files
-echo '✅'
-
+# find any staged frontend source files
+files="$(git diff --name-only --cached | grep -E '.*\.(ts|tsx|js|jsx|ejs|cjs|html)$' | paste -sd ' ' -)"
+if [ -n "$files" ]; then
+  echo '╭──────────────────────────╮'
+  echo '│ Fixing up frontend files │'
+  echo '╰──────────────────────────╯'
+  npm run --prefix frontend fixup
+  echo '✅'
+else
+  echo "ℹ️ No frontend files to fixup, skipping"
+fi
 
 # re-stage
 echo '╭──────────────────╮'
