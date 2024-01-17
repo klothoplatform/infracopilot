@@ -38,6 +38,10 @@ export const EditableLabel: FC<EditableLabelProps> = ({
   });
   const inputRef = useRef<HTMLInputElement | null>(null);
 
+  useEffect(() => {
+    dispatch({ field: "label", value: initialValue });
+  }, [initialValue]);
+
   const handleSubmit = () => {
     (async () => {
       try {

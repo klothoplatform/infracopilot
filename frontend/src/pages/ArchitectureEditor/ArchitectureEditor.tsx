@@ -19,6 +19,8 @@ import {
   ResizableContainer,
   ResizableSection,
 } from "../../components/Resizable";
+import { ShareButton } from "../../components/ShareButton";
+import { screenSizeIsAtMost } from "../../helpers/screen-size";
 
 function ArchitectureEditor() {
   return (
@@ -83,14 +85,31 @@ const EditorNavContent: FC = function () {
     architecture,
     isEditorInitialized,
     isEditorInitializing,
-    renameArchitecture,
+    user,
+    getArchitectureAccess,
   } = useApplicationStore();
 
   const isExportButtonHidden = architecture.id === undefined;
+  const { architectureAccess } = useApplicationStore();
 
   let { architectureId } = useParams();
   const navigate = useNavigate();
   const [workingMessage, setWorkingMessage] = useState<string | undefined>();
+  const [access, setAccess] = useState(architectureAccess);
+  const [isSmallScreen, setIsSmallScreen] = useState(screenSizeIsAtMost("md"));
+
+  useEffect(() => {
+    (async () => {
+      if (isEditorInitialized && architecture.id) {
+        setAccess(await getArchitectureAccess(architecture.id, true));
+      }
+    })();
+  }, [
+    architecture,
+    architectureAccess,
+    getArchitectureAccess,
+    isEditorInitialized,
+  ]);
 
   useEffect(() => {
     if (!architectureId) {
@@ -111,7 +130,7 @@ const EditorNavContent: FC = function () {
         try {
           await initializeEditor(architectureId);
         } catch (e: any) {
-          console.log(e)
+          console.log(e);
           addError(
             new UIError({
               message: "Failed to initialize editor!",
@@ -139,41 +158,84 @@ const EditorNavContent: FC = function () {
     architecture.id,
   ]);
 
+  useEffect(() => {
+    function handleResize() {
+      setIsSmallScreen(screenSizeIsAtMost("md"));
+    }
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
   return (
-    <div className="inline-block align-middle dark:text-white">
-      <div className="flex">
-        <div className="my-auto mr-6 flex font-semibold">
-          <EditableLabel
-            key={architecture.name}
-            initialValue={architecture.name}
-            label={architecture.name}
+    <div className="w-full align-middle dark:text-white">
+      <div className="flex w-full justify-between">
+        <div className="flex">
+          <ArchitectureName
             disabled={
               !isEditorInitialized || architecture.id !== architectureId
             }
-            onSubmit={async (newValue) => {
-              await renameArchitecture(newValue);
-            }}
-            onError={(e) => {
-              let message;
-              if (e instanceof UIError) {
-                message = e.message;
-              }
-              addError(
-                new UIError({
-                  message: message ? message : "Failed to rename architecture!",
-                  cause: e as Error,
-                  errorId: "ArchitectureEditor:RenameArchitecture",
-                }),
-              );
-            }}
-          ></EditableLabel>
+          />
+          <div className="hidden sm:flex">
+            <ArchitectureButtonAndModal
+              disabled={!auth0?.isAuthenticated}
+              small={isSmallScreen}
+            />
+            <ExportIacButton
+              disabled={isExportButtonHidden}
+              small={isSmallScreen}
+            />
+          </div>
         </div>
-        <div className="flex">
-          <ArchitectureButtonAndModal disabled={!auth0?.isAuthenticated} />
+        <div className="mx-4">
+          {user && isEditorInitialized ? (
+            <ShareButton
+              user={user}
+              architecture={architecture}
+              access={access}
+              small={isSmallScreen}
+            />
+          ) : null}
         </div>
-        <ExportIacButton disabled={isExportButtonHidden} />
       </div>
       {workingMessage && <WorkingOverlay show message={workingMessage} />}
+    </div>
+  );
+};
+
+const ArchitectureName: FC<{
+  disabled?: boolean;
+}> = ({ disabled }) => {
+  const { architecture, renameArchitecture, addError } = useApplicationStore();
+  const onSubmit = async (newValue: string) => {
+    await renameArchitecture(newValue);
+  };
+  const onError = (e: any) => {
+    let message;
+    if (e instanceof UIError) {
+      message = e.message;
+    }
+    addError(
+      new UIError({
+        message: message ? message : "Failed to rename architecture!",
+        cause: e as Error,
+        errorId: "ArchitectureEditor:RenameArchitecture",
+      }),
+    );
+  };
+
+  return (
+    <div className="my-auto mr-6 flex font-semibold">
+      <EditableLabel
+        initialValue={architecture.name}
+        label={architecture.name}
+        disabled={disabled}
+        onSubmit={onSubmit}
+        onError={onError}
+      ></EditableLabel>
     </div>
   );
 };

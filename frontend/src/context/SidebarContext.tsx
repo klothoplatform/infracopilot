@@ -1,7 +1,7 @@
 import type { PropsWithChildren } from "react";
 import { createContext, useContext, useEffect, useState } from "react";
 import isBrowser from "../helpers/is-browser";
-import isSmallScreen from "../helpers/is-small-screen";
+import { isSmallScreen } from "../helpers/screen-size";
 
 interface SidebarContextProps {
   isOpenOnSmallScreens: boolean;

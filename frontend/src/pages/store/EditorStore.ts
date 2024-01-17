@@ -17,9 +17,7 @@ import type {
   ConfigurationError,
   ReactFlowElements,
 } from "../../shared/architecture/Architecture";
-import {
-  ArchitectureView,
-} from "../../shared/architecture/Architecture";
+import { ArchitectureView } from "../../shared/architecture/Architecture";
 import { getEnvironmentVersion } from "../../api/GetEnvironmentVersion";
 import type { LayoutOptions } from "../../shared/reactflow/AutoLayout";
 import {
@@ -67,9 +65,16 @@ import { getPrevState } from "../../api/GetPreviousState";
 import { setCurrentState } from "../../api/SetCurrentState";
 import modifyArchitecture from "../../api/ModifyArchitecture";
 import { refreshSelection } from "../../shared/editor-util";
-import { type EnvironmentVersion, toReactFlowElements } from "../../shared/architecture/EnvironmentVersion";
+import {
+  type EnvironmentVersion,
+  toReactFlowElements,
+} from "../../shared/architecture/EnvironmentVersion";
 import { getArchitecture } from "../../api/GetArchitecture";
 import { env } from "../../shared/environment";
+import type { UpdateArchitectureAccessRequest } from "../../api/UpdateArchitectureAccess";
+import { updateArchitectureAccess } from "../../api/UpdateArchitectureAccess";
+import { getArchitectureAccess } from "../../api/GetArchitectureAccess";
+import type { ArchitectureAccess } from "../../shared/architecture/Access";
 
 interface EditorStoreState {
   architecture: Architecture;
@@ -110,10 +115,12 @@ interface EditorStoreState {
   selectedNode?: string;
   selectedResource?: NodeId;
   unappliedConstraints: Constraint[];
+  architectureAccess?: ArchitectureAccess;
 }
 
 const initialState: () => EditorStoreState = () => ({
   architecture: {} as Architecture,
+  architectureAccess: undefined,
   nodes: [],
   edges: [],
   decisions: [],
@@ -173,7 +180,11 @@ interface EditorStoreActions {
     environment: string,
     refresh?: boolean,
   ) => Promise<ResourceTypeKB>;
-  initializeEditor: (id: string, environment?: string, version?: number) => Promise<void>;
+  initializeEditor: (
+    id: string,
+    environment?: string,
+    version?: number,
+  ) => Promise<void>;
   isValidConnection: IsValidConnection;
   navigateRightSidebar: (selector: RightSidebarTabSelector) => void;
   onNodesChange: OnNodesChange;
@@ -192,6 +203,13 @@ interface EditorStoreActions {
   resetEditorState: (newState?: Partial<EditorStoreState>) => void;
   selectEdge: (edgeId: string) => void;
   setIsEditorInitialized: (isEditorInitialized: boolean) => void;
+  updateArchitectureAccess: (
+    request: UpdateArchitectureAccessRequest,
+  ) => Promise<void>;
+  getArchitectureAccess: (
+    architectureId: string,
+    summarized?: boolean,
+  ) => Promise<ArchitectureAccess>;
   renameArchitecture: (newName: string) => Promise<void>;
   updateEdgeTargets: (sources?: NodeId[]) => Promise<void>;
   navigateBackRightSidebar: () => void;
@@ -416,14 +434,21 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       get().deselectNode(get().selectedResource?.toString() ?? "");
     }
   },
-  refreshArchitecture: async (architectureId?: string, environment?: string, version?: number) => {
+  refreshArchitecture: async (
+    architectureId?: string,
+    environment?: string,
+    version?: number,
+  ) => {
     architectureId = architectureId ?? get().architecture?.id;
     environment = environment ?? get().environmentVersion?.id;
     version = version ?? get().environmentVersion?.version;
     if (!architectureId) {
       throw new Error("no architecture id");
     }
-    const architecture = await getArchitecture(architectureId, await get().getIdToken());
+    const architecture = await getArchitecture(
+      architectureId,
+      await get().getIdToken(),
+    );
     console.log("refresh got architecture", architecture);
     const ev = await getEnvironmentVersion(
       architectureId,
@@ -432,7 +457,11 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       version,
     );
     console.log("refresh got environment version", ev);
-    const resourceTypeKB = await get().getResourceTypeKB(architectureId, environment, true);
+    const resourceTypeKB = await get().getResourceTypeKB(
+      architectureId,
+      environment,
+      true,
+    );
     const elements = toReactFlowElements(
       ev,
       resourceTypeKB,
@@ -486,7 +515,11 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     console.log("architecture refreshed");
     get().updateEdgeTargets();
   },
-  initializeEditor: async (architectureId: string, environment?: string, version?: number) => {
+  initializeEditor: async (
+    architectureId: string,
+    environment?: string,
+    version?: number,
+  ) => {
     if (get().isEditorInitializing) {
       return;
     }
@@ -590,8 +623,11 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
               ?.creationConstraintsModifier;
           if (constraintsModifier) {
             nodeConstraints =
-              constraintsModifier(node, get().environmentVersion, nodeConstraints) ??
-              nodeConstraints;
+              constraintsModifier(
+                node,
+                get().environmentVersion,
+                nodeConstraints,
+              ) ?? nodeConstraints;
           }
           return nodeConstraints;
         })
@@ -646,9 +682,11 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
 
     const ev = get().environmentVersion;
     if (!ev) {
-      throw new Error("cannot apply constraints, no environment version in context");
+      throw new Error(
+        "cannot apply constraints, no environment version in context",
+      );
     }
-    console.log(ev)
+    console.log(ev);
 
     let navigateToChanges = true;
 
@@ -688,7 +726,10 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       console.log("new environment version", response.environmentVersion);
       const elements = toReactFlowElements(
         response.environmentVersion!,
-        await get().getResourceTypeKB(response.environmentVersion.architecture_id, response.environmentVersion.id),
+        await get().getResourceTypeKB(
+          response.environmentVersion.architecture_id,
+          response.environmentVersion.id,
+        ),
         ArchitectureView.DataFlow,
       );
       const result = await autoLayout(
@@ -730,13 +771,9 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
                 ]),
               ).values(),
             ];
-            return uniqueResourceConstraints.map(
-              (c) => new Decision([c], []),
-            );
+            return uniqueResourceConstraints.map((c) => new Decision([c], []));
           }
-          return [
-            new Decision(constraints as Constraint[], []),
-          ];
+          return [new Decision(constraints as Constraint[], [])];
         })
         .flat();
 
@@ -765,7 +802,10 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       return response.environmentVersion.config_errors ?? [];
     } catch (e) {
       console.error("error applying constraints", e);
-      await get().refreshArchitecture(get().environmentVersion.architecture_id, get().environmentVersion.id);
+      await get().refreshArchitecture(
+        get().environmentVersion.architecture_id,
+        get().environmentVersion.id,
+      );
       set(
         {
           unappliedConstraints: [],
@@ -981,7 +1021,11 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       "editor/navigateForwardRightSidebar",
     );
   },
-  getResourceTypeKB: async (architectureId: string, environment: string, refresh?: boolean) => {
+  getResourceTypeKB: async (
+    architectureId: string,
+    environment: string,
+    refresh?: boolean,
+  ) => {
     if (
       get().resourceTypeKB.getResourceTypes().length !== 0 &&
       !(refresh ?? false)
@@ -1034,7 +1078,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
   },
   updateEdgeTargets: async (sources) => {
     let environmentVersion = get().environmentVersion;
-    console.log(environmentVersion)
+    console.log(environmentVersion);
     const idToken = await get().getIdToken();
     set(
       {
@@ -1060,11 +1104,16 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
         idToken,
       );
 
-      const { validTargets, architectureVersion, architectureId, environment } = response;
+      const { validTargets, architectureVersion, architectureId, environment } =
+        response;
 
       environmentVersion = get().environmentVersion;
       if (architectureId !== environmentVersion.architecture_id) {
-        console.log("architecture id mismatch, ignoring", architectureId, environmentVersion.architecture_id);
+        console.log(
+          "architecture id mismatch, ignoring",
+          architectureId,
+          environmentVersion.architecture_id,
+        );
         set(
           {
             edgeTargetState: {
@@ -1227,7 +1276,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       selectedNode,
       selectedResource,
     });
-    console.log("previous", prev)
+    console.log("previous", prev);
     try {
       await setCurrentState(
         get().environmentVersion.architecture_id,
@@ -1280,7 +1329,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       selectedNode,
       selectedResource,
     });
-    console.log("prev at next", get().previousState)
+    console.log("prev at next", get().previousState);
     try {
       await setCurrentState(
         get().environmentVersion.architecture_id,
@@ -1303,5 +1352,26 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
         nextState: undefined,
       });
     }
+  },
+  updateArchitectureAccess: async (
+    request: UpdateArchitectureAccessRequest,
+  ) => {
+    const idToken = await get().getIdToken();
+    await updateArchitectureAccess(request, idToken);
+    const access = await get().getArchitectureAccess(request.architectureId);
+    set(
+      {
+        architectureAccess: access,
+      },
+      false,
+      "editor/updateArchitectureAccess",
+    );
+  },
+  getArchitectureAccess: async (
+    architectureId: string,
+    summarized?: boolean,
+  ) => {
+    const idToken = await get().getIdToken();
+    return await getArchitectureAccess({ architectureId, summarized }, idToken);
   },
 });

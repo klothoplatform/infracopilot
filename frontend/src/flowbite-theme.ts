@@ -38,6 +38,7 @@ const flowbiteTheme: CustomFlowbiteTheme = {
     outline: {
       color: {
         gray: "border border-gray-200 dark:border-gray-500",
+        purple: "border-0 border-primary-600 [&>*]:hover:text-white",
       },
     },
   },
@@ -53,14 +54,6 @@ const flowbiteTheme: CustomFlowbiteTheme = {
           "focus:ring-primary-600 dark:ring-offset-primary-600 dark:focus:ring-primary-600 text-primary-600 dark:focus:border-white",
       },
     },
-  },
-  dropdown: {
-    floating: {
-      base: "z-10 w-fit rounded-xl divide-y divide-gray-100 shadow",
-      content: "rounded-xl text-sm text-gray-700 dark:text-gray-200",
-      target: "w-fit dark:text-white",
-    },
-    content: "",
   },
   modal: {
     content: {
