@@ -42,3 +42,23 @@ def get_fga_model() -> Optional[str]:
     except Exception:
         logger.error("could not read fga_model_id.key", exc_info=True)
         return None
+
+
+def get_auth0_client() -> Optional[str]:
+    try:
+        with open("auth0_client_id.key", mode="r") as f:
+            secret = f.read()
+            return secret
+    except Exception:
+        logger.error("could not read auth0_client_id.key", exc_info=True)
+        return None
+
+
+def get_auth0_secret() -> Optional[str]:
+    try:
+        with open("auth0_client_secret.key", mode="r") as f:
+            secret = f.read()
+            return secret
+    except Exception:
+        logger.error("could not read auth0_client_secret.key", exc_info=True)
+        return None

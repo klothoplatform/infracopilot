@@ -2,10 +2,9 @@
 #    id = "main"
 # }
 import asyncio
-import logging
 import os
-from typing import Annotated, Optional, Callable
 import uuid
+from typing import Annotated, Optional, Callable
 
 from fastapi import FastAPI, Response, Header
 from fastapi import Request
@@ -15,23 +14,27 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from pyinstrument import Profiler
 from pyinstrument.renderers import HTMLRenderer, SpeedscopeRenderer
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.auth_service.sharing_manager import SharingManager
+from src.auth_service.auth0_manager import Auth0Manager
+from src.auth_service.entity import User
 from src.auth_service.main import (
     AuthzService,
 )
+from src.auth_service.teams_manager import TeamsManager
 from src.auth_service.token import PUBLIC_USER, AuthError, get_user_id
 from src.backend_orchestrator.architecture_handler import (
     CloneArchitectureRequest,
     ModifyArchitectureRequest,
     CreateArchitectureRequest,
+    ShareArchitectureRequest,
 )
 from src.backend_orchestrator.get_valid_edge_targets_handler import (
     CopilotGetValidEdgeTargetsRequest,
 )
 from src.backend_orchestrator.run_engine_handler import CopilotRunRequest
-from src.auth_service.entity import User
+from src.backend_orchestrator.teams_api import router as teams_router
 from src.dependency_injection.injection import (
     get_architecture_handler,
     get_db,
@@ -39,8 +42,10 @@ from src.dependency_injection.injection import (
     get_iac_orchestrator,
     get_engine_orchestrator,
     get_authz_service,
+    get_architecture_manager,
+    get_auth0_manager,
+    get_teams_manager,
 )
-from src.backend_orchestrator.teams_api import router as teams_router
 from src.util.logging import logger
 
 app = FastAPI()
@@ -175,6 +180,60 @@ async def clone_architecture(
     arch_handler = get_architecture_handler(db)
     return await arch_handler.clone_architecture(
         user_id, id, body.name, body.owner, authz
+    )
+
+
+@app.put("/api/architecture/{id}/access")
+async def update_architecture_access(
+    request: Request,
+    id: str,
+    body: ShareArchitectureRequest,
+    db: AsyncSession = Depends(get_db),
+    authz: AuthzService = Depends(get_authz_service),
+    arch_manager: SharingManager = Depends(get_architecture_manager),
+):
+    user_id: str = get_user_id(request)
+    authorized = await authz.can_share_architecture(User(id=user_id), id)
+    if not authorized:
+        raise AuthError(
+            detail=f"User {user_id} is not authorized to share architecture {id}",
+            error={
+                "code": "unauthorized",
+                "description": f"User is not authorized to share architecture {id}",
+            },
+        )
+    arch_handler = get_architecture_handler(db)
+    return await arch_handler.update_architecture_access(
+        user_id, id, body, authz, arch_manager
+    )
+
+
+@app.get("/api/architecture/{id}/access")
+async def get_architecture_access(
+    request: Request,
+    id: str,
+    db: AsyncSession = Depends(get_db),
+    authz: AuthzService = Depends(get_authz_service),
+    arch_manager: SharingManager = Depends(get_architecture_manager),
+    auth0_manager: Auth0Manager = Depends(get_auth0_manager),
+):
+    user_id: str = get_user_id(request)
+    authorized = await authz.can_read_architecture(User(id=user_id), id)
+    if not authorized:
+        raise AuthError(
+            detail=f"User {user_id} is not authorized to share architecture {id}",
+            error={
+                "code": "unauthorized",
+                "description": f"User is not authorized to share architecture {id}",
+            },
+        )
+    arch_handler = get_architecture_handler(db)
+    teams_manager = await get_teams_manager(db)
+
+    should_summarize = request.query_params.get("summary", "false").lower() == "true"
+
+    return await arch_handler.get_architecture_access(
+        user_id, id, authz, arch_manager, auth0_manager, teams_manager, should_summarize
     )
 
 

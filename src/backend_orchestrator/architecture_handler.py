@@ -1,27 +1,23 @@
-from dataclasses import dataclass
-from hmac import new
 import logging
-from venv import create
-import jsons
 import uuid
 from datetime import datetime
+from typing import Dict, List, Optional
+
+import jsons
 from fastapi import HTTPException, Response
 from fastapi.responses import JSONResponse
-from typing import Dict, List, Optional
 from pydantic import BaseModel, validator, model_serializer
-from src.auth_service.main import AuthzService
-from src.engine_service.engine_commands.run import RunEngineResult
 
-from src.state_manager.architecture_storage import (
-    ArchitectureStorage,
-    ArchitectureStateDoesNotExistError,
+from src.auth_service.auth0_manager import Auth0Manager
+from src.auth_service.entity import (
+    Entity,
+    User,
+    Team,
 )
-from src.auth_service.entity import Entity, User
-from src.environment_management.environment_version import (
-    EnvironmentVersionDAO,
-    EnvironmentVersion,
-    EnvironmentVersionDoesNotExistError,
-)
+from src.auth_service.main import AuthzService
+from src.auth_service.sharing_manager import Role, SharingManager, GeneralAccess
+from src.auth_service.teams_manager import TeamsManager
+from src.engine_service.engine_commands.run import RunEngineResult
 from src.environment_management.architecture import (
     Architecture,
     ArchitectureDAO,
@@ -32,7 +28,15 @@ from src.environment_management.environment import (
     EnvironmentDAO,
     EnvironmentDoesNotExistError,
 )
-
+from src.environment_management.environment_version import (
+    EnvironmentVersionDAO,
+    EnvironmentVersion,
+    EnvironmentVersionDoesNotExistError,
+)
+from src.state_manager.architecture_storage import (
+    ArchitectureStorage,
+    ArchitectureStateDoesNotExistError,
+)
 
 log = logging.getLogger(__name__)
 
@@ -110,18 +114,8 @@ class CloneArchitectureRequest(BaseModel):
     owner: str = None
 
 
-class ArchitectureHandler:
-    def __init__(
-        self,
-        architecture_storage: ArchitectureStorage,
-        ev_dao: EnvironmentVersionDAO,
-        env_dao: EnvironmentDAO,
-        arch_dao: ArchitectureDAO,
-    ):
-        self.architecture_storage = architecture_storage
-        self.ev_dao = ev_dao
-        self.env_dao = env_dao
-        self.arch_dao = arch_dao
+class ShareArchitectureRequest(BaseModel):
+    entity_roles: Optional[dict[str, Role | None]]
 
 
 class ArchitectureHandler:
@@ -447,4 +441,151 @@ class ArchitectureHandler:
             raise HTTPException(status_code=404, detail="Architecture not found")
         except Exception:
             log.error("Error cloning architecture", exc_info=True)
+            raise HTTPException(status_code=500, detail="internal server error")
+
+    async def update_architecture_access(
+        self,
+        user_id: str,
+        id: str,
+        body: ShareArchitectureRequest,
+        authz: AuthzService,
+        arch_manager: SharingManager,
+    ):
+        try:
+            architecture: Architecture = await self.arch_dao.get_architecture(id)
+            if architecture is None:
+                raise ArchitectureDoesNotExistError(
+                    f"No architecture exists for id {id}"
+                )
+            owner: Entity = User(user_id)
+            await authz.can_share_architecture(owner, architecture.id)
+            if body.entity_roles is not None:
+                await arch_manager.update_architecture_roles(
+                    architecture.id, body.entity_roles
+                )
+            return Response(status_code=200)
+        except ArchitectureDoesNotExistError:
+            raise HTTPException(status_code=404, detail="Architecture not found")
+        except Exception:
+            log.error("Error sharing architecture", exc_info=True)
+            raise HTTPException(status_code=500, detail="internal server error")
+
+    async def get_architecture_access(
+        self,
+        user_id: str,
+        id: str,
+        authz: AuthzService,
+        arch_manager: SharingManager,
+        auth0_manager: Auth0Manager,
+        teams_manager: TeamsManager,
+        summarized: Optional[bool] = False,
+    ):
+        try:
+            architecture: Architecture = await self.arch_dao.get_architecture(id)
+            if architecture is None:
+                raise ArchitectureDoesNotExistError(
+                    f"No architecture exists for id {id}"
+                )
+            user: Entity = User(user_id)
+            can_share = await authz.can_share_architecture(user, architecture.id)
+            if not can_share:
+                summarized = True
+            roles = await arch_manager.get_architecture_roles(architecture.id)
+            is_public = False
+            is_shared_with_org = False
+            general_access_entity = None
+            general_access_role = None
+            for entity, role in roles.items():
+                if entity == "user:*":
+                    is_public = True
+                    general_access_entity = entity
+                    general_access_role = role
+                elif entity.startswith("organization:"):
+                    is_shared_with_org = True
+                    general_access_entity = entity
+                    general_access_role = role
+            general_access = GeneralAccess.RESTRICTED
+            if is_shared_with_org:
+                general_access = GeneralAccess.ORGANIZATION
+            if is_public:
+                general_access = GeneralAccess.PUBLIC
+
+            teams = {}
+            users = {}
+
+            team_ids = [
+                t.removeprefix("team:").split("#")[0]
+                for t in roles.keys()
+                if t.startswith("team:")
+            ]
+            if not summarized:
+                if len(team_ids) > 0:
+                    teams_list = await teams_manager.batch_get_teams(
+                        [t for t in team_ids]
+                    )
+                    teams = {t.id: t for t in teams_list}
+
+                users = (
+                    {}
+                    if len(roles) == 0
+                    else {
+                        u["user_id"]: u
+                        for u in auth0_manager.get_users(
+                            [
+                                u.removeprefix("user:")
+                                for u in roles.keys()
+                                if u.startswith("user:") and u != "user:*"
+                            ]
+                        )
+                        if u.get("user_id") is not None
+                    }
+                )
+
+            def get_metadata(entity: str) -> dict[str, any]:
+                if entity.startswith("user:"):
+                    return users.get(entity.removeprefix("user:"), {})
+                elif entity.startswith("team:"):
+                    team_meta: Team = teams.get(entity.removeprefix("team:"), None)
+                    if team_meta is None:
+                        return {}
+                    org_meta = team_meta.organization
+                    return {
+                        "name": team_meta.name,
+                        "organization": {
+                            "id": org_meta.id if org_meta else None,
+                            "name": org_meta.name if org_meta else None,
+                        },
+                    }
+                return {}
+
+            return JSONResponse(
+                content={
+                    "architecture_id": architecture.id,
+                    "can_share": can_share,
+                    "entities": [
+                        {
+                            "id": e,
+                            **get_metadata(e),
+                            "role": r.value,
+                            "type": e.split(":")[0],
+                        }
+                        for e, r in roles.items()
+                    ]
+                    if not summarized
+                    else [],
+                    "general_access": {
+                        "type": general_access.value,
+                        "entity": {
+                            "id": general_access_entity,
+                            "role": general_access_role.value,
+                        }
+                        if general_access_role
+                        else None,
+                    },
+                }
+            )
+        except ArchitectureDoesNotExistError:
+            raise HTTPException(status_code=404, detail="Architecture not found")
+        except Exception:
+            log.error("Error getting architecture sharing", exc_info=True)
             raise HTTPException(status_code=500, detail="internal server error")
