@@ -13,7 +13,7 @@ from src.backend_orchestrator.architecture_handler import (
     EnvironmentVersionResponseObject,
     VersionState,
 )
-from src.engine_service.binaries.fetcher import write_binary_to_disk, Binary
+from src.engine_service.binaries.fetcher import BinaryStorage, Binary
 from src.engine_service.engine_commands.run import (
     FailedRunException,
     run_engine,
@@ -54,10 +54,12 @@ class EngineOrchestrator:
         architecture_storage: ArchitectureStorage,
         ev_dao: EnvironmentVersionDAO,
         env_dao: EnvironmentDAO,
+        binary_storage: BinaryStorage,
     ):
         self.architecture_storage = architecture_storage
         self.ev_dao = ev_dao
         self.env_dao = env_dao
+        self.binary_storage = binary_storage
 
     async def run(
         self,
@@ -91,7 +93,7 @@ class EngineOrchestrator:
                     )
 
             input_graph = self.architecture_storage.get_state_from_fs(architecture)
-            write_binary_to_disk(Binary.ENGINE)
+            self.binary_storage.ensure_binary(Binary.ENGINE)
             request = RunEngineRequest(
                 id=architecture_id,
                 input_graph=input_graph.resources_yaml
@@ -189,7 +191,7 @@ class EngineOrchestrator:
     async def get_resource_types(self, architecture_id: str, env_id: str):
         try:
             await self.ev_dao.get_latest_version(architecture_id, env_id)
-            response = get_resource_types()
+            response = get_resource_types(self.binary_storage)
             return Response(content=response, media_type="application/json")
         except EnvironmentVersionDoesNotExistError as e:
             raise HTTPException(

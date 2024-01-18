@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase, relationship
-from sqlalchemy import JSON, ForeignKey
+from sqlalchemy import JSON, ForeignKey, ForeignKeyConstraint
 import datetime
 from sqlalchemy.sql import func
 from sqlalchemy import DateTime
@@ -43,10 +43,8 @@ class Environment(ModelsBase):
 class EnvironmentVersion(ModelsBase):
     __tablename__ = "environment_versions"
 
-    architecture_id: Mapped[str] = mapped_column(
-        ForeignKey("architectures.id"), primary_key=True
-    )
-    id: Mapped[str] = mapped_column(ForeignKey("environments.id"), primary_key=True)
+    architecture_id: Mapped[str] = mapped_column(primary_key=True)
+    id: Mapped[str] = mapped_column(primary_key=True)
     version: Mapped[int] = mapped_column(primary_key=True)
     version_hash: Mapped[str] = mapped_column()
     env_resource_configuration: Mapped[dict] = mapped_column(type_=JSON, nullable=True)
@@ -57,6 +55,14 @@ class EnvironmentVersion(ModelsBase):
     )
     created_by: Mapped[str]
     constraints: Mapped[dict] = mapped_column(nullable=True, type_=JSON)
+
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["architecture_id", "id"],
+            [Environment.architecture_id, Environment.id],
+        ),
+        {},
+    )
 
     def __eq__(self, __value: object) -> bool:
         if not isinstance(__value, EnvironmentVersion):

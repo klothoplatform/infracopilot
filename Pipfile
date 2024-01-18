@@ -21,6 +21,7 @@ pyinstrument = "*"
 moto = "*"
 aiosqlite = "*"
 greenlet = "*"
+asyncpg = "*"
 
 [dev-packages]
 black = "*"

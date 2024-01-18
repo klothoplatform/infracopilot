@@ -7,7 +7,7 @@ from fastapi.responses import StreamingResponse
 from src.backend_orchestrator.architecture_handler import (
     EnvironmentVersionNotLatestError,
 )
-from src.engine_service.binaries.fetcher import write_binary_to_disk, Binary
+from src.engine_service.binaries.fetcher import BinaryStorage, Binary
 from src.engine_service.engine_commands.export_iac import export_iac, ExportIacRequest
 from src.engine_service.engine_commands.run import RunEngineResult
 from src.environment_management.architecture import ArchitectureDAO
@@ -27,10 +27,12 @@ class IaCOrchestrator:
         architecture_storage: ArchitectureStorage,
         arch_dao: ArchitectureDAO,
         session: EnvironmentVersionDAO,
+        binary_storage: BinaryStorage,
     ):
         self.architecture_storage = architecture_storage
         self.arch_dao = arch_dao
         self.ev_dao = session
+        self.binary_storage = binary_storage
 
     async def get_iac(
         self,
@@ -62,7 +64,7 @@ class IaCOrchestrator:
                     raise ArchitectureStateDoesNotExistError(
                         f"No architecture exists for id {architecture_id}"
                     )
-                write_binary_to_disk(Binary.IAC)
+                self.binary_storage.ensure_binary(Binary.IAC)
                 request = ExportIacRequest(
                     input_graph=arch_state.resources_yaml,
                     name=arch.name if arch.name is not None else arch.id,

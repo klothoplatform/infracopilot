@@ -1,0 +1,6 @@
+encryptionsalt: v1:8hE1KGNOYUY=:v1:sQd6DW7eRoN1SOSe:wv+duEwplKRgc3ak4SeSmPJPPnROqg==
+config:
+  klo:infracopilot-db-password:
+    secure: v1:qszTJQ+Rcbwz/KRi:2hU1Ktydoc3o2dfh1ytuARKBnnCklplVTw==
+  klo:infracopilot-db-username:
+    secure: v1:lSZV8izhpjkDaIOz:FjE1w1ZXjlXA//B5mORE7AnlsjCxMDbf

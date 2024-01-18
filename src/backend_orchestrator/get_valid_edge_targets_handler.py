@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from src.backend_orchestrator.architecture_handler import (
     EnvironmentVersionNotLatestError,
 )
-from src.engine_service.binaries.fetcher import write_binary_to_disk, Binary
+from src.engine_service.binaries.fetcher import BinaryStorage, Binary
 from src.engine_service.engine_commands.get_valid_edge_targets import (
     GetValidEdgeTargetsRequest,
     get_valid_edge_targets,
@@ -33,10 +33,14 @@ class CopilotGetValidEdgeTargetsRequest(BaseModel):
 
 class EdgeTargetHandler:
     def __init__(
-        self, architecture_storage: ArchitectureStorage, ev_dao: EnvironmentVersionDAO
+        self,
+        architecture_storage: ArchitectureStorage,
+        ev_dao: EnvironmentVersionDAO,
+        binary_storage: BinaryStorage,
     ):
         self.architecture_storage = architecture_storage
         self.ev_dao = ev_dao
+        self.binary_storage = binary_storage
 
     async def get_valid_edge_targets(
         self,
@@ -61,7 +65,7 @@ class EdgeTargetHandler:
             valid_edge_targets = []
             if architecture.state_location is not None:
                 input_graph = self.architecture_storage.get_state_from_fs(architecture)
-                write_binary_to_disk(Binary.ENGINE)
+                self.binary_storage.ensure_binary(Binary.ENGINE)
                 request = GetValidEdgeTargetsRequest(
                     id=architecture_id,
                     input_graph=input_graph.resources_yaml

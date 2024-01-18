@@ -1,6 +1,3 @@
-# @klotho::execution_unit {
-#    id = "main"
-# }
 import asyncio
 import logging
 import os
