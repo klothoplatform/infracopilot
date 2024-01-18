@@ -97,7 +97,7 @@ class TestValidEdgeTargetsHandler(aiounittest.AsyncTestCase):
         self.assertEqual(result.status_code, 200)
         self.assertEqual(
             result.body,
-            b'{"id": "test-id", "version": 1, "validEdgeTargets": ["a", "b"]}',
+            b'{"architectureId": "test-architecture-id", "environment": "test-id", "version": 1, "validEdgeTargets": ["a", "b"]}',
         )
         self.mock_ev_dao.get_current_version.assert_called_once_with(
             "test-architecture-id", "test-id"
