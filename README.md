@@ -84,6 +84,7 @@ curl "http://127.0.0.1:3000/architecture/$ARCHITECTURE_ID/iac?state=$LATEST_STAT
 Architecture:
 https://app.infracopilot.io/editor/12aa38c5-6b88-4e6a-b9c8-35c9186e6516
 
+1. `pipenv requirements > requirements.txt`
 1. `npm --prefix deploy install`
 2. `cd deploy && pulumi up`
   - Grab the `ifcp_binary_storage_BucketName`, `ifcp_static_site_BucketName`
@@ -93,5 +94,5 @@ https://app.infracopilot.io/editor/12aa38c5-6b88-4e6a-b9c8-35c9186e6516
 5. `aws secretsmanager put-secret-value --secret-id {} --secret-string {}`
   - Upload the 4 secrets according to the environment running: `ifcp-fga-client-id`, `ifcp-fga-model-id`, `ifcp-fga-secret`, `ifcp-fga-store-id`
 6. `cd binaries && aws s3 sync . s3://{ifcp_binary_storage_BucketName}`
-7. `cd deploy && pulumi up`
+7. `cd deploy && pulumi up` 
   - This is mostly just to restart the task. It's probably failing and restarting so it might not be necessary.
