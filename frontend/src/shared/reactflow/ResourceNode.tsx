@@ -164,12 +164,12 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
             "p-1 border-2 w-[100px] h-[100px] mx-auto rounded-md bg-transparent pointer-events-auto",
             {
               "border-primary-600/100 dark:border-primary-500/100 shadow-md shadow-primary-100 dark:shadow-primary-900":
-                isSelected,
+                isSelected && !isConnecting,
               "border-primary-600/[0]": !isSelected && !isValidConnectionTarget,
-              "bg-blue-500/5 border-blue-400 dark:border-blue-500 shadow-md shadow-blue-100 dark:shadow-blue-900":
-                !mouseOverNode && isValidConnectionTarget,
               "bg-blue-500/10 border-blue-700 dark:border-blue-200 shadow-md shadow-blue-100 dark:shadow-blue-900":
                 mouseOverNode && isValidConnectionTarget,
+              "bg-blue-500/5 border-blue-400 dark:border-blue-500 shadow-md shadow-blue-100 dark:shadow-blue-900":
+                !mouseOverNode && isValidConnectionTarget,
               "bg-red-500/10 border-red-600 dark:border-red-600 shadow-md shadow-red-100 dark:shadow-red-900":
                 !isSelected && isInvalidConnectionTarget && mouseOverNode,
             },
