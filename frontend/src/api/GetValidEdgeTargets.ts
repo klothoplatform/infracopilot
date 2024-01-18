@@ -59,7 +59,7 @@ export async function getValidEdgeTargets(
   }
 
   return {
-    architectureId: data.id,
+    architectureId: data.architectureId,
     environment: data.environment,
     architectureVersion: data.version,
     validTargets: formatResponse(data),
