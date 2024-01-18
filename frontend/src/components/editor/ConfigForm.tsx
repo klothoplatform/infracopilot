@@ -58,6 +58,7 @@ export default function ConfigForm() {
   const [remainingProperties, setRemainingProperties] = React.useState<
     Property[] | undefined
   >();
+
   useEffect(() => {
     if (selectedResource) {
       const resourceType = resourceTypeKB.getResourceType(
@@ -448,18 +449,20 @@ export default function ConfigForm() {
               )}
             </div>
             {isDirty && (
-              <div className="flex justify-end gap-2">
-                <Button
-                  outline
-                  color="light"
-                  onClick={() => deselectResource(selectedResource)}
-                >
-                  Cancel
-                </Button>
+              <div className="flex flex-col gap-2 border-t border-gray-200 pt-2 dark:border-gray-700">
+                <div className="flex justify-end gap-2">
+                  <Button
+                    outline
+                    color=""
+                    onClick={() => deselectResource(selectedResource)}
+                  >
+                    Cancel
+                  </Button>
 
-                <Button type="submit" color="purple">
-                  Save
-                </Button>
+                  <Button type="submit" color="purple">
+                    Save
+                  </Button>
+                </div>
               </div>
             )}
           </form>
