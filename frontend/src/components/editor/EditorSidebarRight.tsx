@@ -73,6 +73,8 @@ const EditorSidebarRight = forwardRef(
       [key: string]: boolean;
     }>({});
 
+    const [isResizable, setIsResizable] = useState(false);
+
     useEffect(() => {
       if (!rightSidebarSelector[0]) {
         return;
@@ -81,6 +83,10 @@ const EditorSidebarRight = forwardRef(
         updateActiveIndex(previous, rightSidebarSelector[0] as string, true),
       );
     }, [rightSidebarSelector]);
+
+    useEffect(() => {
+      setIsResizable(Object.values(tabState).some((v) => v));
+    }, [tabState]);
 
     const onActivate = (index: string) => {
       setTabState(updateActiveIndex(tabState, index, true));
@@ -96,11 +102,15 @@ const EditorSidebarRight = forwardRef(
 
     return (
       <>
-        <ResizableSection childRef={menusRef} handleSide="left">
+        <ResizableSection
+          childRef={menusRef}
+          handleSide="left"
+          disabled={!isResizable}
+        >
           <div
             ref={menusRef}
             className={classNames(
-              "flex flex-col w-[600px] overflow-hidden min-w-[260px]",
+              "flex flex-col w-[600px] overflow-hidden min-w-[300px]",
               {
                 hidden: Object.values(tabState).every((value) => !value),
               },
@@ -165,15 +175,6 @@ const EditorSidebarRight = forwardRef(
                     disabled={decisions?.length === 0 && failures?.length === 0}
                   />
                 </SidebarMenuOptionGroup>
-              </Sidebar.ItemGroup>
-              <Sidebar.ItemGroup>
-                <Sidebar.Item
-                  icon={outerIsCollapsed ? FaChevronLeft : FaChevronRight}
-                  className={"w-fit cursor-default"}
-                  onClick={() => setOuterIsCollapsed(!outerIsCollapsed)}
-                >
-                  {outerIsCollapsed ? "Expand" : "Collapse"}
-                </Sidebar.Item>
               </Sidebar.ItemGroup>
             </div>
           </Sidebar.Items>
