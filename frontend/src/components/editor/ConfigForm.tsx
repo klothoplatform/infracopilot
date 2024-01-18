@@ -47,6 +47,7 @@ export default function ConfigForm() {
     environmentVersion,
     applyConstraints,
     addError,
+    deselectResource,
   } = useApplicationStore();
 
   const [resourceType, setResourceType] = React.useState<ResourceType>();
@@ -447,9 +448,19 @@ export default function ConfigForm() {
               )}
             </div>
             {isDirty && (
-              <Button type="submit" color="purple" fullSized={true}>
-                Apply Changes
-              </Button>
+              <div className="flex justify-end gap-2">
+                <Button
+                  outline
+                  color="light"
+                  onClick={() => deselectResource(selectedResource)}
+                >
+                  Cancel
+                </Button>
+
+                <Button type="submit" color="purple">
+                  Save
+                </Button>
+              </div>
             )}
           </form>
         </FormProvider>
