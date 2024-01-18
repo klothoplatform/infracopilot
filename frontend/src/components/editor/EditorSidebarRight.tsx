@@ -6,6 +6,7 @@ import {
   Tabs,
   type TabsRef,
   Tooltip,
+  useTheme,
 } from "flowbite-react";
 import type { ComponentProps, FC, ForwardedRef, ReactElement } from "react";
 import React, {
@@ -18,7 +19,7 @@ import React, {
 import {
   HiCheck,
   HiCheckCircle,
-  HiExclamationCircle,
+  HiExclamation,
   HiInformationCircle,
   HiOutlineClipboardCopy,
   HiXCircle,
@@ -27,8 +28,6 @@ import { HiCog6Tooth } from "react-icons/hi2";
 import ConfigForm from "./ConfigForm";
 import AdditionalResources from "./AdditionalResources";
 import useApplicationStore from "../../pages/store/ApplicationStore";
-
-import { ThemeContext } from "flowbite-react/lib/esm/components/Flowbite/ThemeContext";
 import type { NavHistoryEntry } from "../../shared/sidebar-nav";
 import {
   getNextRelevantHistoryEntry,
@@ -53,6 +52,7 @@ import classNames from "classnames";
 import { FaHistory } from "react-icons/fa";
 import { ResizableSection } from "../Resizable";
 import { TbPlugConnected } from "react-icons/tb";
+import { OutlinedAlert } from "../../shared/custom-themes";
 
 const EditorSidebarRight = forwardRef(
   (props, ref: ForwardedRef<HTMLDivElement>) => {
@@ -554,7 +554,7 @@ const ResourceIdHeader: FC<ResourceIdHeaderProps> = function ({
   resourceId,
   edgeId,
 }) {
-  const { mode } = useContext(ThemeContext);
+  const { mode } = useTheme();
 
   const [copied, setCopied] = useState(false);
 
@@ -642,26 +642,15 @@ export interface EventProps {
 const eventIconMap = {
   success: HiCheckCircle,
   failure: HiXCircle,
-  warning: HiExclamationCircle,
+  warning: HiExclamation,
   info: HiInformationCircle,
-};
-
-const alertTheme: CustomFlowbiteTheme["alert"] = {
-  color: {
-    success:
-      "bg-green-200 dark:bg-green-800 text-green-800 dark:text-green-100",
-    failure: "bg-red-200 dark:bg-red-800 text-red-800 dark:text-red-100",
-    warning:
-      "bg-yellow-200 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-100",
-    info: "bg-blue-200 dark:bg-blue-800 text-blue-800 dark:text-blue-100",
-  },
 };
 
 const EventNotification: FC<EventProps> = function ({ type, title, details }) {
   return (
     <div className="flex flex-col">
       <Alert
-        theme={alertTheme}
+        theme={OutlinedAlert}
         color={type}
         icon={eventIconMap[type]}
         title={title}
