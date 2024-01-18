@@ -8,6 +8,7 @@ from unittest import mock
 from src.engine_service.engine_commands.get_resource_types import (
     get_resource_types,
 )
+from src.engine_service.binaries.fetcher import BinaryStorage
 
 
 class TestRunEngine(aiounittest.AsyncTestCase):
@@ -27,7 +28,9 @@ class TestRunEngine(aiounittest.AsyncTestCase):
             '{"aws:lambda_function": ["serverless", "compute"], "aws:rest_api": ["serverless", "api"]}',
             "",
         )
-        result = get_resource_types()
+        binary_store = BinaryStorage(bucket=None)
+        binary_store.ensure_binary = mock.Mock()
+        result = get_resource_types(binary_store)
         mock_eng_cmd.assert_called_once_with("ListResourceTypes")
         self.assertEqual(
             {

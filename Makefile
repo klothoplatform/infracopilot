@@ -14,14 +14,15 @@ endif
 
 iacCliPath := $(shell command -v iac)
 ifdef iacCliPath
-export IAC_CLI_PATH ?= $(iacCliPath)
+export IAC_PATH ?= $(iacCliPath)
 else
 endif
 
 # Backend commands
 
 run:
-	rm -f /tmp/engine && rm -f /tmp/iac && \
+	@echo "ENGINE_PATH: $(ENGINE_PATH)"
+	@echo "IAC_PATH: $(IAC_PATH)"
 	PYTHONPATH=. \
 	KEEP_TMP="True" \
 	AUTH0_DOMAIN="klotho-dev.us.auth0.com" \
