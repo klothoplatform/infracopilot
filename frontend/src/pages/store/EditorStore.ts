@@ -172,9 +172,9 @@ interface EditorStoreActions {
     constraints?: Constraint[],
   ) => Promise<ConfigurationError[]>;
   deleteElements: (elements: Partial<ReactFlowElements>) => Promise<void>;
-  deselectEdge: (edgeId: string) => void;
-  deselectNode: (nodeId: string) => void;
-  deselectResource: (resourceId: NodeId) => void;
+  deselectEdge: (edgeId?: string) => void;
+  deselectNode: (nodeId?: string) => void;
+  deselectResource: (resourceId?: NodeId) => void;
   getResourceTypeKB: (
     architectureId: string,
     environment: string,
@@ -191,8 +191,8 @@ interface EditorStoreActions {
   onEdgesChange: OnEdgesChange;
   onConnect: OnConnect;
   onConnectStart: OnConnectStart;
-  selectNode: (nodeId: string) => void;
-  selectResource: (resourceId: NodeId) => void;
+  selectNode: (nodeId?: string) => void;
+  selectResource: (resourceId?: NodeId) => void;
   refreshLayout: () => Promise<void>;
   refreshArchitecture: (
     architectureId?: string,
@@ -201,7 +201,7 @@ interface EditorStoreActions {
   ) => Promise<void>;
   replaceResource: (oldId: NodeId, newId: NodeId) => Promise<void>;
   resetEditorState: (newState?: Partial<EditorStoreState>) => void;
-  selectEdge: (edgeId: string) => void;
+  selectEdge: (edgeId?: string) => void;
   setIsEditorInitialized: (isEditorInitialized: boolean) => void;
   updateArchitectureAccess: (
     request: UpdateArchitectureAccessRequest,
@@ -339,12 +339,16 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       get().updateEdgeTargets([NodeId.parse(nodeId)]);
     }
   },
-  selectNode: (nodeId: string) => {
+  selectNode: (nodeId?: string) => {
     if (get().selectedNode === nodeId) {
       return;
     }
-    get().deselectEdge(get().selectedEdge ?? "");
-    get().deselectNode(get().selectedNode ?? "");
+    get().deselectEdge(get().selectedEdge);
+    get().deselectNode(get().selectedNode);
+
+    if (!nodeId) {
+      return;
+    }
 
     set(
       {
@@ -365,7 +369,10 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     ]);
     console.log("selected node", nodeId);
   },
-  deselectNode: (nodeId: string) => {
+  deselectNode: (nodeId?: string) => {
+    if (!nodeId) {
+      nodeId = get().selectedNode;
+    }
     if (!nodeId) {
       return;
     }
@@ -400,7 +407,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     get().navigateRightSidebar([undefined, get().rightSidebarSelector[1]]);
     console.log("deselected node", nodeId);
   },
-  selectResource: (resourceId: NodeId) => {
+  selectResource: (resourceId?: NodeId) => {
     const node = resourceId
       ? get().nodes?.find((n) => n.data?.resourceId?.equals(resourceId))
       : undefined;
@@ -414,16 +421,21 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     analytics.track("selectResource", {
       ...resourceId,
     });
-    if (node) {
-      get().selectNode(node.id);
+    get().selectNode(node?.id);
+    if (node?.id) {
+      return;
     }
     get().navigateRightSidebar([
       RightSidebarMenu.Details,
       get().rightSidebarSelector[1],
     ]);
   },
-  deselectResource: (resourceId: NodeId) => {
-    if (get().selectedResource?.equals(resourceId)) {
+  deselectResource: (resourceId?: NodeId) => {
+    const selectedResource = get().selectedResource;
+    if (!resourceId) {
+      resourceId = selectedResource;
+    }
+    if (selectedResource?.equals(resourceId)) {
       set(
         {
           selectedResource: undefined,
@@ -431,7 +443,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
         false,
         "editor/deselectResource",
       );
-      get().deselectNode(get().selectedResource?.toString() ?? "");
+      get().deselectNode(get().selectedResource?.toString());
     }
   },
   refreshArchitecture: async (
@@ -777,14 +789,20 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
         })
         .flat();
 
+      get().selectNode(selectedNode);
+
+      get().selectResource(selectedResource);
+      if (selectedNode && !selectedResource) {
+        get().selectNode(selectedNode);
+      }
+
+      get().selectEdge(selectedEdge);
+
       set(
         {
           environmentVersion: response.environmentVersion,
           nodes: result.nodes,
           edges: result.edges,
-          selectedNode,
-          selectedEdge,
-          selectedResource,
           decisions: decisions.concat(get().decisions),
           failures: [],
           unappliedConstraints: [],
@@ -832,7 +850,10 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       }
     }
   },
-  deselectEdge: (edgeId: string) => {
+  deselectEdge: (edgeId?: string) => {
+    if (!edgeId) {
+      edgeId = get().selectedEdge;
+    }
     if (!edgeId) {
       return;
     }
@@ -846,14 +867,19 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       selectedEdge: undefined,
     });
   },
-  selectEdge: (edgeId: string) => {
-    get().deselectEdge(get().selectedEdge ?? "");
-    get().deselectNode(get().selectedNode ?? "");
-    get().deselectResource(get().selectedResource ?? NodeId.parse(""));
+  selectEdge: (edgeId?: string) => {
+    get().deselectEdge(get().selectedEdge);
+    get().deselectNode(get().selectedNode);
+    get().deselectResource(get().selectedResource);
     get().navigateRightSidebar([
       RightSidebarMenu.Details,
       RightSidebarDetailsTab.AdditionalResources,
     ]);
+
+    if (!edgeId) {
+      return;
+    }
+
     set({
       edges: get().edges.map((edge) => {
         if (edge.id === edgeId) {
