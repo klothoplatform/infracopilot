@@ -39,7 +39,7 @@ export const ListField: FC<ListProps> = ({
   field,
 }) => {
   qualifiedFieldName = qualifiedFieldName ?? "UNKNOWN-LIST";
-  const { register, control, formState } = useFormContext();
+  const { register, unregister, control, formState } = useFormContext();
   const { fields, append, remove } = useFieldArray({
     control,
     name: qualifiedFieldName,
@@ -78,6 +78,11 @@ export const ListField: FC<ListProps> = ({
   const error = findChildProperty(errors, qualifiedFieldName);
   const { configurationDisabled, itemType, properties } = field as ListProperty;
 
+  const removeField = (index: number) => {
+    remove(index);
+    unregister(`${qualifiedFieldName}[${index}]`);
+  };
+
   if (isPrimitive(itemType)) {
     return (
       <ErrorHelper error={error}>
@@ -99,7 +104,7 @@ export const ListField: FC<ListProps> = ({
                 resourceTypes={(field as ResourceProperty).resourceTypes}
                 allowedValues={(field as EnumProperty).allowedValues}
                 readOnly={configurationDisabled}
-                remove={remove}
+                remove={removeField}
               />
             );
           })}
@@ -135,7 +140,7 @@ export const ListField: FC<ListProps> = ({
                 properties={properties}
                 required={field.required}
                 readOnly={field.configurationDisabled}
-                remove={remove}
+                remove={removeField}
               />
             );
           })}

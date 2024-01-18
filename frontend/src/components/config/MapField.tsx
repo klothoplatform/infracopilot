@@ -105,7 +105,7 @@ type PrimitiveMapProps = {
 };
 
 const PrimitiveMap: FC<PrimitiveMapProps> = ({ id }) => {
-  const { register, control, formState } = useFormContext();
+  const { register, unregister, control, formState } = useFormContext();
   const { fields, append, remove } = useFieldArray({
     control,
     name: id,
@@ -114,6 +114,11 @@ const PrimitiveMap: FC<PrimitiveMapProps> = ({ id }) => {
   const error = findChildProperty(errors, id);
   const errorMessage =
     error?.type === "manual" ? error.message : error?.root?.message;
+
+  const removeItem = (index: number) => {
+    remove(index);
+    unregister(`${id}[${index}]`);
+  };
 
   return (
     <div
@@ -201,7 +206,7 @@ const PrimitiveMap: FC<PrimitiveMapProps> = ({ id }) => {
                 color={"red"}
                 size={"md"}
                 onClick={() => {
-                  remove(index);
+                  removeItem(index);
                 }}
               >
                 <HiMinusCircle />
