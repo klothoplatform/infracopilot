@@ -1,5 +1,4 @@
 import type { FC } from "react";
-import type { Architecture } from "../../../shared/architecture/Architecture";
 import type { NodeId } from "../../../shared/architecture/TopologyNode";
 import type { ResourceType } from "../../../shared/resources/ResourceTypes";
 import type { Constraint } from "../../../shared/architecture/Constraints";
@@ -23,19 +22,19 @@ export type FormStateHandler = (
   defaultValues: any,
   modifiedValues: Map<string, any>,
   resourceId: NodeId,
-  architecture: EnvironmentVersion,
+  environmentVersion: EnvironmentVersion,
 ) => Constraint[];
 
 export interface CustomConfigMapping {
   creationConstraintsModifier?: (
     node: Node,
-    architecture: EnvironmentVersion,
+    environmentVersion: EnvironmentVersion,
     defaultConstraints: Constraint[],
   ) => Constraint[];
   sections: ConfigSections;
   stateBuilder: FormStateBuilder;
   constraintBuilder?: ConstraintBuilder;
-  nodeModifier?: (node: Node, architecture: EnvironmentVersion) => void;
+  nodeModifier?: (node: Node, environmentVersion: EnvironmentVersion) => void;
   resourceTypeModifier?: ResourceTypeModifier;
   layoutModifier?: LayoutModifier;
   stateHandler?: FormStateHandler;
@@ -70,29 +69,29 @@ export function getCustomConfigSections(
 
 export function getCustomConfigState(
   resourceId: NodeId,
-  architecture: EnvironmentVersion,
+  environmentVersion: EnvironmentVersion,
 ): any {
   return customConfigMappings[
     `${resourceId.provider}:${resourceId.type}`
-  ]?.stateBuilder(resourceId, architecture);
+  ]?.stateBuilder(resourceId, environmentVersion);
 }
 
 export type ResourceTypeModifier = (resourceType: ResourceType) => void;
 
 export type FormStateBuilder = (
   resourceId: NodeId,
-  architecture: EnvironmentVersion,
+  environmentVersion: EnvironmentVersion,
 ) => object;
 
 export type ConstraintBuilder = (
   resourceId: NodeId,
-  architecture: Architecture,
+  environmentVersion: EnvironmentVersion,
   formState: any,
 ) => Constraint[];
 
 export type NodeDataPopulator = (
   resourceId: NodeId,
-  architecture: Architecture,
+  environmentVersion: EnvironmentVersion,
 ) => any;
 
 export interface LayoutContext {

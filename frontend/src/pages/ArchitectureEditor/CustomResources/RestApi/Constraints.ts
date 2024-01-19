@@ -9,6 +9,7 @@ import {
   EdgeConstraint,
   ResourceConstraint,
 } from "../../../../shared/architecture/Constraints";
+import type { EnvironmentVersion } from "../../../../shared/architecture/EnvironmentVersion";
 
 export enum RouteOperation {
   Add = "Add",
@@ -69,10 +70,10 @@ export function createAddRouteConstraints(
   restApiId: NodeId,
   method: string,
   route: string,
-  architecture: Architecture,
+  environmentVersion: EnvironmentVersion,
   index: number,
 ) {
-  const existingIntegrations = architecture.edges
+  const existingIntegrations = environmentVersion.edges
     .filter(
       (e) =>
         e.source.equals(restApiId) && e.destination.type === "api_integration",
@@ -80,9 +81,11 @@ export function createAddRouteConstraints(
     .map((e) => e.destination);
   // a route is a combination of an integration + its upstream method
   const existingRoutes = existingIntegrations.map((integrationId) => {
-    const integration = architecture.resources.get(integrationId.toString());
+    const integration = environmentVersion.resources.get(
+      integrationId.toString(),
+    );
     const methodId = integration?.Method;
-    const method = architecture.resources.get(methodId)?.HttpMethod;
+    const method = environmentVersion.resources.get(methodId)?.HttpMethod;
     const route = integration?.Route;
     return { [`${method}:${route}`]: integrationId };
   });
@@ -146,7 +149,7 @@ export function createAddRouteConstraints(
 
 export function restApiCreationConstraintsModifier(
   node: Node,
-  architecture: Architecture,
+  environmentVersion: EnvironmentVersion,
   defaultConstraints: Constraint[],
 ) {
   // eslint-disable-next-line no-template-curly-in-string
@@ -154,7 +157,7 @@ export function restApiCreationConstraintsModifier(
     node.data.resourceId,
     "ANY",
     "/{proxy+}",
-    architecture,
+    environmentVersion,
     0,
   );
   return [...defaultConstraints, ...routeConstraints];
@@ -162,16 +165,18 @@ export function restApiCreationConstraintsModifier(
 
 export function apiIntegrationNodeModifier(
   node: Node,
-  architecture: Architecture,
+  environmentVersion: EnvironmentVersion,
 ) {
   let routeInfo = { method: "UNKNOWN", path: "UNKNOWN" };
-  const resource = architecture.resources?.get(node.data.resourceId.toString());
+  const resource = environmentVersion.resources?.get(
+    node.data.resourceId.toString(),
+  );
   if (!resource) {
     node.data.resourceMeta = routeInfo;
     return;
   }
   const path = resource["Route"];
-  const method = (architecture.resources?.get(resource["Method"]) ?? {})[
+  const method = (environmentVersion.resources?.get(resource["Method"]) ?? {})[
     "HttpMethod"
   ];
   node.data.resourceMeta = { method, path };
