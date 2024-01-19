@@ -537,6 +537,7 @@ const infracopilot_cf = new aws.cloudfront.Distribution("infracopilot-cf", {
         viewerCertificate: {
             cloudfrontDefaultCertificate: true,
         },
+        customErrorResponses: [{errorCode: 403, responseCode: 200, responsePagePath: "/index.html"}],
         defaultCacheBehavior: {allowedMethods: ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"], cachedMethods: ["HEAD", "GET"], defaultTtl: 3600, forwardedValues: {cookies: {forward: "none"}, queryString: true}, maxTtl: 86400, minTtl: 0, targetOriginId: "static-site", viewerProtocolPolicy: "allow-all"},
         restrictions: {geoRestriction: {restrictionType: "none"}},
         orderedCacheBehaviors: [
