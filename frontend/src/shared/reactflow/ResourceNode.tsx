@@ -35,7 +35,7 @@ const connectionNodeIdSelector = (state: any) => state.connectionNodeId;
 
 const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
   const {
-    architecture,
+    environmentVersion,
     selectedResource,
     replaceResource,
     selectNode,
@@ -223,7 +223,7 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
         ></EditableLabel>
         <div className={"text-center dark:text-gray-200"}>
           <i className="pointer-events-auto">
-            {data.resourceId.provider === architecture.provider
+            {data.resourceId.provider === environmentVersion.provider
               ? data.resourceId.type
               : `${data.resourceId.provider}:${data.resourceId.type}`}
           </i>

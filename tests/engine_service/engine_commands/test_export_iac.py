@@ -27,7 +27,7 @@ class TestExportIac(aiounittest.AsyncTestCase):
 
     @mock.patch(
         "src.engine_service.engine_commands.export_iac.run_iac_command",
-        new_callable=mock.AsyncMock,
+        new_callable=mock.Mock,
     )
     @mock.patch("tempfile.TemporaryDirectory")
     async def test_run_engine(self, mock_temp_dir: mock.Mock, mock_eng_cmd: mock.Mock):
@@ -42,7 +42,7 @@ class TestExportIac(aiounittest.AsyncTestCase):
             "",
         )
         mock_eng_cmd.side_effect = self.run_iac_side_effect(self.temp_dir.name)
-        result = await export_iac(request)
+        result = export_iac(request)
         mock_temp_dir.assert_called_once()
         mock_eng_cmd.assert_called_once_with(
             "Generate",

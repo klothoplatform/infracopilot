@@ -59,8 +59,6 @@ export default async function createArchitecture(
   return {
     name: request.name,
     owner: request.owner,
-    engineVersion: request.engineVersion,
     id: response.data.id,
-    version: 0,
   } as Architecture;
 }

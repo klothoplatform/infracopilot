@@ -15,11 +15,11 @@ from src.util.secrets import (
 )
 
 
-async def get_client_configuration():
-    secret = await get_fga_secret()
-    client_id = await get_fga_client()
-    store_id = await get_fga_store()
-    authorization_model_id = await get_fga_model()
+def get_client_configuration():
+    secret = get_fga_secret()
+    client_id = get_fga_client()
+    store_id = get_fga_store()
+    authorization_model_id = get_fga_model()
 
     # Step 02. Initialize the SDK
     credentials = Credentials(
@@ -49,7 +49,7 @@ class ArchitecturePermissions(Enum):
 
 
 async def add_architecture_owner(entity: Entity, architecture_id: str) -> None:
-    configuration = await get_client_configuration()
+    configuration = get_client_configuration()
     async with OpenFgaClient(configuration) as fga_client:
         request = ClientWriteRequest(
             writes=[
@@ -66,7 +66,7 @@ async def add_architecture_owner(entity: Entity, architecture_id: str) -> None:
 
 
 async def can_write_to_architecture(entity: Entity, architecture_id: str) -> bool:
-    configuration = await get_client_configuration()
+    configuration = get_client_configuration()
     async with OpenFgaClient(configuration) as fga_client:
         body = ClientCheckRequest(
             user=entity.to_auth_string(),
@@ -79,7 +79,7 @@ async def can_write_to_architecture(entity: Entity, architecture_id: str) -> boo
 
 
 async def can_read_architecture(entity: Entity, architecture_id: str) -> bool:
-    configuration = await get_client_configuration()
+    configuration = get_client_configuration()
     async with OpenFgaClient(configuration) as fga_client:
         body = ClientCheckRequest(
             user=entity.to_auth_string(),
@@ -92,7 +92,7 @@ async def can_read_architecture(entity: Entity, architecture_id: str) -> bool:
 
 
 async def can_change_architecture_owner(entity: Entity, architecture_id: str) -> bool:
-    configuration = await get_client_configuration()
+    configuration = get_client_configuration()
     async with OpenFgaClient(configuration) as fga_client:
         body = ClientCheckRequest(
             user=entity.to_auth_string(),
@@ -105,7 +105,7 @@ async def can_change_architecture_owner(entity: Entity, architecture_id: str) ->
 
 
 async def can_share_architecture(entity: Entity, architecture_id: str) -> bool:
-    configuration = await get_client_configuration()
+    configuration = get_client_configuration()
     async with OpenFgaClient(configuration) as fga_client:
         body = ClientCheckRequest(
             user=entity.to_auth_string(),

@@ -1,5 +1,4 @@
 import { NodeId } from "../../../../shared/architecture/TopologyNode";
-import type { Architecture } from "../../../../shared/architecture/Architecture";
 import type { Constraint } from "../../../../shared/architecture/Constraints";
 import {
   createAddRouteConstraints,
@@ -7,6 +6,7 @@ import {
   createRemoveRouteConstraints,
   RouteOperation,
 } from "./Constraints";
+import type { EnvironmentVersion } from "../../../../shared/architecture/EnvironmentVersion";
 
 interface RouteModification {
   oldPath?: string;
@@ -21,9 +21,9 @@ interface RouteModification {
 
 export const restApiFormStateBuilder = (
   resourceId: NodeId,
-  architecture: Architecture,
+  environmentVersion: EnvironmentVersion,
 ) => {
-  const integrationIds = architecture.edges
+  const integrationIds = environmentVersion.edges
     .map((edge) => {
       if (
         edge.source.qualifiedType === "aws:api_integration" &&
@@ -43,11 +43,11 @@ export const restApiFormStateBuilder = (
   const routes = integrationIds
     .map((id) => ({
       id,
-      resource: architecture.resources.get(id.toString()),
+      resource: environmentVersion.resources.get(id.toString()),
     }))
     .filter(({ id, resource }) => resource)
     .map(({ id, resource }) => {
-      const method = architecture.resources.get(resource["Method"]);
+      const method = environmentVersion.resources.get(resource["Method"]);
       return {
         Method: (method ?? ({} as any))["HttpMethod"],
         Path: resource["Route"],
@@ -178,7 +178,7 @@ export const handleRoutesState = (
   defaultValues: any,
   modifiedValues: Map<string, any>,
   restApi: NodeId,
-  architecture: Architecture,
+  environmentVersion: EnvironmentVersion,
 ): Constraint[] => {
   const routeChanges = getRouteChanges(
     submittedValues,
@@ -213,7 +213,7 @@ export const handleRoutesState = (
             restApi,
             newMethod,
             newPath,
-            architecture,
+            environmentVersion,
             index,
           ),
         );

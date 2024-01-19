@@ -1,0 +1,24 @@
+version: "2"
+services:
+  minio:
+    image: minio/minio
+    ports:
+      - "9000:9000"
+    volumes:
+      - ./state:/data
+    environment:
+      - "MINIO_ACCESS_KEY=minio"
+      - "MINIO_SECRET_KEY=minio123"
+    command: server /data
+
+  createbuckets:
+    image: minio/mc
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -e -c "
+      /usr/bin/mc alias set myminio http://minio:9000 minio minio123;
+      /usr/bin/mc mb myminio/ifcp-architecture-storage;
+      /usr/bin/mc policy set public myminio/ifcp-architecture-storage;
+      exit 0;
+      "

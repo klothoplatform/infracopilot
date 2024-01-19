@@ -46,7 +46,6 @@ export default function EditorPane() {
     deselectNode,
     deselectEdge,
     addError,
-    architecture,
   } = useApplicationStore();
 
   const connectionNodeId = useStore((s) => s.connectionNodeId, shallow);

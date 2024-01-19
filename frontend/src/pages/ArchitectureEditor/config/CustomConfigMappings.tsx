@@ -1,5 +1,4 @@
 import type { FC } from "react";
-import type { Architecture } from "../../../shared/architecture/Architecture";
 import type { NodeId } from "../../../shared/architecture/TopologyNode";
 import type { ResourceType } from "../../../shared/resources/ResourceTypes";
 import type { Constraint } from "../../../shared/architecture/Constraints";
@@ -9,6 +8,7 @@ import type { ElkNode } from "elkjs/lib/elk.bundled";
 
 import LoadBalancerConfig from "../CustomResources/LoadBalancer";
 import RestApiConfig from "../CustomResources/RestApi";
+import { type EnvironmentVersion } from "../../../shared/architecture/EnvironmentVersion";
 
 export type ConfigSections = {
   [key: string]: {
@@ -22,19 +22,19 @@ export type FormStateHandler = (
   defaultValues: any,
   modifiedValues: Map<string, any>,
   resourceId: NodeId,
-  architecture: Architecture,
+  environmentVersion: EnvironmentVersion,
 ) => Constraint[];
 
 export interface CustomConfigMapping {
   creationConstraintsModifier?: (
     node: Node,
-    architecture: Architecture,
+    environmentVersion: EnvironmentVersion,
     defaultConstraints: Constraint[],
   ) => Constraint[];
   sections: ConfigSections;
   stateBuilder: FormStateBuilder;
   constraintBuilder?: ConstraintBuilder;
-  nodeModifier?: (node: Node, architecture: Architecture) => void;
+  nodeModifier?: (node: Node, environmentVersion: EnvironmentVersion) => void;
   resourceTypeModifier?: ResourceTypeModifier;
   layoutModifier?: LayoutModifier;
   stateHandler?: FormStateHandler;
@@ -69,33 +69,33 @@ export function getCustomConfigSections(
 
 export function getCustomConfigState(
   resourceId: NodeId,
-  architecture: Architecture,
+  environmentVersion: EnvironmentVersion,
 ): any {
   return customConfigMappings[
     `${resourceId.provider}:${resourceId.type}`
-  ]?.stateBuilder(resourceId, architecture);
+  ]?.stateBuilder(resourceId, environmentVersion);
 }
 
 export type ResourceTypeModifier = (resourceType: ResourceType) => void;
 
 export type FormStateBuilder = (
   resourceId: NodeId,
-  architecture: Architecture,
+  environmentVersion: EnvironmentVersion,
 ) => object;
 
 export type ConstraintBuilder = (
   resourceId: NodeId,
-  architecture: Architecture,
+  environmentVersion: EnvironmentVersion,
   formState: any,
 ) => Constraint[];
 
 export type NodeDataPopulator = (
   resourceId: NodeId,
-  architecture: Architecture,
+  environmentVersion: EnvironmentVersion,
 ) => any;
 
 export interface LayoutContext {
-  architecture: Architecture;
+  environmentVersion: EnvironmentVersion;
   reactFlow: {
     nodes: Node[];
     edges: Edge[];

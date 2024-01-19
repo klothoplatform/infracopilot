@@ -13,10 +13,10 @@ class ExportIacRequest(NamedTuple):
 
 
 class ExportIacResult(NamedTuple):
-    iac_bytes: BytesIO
+    iac_bytes: bytes
 
 
-async def export_iac(request: ExportIacRequest) -> ExportIacResult:
+def export_iac(request: ExportIacRequest) -> ExportIacResult:
     out_logs = None
     err_logs = None
     try:
@@ -41,14 +41,13 @@ async def export_iac(request: ExportIacRequest) -> ExportIacResult:
                 ]
             )
 
-            out_logs, err_logs = await run_iac_command(
+            out_logs, err_logs = run_iac_command(
                 "Generate",
                 *args,
                 cwd=dir,
             )
 
-            iac_bytes = BytesIO()
-            zip_directory_recurse(iac_bytes, str(dir))
+            iac_bytes = zip_directory_recurse(BytesIO(), str(dir))
 
             return ExportIacResult(
                 iac_bytes=iac_bytes,

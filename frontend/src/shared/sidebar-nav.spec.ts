@@ -6,7 +6,7 @@ import {
   RightSidebarMenu,
 } from "./sidebar-nav";
 import { NodeId } from "./architecture/TopologyNode";
-import type { Architecture } from "./architecture/Architecture";
+import type { EnvironmentVersion } from "./architecture/EnvironmentVersion";
 
 const resources = {
   resource1: { id: NodeId.parse("type1:namespace1:name1:provider1") },
@@ -16,19 +16,15 @@ const resources = {
 };
 
 const selectedResource = resources.resource3.id;
-const architecture: Architecture = {
+const environmentVersion: EnvironmentVersion = {
   provider: "ProviderA",
+  architecture_id: "ID1",
   id: "ID1",
-  engineVersion: 1,
   raw_state: {
     resources_yaml: "Resource YAML",
     topology_yaml: "Topology YAML",
   },
-  decisions: [],
-  failures: [],
   version: 1,
-  name: "Architecture 1",
-  owner: "Owner 1",
   views: new Map(),
   resources: new Map(
     Object.values(resources).map((resource) => [
@@ -63,7 +59,7 @@ describe("nav-history", () => {
         navHistory,
         [RightSidebarMenu.Details, RightSidebarDetailsTab.Config],
         selectedResource,
-        architecture,
+        environmentVersion,
       );
       expect(result).toBe(navHistoryEntry2);
     });
@@ -89,7 +85,7 @@ describe("nav-history", () => {
         navHistory,
         [RightSidebarMenu.Details, RightSidebarDetailsTab.Config],
         selectedResource,
-        architecture,
+        environmentVersion,
       );
       expect(result).toBeUndefined();
     });
@@ -115,7 +111,7 @@ describe("nav-history", () => {
         navHistory,
         [RightSidebarMenu.Details, RightSidebarDetailsTab.Config],
         selectedResource,
-        architecture,
+        environmentVersion,
       );
       expect(result).toBeUndefined();
     });
@@ -148,7 +144,7 @@ describe("nav-history", () => {
         navHistory,
         [RightSidebarMenu.Details, RightSidebarDetailsTab.Config],
         selectedResource,
-        architecture,
+        environmentVersion,
       );
       expect(result).toBe(navHistoryEntry3);
     });
@@ -176,7 +172,7 @@ describe("nav-history", () => {
         navHistory,
         [RightSidebarMenu.Details, RightSidebarDetailsTab.Config],
         selectedResource,
-        architecture,
+        environmentVersion,
       );
       expect(result).toBe(navHistoryEntry1);
     });
@@ -202,7 +198,7 @@ describe("nav-history", () => {
         navHistory,
         [RightSidebarMenu.Details, RightSidebarDetailsTab.Config],
         selectedResource,
-        architecture,
+        environmentVersion,
       );
       expect(result).toBeUndefined();
     });
@@ -228,7 +224,7 @@ describe("nav-history", () => {
         navHistory,
         [RightSidebarMenu.Details, RightSidebarDetailsTab.Config],
         selectedResource,
-        architecture,
+        environmentVersion,
       );
       expect(result).toBeUndefined();
     });
@@ -261,7 +257,7 @@ describe("nav-history", () => {
         navHistory,
         [RightSidebarMenu.Details, RightSidebarDetailsTab.Config],
         selectedResource,
-        architecture,
+        environmentVersion,
       );
       expect(result).toBe(navHistoryEntry1);
     });

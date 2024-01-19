@@ -1,21 +1,22 @@
 import { analytics } from "../App";
-import type { Architecture } from "../shared/architecture/Architecture";
-import { parseArchitecture } from "../shared/architecture/Architecture";
 import type { AxiosResponse } from "axios";
 import axios from "axios";
 import { ApiError } from "../shared/errors";
 import { trackError } from "../pages/store/ErrorStore";
+import { type EnvironmentVersion, parseEnvironmentVersion } from "../shared/architecture/EnvironmentVersion";
 
 export async function getPrevState(
-  id: string,
+  architectureId: string,
+  environment: string,
   idToken: string,
   version: number,
-): Promise<Architecture | undefined> {
+): Promise<EnvironmentVersion | undefined> {
   let response: AxiosResponse;
   try {
     response = await axios.get(
-      `/api/architecture/${id}/version/${version}/prev`,
+      `/api/architecture/${architectureId}/environment/${environment}/prev`,
       {
+        params: { version: version },
         responseType: "json",
         decompress: true,
         headers: {
@@ -36,13 +37,14 @@ export async function getPrevState(
       url: e.request?.url,
       cause: e,
       data: {
-        id: id,
+        architectureId,
+        environment,
       },
     });
     trackError(error);
     throw error;
   }
 
-  analytics.track("GetPreviousState", { status: response.status, id });
-  return parseArchitecture(response.data);
+  analytics.track("GetPreviousState", { status: response.status, architectureId, environment, version });
+  return parseEnvironmentVersion(response.data);
 }

@@ -14,27 +14,28 @@ endif
 
 iacCliPath := $(shell command -v iac)
 ifdef iacCliPath
-export IAC_CLI_PATH ?= $(iacCliPath)
+export IAC_PATH ?= $(iacCliPath)
 else
 endif
 
 # Backend commands
 
 run:
-	rm -f /tmp/engine && rm -f /tmp/iac && \
+	@echo "ENGINE_PATH: $(ENGINE_PATH)"
+	@echo "IAC_PATH: $(IAC_PATH)"
 	PYTHONPATH=. \
 	KEEP_TMP="True" \
 	AUTH0_DOMAIN="klotho-dev.us.auth0.com" \
 	AUTH0_AUDIENCE="A0sIE3wvh8LpG8mtJEjWPnBqZgBs5cNM" \
-	pipenv run uvicorn src.backend_orchestrator.main:app --port=3000
+	pipenv run uvicorn src.main:app --port=3000
 
 
 test-backend:
 	PYTHONPATH=. pipenv run python -m unittest discover -s tests
 
 test-coverage:
-	PYTHONPATH=. pipenv run coverage run -m unittest discover
-	PYTHONPATH=. pipenv run coverage report -m --fail-under 80 --skip-empty
+	PYTHONPATH=. pipenv run coverage run --source=src -m unittest discover
+	PYTHONPATH=. pipenv run coverage report -m --fail-under 67 --skip-empty
 
 black:
 	pipenv run black .

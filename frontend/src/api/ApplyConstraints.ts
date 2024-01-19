@@ -1,22 +1,22 @@
 import type { Constraint } from "../shared/architecture/Constraints";
 import { formatConstraints } from "../shared/architecture/Constraints";
-import type { Architecture } from "../shared/architecture/Architecture";
-import { parseArchitecture } from "../shared/architecture/Architecture";
 import axios from "axios";
 import { ApiError } from "../shared/errors";
 import { trackError } from "../pages/store/ErrorStore";
+import { type EnvironmentVersion, parseEnvironmentVersion } from "../shared/architecture/EnvironmentVersion";
 
 export enum ApplyConstraintsErrorType {
   ConfigValidation = "ConfigValidation",
 }
 
 export interface ApplyConstraintsResponse {
-  architecture: Architecture;
+  environmentVersion: EnvironmentVersion;
   errorType?: ApplyConstraintsErrorType;
 }
 
 export async function applyConstraints(
   architectureId: string,
+  environment: string,
   latestState: number,
   constraints: Constraint[],
   idToken: string,
@@ -33,7 +33,7 @@ export async function applyConstraints(
   let data;
   try {
     const response = await axios.post(
-      `/api/architecture/${architectureId}/run`,
+      `/api/architecture/${architectureId}/environment/${environment}/run`,
       {
         constraints: JSON.parse(formatConstraints(constraints)),
         overwrite: overwrite ?? false,
@@ -60,7 +60,7 @@ export async function applyConstraints(
     ) {
       console.log(e.response.data.config_errors);
       return {
-        architecture: parseArchitecture(e.response.data),
+        environmentVersion: parseEnvironmentVersion(e.response.data),
         errorType: ApplyConstraintsErrorType.ConfigValidation,
       };
     }
@@ -81,6 +81,6 @@ export async function applyConstraints(
     throw error;
   }
   return {
-    architecture: parseArchitecture(data),
+    environmentVersion: parseEnvironmentVersion(data),
   };
 }
