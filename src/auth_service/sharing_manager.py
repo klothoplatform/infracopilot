@@ -6,6 +6,8 @@ from openfga_sdk.client.models.tuple import ClientTuple
 from src.auth_service.fga_manager import FGAManager
 from src.util.logging import logger
 
+public_user = "user:*"
+
 
 class Role(Enum):
     VIEWER = "viewer"
@@ -84,6 +86,9 @@ class SharingManager:
         roles_to_add = []
         roles_to_remove = []
         for entity, role in roles.items():
+            if entity == public_user and role not in [None, Role.VIEWER]:
+                raise ValueError("Public may not have a role other than viewer.")
+
             if entity in existing_entity_roles:
                 existing_role = existing_entity_roles.get(entity, None)
                 if (

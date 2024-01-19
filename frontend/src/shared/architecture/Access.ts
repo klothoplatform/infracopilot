@@ -13,6 +13,7 @@ export enum GeneralAccess {
 export const publicUserId = "user:*";
 
 export interface ArchitectureAccess {
+  canWrite: boolean;
   canShare?: boolean;
   architectureId: string;
   entities: ArchitectureAccessEntity[];
@@ -56,6 +57,7 @@ export function parseEntities(data: any): ArchitectureAccess {
   return {
     architectureId: data.architecture_id,
     canShare: data.can_share,
+    canWrite: data.can_write,
     entities,
     generalAccess: data.general_access,
   };

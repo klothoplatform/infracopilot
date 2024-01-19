@@ -21,6 +21,7 @@ import {
 } from "../../components/Resizable";
 import { ShareButton } from "../../components/ShareButton";
 import { screenSizeIsAtMost } from "../../helpers/screen-size";
+import { ViewModeDropdown } from "../../components/ViewModeDropdown";
 
 function ArchitectureEditor() {
   return (
@@ -34,11 +35,12 @@ function ArchitectureEditor() {
 }
 
 const NavbarSidebarLayout: FC<PropsWithChildren> = function ({ children }) {
-  const { architecture, isAuthenticated } = useApplicationStore();
-
+  const {
+    architecture,
+    isAuthenticated,
+    viewSettings: { mode },
+  } = useApplicationStore();
   const leftSidebarRef = useRef<HTMLDivElement>(null);
-  // const rightSidebarRef = useRef<HTMLDivElement>(null);
-
   const [resourceLayout, setResourceLayout] = useState<"list" | "grid">("list");
 
   const onResizeLeftSidebar = (newSize: number) => {
@@ -54,17 +56,21 @@ const NavbarSidebarLayout: FC<PropsWithChildren> = function ({ children }) {
         <ResizableContainer className="flex h-full w-full gap-0 overflow-hidden bg-gray-50 dark:bg-gray-800">
           {architecture?.id && (
             <>
-              <ResizableSection
-                childRef={leftSidebarRef}
-                onResize={onResizeLeftSidebar}
-              >
-                <div
-                  ref={leftSidebarRef}
-                  className="box-border flex h-full min-w-[280px] max-w-[29%] shrink-0 grow-0 basis-[280px]"
+              {mode !== "edit" ? (
+                <></>
+              ) : (
+                <ResizableSection
+                  childRef={leftSidebarRef}
+                  onResize={onResizeLeftSidebar}
                 >
-                  <EditorSidebarLeft resourceLayout={resourceLayout} />
-                </div>
-              </ResizableSection>
+                  <div
+                    ref={leftSidebarRef}
+                    className="box-border flex h-full min-w-[280px] max-w-[29%] shrink-0 grow-0 basis-[280px]"
+                  >
+                    <EditorSidebarLeft resourceLayout={resourceLayout} />
+                  </div>
+                </ResizableSection>
+              )}
               <div className="grow-1 shrink-1 box-border flex h-full w-full min-w-[30%]">
                 {isAuthenticated && <MainContent>{children}</MainContent>}
               </div>
@@ -86,7 +92,7 @@ const EditorNavContent: FC = function () {
     isEditorInitialized,
     isEditorInitializing,
     user,
-    getArchitectureAccess,
+    viewSettings: { mode },
   } = useApplicationStore();
 
   const isExportButtonHidden = architecture.id === undefined;
@@ -95,21 +101,7 @@ const EditorNavContent: FC = function () {
   let { architectureId } = useParams();
   const navigate = useNavigate();
   const [workingMessage, setWorkingMessage] = useState<string | undefined>();
-  const [access, setAccess] = useState(architectureAccess);
   const [isSmallScreen, setIsSmallScreen] = useState(screenSizeIsAtMost("md"));
-
-  useEffect(() => {
-    (async () => {
-      if (isEditorInitialized && architecture.id) {
-        setAccess(await getArchitectureAccess(architecture.id, true));
-      }
-    })();
-  }, [
-    architecture,
-    architectureAccess,
-    getArchitectureAccess,
-    isEditorInitialized,
-  ]);
 
   useEffect(() => {
     if (!architectureId) {
@@ -176,7 +168,9 @@ const EditorNavContent: FC = function () {
         <div className="flex">
           <ArchitectureName
             disabled={
-              !isEditorInitialized || architecture.id !== architectureId
+              !isEditorInitialized ||
+              architecture.id !== architectureId ||
+              mode !== "edit"
             }
           />
           <div className="hidden sm:flex">
@@ -190,14 +184,17 @@ const EditorNavContent: FC = function () {
             />
           </div>
         </div>
-        <div className="mx-4">
+        <div className="mx-4 flex gap-2">
           {user && isEditorInitialized ? (
-            <ShareButton
-              user={user}
-              architecture={architecture}
-              access={access}
-              small={isSmallScreen}
-            />
+            <>
+              <ViewModeDropdown />
+              <ShareButton
+                user={user}
+                architecture={architecture}
+                access={architectureAccess}
+                small={isSmallScreen}
+              />
+            </>
           ) : null}
         </div>
       </div>

@@ -9,7 +9,7 @@ from openfga_sdk import Tuple, TupleKey
 from openfga_sdk.client.models import ClientTuple
 
 from src.auth_service.entity import User, Team
-from src.auth_service.sharing_manager import SharingManager
+from src.auth_service.sharing_manager import SharingManager, public_user
 from src.backend_orchestrator.architecture_handler import (
     ArchitectureHandler,
     CreateArchitectureRequest,
@@ -531,7 +531,6 @@ class TestArchitectureHandler(aiounittest.AsyncTestCase):
 
     async def test_limit_public_architecture_to_organization(self):
         org = "organization:test-org"
-        public_user = "user:*"
         await self.run_update_architecture_access_test(
             initial_relations={
                 "user:test-user": "owner",
@@ -630,10 +629,6 @@ class TestArchitectureHandler(aiounittest.AsyncTestCase):
         expected_status_code,
         expected_exception: Type[Exception] = None,
     ):
-        if expected_exception is not None:
-            self.assertRaises(
-                expected_exception, self.arch_handler.update_architecture_access
-            )
         mock_authz = mock.MagicMock()
         mock_authz.can_share_architecture = mock.AsyncMock(return_value=True)
         mock_teams = mock.MagicMock()
@@ -668,6 +663,20 @@ class TestArchitectureHandler(aiounittest.AsyncTestCase):
         mock_config = mock.MagicMock()
         mock_config.client_side_validation = False
 
+        if expected_exception is not None:
+            with self.assertRaises(expected_exception) as e:
+                await self.arch_handler.update_architecture_access(
+                    "user:test-user",
+                    "test-id",
+                    ShareArchitectureRequest(entity_roles=updated_roles),
+                    mock_authz,
+                    sharing_mgr,
+                )
+            if e.exception is not None:
+                if hasattr(e, "status_code") and expected_status_code is not None:
+                    self.assertEqual(expected_status_code, e.status_code)
+            return
+
         result = await self.arch_handler.update_architecture_access(
             "user:test-user",
             "test-id",
@@ -675,6 +684,7 @@ class TestArchitectureHandler(aiounittest.AsyncTestCase):
             mock_authz,
             sharing_mgr,
         )
+
         self.assertEqual(result.status_code, expected_status_code)
         mock_authz.can_share_architecture.assert_called_once_with(
             User("user:test-user"), "test-id"
@@ -690,6 +700,18 @@ class TestArchitectureHandler(aiounittest.AsyncTestCase):
             fga_mock.delete_tuples.assert_called_once_with(expected_deletions)
         else:
             fga_mock.delete_tuples.assert_not_called()
+
+    async def test_adding_public_edit_access_fails(self):
+        await self.run_update_architecture_access_test(
+            initial_relations={
+                "user:test-user": "owner",
+            },
+            updated_roles={public_user: "editor"},
+            expected_writes=None,
+            expected_deletions=None,
+            expected_exception=HTTPException,
+            expected_status_code=400,
+        )
 
     async def test_get_architecture_access_private(self):
         test_user = "user:test-user"

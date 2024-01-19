@@ -573,7 +573,7 @@ const GeneralAccessSelector: FC<{
       shouldDirty: true,
       shouldValidate: true,
     });
-    if (field === "generalAccess.type" && !watchRole) {
+    if (field === "generalAccess.type") {
       setValue("generalAccess.role", ArchitectureRole.Viewer, {
         shouldTouch: true,
         shouldDirty: true,
@@ -596,6 +596,11 @@ const GeneralAccessSelector: FC<{
     : watchRole
       ? getEnumKeyByEnumValue(ArchitectureRole, watchRole)
       : "";
+
+  const selectableRoles =
+    watchType === GeneralAccess.Public
+      ? [ArchitectureRole.Viewer]
+      : [ArchitectureRole.Editor, ArchitectureRole.Viewer];
 
   const selectedType = generalAccessOptions[watchType];
   return !selectedType ? (
@@ -673,25 +678,26 @@ const GeneralAccessSelector: FC<{
               color={""}
               placement={"bottom-start"}
               label={roleLabel}
-              disabled={readonly}
+              disabled={
+                readonly ||
+                (selectableRoles.length < 2 && selectableRoles[0] === watchRole)
+              }
             >
-              {[ArchitectureRole.Editor, ArchitectureRole.Viewer].map(
-                (role) => (
-                  <Dropdown.Item
-                    key={role}
-                    name={role}
-                    value={role}
-                    onClick={() => onSelect("generalAccess.role", role)}
-                  >
-                    {!!watchRole && (
-                      <span className="w-8">
-                        {role === watchRole && <FaCheck />}
-                      </span>
-                    )}
-                    {getEnumKeyByEnumValue(ArchitectureRole, role)}
-                  </Dropdown.Item>
-                ),
-              )}
+              {selectableRoles.map((role) => (
+                <Dropdown.Item
+                  key={role}
+                  name={role}
+                  value={role}
+                  onClick={() => onSelect("generalAccess.role", role)}
+                >
+                  {!!watchRole && (
+                    <span className="w-8">
+                      {role === watchRole && <FaCheck />}
+                    </span>
+                  )}
+                  {getEnumKeyByEnumValue(ArchitectureRole, role)}
+                </Dropdown.Item>
+              ))}
             </Dropdown>
           )}
         </>

@@ -490,6 +490,7 @@ class ArchitectureHandler:
             can_share = await authz.can_share_architecture(user, architecture.id)
             if not can_share:
                 summarized = True
+            can_write = await authz.can_write_to_architecture(user, architecture.id)
             roles = await arch_manager.get_architecture_roles(architecture.id)
             is_public = False
             is_shared_with_org = False
@@ -562,6 +563,7 @@ class ArchitectureHandler:
                 content={
                     "architecture_id": architecture.id,
                     "can_share": can_share,
+                    "can_write": can_write,
                     "entities": [
                         {
                             "id": e,

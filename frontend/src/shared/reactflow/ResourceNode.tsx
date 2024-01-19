@@ -42,6 +42,7 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
     selectResource,
     navigateRightSidebar,
     edgeTargetState: { validTargets, existingEdges },
+    viewSettings: { mode },
   } = useApplicationStore();
 
   const connectionNodeId = useStore(connectionNodeIdSelector);
@@ -49,6 +50,7 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
   const isSelected = selectedResource?.equals(data.resourceId);
   const [mouseOverNode, setMouseOverNode] = useState(false);
   // this could be a map by handle id
+  const isEditMode = mode === "edit";
   const showSourceHandle = !isConnecting && mouseOverNode;
   const updateNodeInternals = useUpdateNodeInternals();
 
@@ -195,20 +197,23 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
           )}
         </div>
         {handles}
-        <Handle
-          className={classNames("node-handle", {
-            "opacity-0": !showSourceHandle,
-          })}
-          id={`${id}-dnd-source`}
-          position={Position.Right}
-          type="source"
-        >
-          <div className="handle-source handle-right pointer-events-none">
-            &nbsp;
-          </div>
-        </Handle>
+        {isEditMode && (
+          <Handle
+            className={classNames("node-handle", {
+              "opacity-0": !showSourceHandle,
+            })}
+            id={`${id}-dnd-source`}
+            position={Position.Right}
+            type="source"
+          >
+            <div className="handle-source handle-right pointer-events-none">
+              &nbsp;
+            </div>
+          </Handle>
+        )}
 
         <EditableLabel
+          disabled={mode !== "edit"}
           label={data.label}
           onSubmit={async (newValue) => {
             const { provider, type, namespace } = data.resourceId;

@@ -27,6 +27,10 @@ export const ConfigGroup: FC<ConfigGroupProps> = ({
 }) => {
   const { environmentVersion } = useApplicationStore();
 
+  const {
+    viewSettings: { mode },
+  } = useApplicationStore();
+
   const rows: ReactNode[] = [];
   const resourceMetadata = environmentVersion?.resources?.get(
     configResource.toString(),
@@ -79,9 +83,7 @@ export const ConfigGroup: FC<ConfigGroupProps> = ({
               property.deployTime &&
               resourceMetadata?.imported)
           }
-          readOnly={
-            property.configurationDisabled && !resourceMetadata?.imported
-          }
+          disabled={property.configurationDisabled && !resourceMetadata?.imported || mode !== "edit"}
         />
       </div>,
     );

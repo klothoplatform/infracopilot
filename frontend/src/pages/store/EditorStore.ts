@@ -117,6 +117,9 @@ interface EditorStoreState {
   selectedResource?: NodeId;
   unappliedConstraints: Constraint[];
   architectureAccess?: ArchitectureAccess;
+  viewSettings: {
+    mode: "edit" | "view";
+  };
 }
 
 const initialState: () => EditorStoreState = () => ({
@@ -161,6 +164,9 @@ const initialState: () => EditorStoreState = () => ({
     validTargets: new Map<string, string[]>(),
     existingEdges: new Map<string, string[]>(),
     updating: false,
+  },
+  viewSettings: {
+    mode: "edit",
   },
 });
 
@@ -217,6 +223,9 @@ interface EditorStoreActions {
   navigateForwardRightSidebar: () => void;
   goToPreviousState: () => Promise<void>;
   goToNextState: () => Promise<void>;
+  updateViewSettings: (
+    settings: Partial<EditorStoreState["viewSettings"]>,
+  ) => void;
 }
 
 type EditorStoreBase = EditorStoreState & EditorStoreActions;
@@ -547,8 +556,17 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     try {
       environment = environment ?? "default";
       await get().refreshArchitecture(architectureId, environment, version);
+      const architectureAccess = await get().getArchitectureAccess(
+        architectureId,
+        true,
+      );
       set(
         {
+          viewSettings: {
+            ...get().viewSettings,
+            mode: architectureAccess?.canWrite ? "edit" : "view",
+          },
+          architectureAccess,
           isEditorInitializing: false,
           isEditorInitialized: true,
         },
@@ -1404,5 +1422,17 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
   ) => {
     const idToken = await get().getIdToken();
     return await getArchitectureAccess({ architectureId, summarized }, idToken);
+  },
+  updateViewSettings: (settings: Partial<EditorStoreState["viewSettings"]>) => {
+    set(
+      {
+        viewSettings: {
+          ...get().viewSettings,
+          ...settings,
+        },
+      },
+      false,
+      "editor/updateViewSettings",
+    );
   },
 });

@@ -9,14 +9,8 @@ import {
   useTheme,
   Banner,
 } from "flowbite-react";
-import type { ComponentProps, FC, ForwardedRef, ReactElement } from "react";
-import React, {
-  forwardRef,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import type { ComponentProps, FC, ReactElement } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import {
   HiCheck,
   HiCheckCircle,
@@ -42,13 +36,7 @@ import { ErrorBoundary } from "react-error-boundary";
 import { FallbackRenderer } from "../FallbackRenderer";
 import { trackError } from "../../pages/store/ErrorStore";
 import { UIError } from "../../shared/errors";
-import {
-  FaArrowLeft,
-  FaArrowRight,
-  FaBars,
-  FaChevronLeft,
-  FaChevronRight,
-} from "react-icons/fa6";
+import { FaArrowLeft, FaArrowRight, FaBars } from "react-icons/fa6";
 import classNames from "classnames";
 import { FaHistory } from "react-icons/fa";
 import { ResizableSection } from "../Resizable";
@@ -56,111 +44,116 @@ import { TbPlugConnected } from "react-icons/tb";
 import { MdAnnouncement } from "react-icons/md";
 import { OutlinedAlert } from "../../shared/custom-themes";
 
-const EditorSidebarRight = forwardRef(
-  (props, ref: ForwardedRef<HTMLDivElement>) => {
-    const menusRef = useRef<HTMLDivElement>(null);
-    const [outerIsCollapsed, setOuterIsCollapsed] = useState(true);
-    const {
-      selectedResource,
-      selectedEdge,
-      decisions,
-      failures,
-      rightSidebarSelector,
-      navigateRightSidebar,
-    } = useApplicationStore();
+const EditorSidebarRight: FC = () => {
+  const menusRef = useRef<HTMLDivElement>(null);
+  const [outerIsCollapsed, setOuterIsCollapsed] = useState(true);
+  const {
+    selectedResource,
+    selectedEdge,
+    decisions,
+    failures,
+    rightSidebarSelector,
+    navigateRightSidebar,
+    viewSettings: { mode },
+  } = useApplicationStore();
 
-    const [tabState, setTabState] = useState<{
-      [key: string]: boolean;
-    }>({});
+  const [tabState, setTabState] = useState<{
+    [key: string]: boolean;
+  }>({});
 
-    const [isResizable, setIsResizable] = useState(false);
+  const [isResizable, setIsResizable] = useState(false);
 
-    useEffect(() => {
-      if (!rightSidebarSelector[0]) {
-        return;
-      }
-      setTabState((previous) =>
-        updateActiveIndex(previous, rightSidebarSelector[0] as string, true),
-      );
-    }, [rightSidebarSelector]);
+  useEffect(() => {
+    if (!rightSidebarSelector[0]) {
+      return;
+    }
+    setTabState((previous) =>
+      updateActiveIndex(previous, rightSidebarSelector[0] as string, true),
+    );
+  }, [rightSidebarSelector]);
 
-    useEffect(() => {
-      setIsResizable(Object.values(tabState).some((v) => v));
-    }, [tabState]);
+  useEffect(() => {
+    setIsResizable(Object.values(tabState).some((v) => v));
+  }, [tabState]);
 
-    const onActivate = (index: string) => {
-      setTabState(updateActiveIndex(tabState, index, true));
-      navigateRightSidebar([
-        RightSidebarMenu[index as keyof typeof RightSidebarMenu],
-        rightSidebarSelector[1],
-      ]);
-    };
+  const onActivate = (index: string) => {
+    setTabState(updateActiveIndex(tabState, index, true));
+    navigateRightSidebar([
+      RightSidebarMenu[index as keyof typeof RightSidebarMenu],
+      rightSidebarSelector[1],
+    ]);
+  };
 
-    const onDeactivate = (index: string) => {
-      setTabState(updateActiveIndex(tabState, index, false));
-    };
+  const onDeactivate = (index: string) => {
+    setTabState(updateActiveIndex(tabState, index, false));
+  };
 
-    return (
-      <>
-        <ResizableSection
-          childRef={menusRef}
-          handleSide="left"
-          disabled={!isResizable}
-        >
-          <div
-            ref={menusRef}
-            className={classNames(
-              "flex flex-col w-[600px] overflow-hidden min-w-[300px]",
-              {
-                hidden: Object.values(tabState).every((value) => !value),
-              },
-            )}
-          >
-            <DetailsSidebar
-              hidden={
-                !tabState[RightSidebarMenu.Details] ||
-                rightSidebarSelector[0] !== RightSidebarMenu.Details
-              }
-            />
-            <ChangesSidebar
-              hidden={
-                !tabState[RightSidebarMenu.Changes] ||
-                rightSidebarSelector[0] !== RightSidebarMenu.Changes
-              }
-            />
-          </div>
-        </ResizableSection>
-        <Sidebar
-          collapsed={outerIsCollapsed}
-          className={"border-l-[1px] dark:border-gray-700"}
-          theme={{
-            root: {
-              base: "h-full grow-0 shrink-0",
-              inner:
-                "h-full overflow-y-auto overflow-x-hidden bg-gray-50 py-4 px-3 dark:bg-gray-800",
-              collapsed: {
-                off: "",
-              },
+  if (!mode) {
+    return null;
+  }
+
+  return (
+    <>
+      <ResizableSection
+        childRef={menusRef}
+        handleSide="left"
+        disabled={!isResizable}
+      >
+        <div
+          ref={menusRef}
+          className={classNames(
+            "flex flex-col w-[600px] overflow-hidden min-w-[300px]",
+            {
+              hidden: Object.values(tabState).every((value) => !value),
             },
-          }}
+          )}
         >
-          <Sidebar.Items className="h-full">
-            <div className="flex h-full flex-col justify-between">
-              <Sidebar.ItemGroup>
-                <SidebarMenuOptionGroup activeIndex={rightSidebarSelector[0]}>
-                  <SidebarMenuOption
-                    key={RightSidebarMenu.Details}
-                    index={RightSidebarMenu.Details}
-                    label={"Details"}
-                    icon={FaBars}
-                    onActivate={onActivate}
-                    onDeactivate={onDeactivate}
-                    active={
-                      tabState[RightSidebarMenu.Details] &&
-                      !!(selectedResource || selectedEdge)
-                    }
-                    disabled={!selectedResource && !selectedEdge}
-                  />
+          <DetailsSidebar
+            hidden={
+              !tabState[RightSidebarMenu.Details] ||
+              rightSidebarSelector[0] !== RightSidebarMenu.Details
+            }
+          />
+          <ChangesSidebar
+            hidden={
+              !tabState[RightSidebarMenu.Changes] ||
+              rightSidebarSelector[0] !== RightSidebarMenu.Changes
+            }
+          />
+        </div>
+      </ResizableSection>
+      <Sidebar
+        collapsed={outerIsCollapsed}
+        className={"border-l-[1px] dark:border-gray-700"}
+        theme={{
+          root: {
+            base: "h-full grow-0 shrink-0",
+            inner:
+              "h-full overflow-y-auto overflow-x-hidden bg-gray-50 py-4 px-3 dark:bg-gray-800",
+            collapsed: {
+              off: "",
+            },
+          },
+        }}
+      >
+        <Sidebar.Items className="h-full">
+          <div className="flex h-full flex-col justify-between">
+            <Sidebar.ItemGroup>
+              <SidebarMenuOptionGroup activeIndex={rightSidebarSelector[0]}>
+                <SidebarMenuOption
+                  key={RightSidebarMenu.Details}
+                  index={RightSidebarMenu.Details}
+                  label={"Details"}
+                  icon={FaBars}
+                  onActivate={onActivate}
+                  onDeactivate={onDeactivate}
+                  active={
+                    tabState[RightSidebarMenu.Details] &&
+                    !!(selectedResource || selectedEdge)
+                  }
+                  disabled={!selectedResource && !selectedEdge}
+                />
+                {mode === "edit" ? (
                   <SidebarMenuOption
                     key={RightSidebarMenu.Changes}
                     index={RightSidebarMenu.Changes}
@@ -174,17 +167,17 @@ const EditorSidebarRight = forwardRef(
                     }
                     disabled={decisions?.length === 0 && failures?.length === 0}
                   />
-                </SidebarMenuOptionGroup>
-              </Sidebar.ItemGroup>
-            </div>
-          </Sidebar.Items>
-        </Sidebar>
-      </>
-    );
-  },
-);
-
-EditorSidebarRight.displayName = "EditorSidebarRight";
+                ) : (
+                  <></>
+                )}
+              </SidebarMenuOptionGroup>
+            </Sidebar.ItemGroup>
+          </div>
+        </Sidebar.Items>
+      </Sidebar>
+    </>
+  );
+};
 
 const SidebarMenuOptionGroup: FC<{
   activeIndex: string | undefined;

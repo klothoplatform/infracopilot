@@ -25,6 +25,7 @@ const ApiIntegrationNode = memo(
       selectResource,
       navigateRightSidebar,
       edgeTargetState: { validTargets },
+      viewSettings: { mode },
     } = useApplicationStore();
 
     const connectionNodeId = useStore(connectionNodeIdSelector);
@@ -34,6 +35,8 @@ const ApiIntegrationNode = memo(
     const [mouseOverHandle] = useState(false);
     const showSourceHandle =
       !isConnecting && (mouseOverNode || mouseOverHandle);
+
+    const isEditMode = mode === "edit";
 
     const isValidConnectionTarget =
       isConnecting &&
@@ -131,18 +134,20 @@ const ApiIntegrationNode = memo(
             type="target"
           />
         )}
-        <Handle
-          className={classNames("node-handle", {
-            "opacity-0": !showSourceHandle,
-          })}
-          id={`${id}-dnd-source`}
-          position={Position.Right}
-          type="source"
-        >
-          <div className="handle-source handle-right pointer-events-none">
-            &nbsp;
-          </div>
-        </Handle>
+        {isEditMode && (
+          <Handle
+            className={classNames("node-handle", {
+              "opacity-0": !showSourceHandle,
+            })}
+            id={`${id}-dnd-source`}
+            position={Position.Right}
+            type="source"
+          >
+            <div className="handle-source handle-right pointer-events-none">
+              &nbsp;
+            </div>
+          </Handle>
+        )}
       </div>
     );
   },
