@@ -20,8 +20,8 @@ import {
   ResizableSection,
 } from "../../components/Resizable";
 import { ShareButton } from "../../components/ShareButton";
-import { screenSizeIsAtMost } from "../../helpers/screen-size";
 import { ViewModeDropdown } from "../../components/ViewModeDropdown";
+import { useScreenSize } from "../../shared/hooks/useScreenSize";
 
 function ArchitectureEditor() {
   return (
@@ -72,7 +72,8 @@ const NavbarSidebarLayout: FC<PropsWithChildren> = function ({ children }) {
                 </ResizableSection>
               )}
               <div className="grow-1 shrink-1 box-border flex h-full w-full min-w-[30%]">
-                {isAuthenticated && <MainContent>{children}</MainContent>}
+                <MainContent>{children}</MainContent>
+                {/*{isAuthenticated && <MainContent>{children}</MainContent>}*/}
               </div>
               <EditorSidebarRight />
             </>
@@ -101,7 +102,7 @@ const EditorNavContent: FC = function () {
   let { architectureId } = useParams();
   const navigate = useNavigate();
   const [workingMessage, setWorkingMessage] = useState<string | undefined>();
-  const [isSmallScreen, setIsSmallScreen] = useState(screenSizeIsAtMost("md"));
+  const { isSmallScreen } = useScreenSize();
 
   useEffect(() => {
     if (!architectureId) {
@@ -112,7 +113,7 @@ const EditorNavContent: FC = function () {
       return;
     }
     if (
-      auth0?.isAuthenticated &&
+      // auth0?.isAuthenticated &&
       architectureId &&
       (!isEditorInitialized || architecture.id !== architectureId) &&
       !isEditorInitializing
@@ -140,7 +141,7 @@ const EditorNavContent: FC = function () {
       setWorkingMessage(undefined);
     }
   }, [
-    auth0?.isAuthenticated,
+    // auth0?.isAuthenticated,
     architectureId,
     navigate,
     initializeEditor,
@@ -150,22 +151,10 @@ const EditorNavContent: FC = function () {
     architecture.id,
   ]);
 
-  useEffect(() => {
-    function handleResize() {
-      setIsSmallScreen(screenSizeIsAtMost("md"));
-    }
-
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
-
   return (
     <div className="w-full align-middle dark:text-white">
       <div className="flex w-full justify-between">
-        <div className="flex">
+        <div className="flex gap-4">
           <ArchitectureName
             disabled={
               !isEditorInitialized ||
@@ -174,10 +163,9 @@ const EditorNavContent: FC = function () {
             }
           />
           <div className="hidden sm:flex">
-            <ArchitectureButtonAndModal
-              disabled={!auth0?.isAuthenticated}
-              small={isSmallScreen}
-            />
+            {auth0?.isAuthenticated && (
+              <ArchitectureButtonAndModal small={isSmallScreen} />
+            )}
             <ExportIacButton
               disabled={isExportButtonHidden}
               small={isSmallScreen}
@@ -225,7 +213,7 @@ const ArchitectureName: FC<{
   };
 
   return (
-    <div className="my-auto mr-6 flex font-semibold">
+    <div className="my-auto  font-semibold">
       <EditableLabel
         initialValue={architecture.name}
         label={architecture.name}

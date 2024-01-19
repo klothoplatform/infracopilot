@@ -8,12 +8,14 @@ import {
 import LoginButton from "../auth/Login";
 import useApplicationStore from "../pages/store/ApplicationStore";
 import { Link } from "react-router-dom";
+import { useScreenSize } from "../shared/hooks/useScreenSize";
 
 interface NavbarProps {}
 
 const NavBar: FC<PropsWithChildren<NavbarProps>> = function ({ children }) {
   const { user, isAuthenticated } = useApplicationStore();
   const [mode, setMode, toggleMode] = useThemeMode();
+  const { isSmallScreen } = useScreenSize();
 
   return (
     <Navbar fluid>
@@ -30,7 +32,7 @@ const NavBar: FC<PropsWithChildren<NavbarProps>> = function ({ children }) {
           <div className="mx-6 my-4 h-5 border-r-[1px] border-gray-300 shadow-black"></div>
           <div className="w-full items-start">{children}</div>
           <div className="flex items-center lg:gap-3">
-            <div className="flex items-center">
+            <div className="hidden items-center lg:block">
               <DarkThemeToggle
                 onClick={() => {
                   const newMode = mode === "dark" ? "light" : "dark";
@@ -39,9 +41,13 @@ const NavBar: FC<PropsWithChildren<NavbarProps>> = function ({ children }) {
                 }}
               />
             </div>
-            <div className="hidden lg:block">
-              {isAuthenticated && user ? <AccountDropdown /> : <LoginButton />}
-            </div>
+            {isAuthenticated && user ? (
+              <div className="hidden lg:block">
+                <AccountDropdown />
+              </div>
+            ) : (
+              <LoginButton tooltip={isSmallScreen} />
+            )}
           </div>
         </div>
       </div>

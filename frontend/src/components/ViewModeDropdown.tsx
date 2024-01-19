@@ -87,7 +87,9 @@ export const ViewModeDropdown: FC = () => {
           <option.Icon size={20} />
           <div className="text-left">
             <div className="flex gap-2 font-semibold">{option.label}</div>
-            <div className="text-sm text-gray-500">{option.description}</div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              {option.description}
+            </div>
           </div>
         </Dropdown.Item>
       ))}
