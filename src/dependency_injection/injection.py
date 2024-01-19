@@ -1,11 +1,5 @@
-import os
 import logging
-
-from src.state_manager.architecture_storage import ArchitectureStorage
-from src.engine_service.binaries.fetcher import BinaryStorage
-from src.environment_management.environment_version import EnvironmentVersionDAO
-from src.environment_management.environment import EnvironmentDAO
-from src.environment_management.architecture import ArchitectureDAO
+import os
 
 import boto3
 from openfga_sdk import ClientConfiguration
@@ -21,17 +15,11 @@ from src.backend_orchestrator.architecture_handler import ArchitectureHandler
 from src.backend_orchestrator.get_valid_edge_targets_handler import EdgeTargetHandler
 from src.backend_orchestrator.iac_handler import IaCOrchestrator
 from src.backend_orchestrator.run_engine_handler import EngineOrchestrator
+from src.engine_service.binaries.fetcher import BinaryStorage
 from src.environment_management.architecture import ArchitectureDAO
 from src.environment_management.environment import EnvironmentDAO
 from src.environment_management.environment_version import EnvironmentVersionDAO
 from src.environment_management.models import ModelsBase
-from src.auth_service.main import AuthzService
-from src.auth_service.fga_manager import FGAManager
-from src.auth_service.teams_manager import TeamsManager
-import boto3
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
-from openfga_sdk import ClientConfiguration
-from openfga_sdk.credentials import Credentials, CredentialConfiguration
 from src.state_manager.architecture_storage import ArchitectureStorage
 from src.util.secrets import (
     get_fga_secret,
