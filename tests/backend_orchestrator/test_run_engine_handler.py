@@ -7,6 +7,7 @@ from src.backend_orchestrator.run_engine_handler import (
     CopilotRunRequest,
     EngineOrchestrator,
 )
+from src.engine_service.binaries.fetcher import Binary
 from src.environment_management.environment_version import (
     EnvironmentVersionDoesNotExistError,
 )
@@ -66,16 +67,20 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
         self.mock_store: mock.Mock = mock.Mock()
         self.mock_ev_dao: mock.Mock = mock.Mock()
         self.mock_env_dao: mock.Mock = mock.Mock()
+        self.mock_binary_store: mock.Mock = mock.Mock()
+
         self.arch_handler = EngineOrchestrator(
             self.mock_store,
             self.mock_ev_dao,
             self.mock_env_dao,
+            self.mock_binary_store,
         )
 
     def setUp(self) -> None:
         self.mock_store.reset_mock()
         self.mock_ev_dao.reset_mock()
         self.mock_env_dao.reset_mock()
+        self.mock_binary_store.reset_mock()
 
     @mock.patch(
         "src.backend_orchestrator.run_engine_handler.run_engine",
@@ -158,6 +163,7 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
         self.mock_env_dao.set_current_version.assert_called_once_with(
             "test-architecture-id", "test-id", 2
         )
+        self.mock_binary_store.ensure_binary.assert_called_once_with(Binary.ENGINE)
 
     @mock.patch(
         "src.backend_orchestrator.run_engine_handler.run_engine",
@@ -252,6 +258,7 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
         self.mock_env_dao.set_current_version.assert_called_once_with(
             "test-architecture-id", "test-id", 2
         )
+        self.mock_binary_store.ensure_binary.assert_called_once_with(Binary.ENGINE)
 
     async def test_run_engine_architecture_not_found(
         self,
@@ -272,6 +279,7 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
         )
         self.assertEqual(e.exception.status_code, 404)
         self.mock_store.get_state_from_fs.assert_not_called()
+        self.mock_binary_store.ensure_binary.assert_not_called()
 
     async def test_run_engine_environment_not_found(
         self,
@@ -295,6 +303,7 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
         )
         self.assertEqual(e.exception.status_code, 404)
         self.mock_store.get_state_from_fs.assert_not_called()
+        self.mock_binary_store.ensure_binary.assert_not_called()
 
     async def test_run_engine_environment_version_not_latest(self):
         self.mock_ev_dao.get_current_version = mock.AsyncMock(return_value=self.test_ev)
@@ -311,6 +320,7 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
         self.assertEqual(e.exception.detail, "Environment version is not the latest")
         self.assertEqual(e.exception.status_code, 400)
         self.mock_store.get_state_from_fs.assert_not_called()
+        self.mock_binary_store.ensure_binary.assert_not_called()
 
     async def test_run_engine_throw_error(self):
         self.mock_ev_dao.get_current_version = mock.AsyncMock(side_effect=Exception)
@@ -327,6 +337,7 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
         self.assertEqual(e.exception.detail, "internal server error")
         self.assertEqual(e.exception.status_code, 500)
         self.mock_store.get_state_from_fs.assert_not_called()
+        self.mock_binary_store.ensure_binary.assert_not_called()
 
     @mock.patch(
         "src.backend_orchestrator.run_engine_handler.run_engine",
@@ -354,6 +365,7 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
             result.body, b'{"error_type": "test-error", "config_errors": []}'
         )
         self.assertEqual(result.status_code, 400)
+        self.mock_binary_store.ensure_binary.assert_called_once_with(Binary.ENGINE)
 
     @mock.patch(
         "src.backend_orchestrator.run_engine_handler.get_resource_types",
@@ -367,10 +379,11 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
         )
         self.assertEqual(result.status_code, 200)
         self.assertEqual(result.body, b"test-resource-type")
-        mock_get_resource_types.assert_called_once_with()
+        mock_get_resource_types.assert_called_once_with(self.mock_binary_store)
         self.mock_ev_dao.get_latest_version.assert_called_once_with(
             "test-architecture-id", "test-id"
         )
+        self.mock_binary_store.ensure_binary.assert_not_called()
 
     @mock.patch(
         "src.backend_orchestrator.run_engine_handler.get_resource_types",
@@ -394,6 +407,7 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
             "test-architecture-id", "test-id"
         )
         mock_get_resource_types.assert_not_called()
+        self.mock_binary_store.ensure_binary.assert_not_called()
 
     @mock.patch(
         "src.backend_orchestrator.run_engine_handler.get_resource_types",
@@ -413,3 +427,4 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
             "test-architecture-id", "test-id"
         )
         mock_get_resource_types.assert_not_called()
+        self.mock_binary_store.ensure_binary.assert_not_called()

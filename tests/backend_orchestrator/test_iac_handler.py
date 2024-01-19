@@ -16,6 +16,8 @@ from src.environment_management.models import (
     Architecture,
 )
 
+from src.engine_service.binaries.fetcher import Binary
+
 from src.engine_service.engine_commands.run import RunEngineResult
 
 
@@ -52,14 +54,19 @@ class TestGetIac(aiounittest.AsyncTestCase):
         cls.mock_architecture_storage = mock.Mock()
         cls.mock_ev_dao = mock.Mock()
         cls.mock_arch_dao = mock.Mock()
+        cls.mock_binary_store: mock.Mock = mock.Mock()
         cls.iac_orchestrator = IaCOrchestrator(
-            cls.mock_architecture_storage, cls.mock_arch_dao, cls.mock_ev_dao
+            cls.mock_architecture_storage,
+            cls.mock_arch_dao,
+            cls.mock_ev_dao,
+            cls.mock_binary_store,
         )
 
     def setUp(self):
         self.mock_architecture_storage.reset_mock()
         self.mock_ev_dao.reset_mock()
         self.mock_arch_dao.reset_mock()
+        self.mock_binary_store.reset_mock()
 
     @mock.patch(
         "src.backend_orchestrator.iac_handler.export_iac", new_callable=mock.Mock
@@ -107,11 +114,12 @@ class TestGetIac(aiounittest.AsyncTestCase):
         self.mock_ev_dao.update_environment_version.assert_called_once_with(
             self.test_env_version
         )
+        self.mock_binary_store.ensure_binary.assert_called_once_with(Binary.IAC)
 
     @mock.patch(
         "src.backend_orchestrator.iac_handler.export_iac", new_callable=mock.AsyncMock
     )
-    async def test_get_iac_no_iac_cache(
+    async def test_get_iac_iac_cache(
         self,
         mock_export_iac: mock.Mock,
     ):
@@ -140,6 +148,7 @@ class TestGetIac(aiounittest.AsyncTestCase):
         self.mock_architecture_storage.write_iac_to_fs.assert_not_called()
         mock_export_iac.assert_not_called()
         self.mock_ev_dao.update_environment_version.assert_not_called()
+        self.mock_binary_store.ensure_binary.assert_not_called()
 
     async def test_get_iac_version_not_found(self):
         self.mock_ev_dao.get_current_version = mock.AsyncMock(return_value=None)
@@ -161,6 +170,7 @@ class TestGetIac(aiounittest.AsyncTestCase):
         self.mock_architecture_storage.get_state_from_fs.assert_not_called()
         self.mock_architecture_storage.write_iac_to_fs.assert_not_called()
         self.mock_ev_dao.update_environment_version.assert_not_called()
+        self.mock_binary_store.ensure_binary.assert_not_called()
 
     async def test_get_iac_architecture_not_found(self):
         self.mock_ev_dao.get_current_version = mock.AsyncMock(
@@ -183,6 +193,7 @@ class TestGetIac(aiounittest.AsyncTestCase):
         self.mock_architecture_storage.get_state_from_fs.assert_not_called()
         self.mock_architecture_storage.write_iac_to_fs.assert_not_called()
         self.mock_ev_dao.update_environment_version.assert_not_called()
+        self.mock_binary_store.ensure_binary.assert_not_called()
 
     async def test_get_iac_version_not_current(self):
         self.mock_ev_dao.get_current_version = mock.AsyncMock(
@@ -205,6 +216,7 @@ class TestGetIac(aiounittest.AsyncTestCase):
         self.mock_architecture_storage.get_state_from_fs.assert_not_called()
         self.mock_architecture_storage.write_iac_to_fs.assert_not_called()
         self.mock_ev_dao.update_environment_version.assert_not_called()
+        self.mock_binary_store.ensure_binary.assert_not_called()
 
     async def test_get_iac_throw_error(self):
         self.mock_ev_dao.get_current_version = mock.AsyncMock(
@@ -234,3 +246,4 @@ class TestGetIac(aiounittest.AsyncTestCase):
         )
         self.mock_architecture_storage.write_iac_to_fs.assert_not_called()
         self.mock_ev_dao.update_environment_version.assert_not_called()
+        self.mock_binary_store.ensure_binary.assert_not_called()

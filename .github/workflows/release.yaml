@@ -80,39 +80,13 @@ jobs:
       - name: Install pipenv
         run: pip install pipenv
       - name: export requirements.txt
-        run: pipenv requirements > requirements.txt
-      - name: build frontend
-        run: |
-          make install-frontend
-          make build-frontend-${STAGE}
-        env:
-          CI: false
-          NODE_OPTIONS: "--max-old-space-size=4096"
-          STAGE: ${{ inputs.stage }}
-      - name: download klotho
-        uses: actions/download-artifact@v3
-        with:
-          name: klotho
-      - name: compile with klotho
-        env:
-          KLOTHO_ID_TOKEN: ${{ secrets.KLOTHO_ID_TOKEN }}
-          STAGE: ${{ inputs.stage }}
-        run: |
-          chmod +x ./klotho
-          ./klotho . --app infracopilot --config klotho_config/${STAGE}.yaml --provider aws
-      - name: fix static unit directory
-        run: |
-          make post-compile
+        run: pipenv requirements > requirements.txt     
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-region: ${{ inputs.region }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      - name: Create Pulumi.yaml
-        run: |
-          echo "name: infracopilot" > Pulumi.yaml
-          echo "runtime: nodejs" >> Pulumi.yaml
       - name: Pulumi Refresh
         uses: pulumi/actions@v4
         env:
@@ -123,7 +97,7 @@ jobs:
         with:
           command: refresh
           work-dir: "./compiled"
-          stack-name: "infracopilot-ui-${{ inputs.stage }}-${{ inputs.region }}"
+          stack-name: "infracopilot-${{ inputs.stage }}-${{ inputs.region }}"
           upsert: true
       - name: Use Node.js
         uses: actions/setup-node@v3
@@ -131,40 +105,75 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
       - name: npm install
         run: npm install
-        working-directory: ./compiled
-      - name: Unprotect Secret Versions
+        working-directory: ./deploy
+      - name: pulumi - up
+        uses: pulumi/actions@v4
+        with:
+          command: up
+          work-dir: "./deploy"
+          stack-name: "infracopilot-${{ inputs.stage }}-${{ inputs.region }}"
+          upsert: true
+          config-map: |
+            {
+              aws:region: { value: "${{ inputs.region }}", secret: false },
+              infracopilot:ifcporm_username: { value: "${{ secrets.INFRACOPILOT_STORAGE_USERNAME }}", secret: true },
+              infracopilot:ifcporm_password: { value: "${{ secrets.INFRACOPILOT_STORAGE_PASSWORD }}", secret: true }
+            }
         env:
           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
           PULUMI_CONFIG_PASSPHRASE: ""
           AWS_REGION: ${{ inputs.region }}
           STAGE: ${{ inputs.stage }}
+      - name: Get Pulumi Outputs
+        id: pulumi-outputs
         run: |
-          set +e
-          set -x
-          pulumi stack select "cloudcompilerrr/infracopilot/infracopilot-ui-${STAGE}-${AWS_REGION}"
-          pulumi stack export > /tmp/stack.json
-          for secret in "fga_secret.key" "fga_client_id.key" "fga_store_id.key" "fga_model_id.key"; do
-            if grep "aws:secretsmanager/secretVersion:SecretVersion::${secret}" /tmp/stack.json ; then
-              pulumi state unprotect "urn:pulumi:infracopilot-ui-${STAGE}-${AWS_REGION}::infracopilot::aws:secretsmanager/secretVersion:SecretVersion::${secret}"
-            fi
-          done
-      - name: Load Secrets
+          echo "::set-output name=ifcp_binary_storage_BucketName::$(pulumi stack output ifcp_binary_storage_BucketName)"
+          echo "::set-output name=ifcp_static_site_BucketName::$(pulumi stack output ifcp_static_site_BucketName)"
+        working-directory: ./deploy
+        shell: bash
+      - name: build frontend
+        run: |
+          make install-frontend
+          make build-frontend-${STAGE}
+        env:
+          CI: false
+          NODE_OPTIONS: "--max-old-space-size=4096"
+          STAGE: ${{ inputs.stage }}
+      - name: Sync frontend to S3
+        run: |
+          aws s3 sync frontend/build/ s3://${{ steps.pulumi-outputs.outputs.ifcp_static_site_BucketName }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ inputs.region }}
+      - name: Sync binaries to S3
+        run: |
+          aws s3 sync binaries s3://${{ steps.pulumi-outputs.outputs.ifcp_static_site_BucketName }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ inputs.region }}
+      - name: Upload Secrets
         env:
           FGA_SECRET_KEY: "${{ secrets.FGA_SECRET_KEY }}"
           FGA_CLIENT_ID: "${{ secrets.FGA_CLIENT_ID }}"
           FGA_STORE_ID: "${{ secrets.FGA_STORE_ID }}"
           FGA_AUTHORIZATION_MODEL_ID: "${{ secrets.FGA_AUTHORIZATION_MODEL_ID }}"
         run: |
-          echo -n "${FGA_SECRET_KEY}" > ./compiled/fga_secret.key
-          echo -n "${FGA_CLIENT_ID}" > ./compiled/fga_client_id.key
-          echo -n "${FGA_STORE_ID}" > ./compiled/fga_store_id.key
-          echo -n "${FGA_AUTHORIZATION_MODEL_ID}" > ./compiled/fga_model_id.key
+          aws secretsmanager put-secret-value --secret-id ifcp-fga-secret --secret-string "${FGA_SECRET_KEY}"
+          aws secretsmanager put-secret-value --secret-id ifcp-fga-client-id --secret-string "${FGA_CLIENT_ID}"
+          aws secretsmanager put-secret-value --secret-id ifcp-fga-store-id --secret-string "${FGA_STORE_ID}"
+          aws secretsmanager put-secret-value --secret-id ifcp-fga-model-id --secret-string "${FGA_AUTHORIZATION_MODEL_ID}"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ inputs.region }}
       - name: pulumi - up
         uses: pulumi/actions@v4
         with:
           command: up
-          work-dir: "./compiled"
-          stack-name: "infracopilot-ui-${{ inputs.stage }}-${{ inputs.region }}"
+          work-dir: "./deploy"
+          stack-name: "infracopilot-${{ inputs.stage }}-${{ inputs.region }}"
           upsert: true
           config-map: |
             {

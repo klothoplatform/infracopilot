@@ -11,6 +11,7 @@ from src.backend_orchestrator.run_engine_handler import (
     CopilotRunRequest,
     EngineOrchestrator,
 )
+from src.engine_service.binaries.fetcher import Binary
 from src.engine_service.engine_commands.get_valid_edge_targets import (
     GetValidEdgeTargetsRequest,
     GetValidEdgeTargetsResult,
@@ -68,14 +69,17 @@ class TestValidEdgeTargetsHandler(aiounittest.AsyncTestCase):
         )
         self.mock_store: mock.Mock = mock.Mock()
         self.mock_ev_dao: mock.Mock = mock.Mock()
+        self.mock_binary_store: mock.Mock = mock.Mock()
         self.edge_handler = EdgeTargetHandler(
             self.mock_store,
             self.mock_ev_dao,
+            self.mock_binary_store,
         )
 
     def setUp(self) -> None:
         self.mock_store.reset_mock()
         self.mock_ev_dao.reset_mock()
+        self.mock_binary_store.reset_mock()
 
     @mock.patch(
         "src.backend_orchestrator.get_valid_edge_targets_handler.get_valid_edge_targets",
@@ -111,3 +115,4 @@ class TestValidEdgeTargetsHandler(aiounittest.AsyncTestCase):
                 engine_version=1.0,
             )
         )
+        self.mock_binary_store.ensure_binary.assert_called_once_with(Binary.ENGINE)
