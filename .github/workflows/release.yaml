@@ -78,6 +78,8 @@ jobs:
           PULUMI_CONFIG_PASSPHRASE: ""
           AWS_REGION: ${{ inputs.region }}
           STAGE: ${{ inputs.stage }}
+          AUTH0_DOMAIN: ${{ vars.AUTH0_DOMAIN }}
+          AUTH0_AUDIENCE: ${{ vars.AUTH0_AUDIENCE }}
         with:
           command: refresh
           work-dir: "./deploy"
@@ -108,6 +110,8 @@ jobs:
           PULUMI_CONFIG_PASSPHRASE: ""
           AWS_REGION: ${{ inputs.region }}
           STAGE: ${{ inputs.stage }}
+          AUTH0_DOMAIN: ${{ vars.AUTH0_DOMAIN }}
+          AUTH0_AUDIENCE: ${{ vars.AUTH0_AUDIENCE }}
       - name: Get Pulumi Outputs
         id: pulumi-outputs
         run: |
@@ -176,3 +180,5 @@ jobs:
           PULUMI_CONFIG_PASSPHRASE: ""
           AWS_REGION: ${{ inputs.region }}
           STAGE: ${{ inputs.stage }}
+          AUTH0_DOMAIN: ${{ vars.AUTH0_DOMAIN }}
+          AUTH0_AUDIENCE: ${{ vars.AUTH0_AUDIENCE }}

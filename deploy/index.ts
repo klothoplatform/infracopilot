@@ -452,8 +452,8 @@ const ecs_service_0 = new aws.ecs.TaskDefinition("ecs_service_0", {
     { name: "DB_ENDPOINT", value: infracopilot_db.endpoint },
     { name: "DB_PASSWORD", value: kloConfig.requireSecret(`${"infracopilot-db"}-password`) },
     { name: "DB_USERNAME", value: kloConfig.requireSecret(`${"infracopilot-db"}-username`) },
-    { name: "AUTH0_DOMAIN", value: "klotho-dev.us.auth0.com" },
-    { name: "AUTH0_AUDIENCE", value: "A0sIE3wvh8LpG8mtJEjWPnBqZgBs5cNM" },
+    { name: "AUTH0_DOMAIN", value: process.env.AUTH0_DOMAIN },
+    { name: "AUTH0_AUDIENCE", value: process.env.AUTH0_AUDIENCE },
 ],
                 logConfiguration: {
                     logDriver: 'awslogs',
