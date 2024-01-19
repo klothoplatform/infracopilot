@@ -18,7 +18,7 @@ export async function listArchitectures(
         ...(idToken && { Authorization: `Bearer ${idToken}` }),
       },
     });
-    console.log(response)
+    console.log(response);
   } catch (e: any) {
     const error = new ApiError({
       errorId: "ListArchitectures",

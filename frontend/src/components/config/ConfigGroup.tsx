@@ -25,11 +25,12 @@ export const ConfigGroup: FC<ConfigGroupProps> = ({
   hidePrefix,
   filter,
 }) => {
-
   const { environmentVersion } = useApplicationStore();
 
   const rows: ReactNode[] = [];
-  const resourceMetadata = environmentVersion?.resources?.get(configResource.toString());
+  const resourceMetadata = environmentVersion?.resources?.get(
+    configResource.toString(),
+  );
 
   const parentLength = qualifiedFieldName?.split(".").length;
   // Make sure that all field names are fully qualified with the configResource prefix
@@ -44,10 +45,14 @@ export const ConfigGroup: FC<ConfigGroupProps> = ({
     } else {
       if (resourceMetadata?.imported) {
         if (property.hidden === true) {
-          return
+          return;
         }
-      } else if (property.deployTime || property.configurationDisabled || property.hidden) {
-        return
+      } else if (
+        property.deployTime ||
+        property.configurationDisabled ||
+        property.hidden
+      ) {
+        return;
       }
     }
     rows.push(
@@ -68,8 +73,15 @@ export const ConfigGroup: FC<ConfigGroupProps> = ({
                 property.name
               : property.qualifiedName
           }
-          required={(property.required && !resourceMetadata?.imported) || (property.required && property.deployTime && resourceMetadata?.imported)}
-          readOnly={property.configurationDisabled && !resourceMetadata?.imported}
+          required={
+            (property.required && !resourceMetadata?.imported) ||
+            (property.required &&
+              property.deployTime &&
+              resourceMetadata?.imported)
+          }
+          readOnly={
+            property.configurationDisabled && !resourceMetadata?.imported
+          }
         />
       </div>,
     );

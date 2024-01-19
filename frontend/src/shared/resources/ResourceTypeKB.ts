@@ -1,4 +1,8 @@
-import type { Property, ResourceType, ResourceTypeFilter } from "./ResourceTypes";
+import type {
+  Property,
+  ResourceType,
+  ResourceTypeFilter,
+} from "./ResourceTypes";
 import { customConfigMappings } from "../../pages/ArchitectureEditor/config/CustomConfigMappings";
 import { ArchitectureView, ViewNodeType } from "../architecture/Architecture";
 

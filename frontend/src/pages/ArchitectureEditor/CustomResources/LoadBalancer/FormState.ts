@@ -105,7 +105,9 @@ export function handleAlbListenerFormState(
     return constraints;
   }
 
-  constraints.push(...updateListener(resourceId, environmentVersion, modifiedValues));
+  constraints.push(
+    ...updateListener(resourceId, environmentVersion, modifiedValues),
+  );
 
   constraints.push(
     ...updateListenerRules(

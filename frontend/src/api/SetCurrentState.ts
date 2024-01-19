@@ -14,7 +14,7 @@ export async function setCurrentState(
   try {
     response = await axios.post(
       `/api/architecture/${architectureId}/environment/${environment}`,
-      {version: version},
+      { version: version },
       {
         responseType: "json",
         decompress: true,
@@ -42,6 +42,11 @@ export async function setCurrentState(
     throw error;
   }
 
-  analytics.track("SetCurrentState", { status: response.status, architectureId, environment, version });
+  analytics.track("SetCurrentState", {
+    status: response.status,
+    architectureId,
+    environment,
+    version,
+  });
   return;
 }

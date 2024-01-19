@@ -483,12 +483,14 @@ export const ResourceField: FC<ResourceProps> = ({
     const emptyFilter = resourceTypes?.length === 1 && !resourceTypes[0];
     return emptyFilter
       ? [...environmentVersion.resources.keys()]
-      : [...environmentVersion.resources.keys()].filter((resourceId: string) => {
-          const providerType = resourceId.split(":").slice(0, 2).join(":");
-          return (
-            !resourceTypes?.length || resourceTypes?.includes(providerType)
-          );
-        });
+      : [...environmentVersion.resources.keys()].filter(
+          (resourceId: string) => {
+            const providerType = resourceId.split(":").slice(0, 2).join(":");
+            return (
+              !resourceTypes?.length || resourceTypes?.includes(providerType)
+            );
+          },
+        );
   }, [environmentVersion, resourceTypes]);
 
   useEffect(() => {

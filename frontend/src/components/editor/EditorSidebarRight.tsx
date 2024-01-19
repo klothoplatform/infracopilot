@@ -54,7 +54,7 @@ import classNames from "classnames";
 import { FaHistory } from "react-icons/fa";
 import { ResizableSection } from "../Resizable";
 import { TbPlugConnected } from "react-icons/tb";
-import { MdAnnouncement } from 'react-icons/md';
+import { MdAnnouncement } from "react-icons/md";
 
 const EditorSidebarRight = forwardRef(
   (props, ref: ForwardedRef<HTMLDivElement>) => {
@@ -563,7 +563,9 @@ const ResourceIdHeader: FC<ResourceIdHeaderProps> = function ({
   const { environmentVersion, selectedResource } = useApplicationStore();
   let resourceMetadata;
   if (selectedResource) {
-    resourceMetadata = environmentVersion?.resources.get(selectedResource.toString())
+    resourceMetadata = environmentVersion?.resources.get(
+      selectedResource.toString(),
+    );
   }
 
   const onClickCopyButton = async (e: any) => {
@@ -590,11 +592,7 @@ const ResourceIdHeader: FC<ResourceIdHeaderProps> = function ({
     <>
       {(resourceId || edgeId) && (
         <div className="border-b-2 border-gray-200 pb-1 dark:border-gray-700">
-          <div
-            className={
-              "mb-2 flex flex-row items-center gap-2"
-            }
-          >
+          <div className={"mb-2 flex flex-row items-center gap-2"}>
             {resourceId ? (
               <NodeIcon
                 provider={resourceId?.provider ?? "unknown"}
@@ -638,18 +636,18 @@ const ResourceIdHeader: FC<ResourceIdHeaderProps> = function ({
             </Button>
           </div>
           {resourceMetadata.imported && (
-          <Banner>
-            <div className="flex w-full justify-between border-b border-gray-200 bg-gray-50 p-4 dark:border-gray-600 dark:bg-gray-700">
-              <div className="mx-auto flex items-center">
-                <p className="flex items-center text-sm font-normal text-gray-500 dark:text-gray-400">
-                  <MdAnnouncement className="mr-4 h-4 w-4" />
-                  <span className="[&_p]:inline">
-                  This resource is imported and configured externally
-                  </span>
-                </p>
+            <Banner>
+              <div className="flex w-full justify-between border-b border-gray-200 bg-gray-50 p-4 dark:border-gray-600 dark:bg-gray-700">
+                <div className="mx-auto flex items-center">
+                  <p className="flex items-center text-sm font-normal text-gray-500 dark:text-gray-400">
+                    <HiInformationCircle className="mr-4 h-4 w-4" />
+                    <span className="[&_p]:inline">
+                      This resource is imported and configured externally
+                    </span>
+                  </p>
+                </div>
               </div>
-            </div>
-          </Banner>
+            </Banner>
           )}
         </div>
       )}

@@ -52,7 +52,6 @@ const EditorSidebarLeft = forwardRef(
 
     const [showImportModal, setShowImportModal] = useState(false);
 
-
     const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
       setFilterFunction((prevState: FilterFunction | undefined) => {
         const filterValue = event.target.value;
@@ -76,42 +75,44 @@ const EditorSidebarLeft = forwardRef(
       [],
     );
 
-    let sections = [(
+    let sections = [
       <ImportAccordion
         key={"ImportAccordion"}
         name={"Import"}
         setShowImportModal={setShowImportModal}
-      />
-    )]
+      />,
+    ];
 
-    const resourceSections = displayedClassifications.map((classification, index) => {
-      let name = classification
-        .replace(/_/g, " ")
-        .toLowerCase()
-        .replace(/\b\w/g, (s) => s.toUpperCase());
-      // hack
-      if (name === "Api") {
-        name = "API";
-      }
-      return (
-        <ResourceAccordion
-          key={index}
-          name={name}
-          resourceFilter={{
-            classifications: [classification],
-            iconSizes: [ViewNodeType.Parent, ViewNodeType.Big],
-            excludedQualifiedTypes: env.hiddenResources,
-          }}
-          userFilter={filterFunction}
-          layout={resourceLayout}
-          open
-        />
-      );
-    });
+    const resourceSections = displayedClassifications.map(
+      (classification, index) => {
+        let name = classification
+          .replace(/_/g, " ")
+          .toLowerCase()
+          .replace(/\b\w/g, (s) => s.toUpperCase());
+        // hack
+        if (name === "Api") {
+          name = "API";
+        }
+        return (
+          <ResourceAccordion
+            key={index}
+            name={name}
+            resourceFilter={{
+              classifications: [classification],
+              iconSizes: [ViewNodeType.Parent, ViewNodeType.Big],
+              excludedQualifiedTypes: env.hiddenResources,
+            }}
+            userFilter={filterFunction}
+            layout={resourceLayout}
+            open
+          />
+        );
+      },
+    );
 
     resourceSections.forEach((section) => {
       sections.push(section);
-    })
+    });
 
     return (
       <div

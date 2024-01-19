@@ -12,16 +12,19 @@ export default async function ExportIaC(
 ): Promise<any> {
   let response: AxiosResponse;
   try {
-    response = await axios.get(`/api/architecture/${architectureId}/environment/${environment}/iac`, {
-      params: {
-        state: `${state}`,
+    response = await axios.get(
+      `/api/architecture/${architectureId}/environment/${environment}/iac`,
+      {
+        params: {
+          state: `${state}`,
+        },
+        responseType: "blob",
+        headers: {
+          accept: "application/octet-stream",
+          ...(idToken && { Authorization: `Bearer ${idToken}` }),
+        },
       },
-      responseType: "blob",
-      headers: {
-        accept: "application/octet-stream",
-        ...(idToken && { Authorization: `Bearer ${idToken}` }),
-      },
-    });
+    );
   } catch (e: any) {
     const error = new ApiError({
       errorId: "ExportIaC",

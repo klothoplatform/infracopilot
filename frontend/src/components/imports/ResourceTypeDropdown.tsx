@@ -14,25 +14,28 @@ export const ResourceTypeDropdown = ({
   onResourceSelection,
   selectedValue,
 }: ImportResourceFormProps) => {
-  const { resourceTypeKB, environmentVersion } =
-    useApplicationStore();
+  const { resourceTypeKB, environmentVersion } = useApplicationStore();
 
-  const [importableResources, setImportableResources] = useState<ResourceType[]>([]);
+  const [importableResources, setImportableResources] = useState<
+    ResourceType[]
+  >([]);
   const { register, unregister, setValue, watch, formState } = useFormContext();
 
   useEffect(() => {
-    setImportableResources(
-      resourceTypeKB?.getImportableResourceTypes() ?? [],
-    );
+    setImportableResources(resourceTypeKB?.getImportableResourceTypes() ?? []);
   }, [resourceTypeKB]);
 
   return (
     <>
-      <Dropdown label={selectedValue?.displayName ?? "Select Type"} dismissOnClick={true}
+      <Dropdown
+        color={"purple"}
+        label={selectedValue?.displayName ?? "Select Type"}
+        dismissOnClick={true}
       >
         {importableResources.map(
           (resourceType) =>
-            resourceType.provider === environmentVersion.provider || environmentVersion.provider === undefined && (
+            resourceType.provider === environmentVersion.provider ||
+            (environmentVersion.provider === undefined && (
               <Dropdown.Item
                 key={resourceType.displayName}
                 onClick={() => {
@@ -41,7 +44,7 @@ export const ResourceTypeDropdown = ({
               >
                 {resourceType.displayName}
               </Dropdown.Item>
-            ),
+            )),
         )}
       </Dropdown>
     </>
