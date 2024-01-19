@@ -880,6 +880,10 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       new: newId,
     });
     await get().applyConstraints();
+    const failures = get().failures;
+    if (failures.length === 0) {
+        get().selectResource(newId);
+    }
   },
   navigateRightSidebar: (selector: RightSidebarTabSelector) => {
     const sidebarState = get().editorSidebarState;
