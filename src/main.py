@@ -19,7 +19,6 @@ from src.auth_service.entity import User
 from src.auth_service.main import (
     AuthzService,
 )
-from src.auth_service.teams_manager import TeamsManager
 from src.auth_service.token import PUBLIC_USER, AuthError, get_user_id
 from src.backend_orchestrator.architecture_handler import (
     CloneArchitectureRequest,
