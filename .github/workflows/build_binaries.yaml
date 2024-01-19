@@ -31,13 +31,17 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: ${{ env.GO_VERSION }}
+      - name: Install GoMock
+        run: |
+          go get github.com/golang/mock/mockgen@v1.6.0
+          go install github.com/golang/mock/mockgen@v1.6.0
       - name: Setup Zig
         uses: goto-bus-stop/setup-zig@v1
         with:
           version: 0.9.1
       - name: Build Binaries
         run: |
-          # go generate ./...
+          go generate ./...
           CGO_ENABLED=1 GOOS=linux GOARCH=amd64 CC="zig cc -target x86_64-linux-musl" CXX="zig c++ -target x86_64-linux-musl" go build --tags extended -o engine -ldflags="-s -w" ./cmd/engine
           CGO_ENABLED=1 GOOS=linux GOARCH=amd64 CC="zig cc -target x86_64-linux-musl" CXX="zig c++ -target x86_64-linux-musl" go build --tags extended -o iac -ldflags="-s -w" ./cmd/iac
       - name: Upload Binaries
