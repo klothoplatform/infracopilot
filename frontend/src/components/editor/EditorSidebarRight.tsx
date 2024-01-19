@@ -635,7 +635,7 @@ const ResourceIdHeader: FC<ResourceIdHeaderProps> = function ({
               {copied && <HiCheck color="green" />}
             </Button>
           </div>
-          {resourceMetadata.imported && (
+          {resourceMetadata?.imported && (
             <Banner>
               <div className="flex w-full justify-between border-b border-gray-200 bg-gray-50 p-4 dark:border-gray-600 dark:bg-gray-700">
                 <div className="mx-auto flex items-center">
