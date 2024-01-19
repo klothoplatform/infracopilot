@@ -6,6 +6,7 @@ import { CollectionTypes } from "../../shared/resources/ResourceTypes";
 import type { FC, ReactNode } from "react";
 import { ConfigField } from "./ConfigField";
 import type { NodeId } from "../../shared/architecture/TopologyNode";
+import useApplicationStore from "../../pages/store/ApplicationStore";
 
 type ConfigGroupProps = {
   configResource: NodeId;
@@ -13,6 +14,7 @@ type ConfigGroupProps = {
   valueSelector?: string;
   fields?: Property[];
   hidePrefix?: boolean;
+  filter?: (field: Property, resourceId?: NodeId) => boolean;
 };
 
 export const ConfigGroup: FC<ConfigGroupProps> = ({
@@ -21,8 +23,14 @@ export const ConfigGroup: FC<ConfigGroupProps> = ({
   valueSelector,
   fields,
   hidePrefix,
+  filter,
 }) => {
+  const { environmentVersion } = useApplicationStore();
+
   const rows: ReactNode[] = [];
+  const resourceMetadata = environmentVersion?.resources?.get(
+    configResource.toString(),
+  );
 
   const parentLength = qualifiedFieldName?.split(".").length;
   // Make sure that all field names are fully qualified with the configResource prefix
@@ -30,12 +38,22 @@ export const ConfigGroup: FC<ConfigGroupProps> = ({
     ? ""
     : `${configResource}#`;
   const addRow = (property: Property, resourceId?: NodeId) => {
-    if (
-      property.deployTime ||
-      property.configurationDisabled ||
-      property.hidden
-    ) {
-      return;
+    if (filter) {
+      if (filter(property, resourceId)) {
+        return;
+      }
+    } else {
+      if (resourceMetadata?.imported) {
+        if (property.hidden === true) {
+          return;
+        }
+      } else if (
+        property.deployTime ||
+        property.configurationDisabled ||
+        property.hidden
+      ) {
+        return;
+      }
     }
     rows.push(
       <div key={rows.length} className="h-fit max-w-full p-1">
@@ -55,8 +73,15 @@ export const ConfigGroup: FC<ConfigGroupProps> = ({
                 property.name
               : property.qualifiedName
           }
-          required={property.required}
-          readOnly={property.configurationDisabled}
+          required={
+            (property.required && !resourceMetadata?.imported) ||
+            (property.required &&
+              property.deployTime &&
+              resourceMetadata?.imported)
+          }
+          readOnly={
+            property.configurationDisabled && !resourceMetadata?.imported
+          }
         />
       </div>,
     );

@@ -94,7 +94,10 @@ export const loadBalancerLayoutModifier: LayoutModifier = ({
     });
 };
 
-export function LBNodeModifier(node: Node, environmentVersion: EnvironmentVersion) {
+export function LBNodeModifier(
+  node: Node,
+  environmentVersion: EnvironmentVersion,
+) {
   // don't show nlbs as groups right now
   if (node.data?.resource?.Type === "network") {
     node.type = NodeType.Resource;
@@ -106,7 +109,9 @@ export function AlbListenerRuleNodeModifier(
   environmentVersion: EnvironmentVersion,
 ) {
   let vizMetadata = node.data.vizMetadata;
-  const resource = environmentVersion.resources?.get(node.data.resourceId.toString());
+  const resource = environmentVersion.resources?.get(
+    node.data.resourceId.toString(),
+  );
 
   if (!resource) {
     return;

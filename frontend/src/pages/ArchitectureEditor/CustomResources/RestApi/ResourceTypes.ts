@@ -1,5 +1,4 @@
-import type {
-  ListProperty} from "../../../../shared/resources/ResourceTypes";
+import type { ListProperty } from "../../../../shared/resources/ResourceTypes";
 import {
   CollectionTypes,
   type EnumProperty,

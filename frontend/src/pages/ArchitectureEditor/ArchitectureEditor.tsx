@@ -111,7 +111,7 @@ const EditorNavContent: FC = function () {
         try {
           await initializeEditor(architectureId);
         } catch (e: any) {
-          console.log(e)
+          console.log(e);
           addError(
             new UIError({
               message: "Failed to initialize editor!",

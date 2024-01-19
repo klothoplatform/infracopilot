@@ -3,7 +3,10 @@ import type { AxiosResponse } from "axios";
 import axios from "axios";
 import { ApiError } from "../shared/errors";
 import { trackError } from "../pages/store/ErrorStore";
-import { parseArchitecture, type Architecture } from "../shared/architecture/Architecture";
+import {
+  parseArchitecture,
+  type Architecture,
+} from "../shared/architecture/Architecture";
 
 export async function getArchitecture(
   architectureId: string,
@@ -35,6 +38,9 @@ export async function getArchitecture(
     throw error;
   }
 
-  analytics.track("GetEnvironmentVersion", { status: response.status, architectureId });
+  analytics.track("GetEnvironmentVersion", {
+    status: response.status,
+    architectureId,
+  });
   return parseArchitecture(response.data);
 }

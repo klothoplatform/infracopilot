@@ -37,7 +37,9 @@ export function refreshSelection({
       node.selected = true;
       result.selectedNode = node.id;
       result.selectedResource = selectedResource;
-    } else if (environmentVersion?.resources?.has(selectedResource.toString())) {
+    } else if (
+      environmentVersion?.resources?.has(selectedResource.toString())
+    ) {
       result.selectedResource = selectedResource;
       result.selectedNode = undefined;
     }

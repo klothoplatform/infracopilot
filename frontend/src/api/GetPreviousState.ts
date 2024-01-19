@@ -3,7 +3,10 @@ import type { AxiosResponse } from "axios";
 import axios from "axios";
 import { ApiError } from "../shared/errors";
 import { trackError } from "../pages/store/ErrorStore";
-import { type EnvironmentVersion, parseEnvironmentVersion } from "../shared/architecture/EnvironmentVersion";
+import {
+  type EnvironmentVersion,
+  parseEnvironmentVersion,
+} from "../shared/architecture/EnvironmentVersion";
 
 export async function getPrevState(
   architectureId: string,
@@ -45,6 +48,11 @@ export async function getPrevState(
     throw error;
   }
 
-  analytics.track("GetPreviousState", { status: response.status, architectureId, environment, version });
+  analytics.track("GetPreviousState", {
+    status: response.status,
+    architectureId,
+    environment,
+    version,
+  });
   return parseEnvironmentVersion(response.data);
 }

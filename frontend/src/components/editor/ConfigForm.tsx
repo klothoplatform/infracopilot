@@ -72,7 +72,13 @@ export default function ConfigForm() {
       );
       const promotedProperties = new Map<string, Property[]>();
       for (const [resourceId, properties] of allProperties) {
-        const promotedProps = properties.filter((p) => isPropertyPromoted(p));
+        const metadata = environmentVersion.resources.get(
+          selectedResource.toString(),
+        );
+        let promotedProps = properties.filter((p) => isPropertyPromoted(p));
+        if (metadata?.imported) {
+          promotedProps = properties.filter((p) => !p.hidden);
+        }
         if (promotedProps.length > 0) {
           promotedProperties.set(resourceId.toString(), promotedProps);
         }
@@ -461,9 +467,6 @@ function toFormState(
   if (!metadata) {
     return formState;
   }
-  fields = fields.filter(
-    (field) => !field.deployTime && !field.configurationDisabled,
-  );
 
   const props = new Set([
     ...Object.keys(metadata),
@@ -572,7 +575,14 @@ function applyCustomizers(
     resourceId.provider,
     resourceId.type,
   );
-  console.log("applyCustomizers", {sections, resourceId, submittedValues, defaultValues, modifiedValues, environmentVersion})
+  console.log("applyCustomizers", {
+    sections,
+    resourceId,
+    submittedValues,
+    defaultValues,
+    modifiedValues,
+    environmentVersion,
+  });
 
   if (!sections) {
     return [];

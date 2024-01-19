@@ -101,7 +101,10 @@ export function removeExistingListeners(
 ): Constraint[] {
   const existingListeners = getDownstreamListeners(environmentVersion, albId);
   const constraints = existingListeners.map((listenerId) => {
-    const existingRules = getDownstreamListenerRules(listenerId, environmentVersion);
+    const existingRules = getDownstreamListenerRules(
+      listenerId,
+      environmentVersion,
+    );
     const ruleConstraints = existingRules.map((rule) => {
       return new ApplicationConstraint(ConstraintOperator.Remove, rule.id);
     });
@@ -308,8 +311,9 @@ export function updateListenerRules(
         const priority = (
           (i === 0
             ? 0
-            : environmentVersion.resources.get(submittedRules[i - 1].id?.toString())
-                ?.Priority ?? i) + 1
+            : environmentVersion.resources.get(
+                submittedRules[i - 1].id?.toString(),
+              )?.Priority ?? i) + 1
         ).toString();
         if (!existingRule?.Priority || priority !== existingRule.Priority) {
           ruleConstraints.push(

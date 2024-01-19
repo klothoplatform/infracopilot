@@ -302,9 +302,7 @@ export function resourceProperties(
   const properties = new Map<NodeId, Property[]>();
   if (resType?.properties?.length) {
     // Filter out the properties which should not be shown
-    const props = resType.properties.filter(
-      (p) => !p.deployTime && !p.configurationDisabled && !p.hidden,
-    );
+    const props = resType.properties.filter((p) => !p.hidden);
     if (props.length > 0) {
       properties.set(resourceId, props);
     }

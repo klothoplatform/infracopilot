@@ -41,7 +41,6 @@ export interface GraphEdge {
   metadata: object;
 }
 
-
 export const parseArchitecture = (data: any): Architecture => {
   if (!isObject(data)) {
     throw new ApplicationError({
@@ -61,4 +60,4 @@ export const parseArchitecture = (data: any): Architecture => {
   };
 
   return architecture;
-}
+};

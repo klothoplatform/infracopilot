@@ -1,4 +1,8 @@
-import type { ResourceType, ResourceTypeFilter } from "./ResourceTypes";
+import type {
+  Property,
+  ResourceType,
+  ResourceTypeFilter,
+} from "./ResourceTypes";
 import { customConfigMappings } from "../../pages/ArchitectureEditor/config/CustomConfigMappings";
 import { ArchitectureView, ViewNodeType } from "../architecture/Architecture";
 
@@ -82,6 +86,37 @@ export class ResourceTypeKB {
       );
     }
     return resourceTypes.sort((a, b) => a.type.localeCompare(b.type));
+  }
+
+  getImportFieldsForResourceType(
+    provider: string,
+    resourceType: string,
+  ): Property[] {
+    const rt = this.getResourceType(provider, resourceType);
+    if (!rt) {
+      throw new Error(`Resource type not found: ${provider}:${resourceType}`);
+    }
+    const importedFields: Property[] = [];
+    rt.properties?.forEach((property) => {
+      if (property.deployTime && property.required) {
+        importedFields.push(property);
+      }
+    });
+
+    return importedFields;
+  }
+
+  getImportableResourceTypes(): ResourceType[] {
+    const result: ResourceType[] = [];
+    this.resourceTypes.forEach((element) => {
+      element.properties?.forEach((property) => {
+        if (property.deployTime && property.required) {
+          result.push(element);
+          return;
+        }
+      });
+    });
+    return result;
   }
 
   applyCustomizations() {

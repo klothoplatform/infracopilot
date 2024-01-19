@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { Accordion, Sidebar, TextInput } from "flowbite-react";
+import { Accordion, Button, Sidebar, TextInput } from "flowbite-react";
 import type { ChangeEvent, ForwardedRef } from "react";
 import React, { forwardRef, useCallback, useState } from "react";
 import { HiSearch } from "react-icons/hi";
@@ -15,6 +15,8 @@ import { trackError } from "../../pages/store/ErrorStore";
 import { UIError } from "../../shared/errors";
 import useApplicationStore from "../../pages/store/ApplicationStore";
 import { env } from "../../shared/environment";
+import ImportResourceModal from "../imports/ImportResourceModal";
+import ImportAccordion from "../imports/ImportAccordian";
 
 const displayedClassifications = [
   "api",
@@ -48,6 +50,8 @@ const EditorSidebarLeft = forwardRef(
       FilterFunction | undefined
     >(undefined);
 
+    const [showImportModal, setShowImportModal] = useState(false);
+
     const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
       setFilterFunction((prevState: FilterFunction | undefined) => {
         const filterValue = event.target.value;
@@ -71,30 +75,43 @@ const EditorSidebarLeft = forwardRef(
       [],
     );
 
-    const sections = displayedClassifications.map((classification, index) => {
-      let name = classification
-        .replace(/_/g, " ")
-        .toLowerCase()
-        .replace(/\b\w/g, (s) => s.toUpperCase());
-      // hack
-      if (name === "Api") {
-        name = "API";
-      }
+    let sections = [
+      <ImportAccordion
+        key={"ImportAccordion"}
+        name={"Import"}
+        setShowImportModal={setShowImportModal}
+      />,
+    ];
 
-      return (
-        <ResourceAccordion
-          key={index}
-          name={name}
-          resourceFilter={{
-            classifications: [classification],
-            iconSizes: [ViewNodeType.Parent, ViewNodeType.Big],
-            excludedQualifiedTypes: env.hiddenResources,
-          }}
-          userFilter={filterFunction}
-          layout={resourceLayout}
-          open
-        />
-      );
+    const resourceSections = displayedClassifications.map(
+      (classification, index) => {
+        let name = classification
+          .replace(/_/g, " ")
+          .toLowerCase()
+          .replace(/\b\w/g, (s) => s.toUpperCase());
+        // hack
+        if (name === "Api") {
+          name = "API";
+        }
+        return (
+          <ResourceAccordion
+            key={index}
+            name={name}
+            resourceFilter={{
+              classifications: [classification],
+              iconSizes: [ViewNodeType.Parent, ViewNodeType.Big],
+              excludedQualifiedTypes: env.hiddenResources,
+            }}
+            userFilter={filterFunction}
+            layout={resourceLayout}
+            open
+          />
+        );
+      },
+    );
+
+    resourceSections.forEach((section) => {
+      sections.push(section);
     });
 
     return (
@@ -104,6 +121,9 @@ const EditorSidebarLeft = forwardRef(
           hidden: isSidebarOpenOnSmallScreens,
         })}
       >
+        {showImportModal && (
+          <ImportResourceModal onClose={() => setShowImportModal(false)} />
+        )}
         <Sidebar
           aria-label="Sidebar"
           collapsed={false}
