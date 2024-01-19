@@ -31,6 +31,10 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: ${{ env.GO_VERSION }}
+      - name: Install GoMock
+        run: |
+          go get github.com/golang/mock/mockgen@v1.6.0
+          go install github.com/golang/mock/mockgen@v1.6.0
       - name: Setup Zig
         uses: goto-bus-stop/setup-zig@v1
         with:

@@ -80,7 +80,7 @@ jobs:
           STAGE: ${{ inputs.stage }}
         with:
           command: refresh
-          work-dir: "./compiled"
+          work-dir: "./deploy"
           stack-name: "infracopilot-${{ inputs.stage }}-${{ inputs.region }}"
           upsert: true
       - name: Use Node.js
