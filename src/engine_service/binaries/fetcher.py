@@ -12,7 +12,7 @@ log = logging.getLogger()
 
 # root_path is the root for the binaries if they are not overridden. For lambdas, since the root FS is read-only
 # this must be somewhere in /tmp
-root_path = Path(os.environ.get("BINARIES_ROOT", "/app/binaries"))
+root_path = Path(os.environ.get("BINARIES_ROOT", "/tmp"))
 
 # engine_path and iac_path are the paths to the binaries if they are overridden. This is useful for local testing
 # and can be easily set to the one on your path via `ENGINE_PATH=$(which engine)`
