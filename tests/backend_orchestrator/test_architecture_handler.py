@@ -724,6 +724,7 @@ class TestArchitectureHandler(aiounittest.AsyncTestCase):
             expected_body={
                 "architecture_id": "test-id",
                 "can_share": True,
+                "can_write": True,
                 "entities": [
                     {
                         "id": "user:test-user",
@@ -749,6 +750,7 @@ class TestArchitectureHandler(aiounittest.AsyncTestCase):
             expected_body={
                 "architecture_id": "test-id",
                 "can_share": True,
+                "can_write": True,
                 "entities": [
                     {
                         "id": "user:test-user",
@@ -778,6 +780,7 @@ class TestArchitectureHandler(aiounittest.AsyncTestCase):
             expected_body={
                 "architecture_id": "test-id",
                 "can_share": True,
+                "can_write": True,
                 "entities": [
                     {
                         "id": "user:test-user",
@@ -813,6 +816,7 @@ class TestArchitectureHandler(aiounittest.AsyncTestCase):
             expected_body={
                 "architecture_id": "test-id",
                 "can_share": True,
+                "can_write": True,
                 "entities": [],
                 "general_access": {
                     "entity": {"id": "organization:test-org#member", "role": "viewer"},
@@ -836,6 +840,7 @@ class TestArchitectureHandler(aiounittest.AsyncTestCase):
             )
         mock_authz = mock.MagicMock()
         mock_authz.can_share_architecture = mock.AsyncMock(return_value=True)
+        mock_authz.can_write_to_architecture = mock.AsyncMock(return_value=True)
         mock_teams = mock.MagicMock()
         mock_teams.batch_get_teams = mock.AsyncMock(
             return_value=[Team(id="test-team", name="test-team")]
