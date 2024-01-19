@@ -5,7 +5,7 @@ import { Accordion, Badge, Card } from "flowbite-react";
 
 import "./ResourceAccordion.scss";
 import classNames from "classnames";
-import { FaAngleDown } from "react-icons/fa";
+import { FaAngleDown } from "react-icons/fa6";
 import { ThemeContext } from "flowbite-react/lib/esm/components/Flowbite/ThemeContext";
 import type { ResourceTypeFilter } from "../../shared/resources/ResourceTypes";
 import useApplicationStore from "../../pages/store/ApplicationStore";
