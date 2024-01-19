@@ -139,15 +139,13 @@ jobs:
         with:
           name: binaries
           path: binaries
-      - name: Upload Binaries
-        uses: jakejarvis/s3-sync-action@master
+      - name: Upload binaries to S3
+        run: |
+          aws s3 sync binaries/ s3://${{ steps.pulumi-outputs.outputs.ifcp_binary_storage_BucketName }}
         env:
-          AWS_S3_BUCKET: ${{ steps.pulumi-outputs.outputs.ifcp_static_site_BucketName }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ inputs.region }}
-          SOURCE_DIR: 'binaries'
-          DEST_DIR: 'binaries'
       - name: Upload Secrets
         env:
           FGA_SECRET_KEY: "${{ secrets.FGA_SECRET_KEY }}"
