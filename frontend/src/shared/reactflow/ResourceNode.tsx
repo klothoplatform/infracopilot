@@ -216,9 +216,6 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
               data.resourceId,
               new NodeId(type, namespace, newValue, provider),
             );
-            if (selectedResource?.toString() === data.resourceId.toString()) {
-              selectResource(new NodeId(type, namespace, newValue, provider));
-            }
           }}
         ></EditableLabel>
         <div className={"text-center dark:text-gray-200"}>
@@ -342,6 +339,8 @@ const EditableLabel: FC<EditableLabelProps> = ({
               e.preventDefault();
               if (state.label !== label) {
                 onSubmit?.(state.label);
+                // reset the label in case of failure, if success it will get reset anyways
+                state.label = label;
               }
               setIsEditing(false);
             }}

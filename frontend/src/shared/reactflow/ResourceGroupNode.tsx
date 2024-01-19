@@ -174,13 +174,6 @@ const ResourceGroupNode = memo(
                   data.resourceId,
                   new NodeId(type, namespace, newValue, provider),
                 );
-                if (
-                  selectedResource?.toString() === data.resourceId.toString()
-                ) {
-                  selectResource(
-                    new NodeId(type, namespace, newValue, provider),
-                  );
-                }
               }}
               initialValue={data.resourceId.name}
             />
@@ -281,6 +274,8 @@ const EditableLabel: FC<EditableLabelProps> = ({
               e.preventDefault();
               if (state.label !== label) {
                 onSubmit?.(state.label);
+                // reset the label in case of failure, if success it will get reset anyways
+                state.label = label
               }
               setIsEditing(false);
             }}
