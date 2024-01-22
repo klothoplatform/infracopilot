@@ -431,8 +431,8 @@ const rest_api_6_integ636d6a12 = (() => {
 const ecs_cluster_0 = new aws.ecs.Cluster("ecs_cluster-0", {})
 const ecs_service_0 = new aws.ecs.TaskDefinition("ecs_service_0", {
         family: "ecs_service_0",
-        cpu: "256",
-        memory: "512",
+        cpu: "1024",
+        memory: "2048",
         networkMode: "awsvpc",
         requiresCompatibilities: ["FARGATE"],
         executionRoleArn: ecs_service_0_execution_role.arn,
