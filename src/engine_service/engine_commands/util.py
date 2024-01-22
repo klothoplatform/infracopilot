@@ -83,28 +83,6 @@ def run_engine_command(*args, **kwargs) -> tuple[str, str]:
     print(f"Running engine command: {' '.join(cmd)}")
     log.debug("Running engine command: %s", " ".join(cmd))
 
-    print(
-        f"{Binary.ENGINE.path} exists {Binary.ENGINE.path.exists()} = {Binary.ENGINE.path.lstat()}"
-    )
-    try:
-        print("ls:\n" + subprocess.run(["ls", "-la", "/tmp"]).stdout)
-    except:
-        pass
-    try:
-        print(
-            "help:\n"
-            + subprocess.run(["sh", "-c", f"{Binary.ENGINE.path} --help"]).stdout
-        )
-    except:
-        pass
-    try:
-        print(
-            "stuff:\n"
-            + subprocess.run(["sh", "-c", f"ls /tmp; stat {Binary.ENGINE.path}"]).stdout
-        )
-    except:
-        pass
-
     result = subprocess.run(cmd, capture_output=True, cwd=cwd, env=env)
 
     out_logs = result.stdout.decode()
