@@ -191,7 +191,7 @@ const infracopilot_db = new aws.rds.Instance(
         {
             instanceClass: "db.t3.micro",
             engine: "postgres",
-            engineVersion: "13.7",
+            engineVersion: "13.10",
             dbName: "main",
             username: kloConfig.requireSecret(`${"infracopilot-db"}-username`),
             password: kloConfig.requireSecret(`${"infracopilot-db"}-password`),
