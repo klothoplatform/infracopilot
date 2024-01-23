@@ -226,7 +226,7 @@ async def get_architecture_access(
     arch_handler = get_architecture_handler(db)
     teams_manager = await get_teams_manager(db)
 
-    should_summarize = request.query_params.get("summary", "false").lower() == "true"
+    should_summarize = request.query_params.get("summarized", "false").lower() == "true"
 
     return await arch_handler.get_architecture_access(
         user_id, id, authz, arch_manager, auth0_manager, teams_manager, should_summarize
