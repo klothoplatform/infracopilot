@@ -5,6 +5,51 @@ from sqlalchemy.sql import func
 from sqlalchemy import DateTime
 
 
+class EnvironmentResourceConfiguration:
+    class EnvironmentTracker:
+        environment: str
+        version_hash: str
+
+        def __init__(self, environment: str, version_hash: str):
+            self.environment = environment
+            self.version_hash = version_hash
+
+        def to_dict(self):
+            return {"environment": self.environment, "version_hash": self.version_hash}
+
+        def from_dict(self, json: dict):
+            self.environment = json["environment"]
+            self.version_hash = json["version_hash"]
+
+    tracks: EnvironmentTracker
+    overrides: dict
+    diff: dict
+
+    def __init__(self, tracks: EnvironmentTracker, overrides: dict, diff: dict):
+        self.tracks = tracks
+        self.overrides = overrides
+        self.diff = diff
+
+    def to_dict(self):
+        return {"tracks": self.tracks, "overrides": self.overrides, "diff": self.diff}
+
+    @staticmethod
+    def from_dict(json: dict) -> "EnvironmentResourceConfiguration":
+        result: EnvironmentResourceConfiguration = EnvironmentResourceConfiguration(
+            EnvironmentResourceConfiguration.EnvironmentTracker(
+                None
+                if "tracks" not in json or "environment" not in json["tracks"]
+                else json["tracks"]["environment"],
+                None
+                if "tracks" not in json or "version_hash" not in json["tracks"]
+                else json["tracks"]["version_hash"],
+            ),
+            None if "overrides" not in json else json["overrides"],
+            None if "diff" not in json else json["diff"],
+        )
+        return result
+
+
 class ModelsBase(DeclarativeBase):
     pass
 
