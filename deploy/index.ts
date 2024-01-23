@@ -479,6 +479,7 @@ const ecs_service_0 = new aws.ecs.TaskDefinition("ecs_service_0", {
     { name: "FGA_STORE_ID", value: "ifcp-fga-store-id" },
     { name: "AUTH0_DOMAIN", value: process.env.AUTH0_DOMAIN },
     { name: "AUTH0_AUDIENCE", value: process.env.AUTH0_AUDIENCE },
+    { name: "FGA_API_HOST", value: "api.us1.fga.dev"}
 ],
                 logConfiguration: {
                     logDriver: 'awslogs',

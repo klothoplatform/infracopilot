@@ -3,6 +3,7 @@ import os
 
 import boto3
 from openfga_sdk import ClientConfiguration
+from openfga_sdk.credentials import Credentials, CredentialConfiguration
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 
 from src.auth_service.auth0_manager import Auth0Manager, Configuration
@@ -91,41 +92,12 @@ async def get_fga_manager() -> FGAManager:
     store_id = os.environ.get("FGA_STORE_ID")
     authorization_model_id = os.environ.get("FGA_AUTHORIZATION_MODEL_ID")
 
-    # Step 02. Initialize the SDK
-    # credentials = None
-    # if secret and client_id:
-    #     credentials = Credentials(
-    #         method="client_credentials",
-    #         configuration=CredentialConfiguration(
-    #             api_issuer="fga.us.auth0.com",
-    #             api_audience="https://api.us1.fga.dev/",
-    #             client_id=client_id,
-    #             client_secret=secret,  # Secret you got from this page
-    #         ),
-    # configuration=CredentialConfiguration(
-    #     api_issuer="fga.us.auth0.com",
-    #     api_audience="https://api.us1.fga.dev/",
-    #     client_id=client_id,
-    #     client_secret=secret,  # Secret you got from this page
-    # ),
-    # )
-
     configuration = ClientConfiguration(
-        api_scheme=os.environ.get("FGA_API_SCHEME"),
+        api_scheme=os.environ.get("FGA_API_SCHEME", "https"),
         api_host=os.environ.get(
             "FGA_API_HOST"
         ),  # required, define without the scheme (e.g. api.fga.example instead of https://api.fga.example)
         store_id=store_id,  # optional, not needed for \`CreateStore\` and \`ListStores\`, required before calling for all other methods
-        # model_id = os.environ.get('FGA_MODEL_ID'), # optional, can be overridden per request
-        # TODO: Dont use secrets for this in case it updates
-        authorization_model_id=authorization_model_id,  # Optionally, you can specify a model id to target, which can improve latency, this will need to be changed every time we update the model, so in the future lets bootstrap this
-        # credentials=credentials,
-        # api_scheme="https",
-        # api_host="api.us1.fga.dev",
-        # store_id=store_id,
-        # # TODO: Dont use secrets for this in case it updates
-        # authorization_model_id=authorization_model_id,  # Optionally, you can specify a model id to target, which can improve latency, this will need to be changed every time we update the model, so in the future lets bootstrap this
-        # credentials=credentials,
     )
     configuration.client_side_validation = False
 
@@ -133,6 +105,7 @@ async def get_fga_manager() -> FGAManager:
     if store_name is None and store_id is None:
         raise Exception("Store id or name must be defined")
 
+    print(store_id)
     # forces creation of our local store
     if store_id is None:
         stores = await manager.list_stores()
@@ -143,6 +116,21 @@ async def get_fga_manager() -> FGAManager:
         if store_id is None:
             store_id = await manager.create_store("test-store")
         manager.configuration.store_id = store_id
+    else:
+        # Provider specific credentials. Initialize the SDK
+        if secret and client_id:
+            credentials = Credentials(
+                method="client_credentials",
+                configuration=CredentialConfiguration(
+                    api_issuer="fga.us.auth0.com",
+                    api_audience="https://api.us1.fga.dev/",
+                    client_id=client_id,
+                    client_secret=secret,  # Secret you got from this page
+                ),
+            )
+            configuration.credentials = credentials
+        else:
+            raise Exception("Secret and Client ID must be defined")
 
     if authorization_model_id is None:
         authorization_model_id = await manager.write_authorization_model()
