@@ -100,13 +100,13 @@ const ecs_service_0_security_group = new aws.ec2.SecurityGroup("ecs_service_0-se
         name: "ecs_service_0-security_group",
         vpcId: vpc_0.id,
         egress: [{cidrBlocks: ["0.0.0.0/0"], description: "Allows all outbound IPv4 traffic", fromPort: 0, protocol: "-1", toPort: 0}],
-        ingress: [{cidrBlocks: ["10.0.128.0/18"], description: "Allow ingress traffic from ip addresses within the subnet subnet-0", fromPort: 0, protocol: "-1", toPort: 0}, {cidrBlocks: ["10.0.192.0/18"], description: "Allow ingress traffic from ip addresses within the subnet subnet-1", fromPort: 0, protocol: "-1", toPort: 0}, {description: "Allow ingress traffic from within the same security group", fromPort: 0, protocol: "-1", self: true, toPort: 0}],
+        ingress: [{cidrBlocks: ["10.0.192.0/18"], description: "Allow ingress traffic from ip addresses within the subnet subnet-1", fromPort: 0, protocol: "-1", toPort: 0}, {description: "Allow ingress traffic from within the same security group", fromPort: 0, protocol: "-1", self: true, toPort: 0}, {cidrBlocks: ["10.0.128.0/18"], description: "Allow ingress traffic from ip addresses within the subnet subnet-0", fromPort: 0, protocol: "-1", toPort: 0}],
     })
 const rds_instance_9_security_group = new aws.ec2.SecurityGroup("rds-instance-9-security_group", {
         name: "rds-instance-9-security_group",
         vpcId: vpc_0.id,
         egress: [{cidrBlocks: ["0.0.0.0/0"], description: "Allows all outbound IPv4 traffic", fromPort: 0, protocol: "-1", toPort: 0}],
-        ingress: [{description: "Allow ingress traffic from within the same security group", fromPort: 0, protocol: "-1", self: true, toPort: 0}, {cidrBlocks: ["10.0.128.0/18"], description: "Allow ingress traffic from ip addresses within the subnet subnet-0", fromPort: 0, protocol: "-1", toPort: 0}, {cidrBlocks: ["10.0.192.0/18"], description: "Allow ingress traffic from ip addresses within the subnet subnet-1", fromPort: 0, protocol: "-1", toPort: 0}],
+        ingress: [{cidrBlocks: ["10.0.128.0/18"], description: "Allow ingress traffic from ip addresses within the subnet subnet-0", fromPort: 0, protocol: "-1", toPort: 0}, {cidrBlocks: ["10.0.192.0/18"], description: "Allow ingress traffic from ip addresses within the subnet subnet-1", fromPort: 0, protocol: "-1", toPort: 0}, {description: "Allow ingress traffic from within the same security group", fromPort: 0, protocol: "-1", self: true, toPort: 0}],
     })
 const subnet_1_route_table = new aws.ec2.RouteTable("subnet-1-route_table", {
         vpcId: vpc_0.id,
@@ -237,6 +237,22 @@ const ifcp_binary_storage = new aws.s3.Bucket(
         { protect: protect }
     )
 export const ifcp_binary_storage_BucketName = ifcp_binary_storage.bucket
+const ifcp_auth0_client_id = new aws.secretsmanager.Secret(
+        "ifcp-auth0-client-id",
+        {
+            name: "ifcp-auth0-client-id",
+            recoveryWindowInDays: 0,
+        },
+        { protect: protect }
+    )
+const ifcp_auth0_secret = new aws.secretsmanager.Secret(
+        "ifcp-auth0-secret",
+        {
+            name: "ifcp-auth0-secret",
+            recoveryWindowInDays: 0,
+        },
+        { protect: protect }
+    )
 const ifcp_fga_client_id = new aws.secretsmanager.Secret(
         "ifcp-fga-client-id",
         {
@@ -370,6 +386,14 @@ const ecs_service_0_execution_role = new aws.iam.Role("ecs_service_0-execution-r
         policy: pulumi.jsonStringify({Statement: [{Action: ["secretsmanager:DescribeSecret", "secretsmanager:GetSecretValue"], Effect: "Allow", Resource: [ifcp_fga_client_id.arn]}], Version: "2012-10-17"})
     },
     {
+        name: "ifcp-auth0-client-id-policy",
+        policy: pulumi.jsonStringify({Statement: [{Action: ["secretsmanager:DescribeSecret", "secretsmanager:GetSecretValue"], Effect: "Allow", Resource: [ifcp_auth0_client_id.arn]}], Version: "2012-10-17"})
+    },
+    {
+        name: "ifcp-auth0-secret-policy",
+        policy: pulumi.jsonStringify({Statement: [{Action: ["secretsmanager:DescribeSecret", "secretsmanager:GetSecretValue"], Effect: "Allow", Resource: [ifcp_auth0_secret.arn]}], Version: "2012-10-17"})
+    },
+    {
         name: "exec-command-policy",
         policy: pulumi.jsonStringify({Statement: [{Action: ["ssmmessages:CreateControlChannel", "ssmmessages:CreateDataChannel", "ssmmessages:OpenControlChannel", "ssmmessages:OpenDataChannel"], Effect: "Allow", Resource: "*"}], Version: "2012-10-17"})
     }
@@ -431,8 +455,8 @@ const rest_api_6_integ636d6a12 = (() => {
 const ecs_cluster_0 = new aws.ecs.Cluster("ecs_cluster-0", {})
 const ecs_service_0 = new aws.ecs.TaskDefinition("ecs_service_0", {
         family: "ecs_service_0",
-        cpu: "1024",
-        memory: "2048",
+        cpu: "4096",
+        memory: "8192",
         networkMode: "awsvpc",
         requiresCompatibilities: ["FARGATE"],
         executionRoleArn: ecs_service_0_execution_role.arn,
@@ -445,13 +469,14 @@ const ecs_service_0 = new aws.ecs.TaskDefinition("ecs_service_0", {
                 environment: [
     { name: "ARCHITECTURE_BUCKET_NAME", value: ifcp_architecture_storage.bucket },
     { name: "BINARY_BUCKET_NAME", value: ifcp_binary_storage.bucket },
+    { name: "DB_DATABASE", value: "main" },
+    { name: "DB_ENDPOINT", value: infracopilot_db.endpoint },
+    { name: "DB_PASSWORD", value: kloConfig.requireSecret(`${"infracopilot-db"}-password`) },
+    { name: "DB_USERNAME", value: kloConfig.requireSecret(`${"infracopilot-db"}-username`) },
     { name: "FGA_CLIENT_ID", value: "ifcp-fga-client-id" },
     { name: "FGA_MODEL_ID", value: "ifcp-fga-model-id" },
     { name: "FGA_SECRET", value: "ifcp-fga-secret" },
     { name: "FGA_STORE_ID", value: "ifcp-fga-store-id" },
-    { name: "DB_ENDPOINT", value: infracopilot_db.endpoint },
-    { name: "DB_PASSWORD", value: kloConfig.requireSecret(`${"infracopilot-db"}-password`) },
-    { name: "DB_USERNAME", value: kloConfig.requireSecret(`${"infracopilot-db"}-username`) },
     { name: "AUTH0_DOMAIN", value: process.env.AUTH0_DOMAIN },
     { name: "AUTH0_AUDIENCE", value: process.env.AUTH0_AUDIENCE },
 ],
