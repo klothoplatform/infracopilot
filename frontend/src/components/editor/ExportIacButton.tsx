@@ -1,12 +1,12 @@
-import useApplicationStore from "../pages/store/ApplicationStore";
-import { downloadFile } from "../helpers/download-file";
+import useApplicationStore from "../../pages/store/ApplicationStore";
+import { downloadFile } from "../../helpers/download-file";
 import { type FC, useState } from "react";
-import ExportIaC from "../api/ExportIaC";
+import ExportIaC from "../../api/ExportIaC";
 import { Button } from "flowbite-react";
 import { AiOutlineLoading } from "react-icons/ai";
 import { TbFileExport } from "react-icons/tb";
-import { ApplicationError, UIError } from "../shared/errors";
-import { Tooltip } from "./Tooltip";
+import { ApplicationError, UIError } from "../../shared/errors";
+import { Tooltip } from "../Tooltip";
 
 interface ExportIacButtonProps {
   disabled?: boolean;
@@ -61,7 +61,11 @@ export const ExportIacButton: FC<ExportIacButtonProps> = (
         processingSpinner={<AiOutlineLoading className="animate-spin" />}
       >
         {!isExporting && <TbFileExport className="mr-1" />}
-        {!props.small && <p>{isExporting ? "Exporting..." : "Export IaC"}</p>}
+        {!props.small && (
+          <span className="whitespace-nowrap">
+            {isExporting ? "Exporting..." : "Export IaC"}
+          </span>
+        )}
       </Button>
     </Tooltip>
   );

@@ -130,7 +130,7 @@ export default function ConfigForm() {
               remainingProperties,
               selectedResource, // remaining properties are always on the selected resource
             ),
-        ...getCustomConfigState(selectedResource, environmentVersion),
+            ...getCustomConfigState(selectedResource, environmentVersion),
           }
         : {},
   });
@@ -189,7 +189,7 @@ export default function ConfigForm() {
             ...[...promotedProperties.entries()].reduce(
               (acc, [resourceId, properties]): any => {
                 const fs = toFormState(
-            environmentVersion.resources.get(resourceId.toString()),
+                  environmentVersion.resources.get(resourceId.toString()),
                   properties,
                   resourceId,
                 );
@@ -201,11 +201,11 @@ export default function ConfigForm() {
               {},
             ),
             ...toFormState(
-          environmentVersion.resources.get(selectedResource.toString()),
+              environmentVersion.resources.get(selectedResource.toString()),
               remainingProperties,
               selectedResource, // remaining properties are always on the selected resource
             ),
-        ...getCustomConfigState(selectedResource, environmentVersion),
+            ...getCustomConfigState(selectedResource, environmentVersion),
           }
         : {},
     );

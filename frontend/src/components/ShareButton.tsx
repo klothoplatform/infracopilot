@@ -6,7 +6,7 @@ import type { User } from "@auth0/auth0-react";
 import { FaBuildingLock, FaUserPlus } from "react-icons/fa6";
 import { FaGlobeAmericas } from "react-icons/fa";
 import { MdOutlineLock } from "react-icons/md";
-import { actionMap, AccessModal } from "./AccessModal";
+import { AccessModal, actionMap } from "./AccessModal";
 import type { ArchitectureAccess } from "../shared/architecture/Access";
 import {
   ArchitectureRole,
@@ -16,7 +16,7 @@ import {
 import { Tooltip } from "./Tooltip";
 
 export const ShareButton: FC<{
-  user: User;
+  user?: User;
   architecture: Architecture;
   access?: ArchitectureAccess;
   small?: boolean;

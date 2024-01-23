@@ -1,7 +1,7 @@
 import axios from "axios";
 import {
-  parseArchitecture,
   type Architecture,
+  parseArchitecture,
 } from "../shared/architecture/Architecture";
 import { analytics } from "../App";
 import { ApiError } from "../shared/errors";

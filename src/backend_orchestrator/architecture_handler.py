@@ -17,6 +17,7 @@ from src.auth_service.entity import (
 from src.auth_service.main import AuthzService
 from src.auth_service.sharing_manager import Role, SharingManager, GeneralAccess
 from src.auth_service.teams_manager import TeamsManager
+from src.auth_service.token import PUBLIC_USER
 from src.engine_service.engine_commands.run import RunEngineResult
 from src.environment_management.architecture import (
     Architecture,
@@ -390,7 +391,17 @@ class ArchitectureHandler:
     async def clone_architecture(
         self, user_id: str, id: str, name: str, owner: str, authz: AuthzService
     ):
+        if user_id is PUBLIC_USER:
+            raise HTTPException(
+                status_code=403,
+                detail="Cannot clone architecture as public user",
+            )
         try:
+            if not user_id and not owner:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Either user_id or owner must be specified",
+                )
             owner: Entity = User(user_id) if owner is None else User(owner)
             await self.arch_dao.get_architecture(id)
             newArch = Architecture(

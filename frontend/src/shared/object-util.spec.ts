@@ -1,7 +1,6 @@
 import {
   getEnumKeyByEnumValue,
   isObject,
-  getModifiedFields,
   qualifiedProperties,
 } from "./object-util";
 

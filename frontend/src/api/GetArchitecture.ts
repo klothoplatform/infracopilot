@@ -4,8 +4,8 @@ import axios from "axios";
 import { ApiError } from "../shared/errors";
 import { trackError } from "../pages/store/ErrorStore";
 import {
-  parseArchitecture,
   type Architecture,
+  parseArchitecture,
 } from "../shared/architecture/Architecture";
 
 export async function getArchitecture(

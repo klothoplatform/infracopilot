@@ -37,13 +37,13 @@ if (env.sessionRewind.enabled) {
 const root = createRoot(container);
 root.render(
   <BrowserRouter>
-    <Auth0ProviderWithNavigate>
-      <StrictMode>
-        <FlowbiteWrapper>
+    <StrictMode>
+      <FlowbiteWrapper>
+        <Auth0ProviderWithNavigate>
           <App />
-        </FlowbiteWrapper>
-      </StrictMode>
-    </Auth0ProviderWithNavigate>
+        </Auth0ProviderWithNavigate>
+      </FlowbiteWrapper>
+    </StrictMode>
   </BrowserRouter>,
 );
 

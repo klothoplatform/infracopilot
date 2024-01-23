@@ -33,7 +33,6 @@ import {
   ConstraintOperator,
   ConstraintScope,
   EdgeConstraint,
-  parseConstraints,
 } from "../../shared/architecture/Constraints";
 import {
   applyConstraints,
@@ -76,6 +75,7 @@ import type { UpdateArchitectureAccessRequest } from "../../api/UpdateArchitectu
 import { updateArchitectureAccess } from "../../api/UpdateArchitectureAccess";
 import { getArchitectureAccess } from "../../api/GetArchitectureAccess";
 import type { ArchitectureAccess } from "../../shared/architecture/Access";
+import cloneArchitecture from "../../api/CloneArchitecture";
 
 interface EditorStoreState {
   architecture: Architecture;
@@ -178,6 +178,7 @@ interface EditorStoreActions {
   applyConstraints: (
     constraints?: Constraint[],
   ) => Promise<ConfigurationError[]>;
+  cloneArchitecture: (name: string, architectureId: string) => Promise<string>;
   deleteElements: (elements: Partial<ReactFlowElements>) => Promise<void>;
   deselectEdge: (edgeId?: string) => void;
   deselectNode: (nodeId?: string) => void;
@@ -187,6 +188,7 @@ interface EditorStoreActions {
     environment: string,
     refresh?: boolean,
   ) => Promise<ResourceTypeKB>;
+  handleAuthCallback: (appState: any) => RedirectCallbackInvocation;
   initializeEditor: (
     id: string,
     environment?: string,
@@ -564,7 +566,12 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
         {
           viewSettings: {
             ...get().viewSettings,
-            mode: architectureAccess?.canWrite ? "edit" : "view",
+            mode:
+              architectureAccess?.canWrite ||
+              (get().user &&
+                get().architecture.owner === `user:${get().user?.sub}`)
+                ? "edit"
+                : "view",
           },
           architectureAccess,
           isEditorInitializing: false,
@@ -939,7 +946,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     await get().applyConstraints();
     const failures = get().failures;
     if (failures.length === 0) {
-        get().selectResource(newId);
+      get().selectResource(newId);
     }
   },
   navigateRightSidebar: (selector: RightSidebarTabSelector) => {
@@ -1435,4 +1442,46 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       "editor/updateViewSettings",
     );
   },
+  cloneArchitecture: async (name: string, architectureId): Promise<string> => {
+    const idToken = await get().getIdToken();
+    const newArchitecture = await cloneArchitecture({
+      id: architectureId,
+      idToken,
+      name,
+    });
+    console.log("cloned architecture", newArchitecture);
+    return newArchitecture.id;
+  },
+  handleAuthCallback: (appState: any): RedirectCallbackInvocation => {
+    switch (appState?.action) {
+      case "clone": {
+        return {
+          workingMessage: `Making a copy of "${appState.architecture.name}" ...`,
+          invocation: (async (): Promise<RedirectCallbackResult> => {
+            const architectureId = await get().cloneArchitecture(
+              appState.architecture.name,
+              appState.architecture.id,
+            );
+            return {
+              navigateTo: `/editor/${architectureId}`,
+            };
+          })(),
+        };
+      }
+      default:
+        return {
+          workingMessage: "Initializing editor...",
+          invocation: Promise.resolve({}),
+        };
+    }
+  },
 });
+
+export interface RedirectCallbackInvocation {
+  workingMessage?: string;
+  invocation: Promise<RedirectCallbackResult>;
+}
+
+export interface RedirectCallbackResult {
+  navigateTo?: string;
+}

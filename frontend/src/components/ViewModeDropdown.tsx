@@ -1,5 +1,5 @@
 import type { FC } from "react";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import useApplicationStore from "../pages/store/ApplicationStore";
 import { HiChevronDown, HiOutlineEye, HiOutlinePencil } from "react-icons/hi2";
 import type { IconType } from "react-icons";
@@ -68,7 +68,7 @@ export const ViewModeDropdown: FC = () => {
     updateViewSettings({ mode: option.value });
   };
 
-  const dropdown = !architectureAccess?.canWrite ? null : (
+  const dropdown = !architectureAccess?.canWrite ? undefined : (
     <Dropdown
       label="Display mode"
       placement="bottom-start"

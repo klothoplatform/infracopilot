@@ -83,7 +83,10 @@ export const ConfigGroup: FC<ConfigGroupProps> = ({
               property.deployTime &&
               resourceMetadata?.imported)
           }
-          disabled={property.configurationDisabled && !resourceMetadata?.imported || mode !== "edit"}
+          disabled={
+            (property.configurationDisabled && !resourceMetadata?.imported) ||
+            mode !== "edit"
+          }
         />
       </div>,
     );

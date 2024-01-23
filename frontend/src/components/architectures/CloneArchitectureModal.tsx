@@ -30,7 +30,7 @@ export default function CloneArchitectureModal({
     trigger,
     formState: { errors },
   } = useForm<CloneArchitectureFormState>({
-    defaultValues: { name: `${name}-Copy` },
+    defaultValues: { name: `Copy of ${name}` },
   });
 
   const { getIdToken, getArchitectures, addError } = useApplicationStore();

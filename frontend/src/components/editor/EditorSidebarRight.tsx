@@ -1,13 +1,13 @@
 import type { CustomFlowbiteTheme } from "flowbite-react";
 import {
   Alert,
+  Banner,
   Button,
   Sidebar,
   Tabs,
   type TabsRef,
   Tooltip,
   useTheme,
-  Banner,
 } from "flowbite-react";
 import type { ComponentProps, FC, ReactElement } from "react";
 import React, { useContext, useEffect, useRef, useState } from "react";
@@ -41,12 +41,10 @@ import classNames from "classnames";
 import { FaHistory } from "react-icons/fa";
 import { ResizableSection } from "../Resizable";
 import { TbPlugConnected } from "react-icons/tb";
-import { MdAnnouncement } from "react-icons/md";
 import { OutlinedAlert } from "../../shared/custom-themes";
 
 const EditorSidebarRight: FC = () => {
   const menusRef = useRef<HTMLDivElement>(null);
-  const [outerIsCollapsed, setOuterIsCollapsed] = useState(true);
   const {
     selectedResource,
     selectedEdge,
@@ -123,7 +121,7 @@ const EditorSidebarRight: FC = () => {
         </div>
       </ResizableSection>
       <Sidebar
-        collapsed={outerIsCollapsed}
+        collapsed
         className={"border-l-[1px] dark:border-gray-700"}
         theme={{
           root: {

@@ -62,3 +62,21 @@ export function parseEntities(data: any): ArchitectureAccess {
     generalAccess: data.general_access,
   };
 }
+
+export function isPublicAccess(access?: ArchitectureAccess): boolean {
+  return access?.generalAccess.type === GeneralAccess.Public;
+}
+
+export function isRestrictedAccess(access?: ArchitectureAccess): boolean {
+  return access?.generalAccess.type === GeneralAccess.Restricted;
+}
+
+export function isOrganizationAccess(
+  access: ArchitectureAccess,
+  role?: ArchitectureRole,
+): boolean {
+  return (
+    access?.generalAccess.type === GeneralAccess.Organization &&
+    (!role || access?.generalAccess.entity?.role === role)
+  );
+}

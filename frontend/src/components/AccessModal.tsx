@@ -64,7 +64,7 @@ const ShareIcon: FC<{
   );
 };
 
-function AddPeopleOrTeamsItem(props: { user: User; entity: Entity }) {
+function AddPeopleOrTeamsItem(props: { user?: User; entity: Entity }) {
   return (
     <li key={props.entity.id}>
       <div className="flex items-center justify-between gap-5 rounded-md p-2 hover:bg-gray-100 dark:hover:bg-gray-900">
@@ -80,7 +80,7 @@ function AddPeopleOrTeamsItem(props: { user: User; entity: Entity }) {
 }
 
 const AddPeopleOrTeams: FC<{
-  user: User;
+  user?: User;
   entities: Entity[];
   hidden?: boolean;
 }> = ({ entities, user, hidden }) => {
@@ -250,7 +250,7 @@ function toAccessRequest(
 }
 
 export const AccessModal: FC<{
-  user: User;
+  user?: User;
   architecture: Architecture;
   show?: boolean;
   onClose?: () => void;
@@ -706,7 +706,7 @@ const GeneralAccessSelector: FC<{
   );
 };
 const SharedWithList: FC<{
-  user: User;
+  user?: User;
   entities: Entity[];
   readonly?: boolean;
 }> = ({ user, entities, readonly }) => {
@@ -724,7 +724,7 @@ const SharedWithList: FC<{
   );
 };
 const SharedWithItem: FC<{
-  user: User;
+  user?: User;
   entity: Entity;
   readonly?: boolean;
 }> = ({ user, entity, readonly }) => {
@@ -748,7 +748,7 @@ const SharedWithItem: FC<{
   };
 
   const watchRole: ArchitectureRole | null = watch(fieldId);
-  const loggedInUserId = `user:${user.sub}`;
+  const loggedInUserId = user ? `user:${user.sub}` : null;
 
   return (
     <li key={entity.id}>
@@ -772,6 +772,7 @@ const SharedWithItem: FC<{
         {readonly ? (
           <div className="text-sm text-gray-500 dark:text-gray-400">
             {watchRole === ArchitectureRole.Owner &&
+            loggedInUserId &&
             loggedInUserId === entity.id
               ? "Owner (You)"
               : watchRole

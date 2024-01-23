@@ -112,9 +112,7 @@ const AccountDropdown: FC = function () {
           </div>
         </div>
       </Dropdown.Header>
-      <Dropdown.Item className="rounded-b-lg" onClick={logout}>
-        Log out
-      </Dropdown.Item>
+      <Dropdown.Item onClick={logout}>Log out</Dropdown.Item>
     </Dropdown>
   );
 };

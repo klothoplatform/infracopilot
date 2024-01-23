@@ -9,7 +9,7 @@ import EditorSidebarLeft from "../../components/editor/EditorSidebarLeft";
 import { SidebarProvider } from "../../context/SidebarContext";
 import EditorSidebarRight from "../../components/editor/EditorSidebarRight";
 import useApplicationStore from "../store/ApplicationStore";
-import { ExportIacButton } from "../../components/ExportIacButton";
+import { ExportIacButton } from "../../components/editor/ExportIacButton";
 import { ArchitectureButtonAndModal } from "../../components/NewArchitectureButton";
 import { useNavigate, useParams } from "react-router-dom";
 import { WorkingOverlay } from "../../components/WorkingOverlay";
@@ -22,11 +22,23 @@ import {
 import { ShareButton } from "../../components/ShareButton";
 import { ViewModeDropdown } from "../../components/ViewModeDropdown";
 import { useScreenSize } from "../../shared/hooks/useScreenSize";
+import { CloneCurrentArchitectureButton } from "../../components/editor/CloneCurrentArchitectureButton";
+import { isPublicAccess } from "../../shared/architecture/Access";
+import { Banner } from "flowbite-react";
+import { MdAnnouncement } from "react-icons/md";
+import { HiX } from "react-icons/hi";
+import { FaClone } from "react-icons/fa6";
 
 function ArchitectureEditor() {
+  const { user, architectureAccess, isEditorInitialized } =
+    useApplicationStore();
+
   return (
     <NavbarSidebarLayout>
       <div className="flex h-full w-full flex-col items-center justify-between overflow-hidden border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800 sm:flex">
+        {!user && isEditorInitialized && isPublicAccess(architectureAccess) && (
+          <PublicArchitectureBanner />
+        )}
         <EditorPane />
       </div>
       <ErrorOverlay />
@@ -37,7 +49,6 @@ function ArchitectureEditor() {
 const NavbarSidebarLayout: FC<PropsWithChildren> = function ({ children }) {
   const {
     architecture,
-    isAuthenticated,
     viewSettings: { mode },
   } = useApplicationStore();
   const leftSidebarRef = useRef<HTMLDivElement>(null);
@@ -86,17 +97,18 @@ const NavbarSidebarLayout: FC<PropsWithChildren> = function ({ children }) {
 
 const EditorNavContent: FC = function () {
   const {
+    isAuthenticated,
     initializeEditor,
     addError,
-    auth0,
     architecture,
     isEditorInitialized,
     isEditorInitializing,
     user,
     viewSettings: { mode },
+    auth0,
   } = useApplicationStore();
 
-  const isExportButtonHidden = architecture.id === undefined;
+  const isExportButtonHidden = !architecture.id;
   const { architectureAccess } = useApplicationStore();
 
   let { architectureId } = useParams();
@@ -113,11 +125,14 @@ const EditorNavContent: FC = function () {
       return;
     }
     if (
-      // auth0?.isAuthenticated &&
+      auth0 &&
+      ((!auth0.isLoading && auth0.isAuthenticated) ||
+        (!auth0.isLoading && !auth0.isAuthenticated)) &&
       architectureId &&
       (!isEditorInitialized || architecture.id !== architectureId) &&
       !isEditorInitializing
     ) {
+      console.log("Initializing editor...", auth0);
       setWorkingMessage("Initializing editor...");
       (async () => {
         try {
@@ -141,7 +156,6 @@ const EditorNavContent: FC = function () {
       setWorkingMessage(undefined);
     }
   }, [
-    // auth0?.isAuthenticated,
     architectureId,
     navigate,
     initializeEditor,
@@ -149,6 +163,7 @@ const EditorNavContent: FC = function () {
     isEditorInitialized,
     isEditorInitializing,
     architecture.id,
+    auth0,
   ]);
 
   return (
@@ -162,18 +177,24 @@ const EditorNavContent: FC = function () {
               mode !== "edit"
             }
           />
-          <div className="hidden sm:flex">
-            {auth0?.isAuthenticated && (
+          <div className="hidden sm:flex sm:gap-2">
+            {isAuthenticated && (
               <ArchitectureButtonAndModal small={isSmallScreen} />
             )}
-            <ExportIacButton
-              disabled={isExportButtonHidden}
-              small={isSmallScreen}
-            />
+            {!auth0?.isLoading &&
+              architecture.owner !== `user:${user?.sub}` && (
+                <CloneCurrentArchitectureButton small={isSmallScreen} />
+              )}
+            {!!architecture.id && (
+              <ExportIacButton
+                disabled={isExportButtonHidden}
+                small={isSmallScreen}
+              />
+            )}
           </div>
         </div>
         <div className="mx-4 flex gap-2">
-          {user && isEditorInitialized ? (
+          {isEditorInitialized ? (
             <>
               <ViewModeDropdown />
               <ShareButton
@@ -238,6 +259,28 @@ const MainContent = forwardRef(
   },
 );
 MainContent.displayName = "MainContent";
+
+const PublicArchitectureBanner = () => {
+  return (
+    <Banner className={"w-full"}>
+      <div className="flex w-full justify-between border-b border-primary-600 bg-primary-500 p-4 text-primary-100 dark:border-primary-600 dark:bg-primary-700">
+        <div className="m-auto flex">
+          <MdAnnouncement className="mr-4 h-6 w-6" />
+          <span className="gap flex items-center text-sm font-normal">
+            You're viewing a public architecture. Click the "<FaClone />
+            &nbsp;Make a copy" button to create your own editable copy.
+          </span>
+        </div>
+        <Banner.CollapseButton
+          color="purple"
+          className="border-0 bg-transparent"
+        >
+          <HiX className="h-4 w-4" />
+        </Banner.CollapseButton>
+      </div>
+    </Banner>
+  );
+};
 
 const ReactFlowWrapper = () => {
   return (

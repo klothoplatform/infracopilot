@@ -22,7 +22,9 @@ const NewArchitectureButton: FC<NewArchitectureButtonProps> = (
         disabled={props.disabled}
       >
         <FaFileCirclePlus className="mr-1" />
-        {!props.small && <p>New Architecture</p>}
+        {!props.small && (
+          <span className="whitespace-nowrap">New architecture</span>
+        )}
       </Button>
     </Tooltip>
   );

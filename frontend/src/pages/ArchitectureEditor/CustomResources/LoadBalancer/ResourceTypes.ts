@@ -7,7 +7,6 @@ import {
   CollectionTypes,
   type EnumProperty,
   PrimitiveTypes,
-  type Property,
   type ResourceType,
 } from "../../../../shared/resources/ResourceTypes";
 
