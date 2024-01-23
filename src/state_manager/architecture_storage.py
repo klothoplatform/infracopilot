@@ -10,6 +10,7 @@ from src.environment_management.environment_version import EnvironmentVersion
 
 
 from src.util.aws.s3 import put_object, get_object, delete_object, delete_objects
+from src.util.logging import log_time
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +35,7 @@ class ArchitectureStorage:
     def __init__(self, bucket):
         self._bucket = bucket
 
+    @log_time
     def get_state_from_fs(self, arch: EnvironmentVersion) -> Optional[RunEngineResult]:
         if arch.state_location == None and arch.version == 0:
             return None
@@ -68,6 +70,7 @@ class ArchitectureStorage:
                 )
             raise
 
+    @log_time
     def get_iac_from_fs(self, arch: EnvironmentVersion) -> Optional[BytesIO]:
         if arch.iac_location is None:
             return None
@@ -95,6 +98,7 @@ class ArchitectureStorage:
                 )
             raise
 
+    @log_time
     def write_state_to_fs(
         self, arch: EnvironmentVersion, content: RunEngineResult
     ) -> str:
@@ -112,6 +116,7 @@ class ArchitectureStorage:
                 f"Failed to write state to S3 bucket {self._bucket.name} and key {key}: {e}"
             )
 
+    @log_time
     def write_iac_to_fs(self, arch: EnvironmentVersion, content: bytes) -> str:
         key = ArchitectureStorage.get_path_for_architecture(arch) + "/iac.zip"
         try:
@@ -125,6 +130,7 @@ class ArchitectureStorage:
                 f"Failed to write iac to S3 bucket {self._bucket.name} and key {key}: {e}"
             )
 
+    @log_time
     def delete_state_from_fs(self, arch: EnvironmentVersion):
         keys = [
             ArchitectureStorage.get_path_for_architecture(arch) + "/state.json",

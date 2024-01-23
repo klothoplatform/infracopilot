@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import NamedTuple
 from src.engine_service.engine_commands.util import run_iac_command, IacException
 from src.util.compress import zip_directory_recurse
+from src.util.logging import log_time
 
 
 class ExportIacRequest(NamedTuple):
@@ -16,6 +17,7 @@ class ExportIacResult(NamedTuple):
     iac_bytes: bytes
 
 
+@log_time
 def export_iac(request: ExportIacRequest) -> ExportIacResult:
     out_logs = None
     err_logs = None

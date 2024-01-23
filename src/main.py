@@ -456,7 +456,7 @@ if os.getenv("PROFILING", "false").lower() == "true":
         }
 
         # if the `profile=true` HTTP query argument is passed, we profile the request
-        if request.query_params.get("profile", False):
+        if request.query_params.get("profile", True):
             # The default profile format is speedscope
             profile_type = request.query_params.get(
                 "profile_format", "speedscope"
