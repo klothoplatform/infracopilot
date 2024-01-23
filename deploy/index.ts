@@ -354,14 +354,6 @@ const ecs_service_0_execution_role = new aws.iam.Role("ecs_service_0-execution-r
         policy: pulumi.jsonStringify({Statement: [{Action: ["rds-db:connect"], Effect: "Allow", Resource: [pulumi.interpolate`arn:aws:rds-db:${region.name}:${accountId.accountId}:dbuser:${infracopilot_db.resourceId}/${infracopilot_db.username}`]}], Version: "2012-10-17"})
     },
     {
-        name: "ifcp-fga-model-id-policy",
-        policy: pulumi.jsonStringify({Statement: [{Action: ["secretsmanager:DescribeSecret", "secretsmanager:GetSecretValue"], Effect: "Allow", Resource: []}], Version: "2012-10-17"})
-    },
-    {
-        name: "ifcp-fga-store-id-policy",
-        policy: pulumi.jsonStringify({Statement: [{Action: ["secretsmanager:DescribeSecret", "secretsmanager:GetSecretValue"], Effect: "Allow", Resource: []}], Version: "2012-10-17"})
-    },
-    {
         name: "ifcp-fga-secret-policy",
         policy: pulumi.jsonStringify({Statement: [{Action: ["secretsmanager:DescribeSecret", "secretsmanager:GetSecretValue"], Effect: "Allow", Resource: [ifcp_fga_secret.arn]}], Version: "2012-10-17"})
     },
@@ -377,6 +369,10 @@ const ecs_service_0_execution_role = new aws.iam.Role("ecs_service_0-execution-r
         name: "ifcp-auth0-secret-policy",
         policy: pulumi.jsonStringify({Statement: [{Action: ["secretsmanager:DescribeSecret", "secretsmanager:GetSecretValue"], Effect: "Allow", Resource: [ifcp_auth0_secret.arn]}], Version: "2012-10-17"})
     },
+    {
+        name: "exec-command-policy",
+        policy: pulumi.jsonStringify({Statement: [{Action: ["ssmmessages:CreateControlChannel", "ssmmessages:CreateDataChannel", "ssmmessages:OpenControlChannel", "ssmmessages:OpenDataChannel"], Effect: "Allow", Resource: "*"}], Version: "2012-10-17"})
+    }
 ],
         managedPolicyArns: [
             ...["arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"],
@@ -425,7 +421,6 @@ const rest_api_6_integ636d6a12 = (() => {
     enabled: true,
     healthyThreshold: 5,
     interval: 30,
-    path: "/api/ping",
     protocol: "TCP",
     timeout: 5,
     unhealthyThreshold: 2
