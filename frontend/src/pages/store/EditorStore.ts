@@ -1459,7 +1459,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
           workingMessage: `Making a copy of "${appState.architecture.name}" ...`,
           invocation: (async (): Promise<RedirectCallbackResult> => {
             const architectureId = await get().cloneArchitecture(
-              appState.architecture.name,
+              `Copy of ${appState.architecture.name}`,
               appState.architecture.id,
             );
             return {
