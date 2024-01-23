@@ -43,7 +43,7 @@ export interface ConfigFieldProps {
   field: Property;
   title?: string;
   required?: boolean;
-  readOnly?: boolean;
+  disabled?: boolean;
   valueSelector?: string;
 }
 
@@ -76,7 +76,7 @@ type ResourceProps = {
   configResource: NodeId;
   qualifiedFieldName: string;
   resourceTypes?: string[];
-  readOnly?: boolean;
+  disabled?: boolean;
   required?: boolean;
   error?: any;
   valueSelector?: string;
@@ -86,7 +86,7 @@ type EnumProps = {
   configResource: NodeId;
   qualifiedFieldName: string;
   allowedValues?: string[];
-  readOnly?: boolean;
+  disabled?: boolean;
   required?: boolean;
   error?: any;
   valueSelector?: string;
@@ -97,7 +97,6 @@ export const ConfigField: FC<ConfigFieldProps> = ({
   qualifiedFieldName,
   title,
   required,
-  readOnly,
   valueSelector,
   ...props
 }) => {
@@ -117,7 +116,6 @@ export const ConfigField: FC<ConfigFieldProps> = ({
           qualifiedFieldName={qualifiedFieldName}
           field={field}
           valueSelector={valueSelector}
-          readOnly={readOnly}
           required={required}
           {...props}
           color={error ? "failure" : undefined}
@@ -131,7 +129,6 @@ export const ConfigField: FC<ConfigFieldProps> = ({
           qualifiedFieldName={qualifiedFieldName}
           field={field as NumberProperty}
           valueSelector={valueSelector}
-          readOnly={readOnly}
           required={required}
           {...props}
           color={error ? "failure" : undefined}
@@ -145,7 +142,6 @@ export const ConfigField: FC<ConfigFieldProps> = ({
           qualifiedFieldName={qualifiedFieldName}
           field={field as NumberProperty}
           valueSelector={valueSelector}
-          readOnly={readOnly}
           required={required}
           {...props}
           color={error ? "failure" : undefined}
@@ -159,7 +155,6 @@ export const ConfigField: FC<ConfigFieldProps> = ({
           qualifiedFieldName={qualifiedFieldName}
           field={field}
           valueSelector={valueSelector}
-          readOnly={readOnly}
           {...props}
           color={error ? "failure" : undefined}
           required={required}
@@ -190,7 +185,7 @@ export const ConfigField: FC<ConfigFieldProps> = ({
       element = (
         <ResourceField
           qualifiedFieldName={qualifiedFieldName ?? "UNKNOWN-RESOURCE"}
-          readOnly={readOnly ?? configurationDisabled}
+          disabled={configurationDisabled}
           resourceTypes={(field as ResourceProperty).resourceTypes}
           valueSelector={valueSelector}
           required={required}
@@ -205,7 +200,7 @@ export const ConfigField: FC<ConfigFieldProps> = ({
           qualifiedFieldName={qualifiedFieldName ?? "UNKNOWN-ENUM"}
           allowedValues={(field as EnumProperty).allowedValues}
           valueSelector={valueSelector}
-          readOnly={readOnly ?? configurationDisabled}
+          disabled={configurationDisabled}
           required={required}
           error={error}
           {...props}
@@ -323,8 +318,8 @@ export const StringField: FC<TextProps> = ({
             }
           : undefined,
       }}
-      required={rest.required ?? field.required}
-      readOnly={rest.readOnly ?? field.configurationDisabled}
+      disabled={field.configurationDisabled}
+      required={field.required}
       {...rest}
     />
   );
@@ -356,8 +351,8 @@ export const NumberField: FC<NumberProps> = ({
           : undefined,
       }}
       valueSelector={valueSelector}
-      required={rest.required ?? field.required}
-      readOnly={rest.readOnly ?? field.configurationDisabled}
+      disabled={field.configurationDisabled}
+      required={field.required}
       // validate minValue and maxValue
       {...rest}
     />
@@ -391,8 +386,8 @@ export const IntField: FC<NumberProps> = ({
           : undefined,
       }}
       valueSelector={valueSelector}
-      required={rest.required ?? field.required}
-      readOnly={rest.readOnly ?? field.configurationDisabled}
+      required={field.required}
+      disabled={field.configurationDisabled}
       {...rest}
     />
   );
@@ -414,8 +409,7 @@ const InputField: FC<InputProps> = ({
     <TextInput
       sizing={"sm"}
       id={id}
-      required={required}
-      disabled={rest.readOnly}
+      disabled={rest.disabled}
       color={error ? "failure" : "default"}
       helperText={error && <span>{error.message?.toString()}</span>}
       {...rest}
@@ -442,7 +436,7 @@ export const BooleanField: FC<BooleanProps> = ({
   return (
     <Checkbox
       id={id}
-      readOnly={props.readOnly ?? configurationDisabled}
+      disabled={configurationDisabled}
       {...props}
       {...register(id, {
         required:
@@ -454,7 +448,7 @@ export const BooleanField: FC<BooleanProps> = ({
 
 export const ResourceField: FC<ResourceProps> = ({
   qualifiedFieldName,
-  readOnly,
+  disabled,
   resourceTypes,
   required,
   valueSelector,
@@ -515,7 +509,7 @@ export const ResourceField: FC<ResourceProps> = ({
           className="max-h-[50vh] overflow-y-auto"
           id={id}
           color={"purple"}
-          disabled={readOnly}
+          disabled={disabled}
           label={
             watchValue?.length
               ? NodeId.parse(watchValue).name
@@ -564,7 +558,7 @@ export const ResourceField: FC<ResourceProps> = ({
 export const EnumField: FC<EnumProps> = ({
   qualifiedFieldName,
   allowedValues,
-  readOnly,
+  disabled,
   required,
   error,
   valueSelector,
@@ -606,7 +600,7 @@ export const EnumField: FC<EnumProps> = ({
         className="max-h-[50vh] overflow-y-auto"
         id={qualifiedFieldName}
         color={"purple"}
-        disabled={readOnly}
+        disabled={disabled}
         label={watchValue ?? "Select a value"}
       >
         {!required && (

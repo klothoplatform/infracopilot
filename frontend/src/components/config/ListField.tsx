@@ -37,9 +37,10 @@ export const ListField: FC<ListProps> = ({
   configResource,
   qualifiedFieldName,
   field,
+  disabled,
 }) => {
   qualifiedFieldName = qualifiedFieldName ?? "UNKNOWN-LIST";
-  const { register, control, formState } = useFormContext();
+  const { register, unregister, control, formState } = useFormContext();
   const { fields, append, remove } = useFieldArray({
     control,
     name: qualifiedFieldName,
@@ -78,6 +79,13 @@ export const ListField: FC<ListProps> = ({
   const error = findChildProperty(errors, qualifiedFieldName);
   const { configurationDisabled, itemType, properties } = field as ListProperty;
 
+  disabled = configurationDisabled || disabled;
+
+  const removeField = (index: number) => {
+    remove(index);
+    unregister(`${qualifiedFieldName}[${index}]`);
+  };
+
   if (isPrimitive(itemType)) {
     return (
       <ErrorHelper error={error}>
@@ -98,12 +106,12 @@ export const ListField: FC<ListProps> = ({
                 required={field.required}
                 resourceTypes={(field as ResourceProperty).resourceTypes}
                 allowedValues={(field as EnumProperty).allowedValues}
-                readOnly={configurationDisabled}
-                remove={remove}
+                disabled={disabled}
+                remove={removeField}
               />
             );
           })}
-          {!configurationDisabled && (
+          {!disabled && (
             <Button
               className={"mt-1 w-fit"}
               size="sm"
@@ -134,12 +142,12 @@ export const ListField: FC<ListProps> = ({
                 type={itemType}
                 properties={properties}
                 required={field.required}
-                readOnly={field.configurationDisabled}
-                remove={remove}
+                disabled={disabled}
+                remove={removeField}
               />
             );
           })}
-          {!configurationDisabled && (
+          {!disabled && (
             <Button
               size="sm"
               className={"mt-1 h-fit w-fit"}
@@ -160,7 +168,7 @@ export const ListField: FC<ListProps> = ({
   return (
     <Textarea
       id={qualifiedFieldName}
-      readOnly={configurationDisabled}
+      disabled={configurationDisabled}
       {...register(qualifiedFieldName ?? "")}
     />
   );
@@ -173,7 +181,7 @@ const PrimitiveListItem: FC<{
   type: PrimitiveTypes;
   allowedValues?: string[];
   resourceTypes?: string[];
-  readOnly?: boolean;
+  disabled?: boolean;
   required?: boolean;
   remove: (index: number) => void;
 }> = ({
@@ -184,7 +192,7 @@ const PrimitiveListItem: FC<{
   allowedValues,
   resourceTypes,
   required,
-  readOnly,
+  disabled,
   remove,
 }) => {
   const id = `${qualifiedFieldName}.value`;
@@ -252,7 +260,7 @@ const PrimitiveListItem: FC<{
           configResource={configResource}
           qualifiedFieldName={qualifiedFieldName}
           valueSelector={".value"}
-          readOnly={readOnly}
+          disabled={disabled}
           required={required}
           resourceTypes={resourceTypes}
           error={error}
@@ -266,7 +274,7 @@ const PrimitiveListItem: FC<{
           qualifiedFieldName={qualifiedFieldName}
           valueSelector={".value"}
           allowedValues={allowedValues}
-          readOnly={readOnly}
+          disabled={disabled}
           required={required}
           error={error}
         />
@@ -293,16 +301,18 @@ const PrimitiveListItem: FC<{
       )}
       <div className="my-[.1rem] flex w-full flex-row gap-1">
         <div className="w-full">{item}</div>
-        <Button
-          className={"w-6"}
-          size={"md"}
-          color="red"
-          onClick={() => {
-            remove(index);
-          }}
-        >
-          <HiMinusCircle />
-        </Button>
+        {!disabled && (
+          <Button
+            className={"w-6"}
+            size={"md"}
+            color="red"
+            onClick={() => {
+              remove(index);
+            }}
+          >
+            <HiMinusCircle />
+          </Button>
+        )}
       </div>
     </Fragment>
   );
@@ -314,7 +324,7 @@ const CollectionListItem: FC<{
   qualifiedFieldName: string;
   type: CollectionTypes;
   properties?: Property[];
-  readOnly?: boolean;
+  disabled?: boolean;
   required?: boolean;
   remove: (index: number) => void;
 }> = ({
@@ -323,7 +333,7 @@ const CollectionListItem: FC<{
   qualifiedFieldName,
   type,
   properties,
-  readOnly,
+  disabled,
   required,
   remove,
 }) => {
@@ -362,16 +372,18 @@ const CollectionListItem: FC<{
   return (
     <div className="my-[.1rem] flex w-full flex-row gap-1">
       <div className="w-full">{item}</div>
-      <Button
-        className={"h-8 w-6"}
-        color="red"
-        size={"sm"}
-        onClick={() => {
-          remove(index);
-        }}
-      >
-        <HiMinusCircle />
-      </Button>
+      {!disabled && (
+        <Button
+          className={"h-8 w-6"}
+          color="red"
+          size={"sm"}
+          onClick={() => {
+            remove(index);
+          }}
+        >
+          <HiMinusCircle />
+        </Button>
+      )}
     </div>
   );
 };

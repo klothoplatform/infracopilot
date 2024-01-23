@@ -5,7 +5,26 @@ const flowbiteTheme: CustomFlowbiteTheme = {
     wrapper:
       "max-w-full flex items-center [&_div]:max-w-full [&_div]:overflow-hidden",
     color: {
-      info: "text-blue-800 bg-blue-100 border-blue-200 dark:text-blue-800 dark:bg-blue-200 dark:border-blue-300",
+      info: "text-cyan-800 border-cyan-300 rounded-lg bg-cyan-50 dark:bg-gray-800 dark:text-cyan-400 dark:border-cyan-800",
+      failure:
+        "text-red-800 border-red-300 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400 dark:border-red-800",
+      success:
+        "text-green-800 border-green-300 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400 dark:border-green-800",
+      warning:
+        "text-yellow-800 border-yellow-300 rounded-lg bg-yellow-50 dark:bg-gray-800 dark:text-yellow-400 dark:border-yellow-800",
+      dark: "text-gray-800 border-gray-300 rounded-lg bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600",
+    },
+    closeButton: {
+      color: {
+        info: "bg-cyan-50 text-cyan-500 rounded-lg focus:ring-2 focus:ring-cyan-400 hover:bg-cyan-200 dark:bg-gray-800 dark:text-cyan-400 dark:hover:bg-gray-700",
+        failure:
+          "bg-red-50 text-red-500 rounded-lg focus:ring-2 focus:ring-red-400 hover:bg-red-200 dark:bg-gray-800 dark:text-red-400 dark:hover:bg-gray-700",
+        success:
+          "bg-green-50 text-green-500 rounded-lg focus:ring-2 focus:ring-green-400 hover:bg-green-200 dark:bg-gray-800 dark:text-green-400 dark:hover:bg-gray-700",
+        warning:
+          "bg-yellow-50 text-yellow-500 rounded-lg focus:ring-2 focus:ring-yellow-400 hover:bg-yellow-200 dark:bg-gray-800 dark:text-yellow-400 dark:hover:bg-gray-700",
+        dark: "bg-gray-50 text-gray-500 rounded-lg focus:ring-2 focus:ring-gray-400 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700",
+      },
     },
   },
   badge: {
@@ -38,6 +57,7 @@ const flowbiteTheme: CustomFlowbiteTheme = {
     outline: {
       color: {
         gray: "border border-gray-200 dark:border-gray-500",
+        purple: "border-0 border-primary-600 [&>*]:hover:text-white",
       },
     },
   },
@@ -53,14 +73,6 @@ const flowbiteTheme: CustomFlowbiteTheme = {
           "focus:ring-primary-600 dark:ring-offset-primary-600 dark:focus:ring-primary-600 text-primary-600 dark:focus:border-white",
       },
     },
-  },
-  dropdown: {
-    floating: {
-      base: "z-10 w-fit rounded-xl divide-y divide-gray-100 shadow",
-      content: "rounded-xl text-sm text-gray-700 dark:text-gray-200",
-      target: "w-fit dark:text-white",
-    },
-    content: "",
   },
   modal: {
     content: {

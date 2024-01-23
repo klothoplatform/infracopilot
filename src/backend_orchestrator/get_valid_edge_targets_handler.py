@@ -51,20 +51,18 @@ class EdgeTargetHandler:
         accept: Optional[str] = None,
     ):
         try:
-            architecture = await self.ev_dao.get_current_version(
-                architecture_id, env_id
-            )
-            if architecture is None:
+            environment = await self.ev_dao.get_current_version(architecture_id, env_id)
+            if environment is None:
                 raise ArchitectureStateDoesNotExistError(
                     "Architecture with id, {request.architecture_id}, does not exist"
                 )
-            if architecture.version != version:
+            if environment.version != version:
                 raise EnvironmentVersionNotLatestError(
-                    f"Architecture state is not current. Expected {architecture.version}, got {version}"
+                    f"Environment state is not current. Expected {environment.version}, got {version}"
                 )
             valid_edge_targets = []
-            if architecture.state_location is not None:
-                input_graph = self.architecture_storage.get_state_from_fs(architecture)
+            if environment.state_location is not None:
+                input_graph = self.architecture_storage.get_state_from_fs(environment)
                 self.binary_storage.ensure_binary(Binary.ENGINE)
                 request = GetValidEdgeTargetsRequest(
                     id=architecture_id,
@@ -84,8 +82,9 @@ class EdgeTargetHandler:
                 },
                 content=jsons.dumps(
                     {
-                        "id": architecture.id,
-                        "version": architecture.version,
+                        "architectureId": environment.architecture_id,
+                        "environment": environment.id,
+                        "version": environment.version,
                         "validEdgeTargets": valid_edge_targets,
                     }
                 ),

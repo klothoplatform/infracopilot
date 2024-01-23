@@ -4,6 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+auth0-python = "*"
 fastapi = "*"
 uvicorn = "*"
 aiofiles = "*"
@@ -22,6 +23,7 @@ moto = "*"
 aiosqlite = "*"
 greenlet = "*"
 asyncpg = "*"
+httpx = "*"
 
 [dev-packages]
 black = "*"

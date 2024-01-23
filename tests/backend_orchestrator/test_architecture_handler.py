@@ -1,18 +1,20 @@
-from cgi import test
-from datetime import date
 import datetime
-from venv import create
-import aiounittest
+import json
+from typing import Type
 from unittest import mock
+
+import aiounittest
 from fastapi import HTTPException
+from openfga_sdk import Tuple, TupleKey
+from openfga_sdk.client.models import ClientTuple
 
-from fastapi.responses import JSONResponse
-
+from src.auth_service.entity import User, Team
+from src.auth_service.sharing_manager import SharingManager, public_user
 from src.backend_orchestrator.architecture_handler import (
     ArchitectureHandler,
     CreateArchitectureRequest,
+    ShareArchitectureRequest,
 )
-
 from src.engine_service.engine_commands.run import RunEngineResult
 from src.environment_management.architecture import (
     Architecture,
@@ -23,7 +25,6 @@ from src.environment_management.environment_version import (
     EnvironmentVersionDoesNotExistError,
 )
 from src.environment_management.models import Environment, EnvironmentVersion
-from src.util.entity import User
 
 
 class TestArchitectureHandler(aiounittest.AsyncTestCase):
@@ -376,10 +377,6 @@ class TestArchitectureHandler(aiounittest.AsyncTestCase):
         )
 
     @mock.patch(
-        "src.backend_orchestrator.architecture_handler.add_architecture_owner",
-        new_callable=mock.AsyncMock,
-    )
-    @mock.patch(
         "src.backend_orchestrator.architecture_handler.datetime",
         new_callable=mock.Mock,
     )
@@ -391,7 +388,6 @@ class TestArchitectureHandler(aiounittest.AsyncTestCase):
         self,
         mock_uuid: mock.Mock,
         mock_datetime: mock.Mock,
-        mock_add_architecture_owner: mock.AsyncMock,
     ):
         test_hash = "hash"
         mock_datetime.utcnow.return_value = self.created_at
@@ -410,9 +406,10 @@ class TestArchitectureHandler(aiounittest.AsyncTestCase):
         self.mock_ev_dao.add_environment_version = mock.Mock(return_value=None)
         self.mock_store.get_state_from_fs = mock.Mock(return_value=self.test_result)
         self.mock_store.write_state_to_fs = mock.Mock(return_value="location")
-        mock_add_architecture_owner.return_value = None
+        mock_authz = mock.MagicMock()
+        mock_authz.add_architecture_owner = mock.AsyncMock(return_value=None)
         result = await self.arch_handler.clone_architecture(
-            "test-owner", "test-id", "new-name", "test-owner"
+            "test-owner", "test-id", "new-name", "test-owner", mock_authz
         )
         self.assertEqual(result.body, b'{"id":"hash"}')
         self.assertEqual(result.status_code, 200)
@@ -425,7 +422,9 @@ class TestArchitectureHandler(aiounittest.AsyncTestCase):
                 created_at=self.created_at,
             )
         )
-        mock_add_architecture_owner.assert_called_once_with(User("test-owner"), "hash")
+        mock_authz.add_architecture_owner.assert_called_once_with(
+            User("test-owner"), "hash"
+        )
         self.mock_env_dao.add_environment.assert_called_once_with(
             Environment(
                 architecture_id=test_hash,
@@ -457,20 +456,442 @@ class TestArchitectureHandler(aiounittest.AsyncTestCase):
         self.mock_arch_dao.get_architecture = mock.AsyncMock(
             side_effect=ArchitectureDoesNotExistError
         )
+        mock_authz = mock.MagicMock()
         with self.assertRaises(HTTPException) as e:
             await self.arch_handler.clone_architecture(
-                "test-owner", "test-id", "new-name", "test-owner"
+                "test-owner", "test-id", "new-name", "test-owner", mock_authz
             )
         self.assertEqual(e.exception.detail, "Architecture not found")
         self.assertEqual(e.exception.status_code, 404)
         self.mock_arch_dao.get_architecture.assert_called_once_with("test-id")
+        mock_authz.add_architecture_owner.assert_not_called()
 
     async def test_clone_architecture_causes_error(self):
         self.mock_arch_dao.get_architecture = mock.AsyncMock(side_effect=Exception)
+        mock_authz = mock.MagicMock()
         with self.assertRaises(HTTPException) as e:
             await self.arch_handler.clone_architecture(
-                "test-owner", "test-id", "new-name", "test-owner"
+                "test-owner", "test-id", "new-name", "test-owner", mock_authz
             )
         self.assertEqual(e.exception.detail, "internal server error")
         self.assertEqual(e.exception.status_code, 500)
         self.mock_arch_dao.get_architecture.assert_called_once_with("test-id")
+        mock_authz.add_architecture_owner.assert_not_called()
+
+    async def test_add_and_remove_access(self):
+        new_user = "user:new-user"
+        removed_user = "user:removed-user"
+        await self.run_update_architecture_access_test(
+            initial_relations={
+                "user:test-user": "owner",
+                "user:unrelated-user": "editor",
+                removed_user: "viewer",
+            },
+            updated_roles={
+                new_user: "viewer",
+                removed_user: None,
+            },
+            expected_writes=[
+                ClientTuple(
+                    user=new_user,
+                    relation="viewer",
+                    object="architecture:test-id",
+                ),
+            ],
+            expected_deletions=[
+                ClientTuple(
+                    user=removed_user,
+                    relation="viewer",
+                    object="architecture:test-id",
+                ),
+            ],
+            expected_status_code=200,
+        )
+
+    async def test_add_team_access(self):
+        new_team = "team:new-team#member"
+        await self.run_update_architecture_access_test(
+            initial_relations={
+                "user:test-user": "owner",
+                "user:unrelated-user": "editor",
+            },
+            updated_roles={
+                new_team: "viewer",
+            },
+            expected_writes=[
+                ClientTuple(
+                    user=new_team,
+                    relation="viewer",
+                    object="architecture:test-id",
+                ),
+            ],
+            expected_deletions=None,
+            expected_status_code=200,
+        )
+
+    async def test_limit_public_architecture_to_organization(self):
+        org = "organization:test-org"
+        await self.run_update_architecture_access_test(
+            initial_relations={
+                "user:test-user": "owner",
+                "user:unrelated-user": "editor",
+                public_user: "viewer",
+            },
+            updated_roles={public_user: None, org: "viewer"},
+            expected_writes=[
+                ClientTuple(
+                    user=org,
+                    relation="viewer",
+                    object="architecture:test-id",
+                ),
+            ],
+            expected_deletions=[
+                ClientTuple(
+                    user=public_user,
+                    relation="viewer",
+                    object="architecture:test-id",
+                ),
+            ],
+            expected_status_code=200,
+        )
+
+    async def test_make_private_architecture_public(self):
+        public_user = "user:*"
+        await self.run_update_architecture_access_test(
+            initial_relations={
+                "user:test-user": "owner",
+                "user:unrelated-user": "editor",
+            },
+            updated_roles={public_user: "viewer"},
+            expected_writes=[
+                ClientTuple(
+                    user=public_user,
+                    relation="viewer",
+                    object="architecture:test-id",
+                ),
+            ],
+            expected_deletions=None,
+            expected_status_code=200,
+        )
+
+    async def test_update_existing_relationship(self):
+        other_user = "user:other"
+        await self.run_update_architecture_access_test(
+            initial_relations={
+                "user:test-user": "owner",
+                "user:unrelated-user": "editor",
+                other_user: "viewer",
+            },
+            updated_roles={other_user: "editor"},
+            expected_writes=[
+                ClientTuple(
+                    user=other_user,
+                    relation="editor",
+                    object="architecture:test-id",
+                ),
+            ],
+            expected_deletions=[
+                ClientTuple(
+                    user=other_user,
+                    relation="viewer",
+                    object="architecture:test-id",
+                ),
+            ],
+            expected_status_code=200,
+        )
+
+    async def test_remove_existing_relationship(self):
+        other_user = "user:other"
+        await self.run_update_architecture_access_test(
+            initial_relations={
+                "user:test-user": "owner",
+                "user:unrelated-user": "editor",
+                other_user: "viewer",
+            },
+            updated_roles={other_user: None},
+            expected_writes=None,
+            expected_deletions=[
+                ClientTuple(
+                    user=other_user,
+                    relation="viewer",
+                    object="architecture:test-id",
+                ),
+            ],
+            expected_status_code=200,
+        )
+
+    async def run_update_architecture_access_test(
+        self,
+        initial_relations,
+        updated_roles,
+        expected_writes,
+        expected_deletions,
+        expected_status_code,
+        expected_exception: Type[Exception] = None,
+    ):
+        mock_authz = mock.MagicMock()
+        mock_authz.can_share_architecture = mock.AsyncMock(return_value=True)
+        mock_teams = mock.MagicMock()
+        mock_teams.batch_get_teams = mock.AsyncMock(
+            return_value=[Team(id="test-team", name="test-team")]
+        )
+        mock_auth0 = mock.MagicMock()
+        mock_auth0.get_users = mock.MagicMock(
+            return_value=[{"user_id": "test-user", "name": "test-user"}]
+        )
+        self.mock_arch_dao.get_architecture = mock.AsyncMock(
+            return_value=self.test_architecture
+        )
+
+        fga_mock = mock.MagicMock()
+        sharing_mgr = SharingManager(fga_mock)
+        fga_mock.read_tuples = mock.AsyncMock(
+            return_value=[
+                Tuple(
+                    key=TupleKey(
+                        user=user,
+                        relation=role,
+                        object="architecture:test-id",
+                    ),
+                    timestamp=0,
+                )
+                for user, role in initial_relations.items()
+            ]
+        )
+        fga_mock.write_tuples = mock.AsyncMock(return_value=None)
+        fga_mock.delete_tuples = mock.AsyncMock(return_value=None)
+        mock_config = mock.MagicMock()
+        mock_config.client_side_validation = False
+
+        if expected_exception is not None:
+            with self.assertRaises(expected_exception) as e:
+                await self.arch_handler.update_architecture_access(
+                    "user:test-user",
+                    "test-id",
+                    ShareArchitectureRequest(entity_roles=updated_roles),
+                    mock_authz,
+                    sharing_mgr,
+                )
+            if e.exception is not None:
+                if hasattr(e, "status_code") and expected_status_code is not None:
+                    self.assertEqual(expected_status_code, e.status_code)
+            return
+
+        result = await self.arch_handler.update_architecture_access(
+            "user:test-user",
+            "test-id",
+            ShareArchitectureRequest(entity_roles=updated_roles),
+            mock_authz,
+            sharing_mgr,
+        )
+
+        self.assertEqual(result.status_code, expected_status_code)
+        mock_authz.can_share_architecture.assert_called_once_with(
+            User("user:test-user"), "test-id"
+        )
+        self.mock_arch_dao.get_architecture.assert_called_once_with("test-id")
+
+        if expected_writes is not None and len(expected_writes) > 0:
+            fga_mock.write_tuples.assert_called_once_with(expected_writes)
+        else:
+            fga_mock.write_tuples.assert_not_called()
+
+        if expected_deletions is not None and len(expected_deletions) > 0:
+            fga_mock.delete_tuples.assert_called_once_with(expected_deletions)
+        else:
+            fga_mock.delete_tuples.assert_not_called()
+
+    async def test_adding_public_edit_access_fails(self):
+        await self.run_update_architecture_access_test(
+            initial_relations={
+                "user:test-user": "owner",
+            },
+            updated_roles={public_user: "editor"},
+            expected_writes=None,
+            expected_deletions=None,
+            expected_exception=HTTPException,
+            expected_status_code=400,
+        )
+
+    async def test_get_architecture_access_private(self):
+        test_user = "user:test-user"
+        await self.run_test_get_architecture_access(
+            initial_relations={
+                test_user: "owner",
+            },
+            user="test-user",
+            expected_status_code=200,
+            expected_body={
+                "architecture_id": "test-id",
+                "can_share": True,
+                "can_write": True,
+                "entities": [
+                    {
+                        "id": "user:test-user",
+                        "name": "test-user",
+                        "role": "owner",
+                        "type": "user",
+                        "user_id": "test-user",
+                    }
+                ],
+                "general_access": {"entity": None, "type": "restricted"},
+            },
+        )
+
+    async def test_get_architecture_access_public(self):
+        test_user = "user:test-user"
+        await self.run_test_get_architecture_access(
+            initial_relations={
+                test_user: "owner",
+                "user:*": "viewer",
+            },
+            user="test-user",
+            expected_status_code=200,
+            expected_body={
+                "architecture_id": "test-id",
+                "can_share": True,
+                "can_write": True,
+                "entities": [
+                    {
+                        "id": "user:test-user",
+                        "name": "test-user",
+                        "role": "owner",
+                        "type": "user",
+                        "user_id": "test-user",
+                    },
+                    {"id": "user:*", "role": "viewer", "type": "user"},
+                ],
+                "general_access": {
+                    "entity": {"id": "user:*", "role": "viewer"},
+                    "type": "public",
+                },
+            },
+        )
+
+    async def test_get_architecture_access_general_access_org(self):
+        test_user = "user:test-user"
+        await self.run_test_get_architecture_access(
+            initial_relations={
+                test_user: "owner",
+                "organization:test-org": "viewer",
+            },
+            user="test-user",
+            expected_status_code=200,
+            expected_body={
+                "architecture_id": "test-id",
+                "can_share": True,
+                "can_write": True,
+                "entities": [
+                    {
+                        "id": "user:test-user",
+                        "name": "test-user",
+                        "role": "owner",
+                        "type": "user",
+                        "user_id": "test-user",
+                    },
+                    {
+                        "id": "organization:test-org",
+                        "role": "viewer",
+                        "type": "organization",
+                    },
+                ],
+                "general_access": {
+                    "entity": {"id": "organization:test-org", "role": "viewer"},
+                    "type": "organization",
+                },
+            },
+        )
+
+    async def test_get_architecture_access_summary(self):
+        test_user = "user:test-user"
+        await self.run_test_get_architecture_access(
+            initial_relations={
+                test_user: "owner",
+                "organization:test-org#member": "viewer",
+                "team:test-team#member": "editor",
+            },
+            user="test-user",
+            summarized=True,
+            expected_status_code=200,
+            expected_body={
+                "architecture_id": "test-id",
+                "can_share": True,
+                "can_write": True,
+                "entities": [],
+                "general_access": {
+                    "entity": {"id": "organization:test-org#member", "role": "viewer"},
+                    "type": "organization",
+                },
+            },
+        )
+
+    async def run_test_get_architecture_access(
+        self,
+        initial_relations: dict[str, str],
+        user: str,
+        expected_status_code: int,
+        expected_body: dict[str, any],
+        expected_exception: Type[Exception] = None,
+        summarized: bool = False,
+    ):
+        if expected_exception is not None:
+            self.assertRaises(
+                expected_exception, self.arch_handler.get_architecture_access
+            )
+        mock_authz = mock.MagicMock()
+        mock_authz.can_share_architecture = mock.AsyncMock(return_value=True)
+        mock_authz.can_write_to_architecture = mock.AsyncMock(return_value=True)
+        mock_teams = mock.MagicMock()
+        mock_teams.batch_get_teams = mock.AsyncMock(
+            return_value=[Team(id="test-team", name="test-team")]
+        )
+        mock_auth0 = mock.MagicMock()
+        mock_auth0.get_users = mock.MagicMock(
+            return_value=[{"user_id": "test-user", "name": "test-user"}]
+        )
+        self.mock_arch_dao.get_architecture = mock.AsyncMock(
+            return_value=self.test_architecture
+        )
+
+        fga_mock = mock.MagicMock()
+        sharing_mgr = SharingManager(fga_mock)
+        fga_mock.read_tuples = mock.AsyncMock(
+            return_value=[
+                Tuple(
+                    key=TupleKey(
+                        user=user,
+                        relation=role,
+                        object="architecture:test-id",
+                    ),
+                    timestamp=0,
+                )
+                for user, role in initial_relations.items()
+            ]
+        )
+        mock_config = mock.MagicMock()
+        mock_config.client_side_validation = False
+
+        result = await self.arch_handler.get_architecture_access(
+            user,
+            "test-id",
+            mock_authz,
+            sharing_mgr,
+            mock_auth0,
+            mock_teams,
+            summarized=summarized,
+        )
+        self.assertEqual(result.status_code, expected_status_code)
+        self.assertEqual(
+            expected_body,
+            json.loads(result.body),
+        )
+        mock_authz.can_share_architecture.assert_called_once_with(User(user), "test-id")
+        self.mock_arch_dao.get_architecture.assert_called_once_with("test-id")
+        fga_mock.read_tuples.assert_called_once_with(
+            TupleKey(
+                local_vars_configuration=mock_config,
+                object="architecture:test-id",
+                user=None,
+                relation=None,
+            )
+        )

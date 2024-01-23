@@ -12,12 +12,13 @@ export interface AuthStoreState {
   isAuthenticated: boolean;
   redirectedPostLogin: boolean;
   user?: User;
+  isLoggingIn: boolean;
 }
 
 export interface AuthStoreBase extends AuthStoreState {
   getIdToken: () => Promise<string>;
   logout: () => void;
-  loginWithRedirect: () => Promise<void>;
+  loginWithRedirect: (appState: { [key: string]: any }) => Promise<void>;
   updateAuthentication: (context: Auth0ContextInterface) => Promise<void>;
   resetAuthState: () => void;
 }
@@ -28,6 +29,7 @@ const initialState: () => AuthStoreState = () => ({
   isAuthenticated: false,
   redirectedPostLogin: false,
   user: undefined,
+  isLoggingIn: false,
 });
 
 export type AuthStore = AuthStoreBase & ErrorStore;
@@ -44,6 +46,10 @@ export const authStore: StateCreator<AuthStore, [], [], AuthStoreBase> = (
     const isExpired = expiresAt - fiveMinutesAgo < fiveMinutesInSeconds;
     if (idToken && !isExpired) {
       return idToken;
+    }
+    const auth0 = get().auth0;
+    if (!auth0 || (!auth0.isAuthenticated && !auth0.isLoading)) {
+      return "";
     }
     const refresh = async () => {
       console.log("refreshing token");
@@ -76,24 +82,20 @@ export const authStore: StateCreator<AuthStore, [], [], AuthStoreBase> = (
       logoutParams: { returnTo: logoutUrl },
     });
   },
-  loginWithRedirect: async () => {
+  loginWithRedirect: async (appState: { [key: string]: any }) => {
     const auth0 = get().auth0;
     if (!auth0) {
       return;
     }
 
     if (!get().isAuthenticated && !auth0.isLoading) {
+      set({ isLoggingIn: true }, false, "loginWithRedirect/isLoggingIn");
       await auth0.loginWithRedirect({
-        appState: { returnTo: window.location.pathname },
+        appState: {
+          ...appState,
+        },
       });
     }
-    set(
-      {
-        loggedIn: true,
-      },
-      false,
-      "loginWithRedirect",
-    );
   },
 
   updateAuthentication: async (context: Auth0ContextInterface) => {
@@ -105,6 +107,8 @@ export const authStore: StateCreator<AuthStore, [], [], AuthStoreBase> = (
           currentIdToken: { idToken: "", expiresAt: 0 },
           user: undefined,
           isAuthenticated: false,
+          auth0: context,
+          isLoggingIn: context.isLoading,
         },
         false,
         "updateAuthentication/unauthenticated",
@@ -126,7 +130,7 @@ export const authStore: StateCreator<AuthStore, [], [], AuthStoreBase> = (
         }
 
         analytics.identify(user?.sub, {
-          name: user?.name,
+          label: user?.name,
           email: user?.email,
         });
       })();
@@ -140,6 +144,7 @@ export const authStore: StateCreator<AuthStore, [], [], AuthStoreBase> = (
         user,
         isAuthenticated,
         auth0: context,
+        isLoggingIn: !isAuthenticated,
       },
       false,
       "updateAuthentication/authenticated",

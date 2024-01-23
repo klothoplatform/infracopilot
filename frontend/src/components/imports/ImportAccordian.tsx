@@ -1,7 +1,6 @@
 import classNames from "classnames";
 import { Accordion, Button } from "flowbite-react";
-import React from "react";
-import { type MouseEventHandler } from "react";
+import React, { type MouseEventHandler } from "react";
 import { FaAngleDown } from "react-icons/fa6";
 
 export interface ImportAccordianProps {

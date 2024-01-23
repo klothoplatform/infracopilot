@@ -7,6 +7,7 @@ export type ResizableProps = {
   handleStyle?: React.CSSProperties;
   childRef: React.RefObject<HTMLDivElement>;
   onResize?: (newSize: number) => void;
+  disabled?: boolean;
 };
 
 type ResizableContextProps = {
@@ -32,7 +33,14 @@ export const ResizableContainer: FC<
 };
 
 export const ResizableSection: FC<PropsWithChildren<ResizableProps>> =
-  function ({ handleStyle, handleSide, children, onResize, childRef }) {
+  function ({
+    handleStyle,
+    handleSide,
+    children,
+    onResize,
+    childRef,
+    disabled,
+  }) {
     const { containerRef } = useContext(ResizableContext);
     const isDragging = useRef(false);
     const handleRef = useRef<HTMLDivElement>(null);
@@ -40,6 +48,9 @@ export const ResizableSection: FC<PropsWithChildren<ResizableProps>> =
 
     const onMouseDown = (event: any) => {
       event.preventDefault();
+      if (disabled) {
+        return;
+      }
       isDragging.current = true;
       console.debug("resizing");
       console.debug("current width", childRef.current?.offsetWidth);
@@ -81,7 +92,11 @@ export const ResizableSection: FC<PropsWithChildren<ResizableProps>> =
       // eslint-disable-next-line jsx-a11y/no-static-element-interactions
       <div
         className={classNames(
-          "shrink-0 grow-0 cursor-col-resize p-0 px-[1px] bg-gray-200 hover:bg-primary-500 dark:bg-gray-700 dark:active:bg-primary-500 dark:hover:bg-primary-500 active:bg-primary-500 active:px-[4px]",
+          "shrink-0 grow-0 p-0  bg-gray-200 dark:bg-gray-700",
+          {
+            "px-[1px] cursor-col-resize hover:bg-primary-500 dark:active:bg-primary-500 dark:hover:bg-primary-500 active:bg-primary-500 active:px-[4px]":
+              !disabled,
+          },
         )}
         style={handleStyle}
         ref={handleRef}

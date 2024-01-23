@@ -95,7 +95,7 @@ function ArchitectureListPage() {
                 }
               >
                 <h2 className={"mb-2 text-lg font-semibold dark:text-white"}>
-                  Create a New Architecture
+                  Create a new architecture
                 </h2>
                 <BigArchitectureButtonAndModal />
               </div>

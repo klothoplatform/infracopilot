@@ -1,14 +1,13 @@
 import asyncio
 import aiounittest
 from sqlalchemy import select
-from sqlalchemy.orm import joinedload
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from src.environment_management.architecture import (
     ArchitectureDAO,
     ArchitectureDoesNotExistError,
 )
 import datetime
-from src.util.entity import User
+from src.auth_service.entity import User
 
 from src.environment_management.models import (
     ModelsBase,

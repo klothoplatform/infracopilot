@@ -97,7 +97,6 @@ import React from "react";
 import { PublicSubnet } from "../../components/icons/AwsCustom/PublicSubnet";
 import { PrivateSubnet } from "../../components/icons/AwsCustom/PrivateSubnet";
 import type { TopologyNodeData } from "../architecture/TopologyNode";
-import type { SubnetData } from "../architecture/TopologyMetadata";
 import { LogoWithBorder } from "../../components/icons/K8SLogo/Unlabeled";
 import {
   Deploy,

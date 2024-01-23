@@ -25,6 +25,7 @@ const LoadBalancerListenerRuleNode = memo(
       selectResource,
       navigateRightSidebar,
       edgeTargetState: { validTargets },
+      viewSettings: { mode },
     } = useApplicationStore();
 
     const connectionNodeId = useStore(connectionNodeIdSelector);
@@ -34,6 +35,7 @@ const LoadBalancerListenerRuleNode = memo(
     const [mouseOverHandle] = useState(false);
     const showSourceHandle =
       !isConnecting && (mouseOverNode || mouseOverHandle);
+    const isEditMode = mode === "edit";
 
     const isValidConnectionTarget =
       isConnecting &&
@@ -86,10 +88,10 @@ const LoadBalancerListenerRuleNode = memo(
           {
             "border-primary-600/100 dark:border-primary-500/100": isSelected,
             "border-primary-600/[0]": !isSelected && !isValidConnectionTarget,
-            "border-blue-400/100 dark:border-blue-400/100 shadow-md shadow-blue-100 dark:shadow-blue-900":
-              !mouseOverNode && isValidConnectionTarget,
-            "border-blue-600/100 dark:border-blue-600/100 shadow-md shadow-blue-100 dark:shadow-blue-900":
+            "border-blue-700 dark:border-blue-200 shadow-md shadow-blue-100 dark:shadow-blue-900":
               mouseOverNode && isValidConnectionTarget,
+            "border-blue-400 dark:border-blue-500 shadow-md shadow-blue-100 dark:shadow-blue-900":
+              !mouseOverNode && isValidConnectionTarget,
             "border-red-600/100 dark:border-red-700/100 shadow-md shadow-red-100 dark:shadow-red-900":
               isConnecting && isInvalidConnectionTarget && mouseOverNode,
           },
@@ -167,18 +169,20 @@ const LoadBalancerListenerRuleNode = memo(
             type="target"
           />
         )}
-        <Handle
-          className={classNames("node-handle", {
-            "opacity-0": !showSourceHandle,
-          })}
-          id={`${id}-dnd-source`}
-          position={Position.Right}
-          type="source"
-        >
-          <div className="handle-source handle-right pointer-events-none">
-            &nbsp;
-          </div>
-        </Handle>
+        {isEditMode && (
+          <Handle
+            className={classNames("node-handle", {
+              "opacity-0": !showSourceHandle,
+            })}
+            id={`${id}-dnd-source`}
+            position={Position.Right}
+            type="source"
+          >
+            <div className="handle-source handle-right pointer-events-none">
+              &nbsp;
+            </div>
+          </Handle>
+        )}
       </div>
     );
   },

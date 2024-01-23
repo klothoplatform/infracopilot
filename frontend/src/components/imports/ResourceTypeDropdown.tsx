@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import useApplicationStore from "../../pages/store/ApplicationStore";
 import { Dropdown } from "flowbite-react";
 import type { ResourceType } from "../../shared/resources/ResourceTypes";
-import { set } from "date-fns";
 import { useFormContext } from "react-hook-form";
 
 interface ImportResourceFormProps {

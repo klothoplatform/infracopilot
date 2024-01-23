@@ -46,6 +46,7 @@ export default function EditorPane() {
     deselectNode,
     deselectEdge,
     addError,
+    viewSettings: { mode },
   } = useApplicationStore();
 
   const connectionNodeId = useStore((s) => s.connectionNodeId, shallow);
@@ -306,7 +307,7 @@ export default function EditorPane() {
           <Background variant={BackgroundVariant.Dots} gap={25} size={1} />
           {menu && <ContextMenu {...menu} />}
           <Controls />
-          <VersionNavigator />
+          {mode === "edit" ? <VersionNavigator /> : null}
         </ReactFlow>
         <WorkingOverlay show={showSpinner} message={"Autocompleting..."} />
       </div>

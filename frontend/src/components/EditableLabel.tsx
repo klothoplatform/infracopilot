@@ -38,6 +38,10 @@ export const EditableLabel: FC<EditableLabelProps> = ({
   });
   const inputRef = useRef<HTMLInputElement | null>(null);
 
+  useEffect(() => {
+    dispatch({ field: "label", value: initialValue });
+  }, [initialValue]);
+
   const handleSubmit = () => {
     (async () => {
       try {
@@ -93,7 +97,7 @@ export const EditableLabel: FC<EditableLabelProps> = ({
         setIsEditing(true);
       }}
       className={classNames(
-        "h-fit w-fit justify-start text-start dark:text-gray-200",
+        "h-fit w-fit justify-start text-start dark:text-gray-200 whitespace-nowrap overflow-hidden text-ellipsis",
       )}
     >
       <>

@@ -26,6 +26,7 @@ export const MapField: FC<MapProps> = ({
   qualifiedFieldName,
   field,
   removable,
+  disabled,
 }) => {
   qualifiedFieldName = qualifiedFieldName ?? "UNKNOWN-MAP";
 
@@ -72,7 +73,12 @@ export const MapField: FC<MapProps> = ({
     keyType === PrimitiveTypes.String &&
     valueType === PrimitiveTypes.String
   ) {
-    return <PrimitiveMap id={qualifiedFieldName} />;
+    return (
+      <PrimitiveMap
+        id={qualifiedFieldName}
+        disabled={configurationDisabled || disabled}
+      />
+    );
   }
   if (keyType === PrimitiveTypes.String && valueType === CollectionTypes.Map) {
     return (
@@ -94,7 +100,7 @@ export const MapField: FC<MapProps> = ({
   return (
     <Textarea
       id={qualifiedFieldName}
-      readOnly={configurationDisabled}
+      disabled={configurationDisabled}
       {...register(qualifiedFieldName ?? "")}
     />
   );
@@ -102,10 +108,11 @@ export const MapField: FC<MapProps> = ({
 
 type PrimitiveMapProps = {
   id: string;
+  disabled?: boolean;
 };
 
-const PrimitiveMap: FC<PrimitiveMapProps> = ({ id }) => {
-  const { register, control, formState } = useFormContext();
+const PrimitiveMap: FC<PrimitiveMapProps> = ({ id, disabled }) => {
+  const { register, unregister, control, formState } = useFormContext();
   const { fields, append, remove } = useFieldArray({
     control,
     name: id,
@@ -114,6 +121,11 @@ const PrimitiveMap: FC<PrimitiveMapProps> = ({ id }) => {
   const error = findChildProperty(errors, id);
   const errorMessage =
     error?.type === "manual" ? error.message : error?.root?.message;
+
+  const removeItem = (index: number) => {
+    remove(index);
+    unregister(`${id}[${index}]`);
+  };
 
   return (
     <div
@@ -183,43 +195,49 @@ const PrimitiveMap: FC<PrimitiveMapProps> = ({ id }) => {
                 sizing={"sm"}
                 className={"w-[50%]"}
                 id={`${id}[${index}].key`}
+                disabled={disabled}
                 {...register(`${id}[${index}].key`)}
               />
               <TextInput
                 sizing={"sm"}
                 className={"w-[50%]"}
                 id={`${id}[${index}].value`}
+                disabled={disabled}
                 {...register(`${id}[${index}].value`)}
               />
-              <Button
-                theme={{
-                  size: {
-                    md: "text-sm py-2",
-                  },
-                }}
-                className={"h-full w-8"}
-                color={"red"}
-                size={"md"}
-                onClick={() => {
-                  remove(index);
-                }}
-              >
-                <HiMinusCircle />
-              </Button>
+              {!disabled && (
+                <Button
+                  theme={{
+                    size: {
+                      md: "text-sm py-2",
+                    },
+                  }}
+                  className={"h-full w-8"}
+                  color={"red"}
+                  size={"md"}
+                  onClick={() => {
+                    removeItem(index);
+                  }}
+                >
+                  <HiMinusCircle />
+                </Button>
+              )}
             </div>
           </Fragment>
         );
       })}
-      <Button
-        size={"sm"}
-        className={"mt-1 w-fit"}
-        color="purple"
-        onClick={() => {
-          append({ key: "", value: "" });
-        }}
-      >
-        <HiPlusCircle />
-      </Button>
+      {!disabled && (
+        <Button
+          size={"sm"}
+          className={"mt-1 w-fit"}
+          color="purple"
+          onClick={() => {
+            append({ key: "", value: "" });
+          }}
+        >
+          <HiPlusCircle />
+        </Button>
+      )}
       {(!!error?.root || error?.type === "manual") && (
         <p className="mt-2 text-sm text-red-600 dark:text-red-500">
           <span>{errorMessage}</span>

@@ -275,7 +275,7 @@ const EditableLabel: FC<EditableLabelProps> = ({
               if (state.label !== label) {
                 onSubmit?.(state.label);
                 // reset the label in case of failure, if success it will get reset anyways
-                state.label = label
+                state.label = label;
               }
               setIsEditing(false);
             }}

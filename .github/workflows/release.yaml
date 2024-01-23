@@ -152,6 +152,8 @@ jobs:
           FGA_CLIENT_ID: "${{ secrets.FGA_CLIENT_ID }}"
           FGA_STORE_ID: "${{ secrets.FGA_STORE_ID }}"
           FGA_AUTHORIZATION_MODEL_ID: "${{ secrets.FGA_AUTHORIZATION_MODEL_ID }}"
+          AUTH0_CLIENT_ID: "${{ secrets.AUTH0_CLIENT_ID }}"
+          AUTH0_SECRET: "${{ secrets.AUTH0_SECRET }}"
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ inputs.region }}
@@ -160,6 +162,8 @@ jobs:
           aws secretsmanager put-secret-value --secret-id ifcp-fga-client-id --secret-string "${FGA_CLIENT_ID}"
           aws secretsmanager put-secret-value --secret-id ifcp-fga-store-id --secret-string "${FGA_STORE_ID}"
           aws secretsmanager put-secret-value --secret-id ifcp-fga-model-id --secret-string "${FGA_AUTHORIZATION_MODEL_ID}"
+          aws secretsmanager put-secret-value --secret-id ifcp-auth0-client-id --secret-string "${AUTH0_CLIENT_ID}"
+          aws secretsmanager put-secret-value --secret-id ifcp-auth0-secret --secret-string "${AUTH0_SECRET}"
       - name: pulumi - up
         uses: pulumi/actions@v4
         with:

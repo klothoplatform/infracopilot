@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { Accordion, Button, Sidebar, TextInput } from "flowbite-react";
+import { Accordion, Sidebar, TextInput } from "flowbite-react";
 import type { ChangeEvent, ForwardedRef } from "react";
 import React, { forwardRef, useCallback, useState } from "react";
 import { HiSearch } from "react-icons/hi";

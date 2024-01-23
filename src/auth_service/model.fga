@@ -1,0 +1,34 @@
+model
+ schema 1.1
+type architecture
+ relations
+   define can_change_owner: owner
+   define can_read: viewer
+   define can_share: owner
+   define can_write: editor
+   define owner: [user,team#member]
+   define viewer: [user,user:*,team#member, organization#member] or editor or owner
+   define editor: [user,user:*,team#member, organization#member] or owner
+type environment
+ relations
+   define can_change_owner: owner or can_change_owner from architecture
+   define can_read: viewer or can_read from architecture
+   define can_share: owner  or can_share from architecture
+   define can_write: editor or can_write from architecture
+   define architecture: [architecture]
+   define owner: [user,team#member]
+   define viewer: [user,user:*,team#member, organization#member] or owner or viewer from architecture
+   define editor: [user,user:*,team#member, organization#member] or owner or editor from architecture
+type organization
+ relations
+   define admin: [user]
+   define member: [user, team#member] or admin
+   define can_modify: admin
+type team
+ relations
+   define admin: [user]
+   define member: [user, team#member] or admin
+   define parent: [team]
+   define organization: [organization]
+   define can_modify: admin or admin from parent or admin from organization
+type user
