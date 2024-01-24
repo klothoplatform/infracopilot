@@ -130,9 +130,6 @@ const PrimitiveMap: FC<PrimitiveMapProps> = ({ id, disabled }) => {
     unregister(`${id}[${index}]`);
   };
 
-  // failure:
-  // "focus:outline-none focus:ring-1 bg-red-50 border border-red-500 text-red-900 placeholder-red-700 text-sm rounded-lg focus:ring-red-500 dark:bg-gray-700 focus:border-red-500 block w-full p-2.5 dark:text-red-500 dark:placeholder-red-500 dark:border-red-500",
-
   return (
     <div
       className={classNames("flex w-full flex-col gap-1", {
