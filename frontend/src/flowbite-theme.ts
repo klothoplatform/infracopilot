@@ -128,7 +128,7 @@ const flowbiteTheme: CustomFlowbiteTheme = {
           warning:
             "focus:outline-none focus:ring-1 bg-yellow-50 border border-yellow-500 text-yellow-900 placeholder-yellow-700 text-sm rounded-lg focus:ring-yellow-500 dark:bg-gray-700 focus:border-yellow-500 block w-full p-2.5 dark:text-yellow-500 dark:placeholder-yellow-500 dark:border-yellow-500",
           info: "focus:outline-none focus:ring-1 bg-blue-50 border border-blue-500 text-blue-900 placeholder-blue-700 text-sm rounded-lg focus:ring-blue-500 dark:bg-gray-700 focus:border-blue-500 block w-full p-2.5 dark:text-blue-500 dark:placeholder-blue-500 dark:border-blue-500",
-          gray: "focus:outline-none focus:ring-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
+          gray: "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
           purple:
             "focus:outline-none focus:ring-1 bg-purple-50 border border-purple-500 text-purple-900 placeholder-purple-700 text-sm rounded-lg focus:ring-purple-500 dark:bg-gray-700 focus:border-purple-500 block w-full p-2.5 dark:text-purple-500 dark:placeholder-purple-500 dark:border-purple-500",
         },

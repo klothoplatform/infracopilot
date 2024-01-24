@@ -22,12 +22,12 @@ else
 fi
 
 # find any staged frontend source files
-files="$(git diff --name-only --cached | grep -E '.*\.(ts|tsx|js|jsx|ejs|cjs|html)$' | paste -sd ' ' -)"
+files="$(git diff --name-only --cached | grep -E 'frontend/.*$' | paste -sd ' ' -)"
 if [ -n "$files" ]; then
   echo '╭──────────────────────────╮'
   echo '│ Fixing up frontend files │'
   echo '╰──────────────────────────╯'
-  npm run --prefix frontend fixup
+  npm exec --prefix --package lint-staged
   echo '✅'
 else
   echo "ℹ️ No frontend files to fixup, skipping"

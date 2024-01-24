@@ -54,7 +54,7 @@
     "eslint-plugin-tailwindcss": "^3.13.0",
     "eslint-plugin-vitest": "^0.3.10",
     "flowbite-typography": "^1.0.3",
-    "postcss": "^8.4.31",
+    "postcss": "^8.4.33",
     "prettier": "^3.0.3",
     "react-test-renderer": "^18.2.0",
     "sass": "^1.63.6",
@@ -138,5 +138,14 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "http://127.0.0.1:3000"
+  "proxy": "http://127.0.0.1:3000",
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,ejs,cjs,html,": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{css,scss,md,mdx}": [
+      "prettier --write"
+    ]
+  }
 }
