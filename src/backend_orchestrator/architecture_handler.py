@@ -95,11 +95,24 @@ class EnvironmentVersionResponseObject(BaseModel):
         )
 
 
+class EnvironmentSummaryObject(BaseModel):
+    id: str
+    default: bool
+
+
 class ArchitectureResponseObject(BaseModel):
     id: str
     name: str
     owner: str
     created_at: float
+
+
+class GetArchitectureResponseObject(BaseModel):
+    id: str
+    name: str
+    owner: str
+    created_at: float
+    environments: List[EnvironmentSummaryObject] = []
 
 
 class ArchitectureListResponse(BaseModel):
@@ -148,7 +161,15 @@ class ArchitectureHandler:
                     id="default",
                     architecture_id=architecture.id,
                     current=0,
-                    tags=[],
+                    tags={
+                        "default": True,
+                    },
+                )
+            )
+            self.env_dao.add_environment(
+                Environment(
+                    id="prod",
+                    architecture_id=architecture.id,
                 )
             )
             version = EnvironmentVersion(
@@ -172,11 +193,19 @@ class ArchitectureHandler:
                 raise ArchitectureDoesNotExistError(
                     f"No architecture exists for id {id}"
                 )
-            response = ArchitectureResponseObject(
+            environments = await self.env_dao.get_environments_for_architecture(id)
+            response = GetArchitectureResponseObject(
                 id=architecture.id,
                 name=architecture.name,
                 owner=architecture.owner,
                 created_at=architecture.created_at.timestamp(),
+                environments=[
+                    EnvironmentSummaryObject(
+                        id=e.id,
+                        default=e.tags["default"] if "default" in e.tags else False,
+                    )
+                    for e in environments
+                ],
             )
             return (
                 Response(

@@ -109,12 +109,18 @@ class TestArchitectureHandler(aiounittest.AsyncTestCase):
                 created_at=self.created_at,
             )
         )
-        self.mock_env_dao.add_environment.assert_called_once_with(
+        self.mock_env_dao.add_environment.assert_any_call(
             Environment(
                 architecture_id=id,
                 id="default",
                 current=0,
-                tags=[],
+                tags={"default": True},
+            )
+        )
+        self.mock_env_dao.add_environment.assert_any_call(
+            Environment(
+                architecture_id=id,
+                id="prod",
             )
         )
         self.mock_ev_dao.add_environment_version.assert_called_once_with(
@@ -132,13 +138,34 @@ class TestArchitectureHandler(aiounittest.AsyncTestCase):
         self.mock_arch_dao.get_architecture = mock.AsyncMock(
             return_value=self.test_architecture
         )
+        self.mock_env_dao.get_environments_for_architecture = mock.AsyncMock(
+            return_value=[
+                Environment(
+                    architecture_id="test-id",
+                    id="default",
+                    current=0,
+                    tags={
+                        "default": True,
+                    },
+                ),
+                Environment(
+                    architecture_id=id,
+                    id="prod",
+                    tags=[],
+                ),
+            ]
+        )
         result = await self.arch_handler.get_architecture("test-id")
+        print(result.body)
         self.assertEqual(
             result.body,
-            b'{"id":"test-id","name":"test-new","owner":"test-owner","created_at":1320382800.0}',
+            b'{"id":"test-id","name":"test-new","owner":"test-owner","created_at":1320382800.0,"environments":[{"id":"default","default":true},{"id":"prod","default":false}]}',
         )
         self.assertEqual(result.status_code, 200)
         self.mock_arch_dao.get_architecture.assert_called_once_with("test-id")
+        self.mock_env_dao.get_environments_for_architecture.assert_called_once_with(
+            "test-id"
+        )
 
     async def test_get_architecture_not_found(self):
         self.mock_arch_dao.get_architecture = mock.AsyncMock(return_value=None)
