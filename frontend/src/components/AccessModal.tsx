@@ -69,7 +69,7 @@ function AddPeopleOrTeamsItem(props: { user?: User; entity: Entity }) {
     <li key={props.entity.id}>
       <div className="flex items-center justify-between gap-5 rounded-md p-2 hover:bg-gray-100 dark:hover:bg-gray-900">
         <div className="flex items-center justify-between gap-5">
-          <div className={"max-w-8 h-8 max-h-8 w-8 rounded-full"}>
+          <div className={"h-8 max-h-8 w-8 max-w-8 rounded-full"}>
             {props.entity.icon}
           </div>
           <EntityCard title={props.entity.name} subtitle={props.entity.email} />
@@ -754,7 +754,7 @@ const SharedWithItem: FC<{
     <li key={entity.id}>
       <div className="flex items-center justify-between gap-5 rounded-md p-2 hover:bg-gray-100 dark:hover:bg-gray-900">
         <div className="flex items-center justify-between gap-5">
-          <div className={"max-w-8 h-8 max-h-8 w-8 rounded-full"}>
+          <div className={"h-8 max-h-8 w-8 max-w-8 rounded-full"}>
             {entity.icon}
           </div>
           {!entity.name && !entity.email ? (

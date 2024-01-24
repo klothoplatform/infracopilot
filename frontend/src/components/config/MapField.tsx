@@ -53,6 +53,9 @@ export const MapField: FC<MapProps> = ({
         : undefined,
       validate: {
         uniqueKeys: (items: any[]) => {
+          if (!items?.length) {
+            return true;
+          }
           if (field.uniqueKeys && !field.properties?.length) {
             const uniqueKeys = new Set();
             for (const item of items) {
@@ -127,10 +130,13 @@ const PrimitiveMap: FC<PrimitiveMapProps> = ({ id, disabled }) => {
     unregister(`${id}[${index}]`);
   };
 
+  // failure:
+  // "focus:outline-none focus:ring-1 bg-red-50 border border-red-500 text-red-900 placeholder-red-700 text-sm rounded-lg focus:ring-red-500 dark:bg-gray-700 focus:border-red-500 block w-full p-2.5 dark:text-red-500 dark:placeholder-red-500 dark:border-red-500",
+
   return (
     <div
       className={classNames("flex w-full flex-col gap-1", {
-        "p-2 rounded-lg border border-red-500 bg-red-50 dark:bg-red-100 dark:border-red-400 ":
+        "p-2.5 rounded-lg border focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500 dark:bg-gray-800 dark:border-red-500 dark:focus:ring-red-500 dark:focus:border-red-500":
           error?.root || error?.type === "manual",
       })}
     >
@@ -239,7 +245,7 @@ const PrimitiveMap: FC<PrimitiveMapProps> = ({ id, disabled }) => {
         </Button>
       )}
       {(!!error?.root || error?.type === "manual") && (
-        <p className="mt-2 text-sm text-red-600 dark:text-red-500">
+        <p className="mt-2 overflow-auto text-sm text-red-600 dark:text-red-500">
           <span>{errorMessage}</span>
         </p>
       )}

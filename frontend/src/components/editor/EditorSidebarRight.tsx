@@ -100,7 +100,7 @@ const EditorSidebarRight: FC = () => {
         <div
           ref={menusRef}
           className={classNames(
-            "flex flex-col w-[600px] overflow-hidden min-w-[300px]",
+            "flex flex-col w-[600px] overflow-hidden min-w-[340px]",
             {
               hidden: Object.values(tabState).every((value) => !value),
             },

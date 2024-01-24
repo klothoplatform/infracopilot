@@ -119,7 +119,7 @@ export const ConfigField: FC<ConfigFieldProps> = ({
           required={required}
           {...props}
           color={error ? "failure" : undefined}
-          helperText={error && <span>{error.message?.toString()}</span>}
+          helperText={<InputHelperText error={error} />}
         />
       );
       break;
@@ -132,7 +132,7 @@ export const ConfigField: FC<ConfigFieldProps> = ({
           required={required}
           {...props}
           color={error ? "failure" : undefined}
-          helperText={error && <span>{error.message?.toString()}</span>}
+          helperText={<InputHelperText error={error} />}
         />
       );
       break;
@@ -145,7 +145,7 @@ export const ConfigField: FC<ConfigFieldProps> = ({
           required={required}
           {...props}
           color={error ? "failure" : undefined}
-          helperText={error && <span>{error.message?.toString()}</span>}
+          helperText={<InputHelperText error={error} />}
         />
       );
       break;
@@ -410,8 +410,8 @@ const InputField: FC<InputProps> = ({
       sizing={"sm"}
       id={id}
       disabled={rest.disabled}
-      color={error ? "failure" : "default"}
-      helperText={error && <span>{error.message?.toString()}</span>}
+      color={error ? "failure" : "gray"}
+      helperText={<InputHelperText error={error} />}
       {...rest}
       {...register(id, {
         required:
@@ -627,12 +627,12 @@ export const ErrorHelper: FC<PropsWithChildren<{ error?: any }>> = ({
   return error ? (
     <div
       className={classNames("flex flex-col gap-1", {
-        "block w-full border disabled:cursor-not-allowed disabled:opacity-50 border-red-500 bg-red-50 text-red-900 placeholder-red-700 focus:border-red-500 focus:ring-red-500 dark:border-red-400 dark:bg-red-100 dark:focus:border-red-500 dark:focus:ring-red-500 p-2 sm:text-xs rounded-lg":
+        "block w-full border disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-red-500 dark:placeholder-red-500 dark:border-red-500 p-2.5 border-red-500 text-red-900 placeholder-red-700 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 focus:outline-none focus:ring-1":
           error,
       })}
     >
       {children}
-      <p className="mt-2 text-sm text-red-600 dark:text-red-500">
+      <p className="mt-2 block max-w-full overflow-auto text-sm text-red-600 dark:text-red-500">
         {error.root && <span>{error.root.message?.toString()}</span>}
         <p>{error.message?.toString()}</p>
       </p>
@@ -662,3 +662,13 @@ export function findChildProperty(obj: any, path: string): any {
   }
   return current;
 }
+
+export const InputHelperText: FC<{ error?: any }> = ({ error }) => {
+  return (
+    error?.message && (
+      <span className={"block max-w-full overflow-auto"}>
+        {error.message.toString()}
+      </span>
+    )
+  );
+};

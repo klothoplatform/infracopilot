@@ -24,7 +24,7 @@ import { ViewModeDropdown } from "../../components/ViewModeDropdown";
 import { useScreenSize } from "../../shared/hooks/useScreenSize";
 import { CloneCurrentArchitectureButton } from "../../components/editor/CloneCurrentArchitectureButton";
 import { isPublicAccess } from "../../shared/architecture/Access";
-import { Banner } from "flowbite-react";
+import { Badge, Banner } from "flowbite-react";
 import { MdAnnouncement } from "react-icons/md";
 import { HiX } from "react-icons/hi";
 import { FaClone } from "react-icons/fa6";
@@ -60,7 +60,7 @@ const NavbarSidebarLayout: FC<PropsWithChildren> = function ({ children }) {
 
   return (
     <SidebarProvider>
-      <div className="min-w-screen max-w-screen flex h-screen max-h-screen min-h-screen w-screen flex-col">
+      <div className="min-w-screen max-w-screen absolute flex h-screen max-h-screen min-h-screen w-screen flex-col overflow-hidden">
         <Navbar>
           <EditorNavContent />
         </Navbar>
@@ -263,13 +263,20 @@ MainContent.displayName = "MainContent";
 const PublicArchitectureBanner = () => {
   return (
     <Banner className={"w-full"}>
-      <div className="flex w-full justify-between border-b border-primary-600 bg-primary-500 p-4 text-primary-100 dark:border-primary-600 dark:bg-primary-700">
-        <div className="m-auto flex">
+      <div className="flex w-full justify-between border-b border-primary-600 bg-primary-700 p-4 text-primary-100">
+        <div className="m-auto flex items-center">
           <MdAnnouncement className="mr-4 h-6 w-6" />
-          <span className="gap flex items-center text-sm font-normal">
-            You're viewing a public architecture. Click the "<FaClone />
-            &nbsp;Make a copy" button to create your own editable copy.
-          </span>
+          <div className="flex w-full flex-wrap items-center text-sm font-normal">
+            <span>You're viewing a public architecture. Click the &nbsp;</span>
+            <Badge
+              icon={FaClone}
+              color={""}
+              className={"flex w-fit shrink-0 gap-2 bg-primary-800 text-white"}
+            >
+              Make a copy
+            </Badge>
+            <span>&nbsp; button to create your own editable copy.</span>
+          </div>
         </div>
         <Banner.CollapseButton
           color="purple"

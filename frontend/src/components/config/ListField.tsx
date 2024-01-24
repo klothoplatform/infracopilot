@@ -17,6 +17,7 @@ import { Button, Checkbox, Textarea, TextInput } from "flowbite-react";
 import { HiMinusCircle, HiPlusCircle } from "react-icons/hi";
 import type { ConfigFieldProps } from "./ConfigField";
 import {
+  InputHelperText,
   EnumField,
   ErrorHelper,
   findChildProperty,
@@ -215,7 +216,7 @@ const PrimitiveListItem: FC<{
           sizing={"sm"}
           className={"w-full"}
           id={id}
-          helperText={error && <span>{error.message?.toString()}</span>}
+          helperText={<InputHelperText error={error} />}
           {...register(id, {
             required:
               required && `${qualifiedFieldName.split(".").pop()} is required.`,
@@ -236,7 +237,7 @@ const PrimitiveListItem: FC<{
           })}
           type={"number"}
           {...(type === PrimitiveTypes.Integer ? { step: "1" } : {})}
-          helperText={error && <span>{error.message?.toString()}</span>}
+          helperText={<InputHelperText error={error} />}
         />
       );
       break;
@@ -300,10 +301,10 @@ const PrimitiveListItem: FC<{
         </div>
       )}
       <div className="my-[.1rem] flex w-full flex-row gap-1">
-        <div className="w-full">{item}</div>
+        <div className="w-full overflow-hidden p-[1px]">{item}</div>
         {!disabled && (
           <Button
-            className={"w-6"}
+            className={"h-fit w-6"}
             size={"md"}
             color="red"
             onClick={() => {

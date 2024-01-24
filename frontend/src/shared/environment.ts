@@ -36,7 +36,10 @@ export const env: Environment = {
     callbackUrl: process.env.REACT_APP_AUTH0_CALLBACK_URL,
     logoutUrl: process.env.REACT_APP_AUTH0_LOGOUT_URL,
   },
-  commandBarEnabled: true,
+  commandBarEnabled:
+    process.env.REACT_APP_COMMAND_BAR_ENABLED === undefined
+      ? true
+      : process.env.REACT_APP_COMMAND_BAR_ENABLED?.toLowerCase() === "true",
   analytics: {
     writeKey: "GKCsKtwCdTQO75tRzBPKAw82xVPYPqEz",
     trackErrors:

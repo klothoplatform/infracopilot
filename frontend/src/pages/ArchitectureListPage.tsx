@@ -65,7 +65,7 @@ function ArchitectureListPage() {
   return (
     <div
       className={
-        "flex h-[100vh] max-h-[100vh] w-[100wh] max-w-[100wh] flex-col overflow-hidden dark:bg-gray-800"
+        "min-w-screen max-w-screen absolute flex h-screen max-h-screen min-h-screen w-screen flex-col overflow-hidden dark:bg-gray-800"
       }
     >
       <ErrorBoundary
