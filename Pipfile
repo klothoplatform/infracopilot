@@ -24,6 +24,7 @@ aiosqlite = "*"
 greenlet = "*"
 asyncpg = "*"
 httpx = "*"
+gunicorn = "*"
 
 [dev-packages]
 black = "*"

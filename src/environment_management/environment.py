@@ -2,6 +2,7 @@ from sqlalchemy import select
 from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.environment_management.models import Environment, EnvironmentVersion
+from src.util.logging import log_time
 
 
 class EnvironmentAlreadyExistsError(Exception):
@@ -16,6 +17,7 @@ class EnvironmentDAO:
     def __init__(self, session: AsyncSession):
         self._session = session
 
+    @log_time
     async def get_environments_for_architecture(
         self, architecture_id: str
     ) -> List[Environment]:
@@ -35,12 +37,14 @@ class EnvironmentDAO:
             raise EnvironmentDoesNotExistError
         return result[0]
 
+    @log_time
     def add_environment(self, environment: Environment):
         try:
             self._session.add(environment)
         except Exception:
             raise
 
+    @log_time
     async def delete_environment(self, architecture_id: str, id: str):
         stmt = (
             select(Environment)
@@ -53,12 +57,14 @@ class EnvironmentDAO:
             return
         await self._session.delete(result[0])
 
+    @log_time
     async def delete_environments_for_architecture(self, architecture_id: str):
         stmt = select(Environment).where(Environment.architecture_id == architecture_id)
         results = await self._session.execute(statement=stmt)
         for result in results.fetchall():
             await self._session.delete(result[0])
 
+    @log_time
     async def set_current_version(self, architecture_id: str, id: str, version: int):
         stmt = (
             select(Environment)
