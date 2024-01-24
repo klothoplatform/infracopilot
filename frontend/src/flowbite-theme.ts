@@ -104,11 +104,33 @@ const flowbiteTheme: CustomFlowbiteTheme = {
   textarea: {
     base: "block w-full text-sm p-4 rounded-lg border disabled:cursor-not-allowed disabled:opacity-50",
   },
+  helperText: {
+    root: {
+      colors: {
+        purple: "text-purple-600 dark:text-purple-500",
+        gray: "text-gray-500 dark:text-gray-400",
+        info: "text-cyan-600 dark:text-cyan-500",
+        success: "text-green-600 dark:text-green-500",
+        failure: "text-red-600 dark:text-red-500",
+        warning: "text-yellow-600 dark:text-yellow-500",
+      },
+    },
+  },
   textInput: {
     field: {
+      base: "relative w-full",
       input: {
         colors: {
-          info: "border-blue-500 bg-blue-50 text-blue-900 placeholder-blue-700 focus:border-blue-500 focus:ring-blue-500 dark:border-blue-400 dark:bg-blue-100 dark:focus:border-blue-500 dark:focus:ring-blue-500",
+          success:
+            "focus:outline-none focus:ring-1 bg-green-50 border border-green-500 text-green-900 dark:text-green-400 placeholder-green-700 dark:placeholder-green-500 text-sm rounded-lg focus:ring-green-500 focus:border-green-500 block w-full p-2.5 dark:bg-gray-700 dark:border-green-500",
+          failure:
+            "focus:outline-none focus:ring-1 bg-red-50 border border-red-500 text-red-900 placeholder-red-700 text-sm rounded-lg focus:ring-red-500 dark:bg-gray-700 focus:border-red-500 block w-full p-2.5 dark:text-red-500 dark:placeholder-red-500 dark:border-red-500",
+          warning:
+            "focus:outline-none focus:ring-1 bg-yellow-50 border border-yellow-500 text-yellow-900 placeholder-yellow-700 text-sm rounded-lg focus:ring-yellow-500 dark:bg-gray-700 focus:border-yellow-500 block w-full p-2.5 dark:text-yellow-500 dark:placeholder-yellow-500 dark:border-yellow-500",
+          info: "focus:outline-none focus:ring-1 bg-blue-50 border border-blue-500 text-blue-900 placeholder-blue-700 text-sm rounded-lg focus:ring-blue-500 dark:bg-gray-700 focus:border-blue-500 block w-full p-2.5 dark:text-blue-500 dark:placeholder-blue-500 dark:border-blue-500",
+          gray: "focus:outline-none focus:ring-1 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
+          purple:
+            "focus:outline-none focus:ring-1 bg-purple-50 border border-purple-500 text-purple-900 placeholder-purple-700 text-sm rounded-lg focus:ring-purple-500 dark:bg-gray-700 focus:border-purple-500 block w-full p-2.5 dark:text-purple-500 dark:placeholder-purple-500 dark:border-purple-500",
         },
         withIcon: {
           on: "!pl-12",
