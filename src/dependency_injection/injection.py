@@ -28,6 +28,7 @@ from src.util.secrets import (
     get_auth0_client,
     get_auth0_secret,
 )
+from src.environment_management.environment_manager import EnvironmentManager
 
 log = logging.getLogger(__name__)
 
@@ -231,5 +232,16 @@ def get_edge_target_handler(session: AsyncSession):
 def share_architecture_handler(session: AsyncSession):
     return ArchitectureHandler(
         architecture_storage=get_architecture_storage(),
+        ev_dao=get_environment_version_dao(session),
+        env_dao=get_environment_dao(session),
+        arch_dao=get_architecture_dao(session),
+    )
+
+
+def get_environment_manager(session: AsyncSession):
+    return EnvironmentManager(
+        architecture_storage=get_architecture_storage(),
+        arch_dao=get_architecture_dao(session),
+        env_dao=get_environment_dao(session),
         ev_dao=get_environment_version_dao(session),
     )
