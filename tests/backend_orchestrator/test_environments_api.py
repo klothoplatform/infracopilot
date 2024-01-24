@@ -6,8 +6,19 @@ from src.environment_management.environment_manager import (
     EnvironmentNotTrackedError,
 )
 from src.auth_service.token import AuthError
-from src.backend_orchestrator.environments_api import Diff, env_in_sync
+from src.backend_orchestrator.environments_api import (
+    ExpectedDiff,
+    env_in_sync,
+    env_diff,
+    BASE_ENV_ID,
+)
 from src.auth_service.entity import User
+from src.environment_management.environment_version import (
+    EnvironmentVersionDoesNotExistError,
+)
+from src.state_manager.architecture_storage import ArchitectureStateDoesNotExistError
+
+from src.topology.topology import Topology, TopologyDiff, DiffStatus, Diff
 
 
 class TestEnvInSync(aiounittest.AsyncTestCase):
@@ -37,7 +48,7 @@ class TestEnvInSync(aiounittest.AsyncTestCase):
             User(id="user_id"), "id"
         )
         get_environment_manager.assert_called_once_with(session)
-        manager.is_in_sync.assert_called_once_with("id", "env_id")
+        manager.is_in_sync.assert_called_once_with("id", BASE_ENV_ID, "env_id")
 
     @patch("src.backend_orchestrator.environments_api.get_user_id")
     @patch("src.backend_orchestrator.environments_api.get_environment_manager")
@@ -64,14 +75,14 @@ class TestEnvInSync(aiounittest.AsyncTestCase):
         self.assertEqual(result.in_sync, False)
         self.assertEqual(
             result.version_diff,
-            Diff(expected="expected_version", actual="actual_version"),
+            ExpectedDiff(expected="expected_version", actual="actual_version"),
         )
         get_user_id.assert_called_once_with(request)
         authz_service.can_read_architecture.assert_called_once_with(
             User(id="user_id"), "id"
         )
         get_environment_manager.assert_called_once_with(session)
-        manager.is_in_sync.assert_called_once_with("id", "env_id")
+        manager.is_in_sync.assert_called_once_with("id", BASE_ENV_ID, "env_id")
 
     @patch("src.backend_orchestrator.environments_api.get_user_id")
     @patch("src.backend_orchestrator.environments_api.get_environment_manager")
@@ -116,14 +127,14 @@ class TestEnvInSync(aiounittest.AsyncTestCase):
         # Assert
         self.assertEqual(result.in_sync, False)
         self.assertEqual(
-            result.env_diff, Diff(expected="expected_id", actual="actual_id")
+            result.env_diff, ExpectedDiff(expected="expected_id", actual="actual_id")
         )
         get_user_id.assert_called_once_with(request)
         authz_service.can_read_architecture.assert_called_once_with(
             User(id="user_id"), "id"
         )
         get_environment_manager.assert_called_once_with(session)
-        manager.is_in_sync.assert_called_once_with("id", "env_id")
+        manager.is_in_sync.assert_called_once_with("id", BASE_ENV_ID, "env_id")
 
     @patch("src.backend_orchestrator.environments_api.get_user_id")
     @patch("src.backend_orchestrator.environments_api.get_environment_manager")
@@ -145,10 +156,131 @@ class TestEnvInSync(aiounittest.AsyncTestCase):
 
         # Assert
         self.assertEqual(result.in_sync, False)
-        self.assertEqual(result.env_diff, Diff(expected="env_id", actual=None))
+        self.assertEqual(result.env_diff, ExpectedDiff(expected="env_id", actual=None))
         get_user_id.assert_called_once_with(request)
         authz_service.can_read_architecture.assert_called_once_with(
             User(id="user_id"), "id"
         )
         get_environment_manager.assert_called_once_with(session)
-        manager.is_in_sync.assert_called_once_with("id", "env_id")
+        manager.is_in_sync.assert_called_once_with("id", BASE_ENV_ID, "env_id")
+
+
+class TestEnvDiff(aiounittest.AsyncTestCase):
+    @patch("src.backend_orchestrator.environments_api.get_user_id")
+    @patch("src.backend_orchestrator.environments_api.get_environment_manager")
+    async def test_env_diff_happy_path(self, get_environment_manager, get_user_id):
+        # Arrange
+        get_user_id.return_value = "user_id"
+        authz_service = MagicMock()
+        authz_service.can_read_architecture = AsyncMock(return_value=True)
+        manager = MagicMock()
+        diff = TopologyDiff(
+            resources={
+                "aws:api_stage:rest_api_0:api_stage-0": Diff(
+                    DiffStatus.CHANGED,
+                    properties={
+                        "Deployment": (
+                            "aws:api_deployment:rest_api_0:api_deployment-0",
+                            "aws:api_deployment:rest_api_0:api_deployment-1",
+                        )
+                    },
+                )
+            }
+        )
+        manager.diff_environments = AsyncMock(return_value=diff)
+        get_environment_manager.return_value = manager
+
+        request = MagicMock()
+        session = MagicMock()
+
+        # Act
+        result = await env_diff(request, "id", "env_id", session, authz_service)
+
+        # Assert
+        self.assertEqual(result, diff)
+        get_user_id.assert_called_once_with(request)
+        authz_service.can_read_architecture.assert_called_once_with(
+            User(id="user_id"), "id"
+        )
+        get_environment_manager.assert_called_once_with(session)
+        manager.diff_environments.assert_called_once_with("id", BASE_ENV_ID, "env_id")
+
+    @patch("src.backend_orchestrator.environments_api.get_user_id")
+    @patch("src.backend_orchestrator.environments_api.get_environment_manager")
+    async def test_auth_error(self, get_environment_manager, get_user_id):
+        # Arrange
+        get_user_id.return_value = "user_id"
+        authz_service = MagicMock()
+        authz_service.can_read_architecture = AsyncMock(return_value=False)
+        request = MagicMock()
+        session = MagicMock()
+
+        # Act & Assert
+        with self.assertRaises(AuthError):
+            await env_diff(request, "id", "env_id", session, authz_service)
+
+        get_user_id.assert_called_once_with(request)
+        authz_service.can_read_architecture.assert_called_once_with(
+            User(id="user_id"), "id"
+        )
+        get_environment_manager.assert_not_called()
+
+    @patch("src.backend_orchestrator.environments_api.get_user_id")
+    @patch("src.backend_orchestrator.environments_api.get_environment_manager")
+    async def test_environment_version_does_not_exist_error(
+        self, get_environment_manager, get_user_id
+    ):
+        # Arrange
+        get_user_id.return_value = "user_id"
+        authz_service = MagicMock()
+        authz_service.can_read_architecture = AsyncMock(return_value=True)
+        manager = MagicMock()
+        manager.diff_environments = AsyncMock(
+            side_effect=EnvironmentVersionDoesNotExistError("env_id")
+        )
+        get_environment_manager.return_value = manager
+        request = MagicMock()
+        session = MagicMock()
+
+        # Act & Assert
+        with self.assertRaises(HTTPException) as context:
+            await env_diff(request, "id", "env_id", session, authz_service)
+        self.assertEqual(context.exception.status_code, 404)
+        self.assertEqual(context.exception.detail, "Environment env_id not found")
+
+        get_user_id.assert_called_once_with(request)
+        authz_service.can_read_architecture.assert_called_once_with(
+            User(id="user_id"), "id"
+        )
+        get_environment_manager.assert_called_once_with(session)
+        manager.diff_environments.assert_called_once_with("id", BASE_ENV_ID, "env_id")
+
+    @patch("src.backend_orchestrator.environments_api.get_user_id")
+    @patch("src.backend_orchestrator.environments_api.get_environment_manager")
+    async def test_architecture_state_does_not_exist_error(
+        self, get_environment_manager, get_user_id
+    ):
+        # Arrange
+        get_user_id.return_value = "user_id"
+        authz_service = MagicMock()
+        authz_service.can_read_architecture = AsyncMock(return_value=True)
+        manager = MagicMock()
+        manager.diff_environments = AsyncMock(
+            side_effect=ArchitectureStateDoesNotExistError("env_id")
+        )
+        get_environment_manager.return_value = manager
+        request = MagicMock()
+        session = MagicMock()
+
+        # Act & Assert
+        with self.assertRaises(HTTPException) as context:
+            await env_diff(request, "id", "env_id", session, authz_service)
+        self.assertEqual(context.exception.status_code, 404)
+        self.assertEqual(context.exception.detail, "Environment env_id state not found")
+
+        get_user_id.assert_called_once_with(request)
+        authz_service.can_read_architecture.assert_called_once_with(
+            User(id="user_id"), "id"
+        )
+        get_environment_manager.assert_called_once_with(session)
+        manager.diff_environments.assert_called_once_with("id", BASE_ENV_ID, "env_id")
