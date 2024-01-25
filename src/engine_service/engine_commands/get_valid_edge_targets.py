@@ -35,7 +35,7 @@ def tempdir():
             yield tmp_dir
 
 
-def get_valid_edge_targets(
+async def get_valid_edge_targets(
     request: GetValidEdgeTargetsRequest,
 ) -> GetValidEdgeTargetsResult:
     log.debug(request.config)
@@ -66,7 +66,7 @@ def get_valid_edge_targets(
                 ]
             )
 
-            out_logs, err_logs = run_engine_command(
+            out_logs, err_logs = await run_engine_command(
                 "GetValidEdgeTargets",
                 *args,
                 cwd=dir,

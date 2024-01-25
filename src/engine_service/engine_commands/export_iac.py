@@ -16,7 +16,7 @@ class ExportIacResult(NamedTuple):
     iac_bytes: bytes
 
 
-def export_iac(request: ExportIacRequest) -> ExportIacResult:
+async def export_iac(request: ExportIacRequest) -> ExportIacResult:
     out_logs = None
     err_logs = None
     try:
@@ -41,7 +41,7 @@ def export_iac(request: ExportIacRequest) -> ExportIacResult:
                 ]
             )
 
-            out_logs, err_logs = run_iac_command(
+            out_logs, err_logs = await run_iac_command(
                 "Generate",
                 *args,
                 cwd=dir,

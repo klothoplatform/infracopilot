@@ -69,7 +69,7 @@ class IaCOrchestrator:
                     input_graph=arch_state.resources_yaml,
                     name=arch.name if arch.name is not None else arch.id,
                 )
-                result = export_iac(request)
+                result = await export_iac(request)
                 iac = result.iac_bytes
                 if iac is None:
                     return Response(content="I failed to generate IaC", status_code=500)
