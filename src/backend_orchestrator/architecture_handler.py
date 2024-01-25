@@ -207,6 +207,7 @@ class ArchitectureHandler:
                     f"No architecture exists for id {id}"
                 )
             environments = await self.env_dao.get_environments_for_architecture(id)
+            isdefault = False
             response = GetArchitectureResponseObject(
                 id=architecture.id,
                 name=architecture.name,
@@ -215,7 +216,9 @@ class ArchitectureHandler:
                 environments=[
                     EnvironmentSummaryObject(
                         id=e.id,
-                        default=e.tags["default"] if "default" in e.tags else False,
+                        default=False
+                        if e.tags is None or "default" not in e.tags
+                        else e.tags["default"],
                     )
                     for e in environments
                 ],

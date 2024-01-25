@@ -25,13 +25,13 @@ logger.setLevel(logging.DEBUG)
 def log_time(func):
     def wrapper(*args, **kwargs):
         start_time = time.time()
-        logger.info(f"Starting function '{func.__name__}'")
+        logger.debug(f"Starting function '{func.__name__}'")
 
         result = func(*args, **kwargs)
 
         end_time = time.time()
         elapsed_time = end_time - start_time
-        logger.info(f"Function '{func.__name__}' took {elapsed_time} seconds")
+        logger.debug(f"Function '{func.__name__}' took {elapsed_time} seconds")
 
         return result
 

@@ -15,7 +15,9 @@ def diff_engine_results(
     Returns:
         dict: A dictionary with the differences.
     """
-    prev_topology = Topology.from_string(previous.resources_yaml)
+    prev_topology = Topology(resources=[], edges=[])
+    if previous is not None:
+        prev_topology = Topology.from_string(previous.resources_yaml)
     curr_topology = Topology.from_string(current.resources_yaml)
-    diff: TopologyDiff = curr_topology.diff_topology(prev_topology)
+    diff: TopologyDiff = prev_topology.diff_topology(curr_topology)
     return diff

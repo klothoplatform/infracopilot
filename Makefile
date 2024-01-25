@@ -30,7 +30,7 @@ run:
 	FGA_API_HOST="localhost:8080" \
 	FGA_API_SCHEME="http" \
 	FGA_STORE_NAME="test-store" \
-	pipenv run gunicorn -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:3000 --log-level debug src.main:app 
+	pipenv run gunicorn -k uvicorn.workers.UvicornWorker -b 0.0.0.0:3000 --log-level debug src.main:app 
 
 
 test-backend:
