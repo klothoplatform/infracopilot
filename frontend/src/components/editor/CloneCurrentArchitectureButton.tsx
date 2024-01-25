@@ -67,6 +67,8 @@ export const CloneCurrentArchitectureButton: FC<{
           isProcessing={isSubmitting}
           disabled={isSubmitting}
           processingSpinner={<AiOutlineLoading className="animate-spin" />}
+          size="sm"
+          className="h-fit"
         >
           <div className="flex items-center gap-2 whitespace-nowrap">
             {!isSubmitting && <FaClone />}

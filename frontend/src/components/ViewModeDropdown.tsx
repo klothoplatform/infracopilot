@@ -5,25 +5,33 @@ import { HiChevronDown, HiOutlineEye, HiOutlinePencil } from "react-icons/hi2";
 import type { IconType } from "react-icons";
 import { Button, Dropdown } from "flowbite-react";
 import { Tooltip } from "./Tooltip";
+import { ViewMode } from "../shared/ViewSettings";
+import { HiOutlineCog } from "react-icons/hi";
 
-const modes = {
-  edit: {
+const modes: { [key: string]: ModeOption } = {
+  [ViewMode.Configure]: {
+    label: "Configuring",
+    value: ViewMode.Configure,
+    description: "Configure the architecture",
+    Icon: HiOutlineCog,
+  },
+  [ViewMode.Edit]: {
     label: "Editing",
-    value: "edit",
+    value: ViewMode.Edit,
     description: "Make changes to the architecture",
     Icon: HiOutlinePencil,
   },
-  view: {
+  [ViewMode.View]: {
     label: "Viewing",
-    value: "view",
+    value: ViewMode.View,
     description: "Inspect and export the architecture",
     Icon: HiOutlineEye,
   },
-} as { [key: string]: ModeOption };
+};
 
 interface ModeOption {
   label: string;
-  value: "edit" | "view";
+  value: ViewMode;
   description: string;
   Icon: IconType;
 }
@@ -37,7 +45,7 @@ const ViewModeButton: FC<{
     <Button
       theme={{
         size: {
-          md: "py-2 px-3",
+          md: "py-[5px] px-3",
         },
       }}
       outline
@@ -59,14 +67,20 @@ export const ViewModeDropdown: FC = () => {
     architectureAccess,
     viewSettings: { mode },
     updateViewSettings,
+    architecture,
+    environmentVersion,
   } = useApplicationStore();
 
-  // const [selectedOption, setSelectedOption] = useState<ModeOption>(modes[mode]);
   const selectedOption = modes[mode];
 
   const onChangeViewMode = (option: ModeOption) => {
     updateViewSettings({ mode: option.value });
   };
+
+  const isDefaultEnvironment =
+    environmentVersion?.id === architecture?.defaultEnvironment;
+  const modeFilter = (option: ModeOption) =>
+    isDefaultEnvironment || option.value !== ViewMode.Edit;
 
   const dropdown = !architectureAccess?.canWrite ? undefined : (
     <Dropdown
@@ -78,21 +92,23 @@ export const ViewModeDropdown: FC = () => {
         </div>
       )}
     >
-      {Object.entries(modes).map(([key, option]) => (
-        <Dropdown.Item
-          key={key}
-          className="flex items-start gap-2"
-          onClick={() => onChangeViewMode(option)}
-        >
-          <option.Icon size={20} />
-          <div className="text-left">
-            <div className="flex gap-2 font-semibold">{option.label}</div>
-            <div className="text-sm text-gray-500 dark:text-gray-400">
-              {option.description}
+      {Object.entries(modes)
+        .filter(([_, option]) => modeFilter(option))
+        .map(([key, option]) => (
+          <Dropdown.Item
+            key={key}
+            className="flex items-start gap-2"
+            onClick={() => onChangeViewMode(option)}
+          >
+            <option.Icon size={20} />
+            <div className="text-left">
+              <div className="flex gap-2 font-semibold">{option.label}</div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">
+                {option.description}
+              </div>
             </div>
-          </div>
-        </Dropdown.Item>
-      ))}
+          </Dropdown.Item>
+        ))}
     </Dropdown>
   );
 

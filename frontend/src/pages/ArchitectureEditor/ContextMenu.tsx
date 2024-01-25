@@ -3,6 +3,8 @@ import type { Edge, Node } from "reactflow";
 
 import useApplicationStore from "../store/ApplicationStore";
 import { BiX } from "react-icons/bi";
+import type { ViewSettings } from "../../shared/ViewSettings";
+import { canModifyTopology } from "../../shared/ViewSettings";
 
 interface ContextMenuProps {
   node?: Node;
@@ -12,6 +14,7 @@ interface ContextMenuProps {
   right: number;
   bottom: number;
   onAction?: () => void;
+  viewSettings?: ViewSettings;
 }
 
 export default function ContextMenu({
@@ -75,6 +78,7 @@ export default function ContextMenu({
         <ContextMenuButton
           icon={<BiX />}
           onClick={node ? deleteNode : deleteEdge}
+          disabled={!canModifyTopology(props.viewSettings)}
         >
           Delete {node ? "Resource" : "Connection"}
         </ContextMenuButton>
@@ -95,15 +99,18 @@ type ContextMenuButtonProps = {
   onClick?: () => void;
   icon?: React.JSX.Element;
   children?: React.ReactNode;
+  disabled: boolean;
 };
 
 const ContextMenuButton = ({
   onClick,
   icon,
   children,
+  disabled,
 }: ContextMenuButtonProps) => (
   <button
-    className="flex w-full items-center bg-gray-50 p-2 text-left hover:bg-gray-100 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700"
+    disabled={disabled}
+    className="flex w-full items-center bg-gray-50 p-2 text-left hover:bg-gray-100 disabled:opacity-35 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 dark:disabled:bg-gray-800"
     onClick={onClick}
   >
     <span className="mr-1 inline-block min-w-[16px] max-w-[16px]">

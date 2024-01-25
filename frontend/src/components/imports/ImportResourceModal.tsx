@@ -35,9 +35,7 @@ export default function ImportResourceModal({
     resetEditorState,
     addError,
     applyConstraints,
-    selectedResource,
     resourceTypeKB,
-    environmentVersion,
   } = useApplicationStore();
 
   const [fields, setFields] = useState<Property[]>([]);

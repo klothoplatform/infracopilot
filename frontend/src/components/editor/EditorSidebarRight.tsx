@@ -42,6 +42,7 @@ import { FaHistory } from "react-icons/fa";
 import { ResizableSection } from "../Resizable";
 import { TbPlugConnected } from "react-icons/tb";
 import { OutlinedAlert } from "../../shared/custom-themes";
+import { canModifyConfiguration } from "../../shared/ViewSettings";
 
 const EditorSidebarRight: FC = () => {
   const menusRef = useRef<HTMLDivElement>(null);
@@ -52,7 +53,7 @@ const EditorSidebarRight: FC = () => {
     failures,
     rightSidebarSelector,
     navigateRightSidebar,
-    viewSettings: { mode },
+    viewSettings,
   } = useApplicationStore();
 
   const [tabState, setTabState] = useState<{
@@ -85,10 +86,6 @@ const EditorSidebarRight: FC = () => {
   const onDeactivate = (index: string) => {
     setTabState(updateActiveIndex(tabState, index, false));
   };
-
-  if (!mode) {
-    return null;
-  }
 
   return (
     <>
@@ -151,7 +148,7 @@ const EditorSidebarRight: FC = () => {
                   }
                   disabled={!selectedResource && !selectedEdge}
                 />
-                {mode === "edit" ? (
+                {canModifyConfiguration(viewSettings) ? (
                   <SidebarMenuOption
                     key={RightSidebarMenu.Changes}
                     index={RightSidebarMenu.Changes}

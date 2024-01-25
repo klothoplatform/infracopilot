@@ -24,6 +24,7 @@ import { TbDotsCircleHorizontal } from "react-icons/tb";
 import { ThemeContext } from "flowbite-react/lib/esm/components/Flowbite/ThemeContext";
 import type { IconProps } from "../../components/editor/Icon";
 import { Tooltip } from "flowbite-react";
+import { canModifyTopology } from "../ViewSettings";
 
 interface ResourceNodeProps {
   id: string;
@@ -42,15 +43,13 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
     selectResource,
     navigateRightSidebar,
     edgeTargetState: { validTargets, existingEdges },
-    viewSettings: { mode },
+    viewSettings,
   } = useApplicationStore();
 
   const connectionNodeId = useStore(connectionNodeIdSelector);
   const isConnecting = !!connectionNodeId;
   const isSelected = selectedResource?.equals(data.resourceId);
   const [mouseOverNode, setMouseOverNode] = useState(false);
-  // this could be a map by handle id
-  const isEditMode = mode === "edit";
   const showSourceHandle = !isConnecting && mouseOverNode;
   const updateNodeInternals = useUpdateNodeInternals();
 
@@ -143,16 +142,16 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
       {/* eslint-disable-next-line tailwindcss/no-custom-classname,jsx-a11y/no-static-element-interactions */}
       <div
         className="resource-node resource-icon-node pointer-events-none absolute flex h-fit w-[210px] flex-col justify-center"
-        onMouseOver={(e) => {
+        onMouseOver={() => {
           setMouseOverNode(true);
         }}
-        onMouseLeave={(e) => {
+        onMouseLeave={() => {
           setMouseOverNode(false);
         }}
-        onFocus={(e) => {
+        onFocus={() => {
           setMouseOverNode(true);
         }}
-        onBlur={(e) => {
+        onBlur={() => {
           setMouseOverNode(false);
         }}
         onKeyDown={(e) => {
@@ -197,7 +196,7 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
           )}
         </div>
         {handles}
-        {isEditMode && (
+        {canModifyTopology(viewSettings) && (
           <Handle
             className={classNames("node-handle", {
               "opacity-0": !showSourceHandle,
@@ -213,7 +212,7 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
         )}
 
         <EditableLabel
-          disabled={mode !== "edit"}
+          disabled={!canModifyTopology(viewSettings)}
           label={data.label}
           onSubmit={async (newValue) => {
             const { provider, type, namespace } = data.resourceId;

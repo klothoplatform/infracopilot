@@ -12,52 +12,47 @@ import { useScreenSize } from "../shared/hooks/useScreenSize";
 
 interface NavbarProps {}
 
-const NavBar: FC<PropsWithChildren<NavbarProps>> = function ({ children }) {
-  const { user, isAuthenticated } = useApplicationStore();
-  const [mode, setMode, toggleMode] = useThemeMode();
-  const { isSmallScreen } = useScreenSize();
-
+export const HeaderNavBar: FC<PropsWithChildren<NavbarProps>> = function ({
+  children,
+}) {
   return (
     <Navbar fluid>
-      <div className="w-full p-3 lg:px-5 lg:pl-3">
+      <div className="w-full p-1 lg:px-5 lg:pl-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center pr-20">
-            <Navbar.Brand as={Link} to="/architectures">
-              <span className="mr-6 pr-2"></span>
-              <span className="self-center whitespace-nowrap text-2xl font-semibold dark:text-white">
-                InfraCopilot
-              </span>
-            </Navbar.Brand>
-          </div>
-          <div className="mx-6 my-4 h-5 border-r-[1px] border-gray-300 shadow-black"></div>
+          <Navbar.Brand as={Link} to="/architectures" className="pr-2">
+            <span className="whitespace-nowrap px-2 py-1 text-2xl font-semibold dark:text-white">
+              InfraCopilot
+            </span>
+          </Navbar.Brand>
+          <div className="mr-3 h-5 border-r-[1px] border-gray-300 py-4 shadow-black dark:border-gray-700"></div>
           <div className="w-full items-start">{children}</div>
-          <div className="flex items-center lg:gap-3">
-            <div className="hidden items-center lg:block">
-              <DarkThemeToggle
-                onClick={() => {
-                  const newMode = mode === "dark" ? "light" : "dark";
-                  localStorage.setItem("theme", newMode);
-                  toggleMode();
-                }}
-              />
-            </div>
-            {isAuthenticated && user ? (
-              <div className="hidden lg:block">
-                <AccountDropdown />
-              </div>
-            ) : (
-              <LoginButton tooltip={isSmallScreen} />
-            )}
-          </div>
         </div>
       </div>
     </Navbar>
   );
 };
 
+export const HeaderNavBarRow1Right: FC<{
+  user: any;
+  isAuthenticated: boolean;
+}> = ({ user, isAuthenticated }) => {
+  const { isSmallScreen } = useScreenSize();
+
+  return (
+    <div className="flex h-fit w-fit items-center justify-end lg:gap-3">
+      {isAuthenticated && user ? (
+        <AccountDropdown />
+      ) : (
+        <LoginButton tooltip={isSmallScreen} />
+      )}
+    </div>
+  );
+};
+
 const AccountDropdown: FC = function () {
   const { user, logout } = useApplicationStore();
   const [noPicture, setNoPicture] = useState(false);
+  const [mode, setMode, toggleMode] = useThemeMode();
 
   if (!user) {
     return null;
@@ -73,7 +68,7 @@ const AccountDropdown: FC = function () {
       arrowIcon={false}
       inline
       label={
-        <span className="h-10 w-10 rounded-full">
+        <span className="h-9 w-9 rounded-full">
           <div className="sr-only">account menu</div>
           {noPicture ? (
             <div className="flex h-full w-full items-center justify-center rounded-full bg-primary-400 text-lg font-light text-white dark:bg-primary-500">
@@ -110,11 +105,17 @@ const AccountDropdown: FC = function () {
             <h2 className="font-medium">{user.name}</h2>
             <p>{user.email}</p>
           </div>
+
+          <DarkThemeToggle
+            onClick={() => {
+              const newMode = mode === "dark" ? "light" : "dark";
+              localStorage.setItem("theme", newMode);
+              toggleMode();
+            }}
+          />
         </div>
       </Dropdown.Header>
       <Dropdown.Item onClick={logout}>Log out</Dropdown.Item>
     </Dropdown>
   );
 };
-
-export default NavBar;

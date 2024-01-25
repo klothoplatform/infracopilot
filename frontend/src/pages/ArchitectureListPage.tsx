@@ -12,7 +12,10 @@ import { trackError } from "./store/ErrorStore";
 import { UIError } from "../shared/errors";
 import { ErrorBoundary } from "react-error-boundary";
 import { FaRepeat } from "react-icons/fa6";
-import NavBar from "../components/NavBar";
+import {
+  HeaderNavBar,
+  HeaderNavBarRow1Right,
+} from "../components/HeaderNavBar";
 import { Button } from "flowbite-react";
 
 function ArchitectureListPage() {
@@ -85,7 +88,14 @@ function ArchitectureListPage() {
         onReset={() => resetUserDataState()}
       >
         <SidebarProvider>
-          <NavBar />
+          <HeaderNavBar>
+            <div className="flex justify-end">
+              <HeaderNavBarRow1Right
+                user={user}
+                isAuthenticated={isAuthenticated}
+              />
+            </div>
+          </HeaderNavBar>
           <div className="flex h-full w-full flex-row overflow-hidden">
             <LeftSideBar />
             <div className="flex h-full w-full grow flex-col gap-6 px-4 py-6">

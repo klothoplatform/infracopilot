@@ -8,6 +8,7 @@ import {
   RightSidebarDetailsTab,
   RightSidebarMenu,
 } from "../../../../shared/sidebar-nav";
+import { canModifyTopology } from "../../../../shared/ViewSettings";
 
 interface RouteNodeProps {
   id: string;
@@ -25,7 +26,7 @@ const ApiIntegrationNode = memo(
       selectResource,
       navigateRightSidebar,
       edgeTargetState: { validTargets },
-      viewSettings: { mode },
+      viewSettings,
     } = useApplicationStore();
 
     const connectionNodeId = useStore(connectionNodeIdSelector);
@@ -35,8 +36,6 @@ const ApiIntegrationNode = memo(
     const [mouseOverHandle] = useState(false);
     const showSourceHandle =
       !isConnecting && (mouseOverNode || mouseOverHandle);
-
-    const isEditMode = mode === "edit";
 
     const isValidConnectionTarget =
       isConnecting &&
@@ -134,7 +133,7 @@ const ApiIntegrationNode = memo(
             type="target"
           />
         )}
-        {isEditMode && (
+        {canModifyTopology(viewSettings) && (
           <Handle
             className={classNames("node-handle", {
               "opacity-0": !showSourceHandle,

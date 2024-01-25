@@ -3,6 +3,7 @@ import React, { useEffect, useReducer, useRef, useState } from "react";
 import reducer from "../helpers/reducer";
 import classNames from "classnames";
 import { UIError } from "../shared/errors";
+import { TextInput } from "flowbite-react";
 
 export interface RegexRule {
   pattern: RegExp;
@@ -18,6 +19,7 @@ type EditableLabelProps = {
   regexRule?: RegexRule;
   textAlign?: "left" | "center" | "right";
   maxWidth?: string;
+  maxEditWidth?: string;
 };
 
 export const EditableLabel: FC<EditableLabelProps> = ({
@@ -29,6 +31,7 @@ export const EditableLabel: FC<EditableLabelProps> = ({
   regexRule,
   textAlign,
   maxWidth,
+  maxEditWidth,
 }) => {
   label = label ?? initialValue;
   const [isEditing, setIsEditing] = useState(false);
@@ -57,6 +60,7 @@ export const EditableLabel: FC<EditableLabelProps> = ({
         console.error(e);
         onError?.(e);
       } finally {
+        inputRef.current?.blur();
         setIsEditing(false);
       }
     })();
@@ -80,6 +84,7 @@ export const EditableLabel: FC<EditableLabelProps> = ({
       if (event.key === "Escape") {
         setIsEditing(false);
         dispatch({ field: "label", value: initialValue });
+        inputRef.current?.blur();
       }
     };
     window.addEventListener("keydown", handleEsc);
@@ -100,65 +105,81 @@ export const EditableLabel: FC<EditableLabelProps> = ({
         "h-fit w-fit justify-start text-start dark:text-gray-200 whitespace-nowrap overflow-hidden text-ellipsis",
       )}
     >
-      <>
+      <form
+        autoComplete="off"
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit();
+        }}
+      >
         {!isEditing && (
-          <div
-            className={classNames(
-              "overflow-hidden text-ellipsis rounded-sm border-[1px] border-gray-500/[0] px-1 font-semibold",
-              {
-                "cursor-text hover:border-gray-500 hover:bg-gray-100/20 dark:hover:bg-gray-700/20":
-                  !disabled,
-                "pointer-events-none": disabled,
-              },
-            )}
-            style={{
-              maxWidth: maxWidth,
-            }}
-          >
-            {label}
-          </div>
-        )}
-        {isEditing && (
-          <form
-            autoComplete="off"
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSubmit();
-            }}
-          >
-            <input
-              ref={(e) => {
-                inputRef.current = e;
-                if (e && shouldSelectContent) {
-                  console.log("selecting content");
-                  e.select();
-                  setShouldSelectContent(false);
-                }
-              }}
+          <div className="p-[1px]">
+            <div
               className={classNames(
-                "rounded-sm border-[1px] bg-gray-50 focus:border-gray-50 dark:bg-gray-900",
+                "overflow-hidden text-ellipsis rounded-lg border-[1px] border-gray-200/[0] px-1 py-0.5 font-medium",
+                "hover:border-gray-200 text-gray-900 focus:ring-primary-500 focus:border-primary-500 dark:hover:border-gray-600",
+                "dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
                 {
-                  "text-left": textAlign === "left",
-                  "text-center": textAlign === "center",
-                  "text-right": textAlign === "right",
+                  "cursor-text hover:border-gray-500 hover:bg-gray-100/20 dark:hover:bg-gray-700/20":
+                    !disabled,
+                  "pointer-events-none": disabled,
                 },
               )}
               style={{
-                width: `${Math.max(24, state.label.length * 0.75)}ch`,
                 maxWidth: maxWidth,
               }}
-              id="label"
-              required
-              value={state.label}
-              type="text"
-              onChange={(e) => {
-                dispatch({ field: e.target.id, value: e.target.value });
-              }}
-              onBlur={onBlur}
-            />
-          </form>
+            >
+              {label}
+            </div>
+          </div>
         )}
-      </>
+        {isEditing && (
+          <TextInput
+            theme={{
+              field: {
+                base: "relative w-full p-[1px]",
+                input: {
+                  base: "block px-1 py-0.5 w-full font-medium bg-gray-50/0 border-gray-50/0 hover:border focus:border disabled:cursor-not-allowed disabled:opacity-50 overflow-hidden text-ellipsis",
+                  colors: {
+                    gray: "hover:border-gray-300 text-gray-900 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:hover:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
+                  },
+                  sizes: {
+                    sm: "text-sm",
+                    md: "text-md",
+                  },
+                },
+              },
+            }}
+            ref={(e) => {
+              inputRef.current = e;
+              if (e && shouldSelectContent) {
+                console.log("selecting content");
+                e.select();
+                setShouldSelectContent(false);
+              }
+            }}
+            className={classNames({
+              "text-left": textAlign === "left",
+              "text-center": textAlign === "center",
+              "text-right": textAlign === "right",
+            })}
+            sizing="md"
+            color="gray"
+            style={{
+              width: `${(state.label?.length ?? 0) + 3}ch`,
+              maxWidth: isEditing ? maxEditWidth || maxWidth : maxWidth,
+            }}
+            id="label"
+            required
+            value={state.label}
+            type="text"
+            onChange={(e) => {
+              dispatch({ field: e.target.id, value: e.target.value });
+            }}
+            onBlur={onBlur}
+          />
+        )}
+      </form>
     </button>
   );
 };

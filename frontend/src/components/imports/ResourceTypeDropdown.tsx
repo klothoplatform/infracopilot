@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import useApplicationStore from "../../pages/store/ApplicationStore";
 import { Dropdown } from "flowbite-react";
 import type { ResourceType } from "../../shared/resources/ResourceTypes";
-import { useFormContext } from "react-hook-form";
 
 interface ImportResourceFormProps {
   onResourceSelection: (resourceType: ResourceType) => void;
@@ -18,7 +17,6 @@ export const ResourceTypeDropdown = ({
   const [importableResources, setImportableResources] = useState<
     ResourceType[]
   >([]);
-  const { register, unregister, setValue, watch, formState } = useFormContext();
 
   useEffect(() => {
     setImportableResources(resourceTypeKB?.getImportableResourceTypes() ?? []);

@@ -26,6 +26,7 @@ import ConnectionLine from "../../shared/reactflow/ConnectionLine";
 import { shallow } from "zustand/shallow";
 import classNames from "classnames";
 import { VersionNavigator } from "./VersionNavigation";
+import { canModifyConfiguration } from "../../shared/ViewSettings";
 
 export default function EditorPane() {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
@@ -46,7 +47,7 @@ export default function EditorPane() {
     deselectNode,
     deselectEdge,
     addError,
-    viewSettings: { mode },
+    viewSettings,
   } = useApplicationStore();
 
   const connectionNodeId = useStore((s) => s.connectionNodeId, shallow);
@@ -305,9 +306,9 @@ export default function EditorPane() {
           })}
         >
           <Background variant={BackgroundVariant.Dots} gap={25} size={1} />
-          {menu && <ContextMenu {...menu} />}
+          {menu && <ContextMenu {...menu} viewSettings={viewSettings} />}
           <Controls />
-          {mode === "edit" ? <VersionNavigator /> : null}
+          {canModifyConfiguration(viewSettings) ? <VersionNavigator /> : null}
         </ReactFlow>
         <WorkingOverlay show={showSpinner} message={"Autocompleting..."} />
       </div>

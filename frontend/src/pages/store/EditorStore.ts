@@ -76,6 +76,8 @@ import { updateArchitectureAccess } from "../../api/UpdateArchitectureAccess";
 import { getArchitectureAccess } from "../../api/GetArchitectureAccess";
 import type { ArchitectureAccess } from "../../shared/architecture/Access";
 import cloneArchitecture from "../../api/CloneArchitecture";
+import type { ViewSettings } from "../../shared/ViewSettings";
+import { isViewMode, ViewMode } from "../../shared/ViewSettings";
 
 interface EditorStoreState {
   architecture: Architecture;
@@ -117,9 +119,7 @@ interface EditorStoreState {
   selectedResource?: NodeId;
   unappliedConstraints: Constraint[];
   architectureAccess?: ArchitectureAccess;
-  viewSettings: {
-    mode: "edit" | "view";
-  };
+  viewSettings: ViewSettings;
 }
 
 const initialState: () => EditorStoreState = () => ({
@@ -166,7 +166,7 @@ const initialState: () => EditorStoreState = () => ({
     updating: false,
   },
   viewSettings: {
-    mode: "edit",
+    mode: ViewMode.Edit,
   },
 });
 
@@ -225,9 +225,7 @@ interface EditorStoreActions {
   navigateForwardRightSidebar: () => void;
   goToPreviousState: () => Promise<void>;
   goToNextState: () => Promise<void>;
-  updateViewSettings: (
-    settings: Partial<EditorStoreState["viewSettings"]>,
-  ) => void;
+  updateViewSettings: (settings: Partial<ViewSettings>) => void;
 }
 
 type EditorStoreBase = EditorStoreState & EditorStoreActions;
@@ -463,9 +461,13 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     environment?: string,
     version?: number,
   ) => {
+    const currentEnvironment = get().environmentVersion;
     architectureId = architectureId ?? get().architecture?.id;
-    environment = environment ?? get().environmentVersion?.id;
-    version = version ?? get().environmentVersion?.version;
+    environment = environment ?? currentEnvironment.id;
+    if (environment === currentEnvironment.id) {
+      version = version ?? currentEnvironment?.version;
+    }
+
     if (!architectureId) {
       throw new Error("no architecture id");
     }
@@ -473,6 +475,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       architectureId,
       await get().getIdToken(),
     );
+    environment = environment ?? architecture.defaultEnvironment;
     console.log("refresh got architecture", architecture);
     const ev = await getEnvironmentVersion(
       architectureId,
@@ -523,6 +526,20 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       selectedEdge: get().selectedEdge,
       selectedResource: get().selectedResource,
     });
+
+    const viewSettings = { ...get().viewSettings };
+
+    const canWrite = get().architectureAccess?.canWrite;
+
+    if (!isViewMode(viewSettings, ViewMode.View) && canWrite) {
+      viewSettings.mode =
+        architecture.defaultEnvironment === ev.id
+          ? ViewMode.Edit
+          : ViewMode.Configure;
+    } else {
+      viewSettings.mode = ViewMode.View;
+    }
+
     set(
       {
         architecture,
@@ -532,6 +549,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
         selectedNode,
         selectedEdge,
         selectedResource,
+        viewSettings,
       },
       false,
       "editor/refreshArchitecture",
@@ -556,7 +574,6 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     );
     get().resetEditorState({ isEditorInitializing: true });
     try {
-      environment = environment ?? "default";
       await get().refreshArchitecture(architectureId, environment, version);
       const architectureAccess = await get().getArchitectureAccess(
         architectureId,
@@ -1430,7 +1447,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     const idToken = await get().getIdToken();
     return await getArchitectureAccess({ architectureId, summarized }, idToken);
   },
-  updateViewSettings: (settings: Partial<EditorStoreState["viewSettings"]>) => {
+  updateViewSettings: (settings: Partial<ViewSettings>) => {
     set(
       {
         viewSettings: {

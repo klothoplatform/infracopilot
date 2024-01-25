@@ -7,6 +7,7 @@ import type { FC, ReactNode } from "react";
 import { ConfigField } from "./ConfigField";
 import type { NodeId } from "../../shared/architecture/TopologyNode";
 import useApplicationStore from "../../pages/store/ApplicationStore";
+import { canModifyConfiguration } from "../../shared/ViewSettings";
 
 type ConfigGroupProps = {
   configResource: NodeId;
@@ -27,9 +28,7 @@ export const ConfigGroup: FC<ConfigGroupProps> = ({
 }) => {
   const { environmentVersion } = useApplicationStore();
 
-  const {
-    viewSettings: { mode },
-  } = useApplicationStore();
+  const { viewSettings } = useApplicationStore();
 
   const rows: ReactNode[] = [];
   const resourceMetadata = environmentVersion?.resources?.get(
@@ -85,7 +84,7 @@ export const ConfigGroup: FC<ConfigGroupProps> = ({
           }
           disabled={
             (property.configurationDisabled && !resourceMetadata?.imported) ||
-            mode !== "edit"
+            !canModifyConfiguration(viewSettings)
           }
         />
       </div>,

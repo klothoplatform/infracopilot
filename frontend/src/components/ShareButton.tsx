@@ -38,10 +38,6 @@ export const ShareButton: FC<{
     color = "blue";
   }
 
-  if (small) {
-    IconComponent = FaUserPlus;
-  }
-
   return (
     <>
       <Tooltip
@@ -50,9 +46,14 @@ export const ShareButton: FC<{
         placement={"bottom"}
         disabled={!access?.generalAccess}
       >
-        <Button color={color} onClick={handleClick} pill>
-          <IconComponent />
-          {!small && <span className="ml-2">Share</span>}
+        <Button size={"sm"} color={color} onClick={handleClick} pill>
+          {!small && (
+            <>
+              <IconComponent />
+              <span className="ml-2">Share</span>
+            </>
+          )}
+          {small && <FaUserPlus size={20} />}
         </Button>
         {showModal && (
           <AccessModal

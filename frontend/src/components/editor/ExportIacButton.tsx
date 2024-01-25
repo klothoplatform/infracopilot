@@ -54,7 +54,8 @@ export const ExportIacButton: FC<ExportIacButtonProps> = (
     <Tooltip content="Export IaC" disabled={!props.small}>
       <Button
         color={"purple"}
-        className="flex"
+        size="sm"
+        className="h-fit"
         onClick={onClickExportIac}
         isProcessing={isExporting}
         disabled={props.disabled || !environmentVersion?.resources?.size}

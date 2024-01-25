@@ -17,9 +17,10 @@ const NewArchitectureButton: FC<NewArchitectureButtonProps> = (
     <Tooltip content="New Architecture" disabled={!props.small}>
       <Button
         color={"purple"}
-        className="mr-2 flex gap-1"
         onClick={props.onClick}
         disabled={props.disabled}
+        size="sm"
+        className="h-fit"
       >
         <FaFileCirclePlus className="mr-1" />
         {!props.small && (

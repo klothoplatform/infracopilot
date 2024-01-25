@@ -30,9 +30,11 @@ export interface Architecture {
   provider: string;
   id: string;
   name: string;
+  environments: { id: string; default: boolean }[];
+  defaultEnvironment: string;
   owner: string;
-  created_at?: number;
-  created_by?: string;
+  createdAt?: number;
+  createdBy?: string;
 }
 
 export interface GraphEdge {
@@ -50,14 +52,14 @@ export const parseArchitecture = (data: any): Architecture => {
     });
   }
 
-  const architecture: Architecture = {
+  return {
     provider: data.provider,
     id: data.id,
     name: data.name,
     owner: data.owner,
-    created_at: data.created_at,
-    created_by: data.created_by,
+    environments: data.environments,
+    defaultEnvironment: data.environments.find((env: any) => env.default)?.id,
+    createdAt: data.created_at,
+    createdBy: data.created_by,
   };
-
-  return architecture;
 };

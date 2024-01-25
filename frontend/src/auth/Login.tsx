@@ -22,7 +22,7 @@ const LoginButton: FC<{ tooltip?: boolean }> = ({ tooltip }) => {
           },
         }}
         pill
-        size={"md"}
+        size={"sm"}
         color={"purple"}
         onClick={async () => {
           await loginWithPopup({});
