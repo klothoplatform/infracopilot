@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import select, text, and_
 from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.environment_management.models import Environment, EnvironmentVersion
@@ -169,3 +169,26 @@ class EnvironmentVersionDAO:
         if result is None:
             raise EnvironmentVersionDoesNotExistError
         return result[0]
+
+    async def get_all_versions_tracking_hash(
+        self,
+        architecture_id: str,
+        id: str,
+        tracking_env: str,
+        tracking_version_hash: str,
+    ) -> List[EnvironmentVersion]:
+        stmt = select(EnvironmentVersion).where(
+            and_(
+                EnvironmentVersion.architecture_id == architecture_id,
+                EnvironmentVersion.id == id,
+                text(
+                    "env_resource_configuration->'tracks'->>'version_hash' = :version_hash"
+                ).params(version_hash=tracking_version_hash),
+                text(
+                    "env_resource_configuration->'tracks'->>'environment' = :tracking_env"
+                ).params(tracking_env=tracking_env),
+            )
+        )
+        result = await self._session.execute(stmt)
+        result = result.fetchall()
+        return [r[0] for r in result]

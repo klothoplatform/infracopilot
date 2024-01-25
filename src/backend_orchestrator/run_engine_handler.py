@@ -13,6 +13,7 @@ from src.backend_orchestrator.architecture_handler import (
     EnvironmentVersionResponseObject,
     VersionState,
 )
+from src.constraints.util import find_mutating_constraints, parse_constraints
 from src.engine_service.binaries.fetcher import BinaryStorage, Binary
 from src.engine_service.engine_commands.run import (
     FailedRunException,
@@ -25,6 +26,7 @@ from src.environment_management.environment_version import (
     EnvironmentVersion,
     EnvironmentVersionDoesNotExistError,
 )
+from src.environment_management.models import Environment
 
 from src.environment_management.environment import (
     EnvironmentDAO,
@@ -40,7 +42,28 @@ from src.engine_service.engine_commands.get_resource_types import (
     get_resource_types,
 )
 
+from src.constraints.constraint import ConstraintScope
+from src.topology.topology import Topology, TopologyDiff
+from src.topology.util import diff_engine_results
+
 log = logging.getLogger(__name__)
+
+
+class TopologicalChangesNotAllowed(Exception):
+    """
+    Exception to be raised when topological changes are not allowed.
+    """
+
+    def __init__(
+        self, env_id: str, constraints: List[dict] = None, diff: TopologyDiff = None
+    ):
+        super().__init__(
+            f"Topological changes are not allowed for environment {env_id}"
+        )
+        self.constraints = constraints
+        self.diff = diff
+        self.env_id = env_id
+        self.error_type = "topological_changes_not_allowed"
 
 
 class CopilotRunRequest(BaseModel):
@@ -92,6 +115,14 @@ class EngineOrchestrator:
                         "Architecture with id, {id}, and state, {state} does not exist"
                     )
 
+            ## validate constraints to ensure theres only resource constraints if the environment only allows topological changes
+            env: Environment = await self.env_dao.get_environment(
+                architecture_id, env_id
+            )
+            if not env.allows_topological_changes():
+                if len(find_mutating_constraints(body.constraints)) > 0:
+                    raise TopologicalChangesNotAllowed(env_id, body.constraints)
+
             input_graph = self.architecture_storage.get_state_from_fs(architecture)
             self.binary_storage.ensure_binary(Binary.ENGINE)
             request = RunEngineRequest(
@@ -104,6 +135,14 @@ class EngineOrchestrator:
                 constraints=body.constraints,
             )
             result = run_engine(request)
+
+            diff: TopologyDiff = diff_engine_results(result, input_graph)
+            if not env.allows_topological_changes():
+                if diff.contains_differences():
+                    raise TopologicalChangesNotAllowed(
+                        env_id, constraints=body.constraints, diff=diff
+                    )
+
             latest_architecture: EnvironmentVersion = (
                 await self.ev_dao.get_latest_version(architecture_id, env_id)
             )
@@ -143,7 +182,9 @@ class EngineOrchestrator:
                 ),
                 env_resource_configuration=arch.env_resource_configuration,
                 config_errors=result.config_errors_json,
+                diff=diff.__dict__(),
             )
+
             return Response(
                 headers={
                     "Content-Type": "application/octet-stream"
@@ -174,6 +215,16 @@ class EngineOrchestrator:
             raise HTTPException(
                 status_code=400, detail="Environment version is not the latest"
             )
+        except TopologicalChangesNotAllowed as e:
+            content = {
+                "error_type": e.error_type,
+                "environment": e.env_id,
+            }
+            if e.constraints is not None:
+                content["constraints"] = e.constraints
+            if e.diff is not None:
+                content["diff"] = e.diff.__dict__()
+            return Response(status_code=400, content=jsons.dumps(content))
         except ArchitectureStateDoesNotExistError:
             raise HTTPException(
                 status_code=404,

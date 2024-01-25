@@ -15,11 +15,13 @@ class TestEnvironmentManager(aiounittest.AsyncTestCase):
         self.arch_dao = MagicMock()
         self.env_dao = MagicMock()
         self.ev_dao = MagicMock()
+        self.binary_storage = MagicMock()
         self.manager = EnvironmentManager(
             self.architecture_storage,
             self.arch_dao,
             self.env_dao,
             self.ev_dao,
+            self.binary_storage,
         )
 
     def setUp(self):
@@ -27,6 +29,7 @@ class TestEnvironmentManager(aiounittest.AsyncTestCase):
         self.arch_dao.reset_mock()
         self.env_dao.reset_mock()
         self.ev_dao.reset_mock()
+        self.binary_storage.reset_mock()
 
     async def test_is_in_sync(self):
         self.ev_dao.get_current_version = AsyncMock(
