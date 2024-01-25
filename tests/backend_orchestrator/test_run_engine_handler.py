@@ -90,7 +90,7 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
 
     @mock.patch(
         "src.backend_orchestrator.run_engine_handler.run_engine",
-        new_callable=mock.Mock,
+        new_callable=mock.AsyncMock,
     )
     @mock.patch(
         "src.backend_orchestrator.run_engine_handler.datetime",
@@ -114,7 +114,7 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
         mock_find_mutating_constraints: mock.Mock,
         mock_uuid: mock.Mock,
         mock_datetime: mock.Mock,
-        mock_run_engine: mock.Mock,
+        mock_run_engine: mock.AsyncMock,
     ):
         test_hash = "hash"
         mock_datetime.utcnow.return_value = self.created_at
@@ -207,7 +207,7 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
 
     @mock.patch(
         "src.backend_orchestrator.run_engine_handler.run_engine",
-        new_callable=mock.Mock,
+        new_callable=mock.AsyncMock,
     )
     @mock.patch(
         "src.backend_orchestrator.run_engine_handler.datetime",
@@ -231,7 +231,7 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
         mock_find_mutating_constraints: mock.Mock,
         mock_uuid: mock.Mock,
         mock_datetime: mock.Mock,
-        mock_run_engine: mock.Mock,
+        mock_run_engine: mock.AsyncMock,
     ):
         test_hash = "hash"
         mock_datetime.utcnow.return_value = self.created_at
@@ -397,7 +397,7 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
 
     @mock.patch(
         "src.backend_orchestrator.run_engine_handler.run_engine",
-        new_callable=mock.Mock,
+        new_callable=mock.AsyncMock,
     )
     @mock.patch(
         "src.backend_orchestrator.run_engine_handler.datetime",
@@ -421,7 +421,7 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
         mock_find_mutating_constraints: mock.Mock,
         mock_uuid: mock.Mock,
         mock_datetime: mock.Mock,
-        mock_run_engine: mock.Mock,
+        mock_run_engine: mock.AsyncMock,
     ):
         test_hash = "hash"
         mock_datetime.utcnow.return_value = self.created_at
@@ -602,7 +602,7 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
 
     @mock.patch(
         "src.backend_orchestrator.run_engine_handler.get_resource_types",
-        new_callable=mock.Mock,
+        new_callable=mock.AsyncMock,
     )
     async def test_get_resource_types(self, mock_get_resource_types: mock.Mock):
         mock_get_resource_types.return_value = "test-resource-type"
@@ -620,7 +620,7 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
 
     @mock.patch(
         "src.backend_orchestrator.run_engine_handler.get_resource_types",
-        new_callable=mock.Mock,
+        new_callable=mock.AsyncMock,
     )
     async def test_get_resource_types_arch_not_found(
         self, mock_get_resource_types: mock.Mock
@@ -644,7 +644,7 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
 
     @mock.patch(
         "src.backend_orchestrator.run_engine_handler.get_resource_types",
-        new_callable=mock.Mock,
+        new_callable=mock.AsyncMock,
     )
     async def test_get_resource_types_throw_error(
         self, mock_get_resource_types: mock.Mock

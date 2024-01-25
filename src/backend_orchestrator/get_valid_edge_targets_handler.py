@@ -72,7 +72,7 @@ class EdgeTargetHandler:
                     engine_version=1.0,
                     config=body.config,
                 )
-                result = get_valid_edge_targets(request)
+                result = await get_valid_edge_targets(request)
                 valid_edge_targets = result.valid_edge_targets
             return Response(
                 headers={

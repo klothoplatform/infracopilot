@@ -134,7 +134,7 @@ class EngineOrchestrator:
                 engine_version=1.0,
                 constraints=body.constraints,
             )
-            result = run_engine(request)
+            result = await run_engine(request)
 
             diff: TopologyDiff = diff_engine_results(result, input_graph)
             if not env.allows_topological_changes():
@@ -242,7 +242,7 @@ class EngineOrchestrator:
     async def get_resource_types(self, architecture_id: str, env_id: str):
         try:
             await self.ev_dao.get_latest_version(architecture_id, env_id)
-            response = get_resource_types(self.binary_storage)
+            response = await get_resource_types(self.binary_storage)
             return Response(content=response, media_type="application/json")
         except EnvironmentVersionDoesNotExistError as e:
             raise HTTPException(

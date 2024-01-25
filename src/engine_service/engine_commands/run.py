@@ -53,7 +53,7 @@ def tempdir():
             yield tmp_dir
 
 
-def run_engine(request: RunEngineRequest) -> RunEngineResult:
+async def run_engine(request: RunEngineRequest) -> RunEngineResult:
     print(request.constraints)
     out_logs = None
     err_logs = None
@@ -83,7 +83,7 @@ def run_engine(request: RunEngineRequest) -> RunEngineResult:
                 ]
             )
 
-            out_logs, err_logs = run_engine_command(
+            out_logs, err_logs = await run_engine_command(
                 "Run",
                 *args,
                 cwd=dir,

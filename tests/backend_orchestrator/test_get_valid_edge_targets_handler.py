@@ -83,7 +83,7 @@ class TestValidEdgeTargetsHandler(aiounittest.AsyncTestCase):
 
     @mock.patch(
         "src.backend_orchestrator.get_valid_edge_targets_handler.get_valid_edge_targets",
-        new_callable=mock.Mock,
+        new_callable=mock.AsyncMock,
     )
     async def test_run_engine(
         self,

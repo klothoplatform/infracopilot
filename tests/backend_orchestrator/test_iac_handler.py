@@ -69,7 +69,7 @@ class TestGetIac(aiounittest.AsyncTestCase):
         self.mock_binary_store.reset_mock()
 
     @mock.patch(
-        "src.backend_orchestrator.iac_handler.export_iac", new_callable=mock.Mock
+        "src.backend_orchestrator.iac_handler.export_iac", new_callable=mock.AsyncMock
     )
     async def test_get_iac_no_cache(self, mock_export_iac: mock.Mock):
         self.mock_ev_dao.get_current_version = mock.AsyncMock(

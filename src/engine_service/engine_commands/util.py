@@ -1,3 +1,5 @@
+import asyncio
+from asyncio.subprocess import Process
 import json
 import logging
 import os
@@ -71,7 +73,7 @@ class IacException(Exception):
         )
 
 
-def run_engine_command(*args, **kwargs) -> tuple[str, str]:
+async def run_engine_command(*args, **kwargs) -> tuple[str, str]:
     cwd = kwargs.get("cwd", None)
 
     env = os.environ.copy()
@@ -83,10 +85,16 @@ def run_engine_command(*args, **kwargs) -> tuple[str, str]:
     print(f"Running engine command: {' '.join(cmd)}")
     log.debug("Running engine command: %s", " ".join(cmd))
 
-    result = subprocess.run(cmd, capture_output=True, cwd=cwd, env=env)
-
-    out_logs = result.stdout.decode()
-    err_logs = result.stderr.decode()
+    process: Process = await asyncio.create_subprocess_exec(
+        *cmd,
+        cwd=cwd,
+        env=env,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
+    stdout, stderr = await process.communicate()
+    out_logs = "" if stdout is None else stdout.decode()
+    err_logs = "" if stderr is None else stderr.decode()
 
     log.debug("engine output:\n%s", out_logs)
     if err_logs is not None and len(err_logs.strip()) > 0:
@@ -94,15 +102,15 @@ def run_engine_command(*args, **kwargs) -> tuple[str, str]:
     if cwd is not None:
         capture_failure("failures/engine", cmd, cwd, err_logs)
 
-    if result.returncode != 0:
-        if result.returncode == 2:
+    if process.returncode != 0:
+        if process.returncode == 2:
             raise ConfigValidationException(
-                f"Engine {cmd} returned non-zero exit code: {result.returncode}",
+                f"Engine {cmd} returned non-zero exit code: {process.returncode}",
                 out_logs,
                 err_logs,
             )
         raise EngineException(
-            f"Engine {cmd} returned non-zero exit code: {result.returncode}",
+            f"Engine {cmd} returned non-zero exit code: {process.returncode}",
             out_logs,
             err_logs,
         )
@@ -110,7 +118,7 @@ def run_engine_command(*args, **kwargs) -> tuple[str, str]:
     return out_logs, err_logs
 
 
-def run_iac_command(*args, **kwargs) -> tuple[str, str]:
+async def run_iac_command(*args, **kwargs) -> tuple[str, str]:
     cwd = kwargs.get("cwd", None)
 
     env = os.environ.copy()
@@ -122,18 +130,24 @@ def run_iac_command(*args, **kwargs) -> tuple[str, str]:
     print("Running iac command: %s", " ".join(cmd))
     log.debug("Running iac command: %s", " ".join(cmd))
 
-    result = subprocess.run(cmd, capture_output=True, cwd=cwd, env=env)
-
-    out_logs = result.stdout.decode()
-    err_logs = result.stderr.decode()
+    process: Process = await asyncio.create_subprocess_exec(
+        *cmd,
+        cwd=cwd,
+        env=env,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
+    stdout, stderr = await process.communicate()
+    out_logs = "" if stdout is None else stdout.decode()
+    err_logs = "" if stderr is None else stderr.decode()
 
     log.debug("iac output:\n%s", out_logs)
     if err_logs is not None and len(err_logs.strip()) > 0:
         log.error("iac error:\n%s", err_logs)
     capture_failure("failures/iac", cmd, cwd, err_logs)
-    if result.returncode != 0:
+    if process.returncode != 0:
         raise EngineException(
-            f"Engine {cmd} returned non-zero exit code: {result.returncode}",
+            f"Engine {cmd} returned non-zero exit code: {process.returncode}",
             out_logs,
             err_logs,
         )
