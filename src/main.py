@@ -47,22 +47,16 @@ from src.dependency_injection.injection import (
     deps,
 )
 from src.util.logging import logger
-import profile
-from fastapi_cprofile.profiler import CProfileMiddleware
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # profiler = profile.Profile()
-    # profiler.enable()
     await get_db()
     deps["fga"] = await get_fga_manager()
     deps["auth0_manager"] = get_auth0_manager()
     deps["authz_service"] = await get_authz_service()
     deps["arch_manager"] = await get_architecture_manager()
     yield
-    # profiler.disable()
-    # profiler.dump_stats('ifcp.profile')
 
 
 app = FastAPI(lifespan=lifespan)
@@ -71,14 +65,6 @@ app.add_middleware(GZipMiddleware, minimum_size=1000)
 logger.debug("Starting API")
 
 app.include_router(teams_router)
-app.add_middleware(
-    CProfileMiddleware,
-    enable=True,
-    server_app=app,
-    filename="/tmp/output.pstats",
-    strip_dirs=False,
-    sort_by="cumulative",
-)
 
 
 @app.get("/api/ping")
