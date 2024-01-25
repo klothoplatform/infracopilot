@@ -170,12 +170,14 @@ class EnvironmentVersionDAO:
             and_(
                 EnvironmentVersion.architecture_id == architecture_id,
                 EnvironmentVersion.id == id,
-                text(
-                    "env_resource_configuration->'tracks'->>'version_hash' = :version_hash"
-                ).params(version_hash=tracking_version_hash),
-                text(
-                    "env_resource_configuration->'tracks'->>'environment' = :tracking_env"
-                ).params(tracking_env=tracking_env),
+                EnvironmentVersion.env_resource_configuration[
+                    ("tracks", "version_hash")
+                ].as_string()
+                == tracking_version_hash,
+                EnvironmentVersion.env_resource_configuration[
+                    ("tracks", "environment")
+                ].as_string()
+                == tracking_env,
             )
         )
         result = await self._session.execute(stmt)
