@@ -32,17 +32,18 @@ def is_public_user(request: Request) -> bool:
     return auth is None or auth == "Bearer default"
 
 
-def get_user_id(request: Request) -> str:
+async def get_user_id(request: Request) -> str:
     try:
         if is_public_user(request):
             return PUBLIC_USER
-        return get_id_token(request)["sub"]
+        token = await get_id_token(request)
+        return token["sub"]
     except:
         logging.error("Error getting user id", exc_info=True)
         raise
 
 
-def get_id_token(request: Request):
+async def get_id_token(request: Request):
     token = get_token_auth_header(request)
     # The client will read the JWT header to get the kid field,
     # then download token signing public keys and return that matching the kid.

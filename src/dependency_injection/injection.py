@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 import logging
 import os
 
@@ -32,6 +33,8 @@ from src.environment_management.environment_manager import EnvironmentManager
 
 log = logging.getLogger(__name__)
 
+deps = {}
+
 db = os.getenv("DB_PATH", "")
 if db != "":
     engine = create_async_engine(f"sqlite+aiosqlite:///{db}", echo=False)
@@ -43,9 +46,21 @@ elif os.getenv("DB_ENDPOINT", "") != "":
     log.info("Connecting to database: %s", conn)
     engine = create_async_engine(conn, echo=False)
 else:
-    engine = create_async_engine(f"sqlite+aiosqlite://", echo=False)
+    engine = create_async_engine(
+        f"postgresql+asyncpg://postgres:password@localhost:5432/main", echo=False
+    )
 
 SessionLocal = async_sessionmaker(engine)
+
+
+mgr = Auth0Manager(
+    Configuration(
+        client_id=get_auth0_client(),
+        client_secret=get_auth0_secret(),
+        domain=os.environ.get("AUTH0_DOMAIN"),
+    )
+)
+auth0_client = mgr.get_client()
 
 
 def create_s3_resource():
@@ -63,27 +78,10 @@ def create_s3_resource():
 async def get_db():
     async with engine.begin() as conn:
         await conn.run_sync(ModelsBase.metadata.create_all)
-    db = SessionLocal()
-    try:
-        yield db
-        await db.commit()
-    except:
-        await db.rollback()
-        raise
-    finally:
-        await db.close()
 
 
 def get_auth0_manager():
-    mgr = Auth0Manager(
-        Configuration(
-            client_id=get_auth0_client(),
-            client_secret=get_auth0_secret(),
-            domain=os.environ.get("AUTH0_DOMAIN"),
-        )
-    )
-    mgr.get_client()
-    return mgr
+    return auth0_client
 
 
 async def get_fga_manager() -> FGAManager:
@@ -148,11 +146,12 @@ async def get_authz_service() -> AuthzService:
     )
 
 
-async def get_teams_manager(session: AsyncSession) -> TeamsManager:
-    manager = await get_fga_manager()
+async def get_teams_manager(
+    session: AsyncSession, fga_manager: FGAManager
+) -> TeamsManager:
     teams_dao = TeamsDAO(session=session)
     return TeamsManager(
-        manager=manager,
+        manager=fga_manager,
         teams_dao=teams_dao,
     )
 
