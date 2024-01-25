@@ -12,7 +12,7 @@ from src.engine_service.engine_commands.util import (
     run_engine_command,
     EngineException,
 )
-from src.util.logging import log_time
+
 
 log = logging.getLogger(__name__)
 
@@ -53,7 +53,6 @@ def tempdir():
             yield tmp_dir
 
 
-@log_time
 def run_engine(request: RunEngineRequest) -> RunEngineResult:
     print(request.constraints)
     out_logs = None

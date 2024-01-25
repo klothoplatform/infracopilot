@@ -2,7 +2,6 @@ from sqlalchemy import select, text, and_
 from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.environment_management.models import Environment, EnvironmentVersion
-from src.util.logging import log_time
 
 
 class EnvironmentVersionAlreadyExistsError(Exception):
@@ -17,7 +16,6 @@ class EnvironmentVersionDAO:
     def __init__(self, session: AsyncSession):
         self._session = session
 
-    @log_time
     async def list_environment_versions(
         self, architecture_id: str, env_id: str
     ) -> List[EnvironmentVersion]:
@@ -29,7 +27,6 @@ class EnvironmentVersionDAO:
         results = await self._session.execute(statement=stmt)
         return [result[0] for result in results.fetchall()]
 
-    @log_time
     async def get_environment_version(
         self, architecture_id: str, id: str, version: int
     ) -> EnvironmentVersion:
@@ -45,14 +42,12 @@ class EnvironmentVersionDAO:
             raise EnvironmentVersionDoesNotExistError
         return result[0]
 
-    @log_time
     def add_environment_version(self, environment_version: EnvironmentVersion):
         try:
             self._session.add(environment_version)
         except Exception as e:
             raise e
 
-    @log_time
     async def update_environment_version(self, environment_version: EnvironmentVersion):
         stmt = (
             select(EnvironmentVersion)
@@ -72,7 +67,6 @@ class EnvironmentVersionDAO:
         await self._session.delete(result[0])
         self._session.add(environment_version)
 
-    @log_time
     async def delete_environment_version(
         self, architecture_id: str, id: str, version: int
     ):
@@ -87,7 +81,6 @@ class EnvironmentVersionDAO:
         if result is not None:
             await self._session.delete(result[0])
 
-    @log_time
     async def get_current_version(
         self, architecture_id: str, id: str
     ) -> EnvironmentVersion:
@@ -105,7 +98,6 @@ class EnvironmentVersionDAO:
             raise EnvironmentVersionDoesNotExistError
         return result[0]
 
-    @log_time
     async def get_latest_version(
         self, architecture_id: str, id: str
     ) -> EnvironmentVersion:
@@ -122,7 +114,6 @@ class EnvironmentVersionDAO:
             raise EnvironmentVersionDoesNotExistError
         return result[0]
 
-    @log_time
     async def delete_future_versions(self, architecture_id: str, id: str, version: int):
         stmt = (
             select(EnvironmentVersion)
@@ -134,7 +125,6 @@ class EnvironmentVersionDAO:
         for r in result.fetchall():
             await self._session.delete(r[0])
 
-    @log_time
     async def get_previous_state(
         self, architecture_id: str, id: str, version: int
     ) -> EnvironmentVersion:
@@ -152,7 +142,6 @@ class EnvironmentVersionDAO:
             raise EnvironmentVersionDoesNotExistError
         return result[0]
 
-    @log_time
     async def get_next_state(
         self, architecture_id: str, id: str, version: int
     ) -> EnvironmentVersion:
