@@ -16,6 +16,17 @@ class Edge:
         self.source = source
         self.target = target
 
+    def __eq__(self, __value: object) -> bool:
+        if not isinstance(__value, Edge):
+            return False
+        return self.source == __value.source and self.target == __value.target
+
+    def __hash__(self) -> int:
+        return hash(self.__str__())
+
+    def __str__(self):
+        return f"{self.source}->{self.target}"
+
     @staticmethod
     def from_string(id_string) -> "Edge":
         """

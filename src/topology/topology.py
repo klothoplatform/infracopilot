@@ -20,7 +20,7 @@ class Diff:
     Class to represent the differences in a resource or an edge.
     """
 
-    def __init__(self, status, properties=None, target: Edge | ResourceID = None):
+    def __init__(self, status, properties=None, target: ResourceID = None):
         """
         Initialize Diff with status, properties, and target.
 
@@ -31,6 +31,16 @@ class Diff:
         self.status = status
         self.properties = properties
         self.target = target
+
+    def __dict__(self):
+        result = {
+            "status": self.status,
+        }
+        if self.target is not None:
+            result["target"] = self.target.__str__()
+        if self.properties is not None:
+            result["properties"] = self.properties
+        return result
 
 
 class TopologyDiff:
@@ -51,6 +61,24 @@ class TopologyDiff:
         """
         self.resources = resources if resources is not None else {}
         self.edges = edges if edges is not None else {}
+
+    def __dict__(self):
+        return {
+            "resources": {str(k): v.__dict__() for k, v in self.resources.items()},
+            "edges": {str(k): v.__dict__() for k, v in self.edges.items()},
+        }
+
+    def contains_differences(self) -> bool:
+        """
+        Check if the TopologyDiff contains any differences.
+
+        :return: True if the TopologyDiff contains any differences, False otherwise.
+        """
+        if self.resources is None and self.edges is None:
+            return False
+        if len(self.resources.keys()) == 0 and len(self.edges.keys()) == 0:
+            return False
+        return True
 
 
 class Topology:
@@ -97,17 +125,19 @@ class Topology:
         edge_diffs = {}
 
         # Compare resources
-        for res in set(self.resources).union(other.resources):
-            if res.id not in [r.id for r in self.resources]:
-                resource_diffs[res.id] = Diff(DiffStatus.ADDED, target=res.id)
-            elif res.id not in [r.id for r in other.resources]:
-                resource_diffs[res.id] = Diff(DiffStatus.REMOVED, target=res.id)
+        for id in set([r.id for r in self.resources]).union(
+            [r.id for r in other.resources]
+        ):
+            if id not in [r.id for r in self.resources]:
+                resource_diffs[id] = Diff(DiffStatus.ADDED, target=id)
+            elif id not in [r.id for r in other.resources]:
+                resource_diffs[id] = Diff(DiffStatus.REMOVED, target=id)
             elif include_properties_diff:
-                current_resource = next(r for r in self.resources if r.id == res.id)
-                previous_resource = next(r for r in other.resources if r.id == res.id)
+                current_resource = next(r for r in self.resources if r.id == id)
+                previous_resource = next(r for r in other.resources if r.id == id)
                 diff_properties = current_resource.diff_properties(previous_resource)
                 if diff_properties:
-                    resource_diffs[res.id] = Diff(
+                    resource_diffs[id] = Diff(
                         DiffStatus.CHANGED, properties=diff_properties
                     )
 

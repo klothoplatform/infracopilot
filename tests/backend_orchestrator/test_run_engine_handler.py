@@ -7,6 +7,7 @@ from src.backend_orchestrator.run_engine_handler import (
     CopilotRunRequest,
     EngineOrchestrator,
 )
+from src.constraints.application_constraint import ApplicationConstraint
 from src.engine_service.binaries.fetcher import Binary
 from src.environment_management.environment_version import (
     EnvironmentVersionDoesNotExistError,
@@ -23,6 +24,9 @@ from src.engine_service.engine_commands.run import (
 )
 
 from fastapi import HTTPException
+from src.topology.resource import ResourceID
+
+from src.topology.topology import Diff, DiffStatus, TopologyDiff
 
 
 class TestArchitectureRun(aiounittest.AsyncTestCase):
@@ -39,7 +43,7 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
             architecture_id="test-architecture-id",
             id="test-id",
             current=1,
-            tags={},
+            tags={"default": True},
         )
         self.test_ev = EnvironmentVersion(
             architecture_id="test-architecture-id",
@@ -96,8 +100,18 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
         "src.backend_orchestrator.run_engine_handler.uuid",
         new_callable=mock.Mock,
     )
+    @mock.patch(
+        "src.backend_orchestrator.run_engine_handler.find_mutating_constraints",
+        new_callable=mock.Mock,
+    )
+    @mock.patch(
+        "src.backend_orchestrator.run_engine_handler.diff_engine_results",
+        new_callable=mock.Mock,
+    )
     async def test_run_engine(
         self,
+        mock_diff_engine_results: mock.Mock,
+        mock_find_mutating_constraints: mock.Mock,
         mock_uuid: mock.Mock,
         mock_datetime: mock.Mock,
         mock_run_engine: mock.Mock,
@@ -106,12 +120,26 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
         mock_datetime.utcnow.return_value = self.created_at
         mock_uuid.uuid4.return_value = test_hash
         self.mock_ev_dao.get_current_version = mock.AsyncMock(return_value=self.test_ev)
+        self.mock_env_dao.get_environment = mock.AsyncMock(return_value=self.test_env)
         self.mock_store.get_state_from_fs = mock.Mock(return_value=self.test_result)
         mock_run_engine.return_value = self.test_result
         self.mock_ev_dao.get_latest_version = mock.AsyncMock(return_value=self.test_ev)
         self.mock_store.write_state_to_fs = mock.Mock(return_value="test-location")
         self.mock_ev_dao.add_environment_version = mock.Mock(return_value=None)
         self.mock_env_dao.set_current_version = mock.AsyncMock(return_value=None)
+        mock_diff_engine_results.return_value = TopologyDiff(
+            resources={
+                ResourceID(provider="test", type="test"): Diff(
+                    status=DiffStatus.CHANGED
+                ),
+            },
+            edges={
+                ResourceID(provider="test", type="test"): Diff(
+                    status=DiffStatus.ADDED,
+                    target=ResourceID(provider="test", type="test2"),
+                ),
+            },
+        )
         result = await self.arch_handler.run(
             "test-architecture-id",
             "test-id",
@@ -122,10 +150,9 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
             False,
         )
         self.assertEqual(result.status_code, 200)
-        print(result.body)
         self.assertEqual(
             result.body,
-            b'{"architecture_id": "test-architecture-id", "id": "test-id", "version": 2, "state": {"resources_yaml": "test-yaml", "topology_yaml": "test-yaml"}, "env_resource_configuration": {"tracks": {"environment": "test-id", "version_hash": "test-hash"}}, "config_errors": []}',
+            b'{"architecture_id": "test-architecture-id", "id": "test-id", "version": 2, "state": {"resources_yaml": "test-yaml", "topology_yaml": "test-yaml"}, "env_resource_configuration": {"tracks": {"environment": "test-id", "version_hash": "test-hash"}}, "config_errors": [], "diff": {"resources": {"test:test:None": {"status": "CHANGED"}}, "edges": {"test:test:None": {"status": "ADDED", "target": "test:test2:None"}}}}',
         )
         self.mock_ev_dao.get_current_version.assert_called_once_with(
             "test-architecture-id", "test-id"
@@ -168,7 +195,15 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
         self.mock_env_dao.set_current_version.assert_called_once_with(
             "test-architecture-id", "test-id", 2
         )
+        self.mock_env_dao.get_environment.assert_called_once_with(
+            "test-architecture-id", "test-id"
+        )
         self.mock_binary_store.ensure_binary.assert_called_once_with(Binary.ENGINE)
+        mock_diff_engine_results.assert_called_once_with(
+            self.test_result,
+            self.test_result,
+        )
+        mock_find_mutating_constraints.assert_not_called()
 
     @mock.patch(
         "src.backend_orchestrator.run_engine_handler.run_engine",
@@ -182,8 +217,18 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
         "src.backend_orchestrator.run_engine_handler.uuid",
         new_callable=mock.Mock,
     )
+    @mock.patch(
+        "src.backend_orchestrator.run_engine_handler.find_mutating_constraints",
+        new_callable=mock.Mock,
+    )
+    @mock.patch(
+        "src.backend_orchestrator.run_engine_handler.diff_engine_results",
+        new_callable=mock.Mock,
+    )
     async def test_run_engine_overwrite(
         self,
+        mock_diff_engine_results: mock.Mock,
+        mock_find_mutating_constraints: mock.Mock,
         mock_uuid: mock.Mock,
         mock_datetime: mock.Mock,
         mock_run_engine: mock.Mock,
@@ -195,6 +240,7 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
         self.mock_ev_dao.get_environment_version = mock.AsyncMock(
             return_value=self.test_ev
         )
+        self.mock_env_dao.get_environment = mock.AsyncMock(return_value=self.test_env)
         self.mock_store.get_state_from_fs = mock.Mock(return_value=self.test_result)
         mock_run_engine.return_value = self.test_result
         self.mock_ev_dao.get_latest_version = mock.AsyncMock(return_value=self.test_ev)
@@ -202,6 +248,7 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
         self.mock_ev_dao.add_environment_version = mock.Mock(return_value=None)
         self.mock_ev_dao.delete_future_versions = mock.AsyncMock(return_value=None)
         self.mock_env_dao.set_current_version = mock.AsyncMock(return_value=None)
+        mock_diff_engine_results.return_value = TopologyDiff()
         result = await self.arch_handler.run(
             "test-architecture-id",
             "test-id",
@@ -215,7 +262,7 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
         self.assertEqual(result.status_code, 200)
         self.assertEqual(
             result.body,
-            b'{"architecture_id": "test-architecture-id", "id": "test-id", "version": 2, "state": {"resources_yaml": "test-yaml", "topology_yaml": "test-yaml"}, "env_resource_configuration": {"tracks": {"environment": "test-id", "version_hash": "test-hash"}}, "config_errors": []}',
+            b'{"architecture_id": "test-architecture-id", "id": "test-id", "version": 2, "state": {"resources_yaml": "test-yaml", "topology_yaml": "test-yaml"}, "env_resource_configuration": {"tracks": {"environment": "test-id", "version_hash": "test-hash"}}, "config_errors": [], "diff": {"resources": {}, "edges": {}}}',
         )
         self.mock_ev_dao.get_current_version.assert_called_once_with(
             "test-architecture-id", "test-id"
@@ -266,6 +313,181 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
             "test-architecture-id", "test-id", 2
         )
         self.mock_binary_store.ensure_binary.assert_called_once_with(Binary.ENGINE)
+        mock_diff_engine_results.assert_called_once_with(
+            self.test_result,
+            self.test_result,
+        )
+        mock_find_mutating_constraints.assert_not_called()
+
+    @mock.patch(
+        "src.backend_orchestrator.run_engine_handler.run_engine",
+        new_callable=mock.Mock,
+    )
+    @mock.patch(
+        "src.backend_orchestrator.run_engine_handler.datetime",
+        new_callable=mock.Mock,
+    )
+    @mock.patch(
+        "src.backend_orchestrator.run_engine_handler.uuid",
+        new_callable=mock.Mock,
+    )
+    @mock.patch(
+        "src.backend_orchestrator.run_engine_handler.find_mutating_constraints",
+        new_callable=mock.Mock,
+    )
+    @mock.patch(
+        "src.backend_orchestrator.run_engine_handler.diff_engine_results",
+        new_callable=mock.Mock,
+    )
+    async def test_run_engine_constraints_have_disallowed_mutations(
+        self,
+        mock_diff_engine_results: mock.Mock,
+        mock_find_mutating_constraints: mock.Mock,
+        mock_uuid: mock.Mock,
+        mock_datetime: mock.Mock,
+        mock_run_engine: mock.Mock,
+    ):
+        test_hash = "hash"
+        mock_datetime.utcnow.return_value = self.created_at
+        mock_uuid.uuid4.return_value = test_hash
+        self.mock_ev_dao.get_current_version = mock.AsyncMock(return_value=self.test_ev)
+        self.mock_env_dao.get_environment = mock.AsyncMock(
+            return_value=Environment(
+                architecture_id="test-architecture-id",
+                id="test-id",
+            )
+        )
+        mock_find_mutating_constraints.return_value = [
+            ApplicationConstraint(operator="add", node=ResourceID())
+        ]
+
+        result = await self.arch_handler.run(
+            "test-architecture-id",
+            "test-id",
+            1,
+            CopilotRunRequest(
+                constraints=self.test_constraints,
+            ),
+            False,
+        )
+
+        self.assertEqual(result.status_code, 400)
+        self.assertEqual(
+            result.body,
+            b'{"error_type": "topological_changes_not_allowed", "environment": "test-id", "constraints": [{"scope": "application"}]}',
+        )
+        self.mock_ev_dao.get_current_version.assert_called_once_with(
+            "test-architecture-id", "test-id"
+        )
+        self.mock_env_dao.get_environment.assert_called_once_with(
+            "test-architecture-id", "test-id"
+        )
+        mock_find_mutating_constraints.assert_called_once_with(self.test_constraints)
+
+        self.mock_store.get_state_from_fs.assert_not_called()
+        mock_run_engine.assert_not_called()
+        self.mock_ev_dao.get_latest_version.assert_not_called()
+        self.mock_store.write_state_to_fs.assert_not_called()
+        self.mock_ev_dao.add_environment_version.assert_not_called()
+
+        self.mock_env_dao.set_current_version.assert_not_called()
+
+        self.mock_binary_store.ensure_binary.assert_not_called()
+        mock_diff_engine_results.assert_not_called()
+
+    @mock.patch(
+        "src.backend_orchestrator.run_engine_handler.run_engine",
+        new_callable=mock.Mock,
+    )
+    @mock.patch(
+        "src.backend_orchestrator.run_engine_handler.datetime",
+        new_callable=mock.Mock,
+    )
+    @mock.patch(
+        "src.backend_orchestrator.run_engine_handler.uuid",
+        new_callable=mock.Mock,
+    )
+    @mock.patch(
+        "src.backend_orchestrator.run_engine_handler.find_mutating_constraints",
+        new_callable=mock.Mock,
+    )
+    @mock.patch(
+        "src.backend_orchestrator.run_engine_handler.diff_engine_results",
+        new_callable=mock.Mock,
+    )
+    async def test_run_engine_diff_has_disallowed_mutations(
+        self,
+        mock_diff_engine_results: mock.Mock,
+        mock_find_mutating_constraints: mock.Mock,
+        mock_uuid: mock.Mock,
+        mock_datetime: mock.Mock,
+        mock_run_engine: mock.Mock,
+    ):
+        test_hash = "hash"
+        mock_datetime.utcnow.return_value = self.created_at
+        mock_uuid.uuid4.return_value = test_hash
+        self.mock_ev_dao.get_current_version = mock.AsyncMock(return_value=self.test_ev)
+        self.mock_env_dao.get_environment = mock.AsyncMock(
+            return_value=Environment(
+                architecture_id="test-architecture-id",
+                id="test-id",
+            )
+        )
+        mock_find_mutating_constraints.return_value = []
+        self.mock_store.get_state_from_fs = mock.Mock(return_value=self.test_result)
+        mock_run_engine.return_value = self.test_result
+        mock_diff_engine_results.return_value = TopologyDiff(
+            resources={
+                ResourceID(provider="test", type="test"): Diff(
+                    status=DiffStatus.CHANGED
+                ),
+            },
+        )
+
+        result = await self.arch_handler.run(
+            "test-architecture-id",
+            "test-id",
+            1,
+            CopilotRunRequest(
+                constraints=self.test_constraints,
+            ),
+            False,
+        )
+
+        self.assertEqual(result.status_code, 400)
+        print(result.body)
+        self.assertEqual(
+            result.body,
+            b'{"error_type": "topological_changes_not_allowed", "environment": "test-id", "constraints": [{"scope": "application"}], "diff": {"resources": {"test:test:None": {"status": "CHANGED"}}, "edges": {}}}',
+        )
+        self.mock_ev_dao.get_current_version.assert_called_once_with(
+            "test-architecture-id", "test-id"
+        )
+        self.mock_env_dao.get_environment.assert_called_once_with(
+            "test-architecture-id", "test-id"
+        )
+        mock_find_mutating_constraints.assert_called_once_with(self.test_constraints)
+        self.mock_binary_store.ensure_binary.assert_called_once_with(Binary.ENGINE)
+        mock_run_engine.assert_called_once_with(
+            RunEngineRequest(
+                id="test-architecture-id",
+                input_graph=self.test_result.resources_yaml,
+                templates=[],
+                engine_version=1.0,
+                constraints=self.test_constraints,
+            )
+        )
+        mock_diff_engine_results.assert_called_once_with(
+            self.test_result,
+            self.test_result,
+        )
+
+        self.mock_store.get_state_from_fs.assert_called_once_with(self.test_ev)
+        self.mock_ev_dao.get_latest_version.assert_not_called()
+        self.mock_store.write_state_to_fs.assert_not_called()
+        self.mock_ev_dao.add_environment_version.assert_not_called()
+
+        self.mock_env_dao.set_current_version.assert_not_called()
 
     async def test_run_engine_architecture_not_found(
         self,
@@ -355,6 +577,7 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
         self.mock_ev_dao.get_environment_version = mock.AsyncMock(
             return_value=self.test_ev
         )
+        self.mock_env_dao.get_environment = mock.AsyncMock(return_value=self.test_env)
         self.mock_store.get_state_from_fs = mock.Mock(return_value=self.test_result)
         mock_run_engine.side_effect = FailedRunException(
             "test", error_type="test-error", config_errors_json=[]
@@ -373,6 +596,9 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
         )
         self.assertEqual(result.status_code, 400)
         self.mock_binary_store.ensure_binary.assert_called_once_with(Binary.ENGINE)
+        self.mock_env_dao.get_environment.assert_called_once_with(
+            "test-architecture-id", "test-id"
+        )
 
     @mock.patch(
         "src.backend_orchestrator.run_engine_handler.get_resource_types",

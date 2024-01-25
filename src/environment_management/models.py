@@ -68,6 +68,13 @@ class Environment(ModelsBase):
         "EnvironmentVersion", backref="environment", cascade="all, delete-orphan"
     )
 
+    def allows_topological_changes(self):
+        if self.tags is None:
+            return False
+        if "default" in self.tags and self.tags["default"] == True:
+            return True
+        return False
+
     def __eq__(self, __value: object) -> bool:
         if not isinstance(__value, Environment):
             return False

@@ -1,5 +1,6 @@
 import logging
-from src.engine_service.engine_commands.run import RunEngineResult
+from src.engine_service.binaries.fetcher import Binary, BinaryStorage
+from src.engine_service.engine_commands.run import RunEngineRequest, RunEngineResult
 from src.environment_management.architecture import ArchitectureDAO
 from src.environment_management.environment import EnvironmentDAO
 from src.environment_management.environment_version import EnvironmentVersionDAO
@@ -40,11 +41,13 @@ class EnvironmentManager:
         arch_dao: ArchitectureDAO,
         env_dao: EnvironmentDAO,
         ev_dao: EnvironmentVersionDAO,
+        binary_storage: BinaryStorage,
     ):
         self.architecture_storage = architecture_storage
         self.arch_dao = arch_dao
         self.env_dao = env_dao
         self.ev_dao = ev_dao
+        self.binary_storage = binary_storage
 
     async def is_in_sync(
         self,

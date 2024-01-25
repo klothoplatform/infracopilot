@@ -27,6 +27,27 @@ class ResourceID:
             return f"{self.provider}:{self.type}:{self.name}"
         return f"{self.provider}:{self.type}:{self.namespace}:{self.name}"
 
+    def __eq__(self, __value: object) -> bool:
+        """method to compare two ResourceID objects
+
+        Args:
+            __value (object): the value to compare with
+
+        Returns:
+            bool: True if the values are equal, False otherwise
+        """
+        if not isinstance(__value, ResourceID):
+            return False
+        return self.__str__() == __value.__str__()
+
+    def __hash__(self) -> int:
+        """method to hash a Resource object
+
+        Returns:
+            int: the hash value
+        """
+        return hash(self.__str__())
+
     @staticmethod
     def from_string(id_string) -> "ResourceID":
         """

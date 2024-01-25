@@ -68,6 +68,7 @@ class EnvironmentVersionResponseObject(BaseModel):
     state: VersionState = VersionState(resources_yaml="", topology_yaml="")
     env_resource_configuration: Dict = {}
     config_errors: List[Dict] = []
+    diff: Optional[Dict] = None
 
     @validator("state", pre=True, always=True)
     def set_state(cls, state):
@@ -83,6 +84,18 @@ class EnvironmentVersionResponseObject(BaseModel):
 
     @model_serializer
     def ser_model(self) -> str:
+        if self.diff is not None:
+            return jsons.dumps(
+                {
+                    "architecture_id": self.architecture_id,
+                    "id": self.id,
+                    "version": self.version,
+                    "state": self.state.model_dump(mode="json"),
+                    "env_resource_configuration": self.env_resource_configuration,
+                    "config_errors": self.config_errors,
+                    "diff": self.diff,
+                }
+            )
         return jsons.dumps(
             {
                 "architecture_id": self.architecture_id,
@@ -194,6 +207,7 @@ class ArchitectureHandler:
                     f"No architecture exists for id {id}"
                 )
             environments = await self.env_dao.get_environments_for_architecture(id)
+            isdefault = False
             response = GetArchitectureResponseObject(
                 id=architecture.id,
                 name=architecture.name,
@@ -202,7 +216,9 @@ class ArchitectureHandler:
                 environments=[
                     EnvironmentSummaryObject(
                         id=e.id,
-                        default=e.tags["default"] if "default" in e.tags else False,
+                        default=False
+                        if e.tags is None or "default" not in e.tags
+                        else e.tags["default"],
                     )
                     for e in environments
                 ],
