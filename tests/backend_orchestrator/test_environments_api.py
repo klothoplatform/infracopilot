@@ -248,7 +248,7 @@ class TestEnvDiff(aiounittest.AsyncTestCase):
         result = await env_diff(request, "id", "env_id")
 
         # Assert
-        self.assertEqual(result, diff)
+        self.assertEqual(result, diff.__dict__())
         get_user_id.assert_called_once_with(request)
         authz_service.can_read_architecture.assert_called_once_with(
             User(id="user_id"), "id"

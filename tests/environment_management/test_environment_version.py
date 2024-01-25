@@ -453,3 +453,47 @@ class TestEnvironmentVersionDAO(aiounittest.AsyncTestCase):
                 constraints={},
             ),
         )
+
+    async def test_get_all_versions_after_hash(self):
+        self.dao.add_environment_version(
+            EnvironmentVersion(
+                architecture_id="test-architecture-id",
+                id="test-id",
+                version=2,
+                version_hash="test-hash-2",
+                env_resource_configuration={
+                    "tracks": {
+                        "environment": "test-id",
+                        "version_hash": "test-hash",
+                    }
+                },
+                state_location="test-state-location",
+                iac_location="test-iac-location",
+                created_by="user:test-owner",
+                constraints={},
+            )
+        )
+        environment_versions = await self.dao.get_all_versions_after_hash(
+            "test-architecture-id", "test-id", "test-hash"
+        )
+        self.assertEqual(len(environment_versions), 1)
+        self.assertEqual(
+            environment_versions[0],
+            EnvironmentVersion(
+                architecture_id="test-architecture-id",
+                id="test-id",
+                version=2,
+                version_hash="test-hash-2",
+                env_resource_configuration={
+                    "tracks": {
+                        "environment": "test-id",
+                        "version_hash": "test-hash",
+                    }
+                },
+                state_location="test-state-location",
+                iac_location="test-iac-location",
+                created_by="user:test-owner",
+                created_at=environment_versions[0].created_at,
+                constraints={},
+            ),
+        )

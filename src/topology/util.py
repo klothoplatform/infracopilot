@@ -3,7 +3,9 @@ from src.topology.topology import Topology, TopologyDiff
 
 
 def diff_engine_results(
-    current: RunEngineResult, previous: RunEngineResult
+    current: RunEngineResult,
+    previous: RunEngineResult,
+    include_properties: bool = False,
 ) -> TopologyDiff:
     """
     Compare two RunEngineResult objects and return the differences.
@@ -18,6 +20,8 @@ def diff_engine_results(
     prev_topology = Topology(resources=[], edges=[])
     if previous is not None:
         prev_topology = Topology.from_string(previous.resources_yaml)
-    curr_topology = Topology.from_string(current.resources_yaml)
-    diff: TopologyDiff = prev_topology.diff_topology(curr_topology)
+    curr_topology = Topology(resources=[], edges=[])
+    if current is not None:
+        curr_topology = Topology.from_string(current.resources_yaml)
+    diff: TopologyDiff = prev_topology.diff_topology(curr_topology, include_properties)
     return diff

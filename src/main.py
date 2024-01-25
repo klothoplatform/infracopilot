@@ -32,6 +32,7 @@ from src.backend_orchestrator.get_valid_edge_targets_handler import (
 )
 from src.backend_orchestrator.run_engine_handler import CopilotRunRequest
 from src.backend_orchestrator.teams_api import router as teams_router
+from src.backend_orchestrator.environments_api import router as environments_router
 from src.dependency_injection.injection import (
     SessionLocal,
     get_architecture_handler,
@@ -65,6 +66,7 @@ app.add_middleware(GZipMiddleware, minimum_size=1000)
 logger.debug("Starting API")
 
 app.include_router(teams_router)
+app.include_router(environments_router)
 
 
 @app.get("/api/ping")

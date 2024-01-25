@@ -1,5 +1,5 @@
 import aiounittest
-from unittest.mock import MagicMock, AsyncMock, patch
+from unittest.mock import MagicMock, AsyncMock, Mock, patch
 from src.environment_management.environment_manager import (
     EnvironmentManager,
     EnvironmentTrackingError,
@@ -143,8 +143,8 @@ class TestEnvironmentManager(aiounittest.AsyncTestCase):
         )
         self.ev_dao.get_current_version.assert_any_call("architecture_id", "env_id")
 
-    @patch.object(Topology, "from_string")
-    async def test_diff_environments(self, mock_from_string: MagicMock):
+    @patch("src.environment_management.environment_manager.diff_engine_results")
+    async def test_diff_environments(self, mock_diff_engine_results):
         base_env = MagicMock(id="base_env_id", version_hash="version_hash")
         env = MagicMock(
             id="env_id",
@@ -158,27 +158,20 @@ class TestEnvironmentManager(aiounittest.AsyncTestCase):
         )
         self.ev_dao.get_current_version = AsyncMock(side_effect=[base_env, env])
 
-        self.architecture_storage.get_state_from_fs = AsyncMock(
+        mock_base_result = (MagicMock(resources_yaml="base_env_yaml"),)
+        mock_env_result = (MagicMock(resources_yaml="env_yaml"),)
+        self.architecture_storage.get_state_from_fs = Mock(
             side_effect=[
-                MagicMock(resources_yaml="base_env_yaml"),
-                MagicMock(resources_yaml="env_yaml"),
+                mock_base_result,
+                mock_env_result,
             ]
         )
 
-        env_topo = MagicMock(resources={})
-        base_topo = MagicMock(resources={})
-        mock_from_string.side_effect = [
-            base_topo,
-            env_topo,
-        ]
-
-        env_topo.diff_topology = MagicMock(
-            return_value=TopologyDiff(
-                resources={
-                    "res1": Diff(status=DiffStatus.CHANGED),
-                },
-                edges={},
-            )
+        mock_diff_engine_results.return_value = TopologyDiff(
+            resources={
+                "res1": Diff(status=DiffStatus.CHANGED),
+            },
+            edges={},
         )
 
         # Call diff_environments
@@ -194,8 +187,46 @@ class TestEnvironmentManager(aiounittest.AsyncTestCase):
         self.ev_dao.get_current_version.assert_any_call("arch_id", "env_id")
         self.architecture_storage.get_state_from_fs.assert_any_call(base_env)
         self.architecture_storage.get_state_from_fs.assert_any_call(env)
-        mock_from_string.assert_any_call("base_env_yaml")
-        mock_from_string.assert_any_call("env_yaml")
-        env_topo.diff_topology.assert_called_once_with(
-            base_topo, include_properties=False
+        mock_diff_engine_results.assert_called_once_with(
+            mock_env_result, mock_base_result, False
+        )
+
+    @patch.object(EnvironmentManager, "is_in_sync")
+    @patch.object(EnvironmentManager, "get_constraint_list_stream_since_last_promotion")
+    @patch.object(EnvironmentManager, "get_overrides")
+    async def test_promote(
+        self,
+        mock_get_overrides: AsyncMock,
+        mock_constraints_list: AsyncMock,
+        mock_is_in_sync: AsyncMock,
+    ):
+        self.ev_dao.get_current_version = AsyncMock(
+            side_effect=[
+                MagicMock(
+                    id="env_id",
+                    version_hash="version_hash",
+                    env_resource_configuration={
+                        "tracks": {
+                            "environment": "base_env_id",
+                            "version_hash": "version_hash",
+                        }
+                    },
+                ),
+                MagicMock(id="base_env_id", version_hash="version_hash"),
+            ]
+        )
+        mock_is_in_sync.return_value = (True, "version_hash", "version_hash")
+        mock_constraints_list.return_value = []
+        mock
+
+        # Act
+        await self.manager.promote("architecture_id", "base_env_id", "env_id")
+
+        # Assert
+        self.ev_dao.get_current_version.assert_any_call(
+            "architecture_id", "base_env_id"
+        )
+        self.ev_dao.get_current_version.assert_any_call("architecture_id", "env_id")
+        self.ev_dao.update_current_version.assert_called_once_with(
+            "architecture_id", "base_env_id", "env_id"
         )

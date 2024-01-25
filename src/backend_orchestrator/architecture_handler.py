@@ -34,12 +34,18 @@ from src.environment_management.environment_version import (
     EnvironmentVersion,
     EnvironmentVersionDoesNotExistError,
 )
+from src.environment_management.models import (
+    EnvironmentResourceConfiguration,
+    EnvironmentTracker,
+)
+
 from src.state_manager.architecture_storage import (
     ArchitectureStorage,
     ArchitectureStateDoesNotExistError,
 )
+from src.environment_management.environment_manager import BASE_ENV_ID, PROD_ENV_ID
 
-log = logging.getLogger(__name__)
+from src.util.logging import logger
 
 
 class EnvironmentVersionNotLatestError(Exception):
@@ -171,7 +177,7 @@ class ArchitectureHandler:
             self.arch_dao.add_architecture(architecture)
             self.env_dao.add_environment(
                 Environment(
-                    id="default",
+                    id=BASE_ENV_ID,
                     architecture_id=architecture.id,
                     current=0,
                     tags={
@@ -181,22 +187,39 @@ class ArchitectureHandler:
             )
             self.env_dao.add_environment(
                 Environment(
-                    id="prod",
+                    id=PROD_ENV_ID,
                     architecture_id=architecture.id,
+                    current=0,
                 )
             )
+            base_hash = str(uuid.uuid4())
             version = EnvironmentVersion(
-                id="default",
+                id=BASE_ENV_ID,
+                architecture_id=architecture.id,
+                version=0,
+                version_hash=base_hash,
+                created_at=datetime.utcnow(),
+                created_by=user_id,
+            )
+            prod_config = EnvironmentResourceConfiguration(
+                tracks=EnvironmentTracker(
+                    environment=BASE_ENV_ID, version_hash=base_hash
+                ),
+            )
+            prod_version = EnvironmentVersion(
+                id=PROD_ENV_ID,
                 architecture_id=architecture.id,
                 version=0,
                 version_hash=str(uuid.uuid4()),
                 created_at=datetime.utcnow(),
                 created_by=user_id,
+                env_resource_configuration=prod_config.to_dict(),
             )
             self.ev_dao.add_environment_version(version)
+            self.ev_dao.add_environment_version(prod_version)
             return JSONResponse(content={"id": id})
         except Exception:
-            log.error("Error creating new architecture", exc_info=True)
+            logger.error("Error creating new architecture", exc_info=True)
             raise HTTPException(status_code=500, detail="internal server error")
 
     async def get_architecture(self, id: str, accept: Optional[str] = None):
@@ -234,7 +257,7 @@ class ArchitectureHandler:
         except ArchitectureDoesNotExistError:
             raise HTTPException(status_code=404, detail="Architecture not found")
         except Exception:
-            log.error("Error getting architecture", exc_info=True)
+            logger.error("Error getting architecture", exc_info=True)
             raise HTTPException(status_code=500, detail="internal server error")
 
     async def delete_architecture(self, architecture_id: str):
@@ -242,12 +265,15 @@ class ArchitectureHandler:
             await self.arch_dao.delete_architecture(architecture_id)
             return Response(status_code=200)
         except Exception:
-            log.error("Error deleting architecture", exc_info=True)
+            logger.error("Error deleting architecture", exc_info=True)
             raise HTTPException(status_code=500, detail="internal server error")
 
     async def get_version(
         self, architecture_id: str, env_id: str, accept: Optional[str] = None
     ):
+        logger.info(
+            f"Getting version for architecture: {architecture_id}, environment: {env_id}"
+        )
         try:
             arch: EnvironmentVersion = await self.ev_dao.get_current_version(
                 architecture_id, env_id
@@ -280,8 +306,13 @@ class ArchitectureHandler:
                 status_code=404,
                 detail=f"No environment {env_id} exists for architecture {architecture_id}",
             )
+        except EnvironmentVersionDoesNotExistError as e:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No environment {env_id} exists for architecture {architecture_id}",
+            )
         except Exception:
-            log.error("Error getting state", exc_info=True)
+            logger.error("Error getting state", exc_info=True)
             raise HTTPException(status_code=500, detail="internal server error")
 
     async def get_environments_previous_state(
@@ -377,7 +408,7 @@ class ArchitectureHandler:
                 detail=f"Environment, {env_id}, not found for architecture, {architecture_id}",
             )
         except Exception:
-            log.error("Error setting current state", exc_info=True)
+            logger.error("Error setting current state", exc_info=True)
             raise HTTPException(status_code=500, detail="internal server error")
 
     async def rename_architecture(
@@ -408,7 +439,7 @@ class ArchitectureHandler:
         except ArchitectureStateDoesNotExistError:
             raise HTTPException(status_code=404, detail="Architecture not found")
         except Exception:
-            log.error("Error getting state", exc_info=True)
+            logger.error("Error getting state", exc_info=True)
             raise HTTPException(status_code=500, detail="internal server error")
 
     async def list_architectures(self, user_id: str):
@@ -430,7 +461,7 @@ class ArchitectureHandler:
                 ).model_dump(mode="json")
             )
         except Exception:
-            log.error("Error listing architectures", exc_info=True)
+            logger.error("Error listing architectures", exc_info=True)
             raise HTTPException(status_code=500, detail="internal server error")
 
     async def clone_architecture(
@@ -496,7 +527,7 @@ class ArchitectureHandler:
         except ArchitectureDoesNotExistError:
             raise HTTPException(status_code=404, detail="Architecture not found")
         except Exception:
-            log.error("Error cloning architecture", exc_info=True)
+            logger.error("Error cloning architecture", exc_info=True)
             raise HTTPException(status_code=500, detail="internal server error")
 
     async def update_architecture_access(
@@ -523,7 +554,7 @@ class ArchitectureHandler:
         except ArchitectureDoesNotExistError:
             raise HTTPException(status_code=404, detail="Architecture not found")
         except Exception:
-            log.error("Error sharing architecture", exc_info=True)
+            logger.error("Error sharing architecture", exc_info=True)
             raise HTTPException(status_code=500, detail="internal server error")
 
     async def get_architecture_access(
@@ -645,5 +676,5 @@ class ArchitectureHandler:
         except ArchitectureDoesNotExistError:
             raise HTTPException(status_code=404, detail="Architecture not found")
         except Exception:
-            log.error("Error getting architecture sharing", exc_info=True)
+            logger.error("Error getting architecture sharing", exc_info=True)
             raise HTTPException(status_code=500, detail="internal server error")
