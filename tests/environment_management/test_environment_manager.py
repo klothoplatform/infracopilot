@@ -1,10 +1,11 @@
 import aiounittest
-from unittest.mock import MagicMock, AsyncMock
+from unittest.mock import MagicMock, AsyncMock, patch
 from src.environment_management.environment_manager import (
     EnvironmentManager,
     EnvironmentTrackingError,
     EnvironmentNotTrackedError,
 )
+from src.topology.topology import Topology, TopologyDiff, DiffStatus, Diff
 
 
 class TestEnvironmentManager(aiounittest.AsyncTestCase):
@@ -138,3 +139,60 @@ class TestEnvironmentManager(aiounittest.AsyncTestCase):
             "architecture_id", "base_env_id"
         )
         self.ev_dao.get_current_version.assert_any_call("architecture_id", "env_id")
+
+    @patch.object(Topology, "from_string")
+    async def test_diff_environments(self, mock_from_string: MagicMock):
+        base_env = MagicMock(id="base_env_id", version_hash="version_hash")
+        env = MagicMock(
+            id="env_id",
+            version_hash="version_hash",
+            env_resource_configuration={
+                "tracks": {
+                    "environment": "base_env_id",
+                    "version_hash": "version_hash",
+                }
+            },
+        )
+        self.ev_dao.get_current_version = AsyncMock(side_effect=[base_env, env])
+
+        self.architecture_storage.get_state_from_fs = AsyncMock(
+            side_effect=[
+                MagicMock(resources_yaml="base_env_yaml"),
+                MagicMock(resources_yaml="env_yaml"),
+            ]
+        )
+
+        env_topo = MagicMock(resources={})
+        base_topo = MagicMock(resources={})
+        mock_from_string.side_effect = [
+            base_topo,
+            env_topo,
+        ]
+
+        env_topo.diff_topology = MagicMock(
+            return_value=TopologyDiff(
+                resources={
+                    "res1": Diff(status=DiffStatus.CHANGED),
+                },
+                edges={},
+            )
+        )
+
+        # Call diff_environments
+        diff = await self.manager.diff_environments("arch_id", "base_env_id", "env_id")
+
+        # Check the result
+        self.assertIsInstance(diff, TopologyDiff)
+        self.assertEqual(len(diff.resources), 1)
+        self.assertEqual(diff.resources["res1"].status, DiffStatus.CHANGED)
+        self.assertEqual(len(diff.edges), 0)
+
+        self.ev_dao.get_current_version.assert_any_call("arch_id", "base_env_id")
+        self.ev_dao.get_current_version.assert_any_call("arch_id", "env_id")
+        self.architecture_storage.get_state_from_fs.assert_any_call(base_env)
+        self.architecture_storage.get_state_from_fs.assert_any_call(env)
+        mock_from_string.assert_any_call("base_env_yaml")
+        mock_from_string.assert_any_call("env_yaml")
+        env_topo.diff_topology.assert_called_once_with(
+            base_topo, include_properties=False
+        )
