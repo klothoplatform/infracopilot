@@ -66,8 +66,8 @@ const ArchitecturesTable: FC<{
             : (b.owner ?? "").localeCompare(a.owner ?? "");
         case "created_at":
           return sortDirection === "asc"
-            ? (a.createdAt ?? 0) - (b.createdAt ?? 0)
-            : (b.createdAt ?? 0) - (a.createdAt ?? 0);
+            ? (a.created_at ?? 0) - (b.created_at ?? 0)
+            : (b.created_at ?? 0) - (a.created_at ?? 0);
       }
       return 0;
     })
@@ -87,8 +87,8 @@ const ArchitecturesTable: FC<{
           </Table.Cell>
           <Table.Cell>{user?.email}</Table.Cell>
           <Table.Cell>
-            {architecture.createdAt &&
-              format(new Date(architecture.createdAt * 1000), dateFormat)}
+            {architecture.created_at &&
+              format(new Date(architecture.created_at * 1000), dateFormat)}
           </Table.Cell>
           <Table.Cell style={{ position: "relative", width: "1%" }}>
             <div
