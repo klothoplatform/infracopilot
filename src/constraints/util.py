@@ -94,7 +94,9 @@ def parse_constraints(constraints: List[Dict[str, Any]]) -> List[Constraint]:
             parsed_constraints.append(
                 EdgeConstraint(
                     ConstraintOperator(constraint["operator"]),
-                    Edge.from_string(constraint["target"]),
+                    Edge(
+                        constraint["target"]["source"], constraint["target"]["target"]
+                    ),
                 )
             )
         elif constraint["scope"] == ConstraintScope.Resource.value:

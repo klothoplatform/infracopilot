@@ -208,7 +208,7 @@ class EnvironmentManager:
             engine_version=1.0,
             constraints=overrides,
         )
-        result: RunEngineResult = run_engine(request)
+        result: RunEngineResult = await run_engine(request)
         diff: TopologyDiff = diff_engine_results(result, base_state)
         if diff.contains_differences():
             raise TopologicalChangesNotAllowed(env_id, constraints=overrides, diff=diff)
