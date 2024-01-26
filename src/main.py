@@ -202,7 +202,7 @@ async def update_architecture_access(
     async with SessionLocal.begin() as db:
         authz = deps.authz_service
         arch_manager = deps.architecture_manager
-        user_id: str = get_user_id(request)
+        user_id: str = await get_user_id(request)
         authorized = await authz.can_share_architecture(User(id=user_id), id)
         if not authorized:
             raise AuthError(
