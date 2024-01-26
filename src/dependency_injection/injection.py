@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 import logging
 import os
 
@@ -32,6 +33,28 @@ from src.environment_management.environment_manager import EnvironmentManager
 
 log = logging.getLogger(__name__)
 
+
+class Dependencies:
+    auth0_manager: Auth0Manager
+    fga_manager: FGAManager
+    authz_service: AuthzService
+    architecture_manager: SharingManager
+
+    def __init__(
+        self,
+        auth0_manager: Auth0Manager = None,
+        fga_manager: FGAManager = None,
+        authz_service: AuthzService = None,
+        architecture_manager: SharingManager = None,
+    ):
+        self.auth0_manager = auth0_manager
+        self.fga_manager = fga_manager
+        self.authz_service = authz_service
+        self.architecture_manager = architecture_manager
+
+
+deps = Dependencies()
+
 db = os.getenv("DB_PATH", "")
 if db != "":
     engine = create_async_engine(f"sqlite+aiosqlite:///{db}", echo=False)
@@ -63,15 +86,6 @@ def create_s3_resource():
 async def get_db():
     async with engine.begin() as conn:
         await conn.run_sync(ModelsBase.metadata.create_all)
-    db = SessionLocal()
-    try:
-        yield db
-        await db.commit()
-    except:
-        await db.rollback()
-        raise
-    finally:
-        await db.close()
 
 
 def get_auth0_manager():
@@ -148,11 +162,12 @@ async def get_authz_service() -> AuthzService:
     )
 
 
-async def get_teams_manager(session: AsyncSession) -> TeamsManager:
-    manager = await get_fga_manager()
+async def get_teams_manager(
+    session: AsyncSession, fga_manager: FGAManager
+) -> TeamsManager:
     teams_dao = TeamsDAO(session=session)
     return TeamsManager(
-        manager=manager,
+        manager=fga_manager,
         teams_dao=teams_dao,
     )
 

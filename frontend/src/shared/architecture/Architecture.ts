@@ -58,7 +58,7 @@ export const parseArchitecture = (data: any): Architecture => {
     name: data.name,
     owner: data.owner,
     environments: data.environments,
-    defaultEnvironment: data.environments.find((env: any) => env.default)?.id,
+    defaultEnvironment: data.environments?.find((env: any) => env.default)?.id,
     created_at: data.created_at,
     created_by: data.created_by,
   };

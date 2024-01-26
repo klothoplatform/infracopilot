@@ -1140,7 +1140,8 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       id: architecture.id,
       idToken,
     });
-
+    newArchitecture.defaultEnvironment = architecture.defaultEnvironment;
+    newArchitecture.environments = architecture.environments;
     set(
       {
         architecture: newArchitecture,

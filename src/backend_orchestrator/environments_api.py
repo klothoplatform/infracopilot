@@ -3,7 +3,8 @@ from pydantic import BaseModel
 from src.auth_service.main import AuthzService
 from src.auth_service.token import PUBLIC_USER, AuthError, get_user_id
 from src.dependency_injection.injection import (
-    get_authz_service,
+    SessionLocal,
+    deps,
     get_environment_manager,
     get_db,
 )
@@ -43,40 +44,44 @@ async def env_in_sync(
     request: Request,
     id: str,
     env_id: str,
-    db: AsyncSession = Depends(get_db),
-    authz: AuthzService = Depends(get_authz_service),
 ) -> InSyncResponse:
-    user_id = get_user_id(request)
-    authorized = await authz.can_read_architecture(User(id=user_id), id)
-    if not authorized:
-        raise AuthError(
-            detail=f"User {user_id} is not authorized to read architecture {id}",
-            error={
-                "code": "unauthorized",
-                "description": f"User is not authorized to write to architecture {id}",
-            },
-        )
-    try:
-        manager: EnvironmentManager = get_environment_manager(db)
-        is_in_sync: [bool, str, str] = await manager.is_in_sync(id, BASE_ENV_ID, env_id)
-        if is_in_sync[0]:
-            return InSyncResponse(in_sync=True)
-        else:
+    async with SessionLocal.begin() as db:
+        authz = deps.authz_service
+        user_id = await get_user_id(request)
+        authorized = await authz.can_read_architecture(User(id=user_id), id)
+        if not authorized:
+            raise AuthError(
+                detail=f"User {user_id} is not authorized to read architecture {id}",
+                error={
+                    "code": "unauthorized",
+                    "description": f"User is not authorized to write to architecture {id}",
+                },
+            )
+        try:
+            manager: EnvironmentManager = get_environment_manager(db)
+            is_in_sync: [bool, str, str] = await manager.is_in_sync(
+                id, BASE_ENV_ID, env_id
+            )
+            if is_in_sync[0]:
+                return InSyncResponse(in_sync=True)
+            else:
+                return InSyncResponse(
+                    in_sync=False,
+                    version_diff=ExpectedDiff(
+                        expected=is_in_sync[1], actual=is_in_sync[2]
+                    ),
+                )
+        except EnvironmentTrackingError as e:
             return InSyncResponse(
                 in_sync=False,
-                version_diff=ExpectedDiff(expected=is_in_sync[1], actual=is_in_sync[2]),
+                env_diff=ExpectedDiff(expected=e.expected_id, actual=e.actual_id),
             )
-    except EnvironmentTrackingError as e:
-        return InSyncResponse(
-            in_sync=False,
-            env_diff=ExpectedDiff(expected=e.expected_id, actual=e.actual_id),
-        )
-    except EnvironmentNotTrackedError as e:
-        return InSyncResponse(
-            in_sync=False, env_diff=ExpectedDiff(expected=e.env_id, actual=None)
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail="internal server error")
+        except EnvironmentNotTrackedError as e:
+            return InSyncResponse(
+                in_sync=False, env_diff=ExpectedDiff(expected=e.env_id, actual=None)
+            )
+        except Exception as e:
+            raise HTTPException(status_code=500, detail="internal server error")
 
 
 @router.get("/api/architecture/{id}/environment/{env_id}/diff")
@@ -84,10 +89,9 @@ async def env_diff(
     request: Request,
     id: str,
     env_id: str,
-    db: AsyncSession = Depends(get_db),
-    authz: AuthzService = Depends(get_authz_service),
 ):
-    user_id = get_user_id(request)
+    authz: AuthzService = deps.authz_service
+    user_id = await get_user_id(request)
     authorized = await authz.can_read_architecture(User(id=user_id), id)
     if not authorized:
         raise AuthError(
@@ -97,15 +101,18 @@ async def env_diff(
                 "description": f"User is not authorized to write to architecture {id}",
             },
         )
-    try:
-        manager: EnvironmentManager = get_environment_manager(db)
-        diff = await manager.diff_environments(id, BASE_ENV_ID, env_id)
-        return diff
-    except EnvironmentVersionDoesNotExistError as e:
-        raise HTTPException(status_code=404, detail=f"Environment {env_id} not found")
-    except ArchitectureStateDoesNotExistError as e:
-        raise HTTPException(
-            status_code=404, detail=f"Environment {env_id} state not found"
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail="internal server error")
+    async with SessionLocal.begin() as db:
+        try:
+            manager: EnvironmentManager = get_environment_manager(db)
+            diff = await manager.diff_environments(id, BASE_ENV_ID, env_id)
+            return diff
+        except EnvironmentVersionDoesNotExistError as e:
+            raise HTTPException(
+                status_code=404, detail=f"Environment {env_id} not found"
+            )
+        except ArchitectureStateDoesNotExistError as e:
+            raise HTTPException(
+                status_code=404, detail=f"Environment {env_id} state not found"
+            )
+        except Exception as e:
+            raise HTTPException(status_code=500, detail="internal server error")
