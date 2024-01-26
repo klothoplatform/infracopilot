@@ -166,18 +166,21 @@ class EnvironmentVersionDAO:
         tracking_env: str,
         tracking_version_hash: str,
     ) -> List[EnvironmentVersion]:
-        stmt = select(EnvironmentVersion).where(
-            and_(
-                EnvironmentVersion.architecture_id == architecture_id,
-                EnvironmentVersion.id == id,
-                EnvironmentVersion.env_resource_configuration[
-                    ("tracks", "version_hash")
-                ].as_string()
-                == tracking_version_hash,
-                EnvironmentVersion.env_resource_configuration[
-                    ("tracks", "environment")
-                ].as_string()
-                == tracking_env,
+        stmt = (
+            select(EnvironmentVersion)
+            .where(
+                and_(
+                    EnvironmentVersion.architecture_id == architecture_id,
+                    EnvironmentVersion.id == id,
+                    EnvironmentVersion.env_resource_configuration[
+                        ("tracks", "version_hash")
+                    ].as_string()
+                    == tracking_version_hash,
+                    EnvironmentVersion.env_resource_configuration[
+                        ("tracks", "environment")
+                    ].as_string()
+                    == tracking_env,
+                )
             )
             .order_by(EnvironmentVersion.version.asc())
         )

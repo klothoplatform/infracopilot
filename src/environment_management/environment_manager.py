@@ -167,7 +167,8 @@ class EnvironmentManager:
             architecture_id, base_env_id, env_id
         )
         if in_sync:
-            return self.architecture_storage.get_state_from_fs(env_version)
+            curr_state = self.architecture_storage.get_state_from_fs(env_version)
+            return env_version, curr_state
 
         # Get the current version of the base environment
         curr_base: EnvironmentVersion = await self.ev_dao.get_current_version(
