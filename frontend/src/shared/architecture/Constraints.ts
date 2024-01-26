@@ -251,3 +251,48 @@ export function parseConstraints(constraints: any[]): Constraint[] {
     }
   });
 }
+
+export function removeEmptyKeys(input: any, isTopLevel: boolean = true): any {
+  console.log(input)
+  // Check if the input is an object
+  if (typeof input === 'object' && input !== null) {
+      // If the input is an array
+      if (Array.isArray(input)) {
+        // Process each item in the array
+        return input.map(item => removeEmptyKeys(item, false));
+      } else {
+        // Create a copy of the input object
+        let output = {...input};
+
+        // Get the keys of the object
+        let keys = Object.keys(output);
+        console.log(keys)
+          // If it's the top-level object and there is more than one key
+          if (keys.length > 1 || !isTopLevel) {
+            // Iterate over the keys
+            for (let key of keys) {
+              console.log(key, output[key])
+                // If the value of the key is an empty string
+                if (output[key] === "") {
+                  console.log("deleting")
+                    // Delete the key-value pair from the object
+                    delete output[key];
+                }
+            }
+        }
+
+        // Iterate over the keys
+        for (let key of keys) {
+            // If the value is an object, process it recursively
+            if (typeof output[key] === 'object') {
+              console.log("recursing on", key, output[key])
+                output[key] = removeEmptyKeys(output[key], false);
+            }
+        }
+
+        return output;
+      }
+  }
+  // If the input is not an object, return it as is
+  return input;
+}
