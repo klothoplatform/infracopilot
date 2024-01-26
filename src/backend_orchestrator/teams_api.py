@@ -38,7 +38,7 @@ async def create_team(request: Request, body: CreateTeamRequest) -> CreateTeamRe
                 },
             )
         user = User(user_id)
-        teams_manager = await get_teams_manager(db, deps["fga"])
+        teams_manager = await get_teams_manager(db, deps.fga_manager)
         logger.debug(f"Getting user's organization")
         org = await teams_manager.get_users_organization(user)
         logger.debug(f"Got user's organization {org}")
@@ -76,7 +76,7 @@ async def list_teams(request: Request) -> ListTeamsResponse:
                 },
             )
         user = User(user_id)
-        teams_manager = await get_teams_manager(db, deps["fga"])
+        teams_manager = await get_teams_manager(db, deps.fga_manager)
         teams = await teams_manager.get_users_teams(user)
         result = []
         for team in teams:
@@ -104,7 +104,7 @@ async def list_teams_for_org(request: Request) -> ListTeamsResponse:
                 },
             )
         user = User(user_id)
-        teams_manager = await get_teams_manager(db, deps["fga"])
+        teams_manager = await get_teams_manager(db, deps.fga_manager)
         org = await teams_manager.get_users_organization(user)
         if org is None:
             raise AuthError(
@@ -140,7 +140,7 @@ async def list_org_members(request: Request) -> ListTeamMembersResponse:
                 },
             )
         user = User(user_id)
-        teams_manager = await get_teams_manager(db, deps["fga"])
+        teams_manager = await get_teams_manager(db, deps.fga_manager)
         org = await teams_manager.get_users_organization(user)
         if org is None:
             raise AuthError(

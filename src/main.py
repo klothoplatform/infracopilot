@@ -52,10 +52,10 @@ from src.util.logging import logger
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await get_db()
-    deps["fga"] = await get_fga_manager()
-    deps["auth0_manager"] = get_auth0_manager()
-    deps["authz_service"] = await get_authz_service()
-    deps["arch_manager"] = await get_architecture_manager()
+    deps.fga_manager = await get_fga_manager()
+    deps.auth0_manager = get_auth0_manager()
+    deps.authz_service = await get_authz_service()
+    deps.architecture_manager = await get_architecture_manager()
     yield
 
 
@@ -78,7 +78,7 @@ async def new_architecture(
     body: CreateArchitectureRequest,
 ):
     async with SessionLocal.begin() as db:
-        authz = deps["authz_service"]
+        authz = deps.authz_service
         user_id = await get_user_id(request)
         if user_id == PUBLIC_USER:
             raise AuthError(
@@ -111,7 +111,7 @@ async def get_architecture(
     id: str,
 ):
     async with SessionLocal.begin() as db:
-        authz = deps["authz_service"]
+        authz = deps.authz_service
         user_id = await get_user_id(request)
         authorized = await authz.can_read_architecture(User(id=user_id), id)
         if not authorized:
@@ -133,7 +133,7 @@ async def modify_architecture(
     body: ModifyArchitectureRequest,
 ):
     async with SessionLocal.begin() as db:
-        authz = deps["authz_service"]
+        authz = deps.authz_service
         user_id = await get_user_id(request)
         authorized = await authz.can_write_to_architecture(User(id=user_id), id)
         if not authorized:
@@ -154,7 +154,7 @@ async def delete_architecture(
     id: str,
 ):
     async with SessionLocal.begin() as db:
-        authz = deps["authz_service"]
+        authz = deps.authz_service
         user_id = await get_user_id(request)
         authorized = await authz.can_write_to_architecture(User(id=user_id), id)
         if not authorized:
@@ -176,7 +176,7 @@ async def clone_architecture(
     body: CloneArchitectureRequest,
 ):
     async with SessionLocal.begin() as db:
-        authz = deps["authz_service"]
+        authz = deps.authz_service
         user_id = await get_user_id(request)
         authorized = await authz.can_read_architecture(User(id=user_id), id)
         if not authorized:
@@ -200,8 +200,8 @@ async def update_architecture_access(
     body: ShareArchitectureRequest,
 ):
     async with SessionLocal.begin() as db:
-        authz = deps["authz_service"]
-        arch_manager = deps["arch_manager"]
+        authz = deps.authz_service
+        arch_manager = deps.architecture_manager
         user_id: str = get_user_id(request)
         authorized = await authz.can_share_architecture(User(id=user_id), id)
         if not authorized:
@@ -224,9 +224,9 @@ async def get_architecture_access(
     id: str,
 ):
     async with SessionLocal.begin() as db:
-        authz: AuthzService = deps["authz_service"]
-        arch_manager = deps["arch_manager"]
-        auth0_manager = deps["auth0_manager"]
+        authz: AuthzService = deps.authz_service
+        arch_manager = deps.architecture_manager
+        auth0_manager = deps.auth0_manager
         user_id: str = await get_user_id(request)
         authorized = await authz.can_read_architecture(User(id=user_id), id)
         if not authorized:
@@ -238,7 +238,7 @@ async def get_architecture_access(
                 },
             )
         arch_handler = get_architecture_handler(db)
-        teams_manager = await get_teams_manager(db, deps["fga"])
+        teams_manager = await get_teams_manager(db, deps.fga_manager)
 
         should_summarize = (
             request.query_params.get("summarized", "false").lower() == "true"
@@ -264,7 +264,7 @@ async def export_iac(
     accept: Annotated[Optional[str], Header()] = None,
 ):
     async with SessionLocal.begin() as db:
-        authz = deps["authz_service"]
+        authz: AuthzService = deps.authz_service
         user_id = await get_user_id(request)
         authorized = await authz.can_read_architecture(User(id=user_id), id)
         if not authorized:
@@ -288,7 +288,7 @@ async def run(
     body: CopilotRunRequest,
 ):
     async with SessionLocal.begin() as db:
-        authz = deps["authz_service"]
+        authz: AuthzService = deps.authz_service
         user_id = await get_user_id(request)
         authorized = await authz.can_write_to_architecture(User(id=user_id), id)
         if not authorized:
@@ -313,7 +313,7 @@ async def get_valid_edge_targets(
     body: CopilotGetValidEdgeTargetsRequest,
 ):
     async with SessionLocal.begin() as db:
-        authz = deps["authz_service"]
+        authz: AuthzService = deps.authz_service
         user_id = await get_user_id(request)
         authorized = await authz.can_read_architecture(User(id=user_id), id)
         if not authorized:
@@ -338,7 +338,7 @@ async def get_current_version(
     env_id: str,
 ):
     async with SessionLocal.begin() as db:
-        authz = deps["authz_service"]
+        authz: AuthzService = deps.authz_service
         user_id = await get_user_id(request)
         authorized = await authz.can_read_architecture(User(id=user_id), id)
         if not authorized:
@@ -366,7 +366,7 @@ async def set_current_version(
     body: SetCurrentVersionRequest,
 ):
     async with SessionLocal.begin() as db:
-        authz = deps["authz_service"]
+        authz: AuthzService = deps.authz_service
         user_id = await get_user_id(request)
         authorized = await authz.can_write_to_architecture(User(id=user_id), id)
         if not authorized:
@@ -389,7 +389,7 @@ async def get_previous_state(
     version: int,
 ):
     async with SessionLocal.begin() as db:
-        authz = deps["authz_service"]
+        authz: AuthzService = deps.authz_service
         user_id = await get_user_id(request)
         authorized = await authz.can_read_architecture(User(id=user_id), id)
         if not authorized:
@@ -415,7 +415,7 @@ async def get_next_state(
     version: int,
 ):
     async with SessionLocal.begin() as db:
-        authz = deps["authz_service"]
+        authz: AuthzService = deps.authz_service
         user_id = await get_user_id(request)
         authorized = await authz.can_read_architecture(User(id=user_id), id)
         if not authorized:
@@ -440,7 +440,7 @@ async def get_resource_types(
     env_id: str,
 ):
     async with SessionLocal.begin() as db:
-        authz = deps["authz_service"]
+        authz: AuthzService = deps.authz_service
         user_id = await get_user_id(request)
         authorized = await authz.can_read_architecture(User(id=user_id), id)
         if not authorized:
@@ -480,7 +480,7 @@ if os.getenv("PROFILING", "false").lower() == "true":
         }
 
         # if the `profile=true` HTTP query argument is passed, we profile the request
-        if request.query_params.get("profile", True):
+        if request.query_params.get("profile", False):
             # The default profile format is speedscope
             profile_type = request.query_params.get(
                 "profile_format", "speedscope"

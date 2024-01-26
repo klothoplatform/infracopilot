@@ -46,7 +46,7 @@ async def env_in_sync(
     env_id: str,
 ) -> InSyncResponse:
     async with SessionLocal.begin() as db:
-        authz = deps["authz_service"]
+        authz = deps.authz_service
         user_id = await get_user_id(request)
         authorized = await authz.can_read_architecture(User(id=user_id), id)
         if not authorized:
@@ -90,18 +90,18 @@ async def env_diff(
     id: str,
     env_id: str,
 ):
+    authz: AuthzService = deps.authz_service
+    user_id = await get_user_id(request)
+    authorized = await authz.can_read_architecture(User(id=user_id), id)
+    if not authorized:
+        raise AuthError(
+            detail=f"User {user_id} is not authorized to read architecture {id}",
+            error={
+                "code": "unauthorized",
+                "description": f"User is not authorized to write to architecture {id}",
+            },
+        )
     async with SessionLocal.begin() as db:
-        authz = deps["authz_service"]
-        user_id = await get_user_id(request)
-        authorized = await authz.can_read_architecture(User(id=user_id), id)
-        if not authorized:
-            raise AuthError(
-                detail=f"User {user_id} is not authorized to read architecture {id}",
-                error={
-                    "code": "unauthorized",
-                    "description": f"User is not authorized to write to architecture {id}",
-                },
-            )
         try:
             manager: EnvironmentManager = get_environment_manager(db)
             diff = await manager.diff_environments(id, BASE_ENV_ID, env_id)

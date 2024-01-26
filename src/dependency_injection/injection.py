@@ -33,7 +33,27 @@ from src.environment_management.environment_manager import EnvironmentManager
 
 log = logging.getLogger(__name__)
 
-deps = {}
+
+class Dependencies:
+    auth0_manager: Auth0Manager
+    fga_manager: FGAManager
+    authz_service: AuthzService
+    architecture_manager: SharingManager
+
+    def __init__(
+        self,
+        auth0_manager: Auth0Manager = None,
+        fga_manager: FGAManager = None,
+        authz_service: AuthzService = None,
+        architecture_manager: SharingManager = None,
+    ):
+        self.auth0_manager = auth0_manager
+        self.fga_manager = fga_manager
+        self.authz_service = authz_service
+        self.architecture_manager = architecture_manager
+
+
+deps = Dependencies()
 
 db = os.getenv("DB_PATH", "")
 if db != "":
@@ -46,21 +66,9 @@ elif os.getenv("DB_ENDPOINT", "") != "":
     log.info("Connecting to database: %s", conn)
     engine = create_async_engine(conn, echo=False)
 else:
-    engine = create_async_engine(
-        f"postgresql+asyncpg://postgres:password@localhost:5432/main", echo=False
-    )
+    engine = create_async_engine(f"sqlite+aiosqlite://", echo=False)
 
 SessionLocal = async_sessionmaker(engine)
-
-
-mgr = Auth0Manager(
-    Configuration(
-        client_id=get_auth0_client(),
-        client_secret=get_auth0_secret(),
-        domain=os.environ.get("AUTH0_DOMAIN"),
-    )
-)
-auth0_client = mgr.get_client()
 
 
 def create_s3_resource():
@@ -81,7 +89,15 @@ async def get_db():
 
 
 def get_auth0_manager():
-    return auth0_client
+    mgr = Auth0Manager(
+        Configuration(
+            client_id=get_auth0_client(),
+            client_secret=get_auth0_secret(),
+            domain=os.environ.get("AUTH0_DOMAIN"),
+        )
+    )
+    mgr.get_client()
+    return mgr
 
 
 async def get_fga_manager() -> FGAManager:
