@@ -544,12 +544,12 @@ const infracopilot = new aws.ecs.Service(
             acmCertificateArn:
               process.env.STAGE === "dev"
                 ? "arn:aws:acm:us-east-1:338991950301:certificate/635f7b40-f430-491d-9f4f-4fed4e689305"
-                : undefined // "arn:aws:acm:us-east-1:200804570572:certificate/142fc308-f79c-44b3-be2e-b29283f31660",
+                : "arn:aws:acm:us-east-1:200804570572:certificate/142fc308-f79c-44b3-be2e-b29283f31660",
           },
           aliases:
             process.env.STAGE === "dev"
               ? ["dev.infracopilot.io"]
-              : undefined, // ["app.infracopilot.io"],
+              : ["app.infracopilot.io"],
         defaultCacheBehavior: {allowedMethods: ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"], cachedMethods: ["HEAD", "GET"], defaultTtl: 3600, forwardedValues: {cookies: {forward: "none"}, queryString: true}, maxTtl: 86400, minTtl: 0, targetOriginId: "static-site", viewerProtocolPolicy: "allow-all"},
         restrictions: {geoRestriction: {restrictionType: "none"}},
         orderedCacheBehaviors: [
