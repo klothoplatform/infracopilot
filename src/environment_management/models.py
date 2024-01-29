@@ -37,12 +37,16 @@ class EnvironmentResourceConfiguration:
     def from_dict(json: dict) -> "EnvironmentResourceConfiguration":
         result: EnvironmentResourceConfiguration = EnvironmentResourceConfiguration(
             EnvironmentTracker(
-                None
-                if "tracks" not in json or "environment" not in json["tracks"]
-                else json["tracks"]["environment"],
-                None
-                if "tracks" not in json or "version_hash" not in json["tracks"]
-                else json["tracks"]["version_hash"],
+                (
+                    None
+                    if "tracks" not in json or "environment" not in json["tracks"]
+                    else json["tracks"]["environment"]
+                ),
+                (
+                    None
+                    if "tracks" not in json or "version_hash" not in json["tracks"]
+                    else json["tracks"]["version_hash"]
+                ),
             ),
             None if "overrides" not in json else json["overrides"],
             None if "diff" not in json else json["diff"],

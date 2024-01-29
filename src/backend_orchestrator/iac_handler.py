@@ -82,9 +82,11 @@ class IaCOrchestrator:
                 iter([iac]),
                 media_type="application/x-zip-compressed",
                 headers={
-                    "Content-Type": "application/octet-stream"
-                    if accept == "application/octet-stream"
-                    else "application/x-zip-compressed",
+                    "Content-Type": (
+                        "application/octet-stream"
+                        if accept == "application/octet-stream"
+                        else "application/x-zip-compressed"
+                    ),
                     "Content-Disposition": f"attachment; filename=images.zip",
                 },
             )

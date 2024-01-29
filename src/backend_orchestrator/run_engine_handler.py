@@ -111,9 +111,9 @@ class EngineOrchestrator:
             self.binary_storage.ensure_binary(Binary.ENGINE)
             request = RunEngineRequest(
                 id=architecture_id,
-                input_graph=input_graph.resources_yaml
-                if input_graph is not None
-                else None,
+                input_graph=(
+                    input_graph.resources_yaml if input_graph is not None else None
+                ),
                 templates=[],
                 engine_version=1.0,
                 constraints=body.constraints,
@@ -171,9 +171,11 @@ class EngineOrchestrator:
 
             return Response(
                 headers={
-                    "Content-Type": "application/octet-stream"
-                    if accept == "application/octet-stream"
-                    else "application/json"
+                    "Content-Type": (
+                        "application/octet-stream"
+                        if accept == "application/octet-stream"
+                        else "application/json"
+                    )
                 },
                 content=payload.model_dump(mode="json"),
             )

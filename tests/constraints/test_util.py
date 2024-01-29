@@ -25,8 +25,8 @@ class TestConstraint(aiounittest.AsyncTestCase):
             {
                 "scope": "edge",
                 "operator": "must_exist",
-                "target": { 
-                    "source":"provider3:type3:name3",
+                "target": {
+                    "source": "provider3:type3:name3",
                     "target": "provider4:type4:name4",
                 },
             },

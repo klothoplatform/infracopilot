@@ -66,9 +66,9 @@ class EdgeTargetHandler:
                 self.binary_storage.ensure_binary(Binary.ENGINE)
                 request = GetValidEdgeTargetsRequest(
                     id=architecture_id,
-                    input_graph=input_graph.resources_yaml
-                    if input_graph is not None
-                    else None,
+                    input_graph=(
+                        input_graph.resources_yaml if input_graph is not None else None
+                    ),
                     engine_version=1.0,
                     config=body.config,
                 )
@@ -76,9 +76,11 @@ class EdgeTargetHandler:
                 valid_edge_targets = result.valid_edge_targets
             return Response(
                 headers={
-                    "Content-Type": "application/octet-stream"
-                    if accept == "application/octet-stream"
-                    else "application/json"
+                    "Content-Type": (
+                        "application/octet-stream"
+                        if accept == "application/octet-stream"
+                        else "application/json"
+                    )
                 },
                 content=jsons.dumps(
                     {

@@ -402,7 +402,7 @@ class TestPromote(aiounittest.AsyncTestCase):
         request = MagicMock()
         session = MagicMock()
         authz_service.can_write_to_architecture = AsyncMock(return_value=True)
-        
+
         session_local.begin.return_value.__aenter__.return_value = session
 
         # Act

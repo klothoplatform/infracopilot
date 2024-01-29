@@ -160,9 +160,11 @@ async def promote(
         )
         return Response(
             headers={
-                "Content-Type": "application/octet-stream"
-                if accept == "application/octet-stream"
-                else "application/json"
+                "Content-Type": (
+                    "application/octet-stream"
+                    if accept == "application/octet-stream"
+                    else "application/json"
+                )
             },
             content=payload.model_dump(mode="json"),
         )
