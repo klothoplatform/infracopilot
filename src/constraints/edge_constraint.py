@@ -18,6 +18,13 @@ class EdgeConstraint(Constraint):
             return False
         return self.operator == __value.operator and self.target == __value.target
 
+    def to_dict(self):
+        return {
+            "scope": self.scope.value,
+            "operator": self.operator.value,
+            "target": str(self.target),
+        }
+
     def cancels_out(self, other: "Constraint") -> bool:
         super().cancels_out(other)
         pass

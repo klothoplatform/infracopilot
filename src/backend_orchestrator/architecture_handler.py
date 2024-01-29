@@ -287,14 +287,16 @@ class ArchitectureHandler:
                 architecture_id=arch.architecture_id,
                 id=arch.id,
                 version=arch.version,
-                state=(
-                    VersionState(
-                        resources_yaml=state.resources_yaml,
-                        topology_yaml=state.topology_yaml,
-                    )
-                    if state is not None
-                    else None
-                ),
+                state=VersionState(
+                    resources_yaml=state.resources_yaml,
+                    topology_yaml=state.topology_yaml,
+                )
+                if state is not None
+                else None,
+                config_errors=arch.env_resource_configuration["config_errors"]
+                if arch.env_resource_configuration is not None
+                and "config_errors" in arch.env_resource_configuration
+                else [],
                 env_resource_configuration=arch.env_resource_configuration,
             )
             return (
@@ -340,14 +342,16 @@ class ArchitectureHandler:
                 architecture_id=arch.architecture_id,
                 id=arch.id,
                 version=arch.version,
-                state=(
-                    VersionState(
-                        resources_yaml=state.resources_yaml,
-                        topology_yaml=state.topology_yaml,
-                    )
-                    if state is not None
-                    else None
-                ),
+                state=VersionState(
+                    resources_yaml=state.resources_yaml,
+                    topology_yaml=state.topology_yaml,
+                )
+                if state is not None
+                else None,
+                config_errors=arch.env_resource_configuration["config_errors"]
+                if arch.env_resource_configuration is not None
+                and "config_errors" in arch.env_resource_configuration
+                else [],
                 env_resource_configuration=arch.env_resource_configuration,
             )
             return (
@@ -378,19 +382,19 @@ class ArchitectureHandler:
                 architecture_id=arch.architecture_id,
                 id=arch.id,
                 version=arch.version,
-                state=(
-                    VersionState(
-                        resources_yaml=state.resources_yaml,
-                        topology_yaml=state.topology_yaml,
-                    )
-                    if state is not None
-                    else None
-                ),
-                env_resource_configuration=(
-                    arch.env_resource_configuration
-                    if arch.env_resource_configuration is not None
-                    else {}
-                ),
+                state=VersionState(
+                    resources_yaml=state.resources_yaml,
+                    topology_yaml=state.topology_yaml,
+                )
+                if state is not None
+                else None,
+                env_resource_configuration=arch.env_resource_configuration
+                if arch.env_resource_configuration is not None
+                else {},
+                config_errors=arch.env_resource_configuration["config_errors"]
+                if arch.env_resource_configuration is not None
+                and "config_errors" in arch.env_resource_configuration
+                else [],
             )
             return (
                 Response(

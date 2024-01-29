@@ -23,6 +23,7 @@ class EnvironmentVersionDAO:
             select(EnvironmentVersion)
             .where(EnvironmentVersion.architecture_id == architecture_id)
             .where(EnvironmentVersion.id == env_id)
+            .order_by(EnvironmentVersion.version.asc())
         )
         results = await self._session.execute(statement=stmt)
         return [result[0] for result in results.fetchall()]

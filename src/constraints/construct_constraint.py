@@ -26,6 +26,15 @@ class ConstructConstraint(Constraint):
             and self.attributes == __value.attributes
         )
 
+    def to_dict(self):
+        return {
+            "scope": self.scope.value,
+            "operator": self.operator.value,
+            "target": str(self.target),
+            "type": self.type,
+            "attributes": self.attributes,
+        }
+
     def cancels_out(self, other: "Constraint") -> bool:
         super().cancels_out(other)
         pass

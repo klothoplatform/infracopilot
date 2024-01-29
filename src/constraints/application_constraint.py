@@ -27,6 +27,20 @@ class ApplicationConstraint(Constraint):
             and self.replacement_node == __value.replacement_node
         )
 
+    def to_dict(self):
+        if self.replacement_node is None:
+            return {
+                "scope": self.scope.value,
+                "operator": self.operator.value,
+                "node": str(self.node),
+            }
+        return {
+            "scope": self.scope.value,
+            "operator": self.operator.value,
+            "node": str(self.node),
+            "replacement_node": str(self.replacement_node),
+        }
+
     @staticmethod
     def valid_operators() -> List[ConstraintOperator]:
         return [

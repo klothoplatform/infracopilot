@@ -22,6 +22,15 @@ class ResourceConstraint(Constraint):
             and self.value == __value.value
         )
 
+    def to_dict(self):
+        return {
+            "scope": self.scope.value,
+            "operator": self.operator.value,
+            "target": str(self.target),
+            "property": self.property,
+            "value": self.value,
+        }
+
     def cancels_out(self, other: "Constraint") -> bool:
         super().cancels_out(other)
         if not isinstance(other, ResourceConstraint):

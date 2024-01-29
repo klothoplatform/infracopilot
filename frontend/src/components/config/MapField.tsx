@@ -18,7 +18,6 @@ type MapProps = ConfigFieldProps & {
 };
 
 export const MapField: FC<MapProps> = ({
-  configResource,
   qualifiedFieldName,
   field,
   removable,
@@ -88,7 +87,6 @@ export const MapField: FC<MapProps> = ({
         removable={removable}
       >
         <ConfigGroup
-          configResource={configResource}
           qualifiedFieldName={qualifiedFieldName}
           fields={field.properties}
           hidePrefix

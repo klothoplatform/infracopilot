@@ -10,7 +10,7 @@ import useApplicationStore from "../../pages/store/ApplicationStore";
 import { canModifyConfiguration } from "../../shared/EditorViewSettings";
 
 type ConfigGroupProps = {
-  configResource: NodeId;
+  configResource?: NodeId;
   qualifiedFieldName?: string;
   valueSelector?: string;
   fields?: Property[];
@@ -31,9 +31,12 @@ export const ConfigGroup: FC<ConfigGroupProps> = ({
   const { viewSettings } = useApplicationStore();
 
   const rows: ReactNode[] = [];
-  const resourceMetadata = environmentVersion?.resources?.get(
-    configResource.toString(),
-  );
+  let resourceMetadata: any;
+  if (configResource) {
+    resourceMetadata = environmentVersion?.resources?.get(
+      configResource.toString(),
+    );
+  }
 
   const parentLength = qualifiedFieldName?.split(".").length;
   // Make sure that all field names are fully qualified with the configResource prefix
@@ -63,7 +66,6 @@ export const ConfigGroup: FC<ConfigGroupProps> = ({
         <ConfigField
           // only show the resource if it isn't the one selected
           field={property}
-          configResource={configResource}
           qualifiedFieldName={
             qualifiedFieldName
               ? `${prefix}${qualifiedFieldName}.${property.name}`

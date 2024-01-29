@@ -1,8 +1,27 @@
+from typing import List
 from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase, relationship
 from sqlalchemy import JSON, ForeignKey, ForeignKeyConstraint
 import datetime
 from sqlalchemy.sql import func
 from sqlalchemy import DateTime
+
+from src.constraints.constraint import Constraint
+
+
+class EnvironmentTracker:
+    environment: str
+    version_hash: str
+
+    def __init__(self, environment: str = "", version_hash: str = ""):
+        self.environment = environment
+        self.version_hash = version_hash
+
+    def to_dict(self):
+        return {"environment": self.environment, "version_hash": self.version_hash}
+
+    def from_dict(self, json: dict):
+        self.environment = json["environment"]
+        self.version_hash = json["version_hash"]
 
 
 class EnvironmentTracker:
@@ -20,21 +39,25 @@ class EnvironmentTracker:
 
 class EnvironmentResourceConfiguration:
     def __init__(
-        self, tracks: EnvironmentTracker, overrides: dict = None, diff: dict = None
+        self, tracks: EnvironmentTracker, overrides: dict = None, diff: dict = None, config_errors: List[dict] = [],
     ):
         self.tracks = tracks
         self.overrides = overrides
         self.diff = diff
+        config_errors = config_errors
 
     def to_dict(self):
         return {
             "tracks": self.tracks.to_dict(),
             "overrides": self.overrides,
             "diff": self.diff,
+            "config_errors": self.config_errors,
         }
 
     @staticmethod
     def from_dict(json: dict) -> "EnvironmentResourceConfiguration":
+        if json is None:
+            return EnvironmentResourceConfiguration()
         result: EnvironmentResourceConfiguration = EnvironmentResourceConfiguration(
             EnvironmentTracker(
                 (

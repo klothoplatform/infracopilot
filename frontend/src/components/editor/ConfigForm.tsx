@@ -40,7 +40,15 @@ import {
 } from "../../shared/architecture/EnvironmentVersion";
 import { type ConfigurationError } from "../../shared/architecture/Architecture";
 
-export default function ConfigForm() {
+interface ConfigFormProps {
+    promotedProperties: Map<string, Property[]> | undefined;
+    remainingProperties: Property[] | undefined;
+}
+
+export default function ConfigForm({
+    promotedProperties,
+    remainingProperties,
+}: ConfigFormProps) {
   const {
     selectedResource,
     resourceTypeKB,
@@ -49,62 +57,6 @@ export default function ConfigForm() {
     addError,
     deselectResource,
   } = useApplicationStore();
-
-  const [resourceType, setResourceType] = React.useState<ResourceType>();
-
-  const [promotedProperties, setPromotedProperties] = React.useState<
-    Map<string, Property[]> | undefined
-  >();
-  const [remainingProperties, setRemainingProperties] = React.useState<
-    Property[] | undefined
-  >();
-
-  useEffect(() => {
-    if (selectedResource) {
-      const resourceType = resourceTypeKB.getResourceType(
-        selectedResource.provider,
-        selectedResource.type,
-      );
-      setResourceType(resourceType);
-
-      const allProperties = resourceProperties(
-        environmentVersion,
-        resourceTypeKB,
-        selectedResource,
-      );
-      const promotedProperties = new Map<string, Property[]>();
-      for (const [resourceId, properties] of allProperties) {
-        const metadata = environmentVersion.resources.get(
-          selectedResource.toString(),
-        );
-        let promotedProps = properties.filter((p) => isPropertyPromoted(p));
-        if (metadata?.imported) {
-          promotedProps = properties.filter((p) => !p.hidden);
-        }
-        if (promotedProps.length > 0) {
-          promotedProperties.set(resourceId.toString(), promotedProps);
-        }
-      }
-      let remainingProperties = allProperties
-        .get(selectedResource)
-        ?.filter(
-          (p) =>
-            !promotedProperties?.get(selectedResource.toString())?.includes(p),
-        );
-      if (promotedProperties.size === 0) {
-        promotedProperties.set(
-          selectedResource.toString(),
-          remainingProperties ?? [],
-        );
-        remainingProperties = undefined;
-      }
-      if (remainingProperties?.length === 0) {
-        remainingProperties = undefined;
-      }
-      setPromotedProperties(promotedProperties);
-      setRemainingProperties(remainingProperties);
-    }
-  }, [selectedResource, environmentVersion, resourceTypeKB]);
 
   const methods = useForm({
     shouldFocusError: true,
@@ -177,12 +129,6 @@ export default function ConfigForm() {
       return;
     }
 
-    console.log("reset to default", {
-      defaultValues,
-      dirtyFields,
-      isSubmitted,
-      isSubmitSuccessful,
-    });
     methods.reset(
       promotedProperties && selectedResource
         ? {
@@ -228,16 +174,11 @@ export default function ConfigForm() {
     isSubmitSuccessful,
     isSubmitted,
     methods,
-    resourceType,
     selectedResource,
   ]);
 
   const submitConfigChanges: SubmitHandler<any> = useCallback(
     async (submittedValues: any) => {
-      if (!selectedResource) {
-        return;
-      }
-
       const valuesByResource = new Map<string, { values: any; dirty: any }>();
       for (let [key, value] of Object.entries(submittedValues)) {
         const resourceId = NodeId.parse(key.split("#", 2)[0]);
@@ -250,10 +191,6 @@ export default function ConfigForm() {
         valuesByResource.set(resourceId.toString(), res);
       }
 
-      console.log("submitting config changes", {
-        submittedValues,
-        valuesByResource,
-      });
       let constraints: Constraint[] = [];
       try {
         for (const [resourceIdStr, { values, dirty }] of valuesByResource) {
@@ -302,17 +239,20 @@ export default function ConfigForm() {
               );
             });
 
-          if (resourceId.equals(selectedResource)) {
-            resConstraints.push(
-              ...applyCustomizers(
-                selectedResource,
-                values,
-                { ...defaultValues },
-                modifiedFormFields,
-                environmentVersion,
-              ),
-            );
-          }
+            if (selectedResource) {
+
+              if (resourceId.equals(selectedResource)) {
+                resConstraints.push(
+                  ...applyCustomizers(
+                    selectedResource,
+                    values,
+                    { ...defaultValues },
+                    modifiedFormFields,
+                    environmentVersion,
+                  ),
+                );
+              }
+            }
           constraints.push(...resConstraints);
         }
       } catch (e: any) {
@@ -328,7 +268,6 @@ export default function ConfigForm() {
 
       analytics.track("configureResource", {
         configure: {
-          resourceId: selectedResource.toString(),
           constraints: constraints,
         },
       });
@@ -413,7 +352,7 @@ export default function ConfigForm() {
                 {promotedProperties &&
                   [...promotedProperties.entries()].map(
                     ([resourceId, properties]) => {
-                      if (resourceId === selectedResource!.toString()) {
+                      if (resourceId === selectedResource?.toString()) {
                         return (
                           <ConfigGroup
                             key={resourceId}
@@ -536,6 +475,7 @@ function toFormState(
         }
     }
   });
+  console.log(formState)
   return formState;
 }
 

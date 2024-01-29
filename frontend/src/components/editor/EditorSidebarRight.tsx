@@ -1,8 +1,6 @@
 import type { CustomFlowbiteTheme } from "flowbite-react";
 import {
   Alert,
-  Banner,
-  Button,
   Sidebar,
   Tabs,
   type TabsRef,
@@ -12,26 +10,15 @@ import {
 import type { FC } from "react";
 import React, { useEffect, useRef, useState } from "react";
 import {
-  HiCheck,
   HiCheckCircle,
   HiExclamation,
   HiInformationCircle,
-  HiOutlineClipboardCopy,
   HiXCircle,
 } from "react-icons/hi";
-import { HiCog6Tooth } from "react-icons/hi2";
-import ConfigForm from "./ConfigForm";
-import AdditionalResources from "./AdditionalResources";
 import useApplicationStore from "../../pages/store/ApplicationStore";
-import type { NavHistoryEntry } from "../../shared/sidebar-nav";
 import {
-  getNextRelevantHistoryEntry,
-  getPreviousRelevantHistoryEntry,
-  RightSidebarDetailsTab,
   RightSidebarMenu,
 } from "../../shared/sidebar-nav";
-import type { NodeId } from "../../shared/architecture/TopologyNode";
-import { NodeIcon } from "../../shared/resources/ResourceMappings";
 import { ErrorBoundary } from "react-error-boundary";
 import { FallbackRenderer } from "../FallbackRenderer";
 import { trackError } from "../../pages/store/ErrorStore";
@@ -40,7 +27,6 @@ import { FaArrowLeft, FaArrowRight, FaBars } from "react-icons/fa6";
 import classNames from "classnames";
 import { FaHistory } from "react-icons/fa";
 import { ResizableSection } from "../Resizable";
-import { TbPlugConnected } from "react-icons/tb";
 import { OutlinedAlert } from "../../shared/custom-themes";
 import {
   canModifyConfiguration,
@@ -49,6 +35,9 @@ import {
 } from "../../shared/EditorViewSettings";
 import type { IconBaseProps, IconType } from "react-icons";
 import { twMerge } from "tailwind-merge";
+import { MdNotificationImportant } from "react-icons/md";
+import { MissingConfigSidebar } from "./MissingConfigSidebar";
+import { DetailsSidebar } from "./DetailsSidebar";
 
 interface SidebarItemState {
   [key: string]: {
@@ -67,6 +56,7 @@ const EditorSidebarRight: FC = () => {
     rightSidebarSelector,
     navigateRightSidebar,
     viewSettings,
+    environmentVersion
   } = useApplicationStore();
 
   const [itemState, setItemState] = useState<SidebarItemState>({});
@@ -104,6 +94,8 @@ const EditorSidebarRight: FC = () => {
     itemState[RightSidebarMenu.Changes]?.visible &&
     ((decisions?.length || failures?.length) ?? 0) &&
     !isViewMode(viewSettings, ViewMode.View);
+  const shouldShowMissingConfig = itemState[RightSidebarMenu.MissingConfig]?.visible &&
+    environmentVersion.config_errors?.length > 0;
   const shouldShowMenu = shouldShowDetails || shouldShowChanges;
 
   const isChangesActive =
@@ -113,6 +105,10 @@ const EditorSidebarRight: FC = () => {
   const isDetailsActive =
     !!itemState[RightSidebarMenu.Details]?.visible &&
     !!(selectedResource || selectedEdge);
+
+  const isModifiedConfigActive =
+    !!itemState[RightSidebarMenu.MissingConfig]?.visible &&
+    environmentVersion.config_errors?.length > 0;
 
   const isDetailsDisabled = !selectedResource && !selectedEdge;
   const detailsHasNotification =
@@ -138,6 +134,7 @@ const EditorSidebarRight: FC = () => {
           >
             <DetailsSidebar hidden={!shouldShowDetails} />
             <ChangesSidebar hidden={!shouldShowChanges} />
+            <MissingConfigSidebar hidden={!shouldShowMissingConfig} />
           </div>
         </ResizableSection>
       )}
@@ -171,22 +168,36 @@ const EditorSidebarRight: FC = () => {
                 showNotification={detailsHasNotification}
               />
               {canModifyConfiguration(viewSettings) ? (
-                <SidebarMenuOption
-                  key={RightSidebarMenu.Changes}
-                  index={RightSidebarMenu.Changes}
-                  label={"Changes"}
-                  icon={FaHistory}
-                  onActivate={onActivate}
-                  onDeactivate={onDeactivate}
-                  active={isChangesActive}
-                  disabled={decisions?.length === 0 && failures?.length === 0}
-                  showNotification={
-                    !!itemState[RightSidebarMenu.Changes]?.hasNotification
-                  }
-                />
-              ) : (
-                <></>
-              )}
+                <>
+                  <SidebarMenuOption
+                    key={RightSidebarMenu.Changes}
+                    index={RightSidebarMenu.Changes}
+                    label={"Changes"}
+                    icon={FaHistory}
+                    onActivate={onActivate}
+                    onDeactivate={onDeactivate}
+                    active={isChangesActive}
+                    disabled={decisions?.length === 0 && failures?.length === 0}
+                    showNotification={
+                      !!itemState[RightSidebarMenu.Changes]?.hasNotification
+                    }
+                  />
+                  <SidebarMenuOption
+                    key={RightSidebarMenu.MissingConfig}
+                    index={RightSidebarMenu.MissingConfig}
+                    label={"Missing Config"}
+                    icon={MdNotificationImportant}
+                    onActivate={onActivate}
+                    onDeactivate={onDeactivate}
+                    active={
+                      isModifiedConfigActive
+                    }
+                    warning={environmentVersion.config_errors?.length > 0}
+                  />
+                </>  
+                ) : (
+                  <></>
+                )}
             </Sidebar.ItemGroup>
           </div>
         </Sidebar.Items>
@@ -244,6 +255,7 @@ const SidebarMenuOption: FC<{
   icon?: IconType;
   active?: boolean;
   showNotification?: boolean;
+  warning?: boolean;
 }> = ({
   index,
   onActivate,
@@ -253,6 +265,7 @@ const SidebarMenuOption: FC<{
   icon,
   active,
   showNotification,
+  warning,
 }) => {
   const Icon = icon ?? (React.Fragment as any);
 
@@ -273,6 +286,8 @@ const SidebarMenuOption: FC<{
         {
           "dark:hover:bg-primary-600 hover:bg-primary-600 bg-primary-600 [&_svg]:fill-white text-white":
             active,
+            "[&_svg]:fill-yellow-500 text-white":
+            warning,
         },
       )}
       icon={({ ...rest }) => (
@@ -401,311 +416,6 @@ const ChangesSidebar: FC<{
         </div>
       </ErrorBoundary>
     </div>
-  );
-};
-
-interface DetailsSidebarProps {
-  hidden?: boolean;
-}
-
-const DetailsSidebar: FC<DetailsSidebarProps> = ({
-  hidden,
-}: DetailsSidebarProps) => {
-  const {
-    navigateBackRightSidebar,
-    navigateForwardRightSidebar,
-    editorSidebarState,
-    rightSidebarSelector,
-    selectedResource,
-    environmentVersion,
-  } = useApplicationStore();
-
-  const [previousHistoryEntry, setPreviousHistoryEntry] = useState<
-    NavHistoryEntry | undefined
-  >();
-  const [nextHistoryEntry, setNextHistoryEntry] = useState<
-    NavHistoryEntry | undefined
-  >();
-
-  useEffect(() => {
-    setPreviousHistoryEntry(
-      getPreviousRelevantHistoryEntry(
-        editorSidebarState.right.detailsTab.navHistory,
-        rightSidebarSelector,
-        selectedResource,
-        environmentVersion,
-      ),
-    );
-    setNextHistoryEntry(
-      getNextRelevantHistoryEntry(
-        editorSidebarState.right.detailsTab.navHistory,
-        rightSidebarSelector,
-        selectedResource,
-        environmentVersion,
-      ),
-    );
-  }, [
-    rightSidebarSelector,
-    selectedResource,
-    environmentVersion,
-    editorSidebarState.right.detailsTab.navHistory,
-  ]);
-
-  return (
-    <div
-      className={classNames("flex flex-col h-full w-full overflow-hidden", {
-        hidden: hidden,
-      })}
-    >
-      <div className="flex h-10 w-full shrink-0 grow-0 items-baseline justify-between border-b-[1px] p-2 dark:border-gray-700">
-        <h2 className={"text-md font-medium dark:text-white"}>Details</h2>
-        <div className="flex gap-1">
-          <Tooltip
-            className={classNames({
-              hidden: !previousHistoryEntry,
-            })}
-            placement="top-start"
-            animation={"duration-500"}
-            content={`Click to go back to ${
-              previousHistoryEntry?.resourceId?.toString() ?? ""
-            }`}
-          >
-            <Button
-              size="xs"
-              color="light"
-              pill
-              disabled={!previousHistoryEntry}
-              onClick={navigateBackRightSidebar}
-            >
-              <FaArrowLeft />
-            </Button>
-          </Tooltip>
-          <Tooltip
-            className={classNames({
-              hidden: !nextHistoryEntry,
-            })}
-            placement="top-start"
-            animation={"duration-500"}
-            content={`Click to go forward to ${
-              nextHistoryEntry?.resourceId?.toString() ?? ""
-            }`}
-          >
-            <Button
-              size="xs"
-              color="light"
-              pill
-              disabled={!nextHistoryEntry}
-              onClick={navigateForwardRightSidebar}
-            >
-              <FaArrowRight />
-            </Button>
-          </Tooltip>
-        </div>
-      </div>
-      <ErrorBoundary
-        onError={(error, info) =>
-          trackError(
-            new UIError({
-              message: "uncaught error in EditorSidebarRight",
-              errorId: "EditorSidebarRight:ErrorBoundary",
-              cause: error,
-              data: { info },
-            }),
-          )
-        }
-        fallbackRender={FallbackRenderer}
-      >
-        <div className="flex size-full min-h-0 flex-col justify-between p-2">
-          <Details />
-        </div>
-      </ErrorBoundary>
-    </div>
-  );
-};
-
-const detailsTabsTheme: CustomFlowbiteTheme["tabs"] = {
-  base: "flex flex-col gap-2 min-h-0 h-full",
-  tablist: {
-    base: "max-h-12 bg-transparent",
-    tabitem: {
-      styles: {
-        fullWidth: {
-          base: "rounded-t-lg max-h-12 focus:ring-primary-300",
-          active: {
-            on: "bg-primary-600 text-white dark:bg-primary-700 dark:white active:border-primary-300",
-            off: "text-gray-500 hover:bg-gray-50 hover:text-gray-600 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-300",
-          },
-        },
-      },
-    },
-  },
-  tabitemcontainer: {
-    base: "flex flex-col min-h-0 h-full",
-  },
-  tabpanel: "max-h-full min-h-0 h-full",
-};
-
-const Details: FC = function () {
-  const tabsRef = useRef<TabsRef>(null);
-  const {
-    rightSidebarSelector,
-    navigateRightSidebar,
-    selectedResource,
-    selectedEdge,
-  } = useApplicationStore();
-
-  useEffect(() => {
-    tabsRef.current?.setActiveTab(rightSidebarSelector[1]);
-  }, [rightSidebarSelector]);
-
-  return (
-    <Tabs
-      theme={detailsTabsTheme}
-      aria-label="Architecture Actions"
-      /* eslint-disable-next-line react/style-prop-object */
-      style={"fullWidth"}
-      ref={tabsRef}
-      onActiveTabChange={(tab) => {
-        if (tab === rightSidebarSelector[1]) {
-          return;
-        }
-        navigateRightSidebar([
-          rightSidebarSelector[0],
-          RightSidebarDetailsTab[
-            RightSidebarDetailsTab[tab] as keyof typeof RightSidebarDetailsTab
-          ],
-        ]);
-      }}
-    >
-      <Tabs.Item
-        className="col flex h-full min-h-0"
-        active
-        title="Config"
-        icon={HiCog6Tooth}
-      >
-        <div className="flex h-full min-h-0 flex-col">
-          <ResourceIdHeader
-            resourceId={selectedResource}
-            edgeId={selectedEdge}
-          />
-          {selectedResource && (
-            <ConfigForm key={`config-table-${selectedResource.toString()}`} />
-          )}
-        </div>
-      </Tabs.Item>
-      <Tabs.Item title="Additional Resources">
-        <ResourceIdHeader resourceId={selectedResource} edgeId={selectedEdge} />
-        <AdditionalResources />
-      </Tabs.Item>
-    </Tabs>
-  );
-};
-
-type ResourceIdHeaderProps = {
-  resourceId?: NodeId;
-  edgeId?: string;
-};
-
-const ResourceIdHeader: FC<ResourceIdHeaderProps> = function ({
-  resourceId,
-  edgeId,
-}) {
-  const { mode } = useThemeMode();
-
-  const [copied, setCopied] = useState(false);
-
-  const { environmentVersion, selectedResource } = useApplicationStore();
-  let resourceMetadata;
-  if (selectedResource) {
-    resourceMetadata = environmentVersion?.resources.get(
-      selectedResource.toString(),
-    );
-  }
-
-  const onClickCopyButton = async (e: any) => {
-    e.target.blur();
-    await navigator.clipboard.writeText(
-      resourceId?.toString() ?? edgeId?.toString() ?? "",
-    );
-    setCopied(true);
-    e.target.disabled = true;
-    setTimeout(() => {
-      e.target.disabled = false;
-      setCopied(false);
-    }, 3000);
-  };
-
-  const itemType = resourceId?.qualifiedType ?? "connection";
-  const itemName = resourceId
-    ? `${resourceId.namespace ? resourceId.namespace + ":" : ""}${
-        resourceId.name
-      }`
-    : edgeId;
-
-  return (
-    <>
-      {(resourceId || edgeId) && (
-        <div className="border-b-2 border-gray-200 pb-1 dark:border-gray-700">
-          <div className={"mb-2 flex flex-row items-center gap-2"}>
-            {resourceId ? (
-              <NodeIcon
-                provider={resourceId?.provider ?? "unknown"}
-                type={resourceId?.type ?? "unknown"}
-                style={{ maxHeight: "50px", maxWidth: "50px" }}
-                variant={mode}
-              />
-            ) : (
-              <TbPlugConnected
-                className="stroke-gray-700 dark:stroke-gray-300"
-                size={50}
-              />
-            )}
-            <div className="inline-block w-full overflow-hidden align-middle">
-              <div
-                className="overflow-hidden text-ellipsis text-xs font-medium text-gray-500 dark:text-gray-400"
-                title={itemType}
-              >
-                {itemType}
-              </div>
-              <div
-                className={
-                  "text-md overflow-hidden text-ellipsis font-semibold dark:text-white"
-                }
-                title={itemName}
-              >
-                {itemName}
-                <div />
-              </div>
-            </div>
-            <Button
-              color="gray"
-              className="h-14 w-10 focus:ring-0"
-              onClick={onClickCopyButton}
-              disabled={resourceId === undefined}
-            >
-              {!copied && (
-                <HiOutlineClipboardCopy className="stroke-gray-700 dark:stroke-gray-300" />
-              )}
-              {copied && <HiCheck color="green" />}
-            </Button>
-          </div>
-          {resourceMetadata?.imported && (
-            <Banner>
-              <div className="flex w-full justify-between border-b border-gray-200 bg-gray-50 p-4 dark:border-gray-600 dark:bg-gray-700">
-                <div className="mx-auto flex items-center">
-                  <p className="flex items-center text-sm font-normal text-gray-500 dark:text-gray-400">
-                    <HiInformationCircle className="mr-4 size-4" />
-                    <span className="[&_p]:inline">
-                      This resource is imported and configured externally
-                    </span>
-                  </p>
-                </div>
-              </div>
-            </Banner>
-          )}
-        </div>
-      )}
-    </>
   );
 };
 

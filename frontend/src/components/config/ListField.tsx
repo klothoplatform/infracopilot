@@ -48,7 +48,6 @@ type ListProps = ConfigFieldProps & {
 };
 
 export const ListField: FC<ListProps> = ({
-  configResource,
   qualifiedFieldName,
   field,
   disabled,
@@ -109,7 +108,6 @@ export const ListField: FC<ListProps> = ({
               <PrimitiveListItem
                 key={formField.id}
                 index={index}
-                configResource={configResource}
                 qualifiedFieldName={`${qualifiedFieldName}[${index}]`}
                 type={itemType}
                 required={field.required}
@@ -159,7 +157,6 @@ export const ListField: FC<ListProps> = ({
               <CollectionListItem
                 key={formField.id}
                 index={index}
-                configResource={configResource}
                 qualifiedFieldName={`${qualifiedFieldName}[${index}]`}
                 type={itemType}
                 properties={properties}
@@ -196,7 +193,6 @@ export const ListField: FC<ListProps> = ({
 
 const PrimitiveListItem: FC<{
   index: number;
-  configResource: NodeId;
   qualifiedFieldName: string;
   type: PrimitiveTypes;
   allowedValues?: string[];
@@ -206,7 +202,6 @@ const PrimitiveListItem: FC<{
   remove: (index: number) => void;
 }> = ({
   index,
-  configResource,
   qualifiedFieldName,
   type,
   allowedValues,
@@ -276,7 +271,6 @@ const PrimitiveListItem: FC<{
     case PrimitiveTypes.Resource:
       item = (
         <ResourceField
-          configResource={configResource}
           qualifiedFieldName={qualifiedFieldName}
           valueSelector={".value"}
           disabled={disabled}
@@ -289,7 +283,6 @@ const PrimitiveListItem: FC<{
     case PrimitiveTypes.Enum:
       item = (
         <EnumField
-          configResource={configResource}
           qualifiedFieldName={qualifiedFieldName}
           valueSelector={".value"}
           allowedValues={allowedValues}
@@ -325,7 +318,6 @@ const PrimitiveListItem: FC<{
 
 const CollectionListItem: FC<{
   index: number;
-  configResource: NodeId;
   qualifiedFieldName: string;
   type: CollectionTypes;
   properties?: Property[];
@@ -334,7 +326,6 @@ const CollectionListItem: FC<{
   remove: (index: number) => void;
 }> = ({
   index,
-  configResource,
   qualifiedFieldName,
   type,
   properties,
@@ -350,7 +341,6 @@ const CollectionListItem: FC<{
       item = (
         <ConfigSection id={qualifiedFieldName} title={title}>
           <ConfigGroup
-            configResource={configResource}
             qualifiedFieldName={qualifiedFieldName}
             fields={properties}
             hidePrefix
@@ -363,7 +353,6 @@ const CollectionListItem: FC<{
       item = (
         <ConfigSection id={qualifiedFieldName} title={title}>
           <ConfigGroup
-            configResource={configResource}
             qualifiedFieldName={qualifiedFieldName}
             fields={properties}
             hidePrefix
