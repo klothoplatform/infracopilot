@@ -7,7 +7,7 @@ import type { FC, ReactNode } from "react";
 import { ConfigField } from "./ConfigField";
 import type { NodeId } from "../../shared/architecture/TopologyNode";
 import useApplicationStore from "../../pages/store/ApplicationStore";
-import { canModifyConfiguration } from "../../shared/ViewSettings";
+import { canModifyConfiguration } from "../../shared/EditorViewSettings";
 
 type ConfigGroupProps = {
   configResource: NodeId;

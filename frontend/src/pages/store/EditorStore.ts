@@ -76,8 +76,12 @@ import { updateArchitectureAccess } from "../../api/UpdateArchitectureAccess";
 import { getArchitectureAccess } from "../../api/GetArchitectureAccess";
 import type { ArchitectureAccess } from "../../shared/architecture/Access";
 import cloneArchitecture from "../../api/CloneArchitecture";
-import type { ViewSettings } from "../../shared/ViewSettings";
-import { isViewMode, ViewMode } from "../../shared/ViewSettings";
+import type {
+  EditorViewSettings} from "../../shared/EditorViewSettings";
+import {
+  EditorLayout
+} from "../../shared/EditorViewSettings";
+import { isViewMode, ViewMode } from "../../shared/EditorViewSettings";
 
 interface EditorStoreState {
   architecture: Architecture;
@@ -119,7 +123,7 @@ interface EditorStoreState {
   selectedResource?: NodeId;
   unappliedConstraints: Constraint[];
   architectureAccess?: ArchitectureAccess;
-  viewSettings: ViewSettings;
+  viewSettings: EditorViewSettings;
 }
 
 const initialState: () => EditorStoreState = () => ({
@@ -167,6 +171,7 @@ const initialState: () => EditorStoreState = () => ({
   },
   viewSettings: {
     mode: ViewMode.Edit,
+    layout: EditorLayout.Design,
   },
 });
 
@@ -225,7 +230,7 @@ interface EditorStoreActions {
   navigateForwardRightSidebar: () => void;
   goToPreviousState: () => Promise<void>;
   goToNextState: () => Promise<void>;
-  updateViewSettings: (settings: Partial<ViewSettings>) => void;
+  updateViewSettings: (settings: Partial<EditorViewSettings>) => void;
 }
 
 type EditorStoreBase = EditorStoreState & EditorStoreActions;
@@ -1448,7 +1453,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     const idToken = await get().getIdToken();
     return await getArchitectureAccess({ architectureId, summarized }, idToken);
   },
-  updateViewSettings: (settings: Partial<ViewSettings>) => {
+  updateViewSettings: (settings: Partial<EditorViewSettings>) => {
     set(
       {
         viewSettings: {

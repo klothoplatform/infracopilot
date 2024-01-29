@@ -5,7 +5,7 @@ import { HiChevronDown, HiOutlineEye, HiOutlinePencil } from "react-icons/hi2";
 import type { IconType } from "react-icons";
 import { Button, Dropdown } from "flowbite-react";
 import { Tooltip } from "./Tooltip";
-import { ViewMode } from "../shared/ViewSettings";
+import { ViewMode } from "../shared/EditorViewSettings";
 import { HiOutlineCog } from "react-icons/hi";
 
 const modes: { [key: string]: ModeOption } = {

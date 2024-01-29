@@ -46,7 +46,7 @@ import {
   canModifyConfiguration,
   isViewMode,
   ViewMode,
-} from "../../shared/ViewSettings";
+} from "../../shared/EditorViewSettings";
 
 const EditorSidebarRight: FC = () => {
   const menusRef = useRef<HTMLDivElement>(null);

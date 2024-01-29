@@ -14,8 +14,10 @@ import {
   HeaderNavBar,
   HeaderNavBarRow1Right,
 } from "../../components/HeaderNavBar";
-import type { ViewSettings } from "../../shared/ViewSettings";
-import { isViewMode, ViewMode } from "../../shared/ViewSettings";
+import type { EditorViewSettings } from "../../shared/EditorViewSettings";
+import { isViewMode, ViewMode } from "../../shared/EditorViewSettings";
+import { LayoutSelector } from "./LayoutSelector";
+import { env } from "../../shared/environment";
 
 export const EditorHeader: FC = () => {
   const {
@@ -33,23 +35,26 @@ export const EditorHeader: FC = () => {
   return (
     <HeaderNavBar>
       <div className="flex h-fit w-full flex-col justify-between gap-0.5">
-        <div className="flex w-full justify-between">
+        <div className="flex w-full items-center justify-between">
           <div className="flex w-full flex-col justify-start gap-1 pr-4">
             <Row1aLeft
               isEditorInitialized={isEditorInitialized}
               architectureId={architecture.id}
               viewSettings={viewSettings}
             />
-            <Row1bLeft
-              hideNewArchitectureButton={!isAuthenticated}
-              hideExportButton={!isEditorInitialized}
-              hideCloneButton={shouldHideCloneButton}
-            />
           </div>
           <div className="flex flex-col gap-2">
-            <Row1aRight hideEnvironmentsSection={!isEditorInitialized} />
+            <Row1aRight />
           </div>
         </div>
+      </div>
+      <div className="flex items-center justify-between gap-4">
+        <Row1bLeft
+          hideNewArchitectureButton={!isAuthenticated}
+          hideExportButton={!isEditorInitialized}
+          hideCloneButton={shouldHideCloneButton}
+        />
+        <Row1bRight />
       </div>
     </HeaderNavBar>
   );
@@ -58,7 +63,7 @@ export const EditorHeader: FC = () => {
 const Row1aLeft: FC<{
   isEditorInitialized: boolean;
   architectureId: string;
-  viewSettings: ViewSettings;
+  viewSettings: EditorViewSettings;
 }> = ({ isEditorInitialized, architectureId, viewSettings }) => {
   const shouldDisableArchitectureName =
     !isEditorInitialized ||
@@ -76,14 +81,17 @@ const Row1bLeft: FC<{
   const { isSmallScreen } = useScreenSize();
 
   return (
-    <div className="hidden sm:flex sm:gap-2">
-      {!hideNewArchitectureButton && (
-        <ArchitectureButtonAndModal small={isSmallScreen} />
-      )}
-      {!hideCloneButton && (
-        <CloneCurrentArchitectureButton small={isSmallScreen} />
-      )}
-      {!hideExportButton && <ExportIacButton small={isSmallScreen} />}
+    <div className="flex gap-4 sm:gap-16">
+      <div className="relative -top-1 flex gap-2 self-start">
+        {!hideNewArchitectureButton && (
+          <ArchitectureButtonAndModal small={isSmallScreen} />
+        )}
+        {!hideCloneButton && (
+          <CloneCurrentArchitectureButton small={isSmallScreen} />
+        )}
+        {!hideExportButton && <ExportIacButton small={isSmallScreen} />}
+      </div>
+      {env.debug.has("layout-selector") && <LayoutSelector />}
     </div>
   );
 };
@@ -124,9 +132,7 @@ const ArchitectureName: FC<{
   );
 };
 
-const Row1aRight: FC<{
-  hideEnvironmentsSection?: boolean;
-}> = ({ hideEnvironmentsSection }) => {
+const Row1aRight: FC = () => {
   const {
     architecture,
     isEditorInitialized,
@@ -140,9 +146,6 @@ const Row1aRight: FC<{
     <div className="flex h-fit items-center justify-end gap-2 py-1">
       {isEditorInitialized ? (
         <div className="flex justify-end gap-4">
-          {!hideEnvironmentsSection && (
-            <EnvironmentSection small={isSmallScreen} />
-          )}
           <ViewModeDropdown />
           <ShareButton
             user={user}
@@ -154,6 +157,24 @@ const Row1aRight: FC<{
             user={user}
             isAuthenticated={isAuthenticated}
           />
+        </div>
+      ) : null}
+    </div>
+  );
+};
+const Row1bRight: FC<{
+  hideEnvironmentsSection?: boolean;
+}> = ({ hideEnvironmentsSection }) => {
+  const { isEditorInitialized } = useApplicationStore();
+  const { isSmallScreen } = useScreenSize();
+
+  return (
+    <div className="flex h-fit items-center justify-end gap-2">
+      {isEditorInitialized ? (
+        <div className="flex justify-end gap-4">
+          {!hideEnvironmentsSection && (
+            <EnvironmentSection small={isSmallScreen} />
+          )}
         </div>
       ) : null}
     </div>

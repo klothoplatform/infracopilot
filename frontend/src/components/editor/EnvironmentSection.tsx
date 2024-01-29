@@ -4,7 +4,7 @@ import { Button, Dropdown } from "flowbite-react";
 import useApplicationStore from "../../pages/store/ApplicationStore";
 import { WorkingOverlay } from "../WorkingOverlay";
 import { UIError } from "../../shared/errors";
-import { isViewMode, ViewMode } from "../../shared/ViewSettings";
+import { isViewMode, ViewMode } from "../../shared/EditorViewSettings";
 
 interface EnvironmentSectionProps {
   small: boolean;
@@ -53,7 +53,7 @@ export const EnvironmentSection: FC<EnvironmentSectionProps> = ({
   };
 
   return (
-    <div className="flex w-fit items-center gap-2 rounded-lg border border-gray-300 bg-gray-100 p-2 dark:border-gray-700 dark:bg-gray-900">
+    <div className="flex h-fit w-fit items-center gap-2 rounded-t-lg border-x border-t border-gray-300 bg-gray-100 p-2 dark:border-gray-700 dark:bg-gray-900">
       <span className="text-xs font-medium dark:text-white">Environment:</span>
       <EnvironmentDropdown
         environments={environments.map((env) => env.id)}

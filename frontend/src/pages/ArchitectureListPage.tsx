@@ -89,7 +89,7 @@ function ArchitectureListPage() {
       >
         <SidebarProvider>
           <HeaderNavBar>
-            <div className="flex justify-end">
+            <div className="flex justify-end pb-2 pt-1">
               <HeaderNavBarRow1Right
                 user={user}
                 isAuthenticated={isAuthenticated}

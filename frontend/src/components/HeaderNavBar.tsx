@@ -17,7 +17,7 @@ export const HeaderNavBar: FC<PropsWithChildren<NavbarProps>> = function ({
 }) {
   return (
     <Navbar fluid>
-      <div className="w-full p-1 lg:px-5 lg:pl-3">
+      <div className="w-full px-1 pt-1 lg:px-5 lg:pl-3">
         <div className="flex items-center justify-between">
           <Navbar.Brand as={Link} to="/architectures" className="pr-2">
             <span className="whitespace-nowrap px-2 py-1 text-2xl font-semibold dark:text-white">

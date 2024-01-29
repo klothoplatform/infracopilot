@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { ControlButton, Panel } from "reactflow";
 import { FaRedo, FaUndo } from "react-icons/fa";
-import useApplicationStore from "../store/ApplicationStore";
-import { WorkingOverlay } from "../../components/WorkingOverlay";
+import useApplicationStore from "../../../store/ApplicationStore";
+import { WorkingOverlay } from "../../../../components/WorkingOverlay";
 
 export const VersionNavigator: React.FC = () => {
   const { previousState, nextState, goToNextState, goToPreviousState } =
