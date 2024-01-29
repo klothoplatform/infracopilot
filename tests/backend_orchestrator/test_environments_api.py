@@ -12,6 +12,7 @@ from src.backend_orchestrator.environments_api import (
     env_in_sync,
     env_diff,
     BASE_ENV_ID,
+    promote,
 )
 from src.auth_service.entity import User
 from src.environment_management.environment_version import (
@@ -248,7 +249,7 @@ class TestEnvDiff(aiounittest.AsyncTestCase):
         result = await env_diff(request, "id", "env_id")
 
         # Assert
-        self.assertEqual(result, diff)
+        self.assertEqual(result, diff.__dict__())
         get_user_id.assert_called_once_with(request)
         authz_service.can_read_architecture.assert_called_once_with(
             User(id="user_id"), "id"
@@ -359,3 +360,65 @@ class TestEnvDiff(aiounittest.AsyncTestCase):
         )
         get_environment_manager.assert_called_once_with(session)
         manager.diff_environments.assert_called_once_with("id", BASE_ENV_ID, "env_id")
+
+
+class TestPromote(aiounittest.AsyncTestCase):
+    @mock.patch(
+        "src.backend_orchestrator.environments_api.get_user_id",
+        new_callable=AsyncMock,
+    )
+    @patch("src.backend_orchestrator.environments_api.get_environment_manager")
+    @patch("src.backend_orchestrator.environments_api.SessionLocal")
+    @patch(
+        "src.backend_orchestrator.environments_api.deps.authz_service",
+        new_callable=MagicMock,
+    )
+    async def test_promote_happy_path(
+        self,
+        authz_service,
+        session_local,
+        get_environment_manager,
+        get_user_id,
+    ):
+        # Arrange
+        get_user_id.return_value = "user_id"
+        manager = MagicMock()
+        manager.promote = AsyncMock(
+            return_value=(
+                MagicMock(
+                    architecture_id="architecture_id",
+                    id="id",
+                    version=1,
+                    env_resource_configuration={},
+                ),
+                MagicMock(
+                    resources_yaml="resources_yaml",
+                    topology_yaml="topology_yaml",
+                    config_errors_json=[{"config_errors_json": True}],
+                ),
+            )
+        )
+        get_environment_manager.return_value = manager
+        request = MagicMock()
+        session = MagicMock()
+        authz_service.can_write_to_architecture = AsyncMock(return_value=True)
+
+        session_local.begin.return_value.__aenter__.return_value = session
+
+        # Act
+        result = await promote(request, "id", "env_id", session)
+
+        # Assert
+        self.assertEqual(result.status_code, 200)
+        self.assertEqual(
+            result.body,
+            b'{"architecture_id": "architecture_id", "id": "id", "version": 1, "state": {"resources_yaml": "resources_yaml", "topology_yaml": "topology_yaml"}, "env_resource_configuration": {}, "config_errors": [{"config_errors_json": true}]}',
+        )
+        get_environment_manager.assert_called_once_with(session)
+        manager.promote.assert_called_once_with(
+            "id", "default", "env_id", User(id="user_id")
+        )
+        get_user_id.assert_called_once_with(request)
+        authz_service.can_write_to_architecture.assert_called_once_with(
+            User(id="user_id"), "id"
+        )

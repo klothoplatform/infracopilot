@@ -259,4 +259,5 @@ def get_environment_manager(session: AsyncSession):
         arch_dao=get_architecture_dao(session),
         env_dao=get_environment_dao(session),
         ev_dao=get_environment_version_dao(session),
+        binary_storage=get_binary_storage(),
     )

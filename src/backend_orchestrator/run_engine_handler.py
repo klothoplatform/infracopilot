@@ -13,13 +13,14 @@ from src.backend_orchestrator.architecture_handler import (
     EnvironmentVersionResponseObject,
     VersionState,
 )
-from src.constraints.util import find_mutating_constraints, parse_constraints
+from src.constraints.util import find_mutating_constraints
 from src.engine_service.binaries.fetcher import BinaryStorage, Binary
 from src.engine_service.engine_commands.run import (
     FailedRunException,
     run_engine,
     RunEngineRequest,
 )
+from src.topology.topology import TopologicalChangesNotAllowed
 
 from src.environment_management.environment_version import (
     EnvironmentVersionDAO,
@@ -47,23 +48,6 @@ from src.topology.topology import Topology, TopologyDiff
 from src.topology.util import diff_engine_results
 
 log = logging.getLogger(__name__)
-
-
-class TopologicalChangesNotAllowed(Exception):
-    """
-    Exception to be raised when topological changes are not allowed.
-    """
-
-    def __init__(
-        self, env_id: str, constraints: List[dict] = None, diff: TopologyDiff = None
-    ):
-        super().__init__(
-            f"Topological changes are not allowed for environment {env_id}"
-        )
-        self.constraints = constraints
-        self.diff = diff
-        self.env_id = env_id
-        self.error_type = "topological_changes_not_allowed"
 
 
 class CopilotRunRequest(BaseModel):
@@ -127,9 +111,9 @@ class EngineOrchestrator:
             self.binary_storage.ensure_binary(Binary.ENGINE)
             request = RunEngineRequest(
                 id=architecture_id,
-                input_graph=input_graph.resources_yaml
-                if input_graph is not None
-                else None,
+                input_graph=(
+                    input_graph.resources_yaml if input_graph is not None else None
+                ),
                 templates=[],
                 engine_version=1.0,
                 constraints=body.constraints,
@@ -187,9 +171,11 @@ class EngineOrchestrator:
 
             return Response(
                 headers={
-                    "Content-Type": "application/octet-stream"
-                    if accept == "application/octet-stream"
-                    else "application/json"
+                    "Content-Type": (
+                        "application/octet-stream"
+                        if accept == "application/octet-stream"
+                        else "application/json"
+                    )
                 },
                 content=payload.model_dump(mode="json"),
             )

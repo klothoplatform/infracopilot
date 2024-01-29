@@ -121,9 +121,10 @@ class TestArchitectureHandler(aiounittest.AsyncTestCase):
             Environment(
                 architecture_id=id,
                 id="prod",
+                current=0,
             )
         )
-        self.mock_ev_dao.add_environment_version.assert_called_once_with(
+        self.mock_ev_dao.add_environment_version.assert_any_call(
             EnvironmentVersion(
                 architecture_id=id,
                 id="default",
@@ -131,6 +132,24 @@ class TestArchitectureHandler(aiounittest.AsyncTestCase):
                 version_hash=test_hash,
                 created_by=user.to_auth_string(),
                 created_at=self.created_at,
+            )
+        )
+        self.mock_ev_dao.add_environment_version.assert_any_call(
+            EnvironmentVersion(
+                architecture_id=id,
+                id="prod",
+                version=0,
+                version_hash=test_hash,
+                created_by=user.to_auth_string(),
+                created_at=self.created_at,
+                env_resource_configuration={
+                    "tracks": {
+                        "environment": "default",
+                        "version_hash": test_hash,
+                    },
+                    "overrides": None,
+                    "diff": None,
+                },
             )
         )
 

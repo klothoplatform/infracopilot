@@ -25,6 +25,7 @@ greenlet = "*"
 asyncpg = "*"
 httpx = "*"
 gunicorn = "*"
+black = "*"
 
 [dev-packages]
 black = "*"
