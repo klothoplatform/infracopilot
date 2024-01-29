@@ -205,7 +205,7 @@ class TestEnvironmentManager(aiounittest.AsyncTestCase):
     @patch.object(EnvironmentManager, "get_constraint_list_stream_since_last_promotion")
     @patch.object(EnvironmentManager, "get_overrides")
     @mock.patch(
-        "src.environment_management.environment_manager.run_engine", new_callable=Mock
+        "src.environment_management.environment_manager.run_engine", new_callable=AsyncMock
     )
     @mock.patch(
         "src.environment_management.environment_manager.diff_engine_results",

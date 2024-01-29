@@ -130,10 +130,10 @@ async def promote(
     id: str,
     env_id: str,
     db: AsyncSession = Depends(get_db),
-    authz: AuthzService = Depends(get_authz_service),
 ):
     logger.info(f"Promoting environment: {env_id} to architecture: {id}")
-    user_id = get_user_id(request)
+    user_id = await get_user_id(request)
+    authz: AuthzService = deps.authz_service
     authorized = await authz.can_write_to_architecture(User(id=user_id), id)
     if not authorized:
         raise AuthError(
@@ -184,4 +184,3 @@ async def promote(
     except Exception as e:
         logger.error("Error promoting environment", exc_info=True)
         raise HTTPException(status_code=500, detail="internal server error")
->>>>>>> c52d083 (promotion workflow)

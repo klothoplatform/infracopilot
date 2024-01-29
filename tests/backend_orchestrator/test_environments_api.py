@@ -363,10 +363,20 @@ class TestEnvDiff(aiounittest.AsyncTestCase):
 
 
 class TestPromote(aiounittest.AsyncTestCase):
-    @patch("src.backend_orchestrator.environments_api.get_user_id")
+    @mock.patch(
+        "src.backend_orchestrator.environments_api.get_user_id",
+        new_callable=AsyncMock,
+    )
     @patch("src.backend_orchestrator.environments_api.get_environment_manager")
+    @patch("src.backend_orchestrator.environments_api.SessionLocal")
+    @patch(
+        "src.backend_orchestrator.environments_api.deps.authz_service",
+        new_callable=MagicMock,
+    )
     async def test_promote_happy_path(
         self,
+        authz_service,
+        session_local,
         get_environment_manager,
         get_user_id,
     ):
@@ -391,11 +401,12 @@ class TestPromote(aiounittest.AsyncTestCase):
         get_environment_manager.return_value = manager
         request = MagicMock()
         session = MagicMock()
-        authz_service = MagicMock()
         authz_service.can_write_to_architecture = AsyncMock(return_value=True)
+        
+        session_local.begin.return_value.__aenter__.return_value = session
 
         # Act
-        result = await promote(request, "id", "env_id", session, authz_service)
+        result = await promote(request, "id", "env_id", session)
 
         # Assert
         self.assertEqual(result.status_code, 200)

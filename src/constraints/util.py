@@ -95,7 +95,7 @@ def parse_constraints(constraints: List[Dict[str, Any]]) -> List[Constraint]:
                 EdgeConstraint(
                     ConstraintOperator(constraint["operator"]),
                     Edge(
-                        constraint["target"]["source"], constraint["target"]["target"]
+                       ResourceID.from_string(constraint["target"]["source"]), ResourceID.from_string(constraint["target"]["target"])
                     ),
                 )
             )
