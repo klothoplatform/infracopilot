@@ -43,9 +43,11 @@ def parse_constraints(constraints: List[Dict[str, Any]]) -> List[Constraint]:
                 ApplicationConstraint(
                     ConstraintOperator(constraint["operator"]),
                     ResourceID.from_string(constraint["node"]),
-                    ResourceID.from_string(constraint["replacement_node"])
-                    if constraint["replacement_node"]
-                    else None,
+                    (
+                        ResourceID.from_string(constraint["replacement_node"])
+                        if constraint["replacement_node"]
+                        else None
+                    ),
                 )
             )
         elif constraint["scope"] == ConstraintScope.Construct.value:

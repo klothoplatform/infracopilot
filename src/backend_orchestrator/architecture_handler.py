@@ -216,9 +216,11 @@ class ArchitectureHandler:
                 environments=[
                     EnvironmentSummaryObject(
                         id=e.id,
-                        default=False
-                        if e.tags is None or "default" not in e.tags
-                        else e.tags["default"],
+                        default=(
+                            False
+                            if e.tags is None or "default" not in e.tags
+                            else e.tags["default"]
+                        ),
                     )
                     for e in environments
                 ],
@@ -259,12 +261,14 @@ class ArchitectureHandler:
                 architecture_id=arch.architecture_id,
                 id=arch.id,
                 version=arch.version,
-                state=VersionState(
-                    resources_yaml=state.resources_yaml,
-                    topology_yaml=state.topology_yaml,
-                )
-                if state is not None
-                else None,
+                state=(
+                    VersionState(
+                        resources_yaml=state.resources_yaml,
+                        topology_yaml=state.topology_yaml,
+                    )
+                    if state is not None
+                    else None
+                ),
                 env_resource_configuration=arch.env_resource_configuration,
             )
             return (
@@ -305,12 +309,14 @@ class ArchitectureHandler:
                 architecture_id=arch.architecture_id,
                 id=arch.id,
                 version=arch.version,
-                state=VersionState(
-                    resources_yaml=state.resources_yaml,
-                    topology_yaml=state.topology_yaml,
-                )
-                if state is not None
-                else None,
+                state=(
+                    VersionState(
+                        resources_yaml=state.resources_yaml,
+                        topology_yaml=state.topology_yaml,
+                    )
+                    if state is not None
+                    else None
+                ),
                 env_resource_configuration=arch.env_resource_configuration,
             )
             return (
@@ -341,15 +347,19 @@ class ArchitectureHandler:
                 architecture_id=arch.architecture_id,
                 id=arch.id,
                 version=arch.version,
-                state=VersionState(
-                    resources_yaml=state.resources_yaml,
-                    topology_yaml=state.topology_yaml,
-                )
-                if state is not None
-                else None,
-                env_resource_configuration=arch.env_resource_configuration
-                if arch.env_resource_configuration is not None
-                else {},
+                state=(
+                    VersionState(
+                        resources_yaml=state.resources_yaml,
+                        topology_yaml=state.topology_yaml,
+                    )
+                    if state is not None
+                    else None
+                ),
+                env_resource_configuration=(
+                    arch.env_resource_configuration
+                    if arch.env_resource_configuration is not None
+                    else {}
+                ),
             )
             return (
                 Response(
@@ -457,9 +467,9 @@ class ArchitectureHandler:
             )
             await authz.add_architecture_owner(owner, newArch.id)
             self.arch_dao.add_architecture(newArch)
-            environments: List[
-                Environment
-            ] = await self.env_dao.get_environments_for_architecture(id)
+            environments: List[Environment] = (
+                await self.env_dao.get_environments_for_architecture(id)
+            )
             for env in environments:
                 self.env_dao.add_environment(
                     Environment(
@@ -469,9 +479,9 @@ class ArchitectureHandler:
                         tags=env.tags,
                     )
                 )
-                versions: List[
-                    EnvironmentVersion
-                ] = await self.ev_dao.list_environment_versions(id, env.id)
+                versions: List[EnvironmentVersion] = (
+                    await self.ev_dao.list_environment_versions(id, env.id)
+                )
                 for v in versions:
                     new_version = EnvironmentVersion(
                         id=v.id,
@@ -620,25 +630,29 @@ class ArchitectureHandler:
                     "architecture_id": architecture.id,
                     "can_share": can_share,
                     "can_write": can_write,
-                    "entities": [
-                        {
-                            "id": e,
-                            **get_metadata(e),
-                            "role": r.value,
-                            "type": e.split(":")[0],
-                        }
-                        for e, r in roles.items()
-                    ]
-                    if not summarized
-                    else [],
+                    "entities": (
+                        [
+                            {
+                                "id": e,
+                                **get_metadata(e),
+                                "role": r.value,
+                                "type": e.split(":")[0],
+                            }
+                            for e, r in roles.items()
+                        ]
+                        if not summarized
+                        else []
+                    ),
                     "general_access": {
                         "type": general_access.value,
-                        "entity": {
-                            "id": general_access_entity,
-                            "role": general_access_role.value,
-                        }
-                        if general_access_role
-                        else None,
+                        "entity": (
+                            {
+                                "id": general_access_entity,
+                                "role": general_access_role.value,
+                            }
+                            if general_access_role
+                            else None
+                        ),
                     },
                 }
             )
