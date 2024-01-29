@@ -89,7 +89,7 @@ export const ConfigGroup: FC<ConfigGroupProps> = ({
             !canModifyConfiguration(viewSettings)
           }
         />
-      </div>,
+      </div>
     );
   };
 

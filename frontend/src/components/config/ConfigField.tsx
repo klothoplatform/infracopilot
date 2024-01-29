@@ -399,7 +399,6 @@ const InputField: FC<InputProps> = ({
 }) => {
   const { register } = useFormContext();
   const id = qualifiedFieldName + (valueSelector ?? "");
-  console.log("InputField", id, error)
   return (
     <TextInput
       sizing={"sm"}

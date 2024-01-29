@@ -36,7 +36,7 @@ import {
 import type { IconBaseProps, IconType } from "react-icons";
 import { twMerge } from "tailwind-merge";
 import { MdNotificationImportant } from "react-icons/md";
-import { MissingConfigSidebar } from "./MissingConfigSidebar";
+import { ModifiedConfigSidebar } from "./ModifiedConfigSidebar";
 import { DetailsSidebar } from "./DetailsSidebar";
 
 interface SidebarItemState {
@@ -56,7 +56,7 @@ const EditorSidebarRight: FC = () => {
     rightSidebarSelector,
     navigateRightSidebar,
     viewSettings,
-    environmentVersion
+    environmentVersion,
   } = useApplicationStore();
 
   const [itemState, setItemState] = useState<SidebarItemState>({});
@@ -134,7 +134,7 @@ const EditorSidebarRight: FC = () => {
           >
             <DetailsSidebar hidden={!shouldShowDetails} />
             <ChangesSidebar hidden={!shouldShowChanges} />
-            <MissingConfigSidebar hidden={!shouldShowMissingConfig} />
+            <ModifiedConfigSidebar hidden={!shouldShowMissingConfig} />
           </div>
         </ResizableSection>
       )}

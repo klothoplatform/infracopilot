@@ -40,14 +40,19 @@ import {
 } from "../../shared/architecture/EnvironmentVersion";
 import { type ConfigurationError } from "../../shared/architecture/Architecture";
 
+interface ConfigFormSection {
+  title: string;
+  propertyMap: Map<string, Property[]>
+}
+
 interface ConfigFormProps {
-    promotedProperties: Map<string, Property[]> | undefined;
-    remainingProperties: Property[] | undefined;
+  sections?: ConfigFormSection[];
+  remainingProperties?: Property[];
 }
 
 export default function ConfigForm({
-    promotedProperties,
-    remainingProperties,
+  sections,
+  remainingProperties,
 }: ConfigFormProps) {
   const {
     selectedResource,
@@ -58,25 +63,35 @@ export default function ConfigForm({
     deselectResource,
   } = useApplicationStore();
 
+
+  const getSectionsState = (sections?: ConfigFormSection[]) => {
+    if (!sections) {
+      return {};
+    }
+    sections.map((section) => {
+      return [...section.propertyMap.entries()].reduce(
+        (acc, [resourceId, properties]): any => {
+          const fs = toFormState(
+            environmentVersion.resources.get(resourceId),
+            properties,
+            resourceId,
+          );
+          return {
+            ...acc,
+            ...fs,
+          };
+        },
+        {},
+        )
+      })
+  }
+
   const methods = useForm({
     shouldFocusError: true,
     defaultValues:
-      promotedProperties && selectedResource
+      sections && selectedResource
         ? {
-            ...[...promotedProperties.entries()].reduce(
-              (acc, [resourceId, properties]): any => {
-                const fs = toFormState(
-                  environmentVersion.resources.get(resourceId),
-                  properties,
-                  resourceId,
-                );
-                return {
-                  ...acc,
-                  ...fs,
-                };
-              },
-              {},
-            ),
+            ...getSectionsState(sections),
             ...toFormState(
               environmentVersion.resources.get(selectedResource.toString()),
               remainingProperties,
@@ -104,10 +119,13 @@ export default function ConfigForm({
   const { selectedNode } = useApplicationStore();
 
   useEffect(() => {
+    const allSectionResources = sections?.map((section) => {
+      return [...section.propertyMap.keys()]
+    }).flat()
     configErrors?.forEach((e) => {
       if (
         e.resource.toString() === selectedNode ||
-        promotedProperties?.has(e.resource.toString())
+        allSectionResources?.includes(e.resource.toString())
       ) {
         methods.setError(`${e.resource}#${e.property}`, {
           message: e.error,
@@ -119,7 +137,7 @@ export default function ConfigForm({
     configErrors,
     errors,
     methods,
-    promotedProperties,
+    sections,
     selectedNode,
     selectedResource,
   ]);
@@ -129,23 +147,13 @@ export default function ConfigForm({
       return;
     }
 
-    methods.reset(
-      promotedProperties && selectedResource
-        ? {
-            ...[...promotedProperties.entries()].reduce(
-              (acc, [resourceId, properties]): any => {
-                const fs = toFormState(
-                  environmentVersion.resources.get(resourceId.toString()),
-                  properties,
-                  resourceId,
-                );
-                return {
-                  ...acc,
-                  ...fs,
-                };
-              },
-              {},
-            ),
+    console.log("calling methods reset")
+
+    if (sections) {
+      if (selectedResource) {
+        methods.reset(
+          {
+            ...getSectionsState(sections),
             ...toFormState(
               environmentVersion.resources.get(selectedResource.toString()),
               remainingProperties,
@@ -153,22 +161,29 @@ export default function ConfigForm({
             ),
             ...getCustomConfigState(selectedResource, environmentVersion),
           }
-        : {},
-    );
-
-    environmentVersion?.config_errors
-      ?.filter((e) => e.resource.equals(selectedResource))
-      .forEach((e) => {
-        if (
-          e.resource.toString() === selectedNode ||
-          promotedProperties?.has(e.resource.toString())
-        ) {
-          methods.setError(`${e.resource}#${e.property}`, {
-            message: e.error,
-            type: "manual",
-          });
+        )
+    } else {
+      methods.reset(
+        {
+          ...getSectionsState(sections),
         }
+      )
+    }
+  }
+  const allSectionResources = sections?.map((section) => {
+    return [...section.propertyMap.keys()]
+  }).flat()
+  configErrors?.forEach((e) => {
+    if (
+      e.resource.toString() === selectedNode ||
+      allSectionResources?.includes(e.resource.toString())
+    ) {
+      methods.setError(`${e.resource}#${e.property}`, {
+        message: e.error,
+        type: "manual",
       });
+    }
+  });
   }, [
     environmentVersion,
     isSubmitSuccessful,
@@ -239,20 +254,19 @@ export default function ConfigForm({
               );
             });
 
-            if (selectedResource) {
-
-              if (resourceId.equals(selectedResource)) {
-                resConstraints.push(
-                  ...applyCustomizers(
-                    selectedResource,
-                    values,
-                    { ...defaultValues },
-                    modifiedFormFields,
-                    environmentVersion,
-                  ),
-                );
-              }
+          if (selectedResource) {
+            if (resourceId.equals(selectedResource)) {
+              resConstraints.push(
+                ...applyCustomizers(
+                  selectedResource,
+                  values,
+                  { ...defaultValues },
+                  modifiedFormFields,
+                  environmentVersion,
+                ),
+              );
             }
+          }
           constraints.push(...resConstraints);
         }
       } catch (e: any) {
@@ -304,6 +318,65 @@ export default function ConfigForm({
     ],
   );
 
+  const configSections =  sections?.forEach((section) => {
+    return (
+      <ConfigSection
+      id={section.title}
+      title={section.title}
+      removable={false}
+      defaultOpened={true}
+    >
+      {selectedResource &&
+        Object.entries(
+          getCustomConfigSections(
+            selectedResource.provider,
+            selectedResource.type,
+          ),
+        ).map((entry, index) => {
+          const Component = entry[1].component;
+          return Component ? (
+            <Component
+              key={index}
+              configResource={selectedResource}
+              resource={environmentVersion.resources.get(
+                selectedResource.toString(),
+              )}
+            />
+          ) : null;
+        })}
+      {section.propertyMap &&
+        [...section.propertyMap.entries()].map(
+          ([resourceId, properties]) => {
+            if (resourceId === selectedResource?.toString()) {
+              return (
+                <ConfigGroup
+                  key={resourceId}
+                  configResource={NodeId.parse(resourceId)}
+                  fields={properties}
+                />
+              );
+            } else {
+              return (
+                <ConfigSection
+                  key={resourceId.toString()}
+                  id={resourceId.toString()}
+                  title={resourceId.toString()}
+                >
+                  <ConfigGroup
+                    configResource={NodeId.parse(resourceId)}
+                    fields={properties}
+                  />
+                </ConfigSection>
+              );
+            }
+          },
+        )}
+    </ConfigSection>
+    )
+  })
+
+
+
   return (
     <ErrorBoundary
       onError={(error, info) =>
@@ -318,65 +391,14 @@ export default function ConfigForm({
       }
       fallbackRender={FallbackRenderer}
     >
-      {promotedProperties?.size && (
+      {sections?.length && (
         <FormProvider {...methods}>
           <form
             className="flex h-full min-h-0 w-full flex-col justify-between"
             onSubmit={methods.handleSubmit(submitConfigChanges)}
           >
             <div className="mb-2 max-h-full min-h-0 w-full overflow-y-auto overflow-x-hidden pb-2 [&>*:not(:last-child)]:mb-2">
-              <ConfigSection
-                id="promoted"
-                title="Properties"
-                removable={false}
-                defaultOpened={true}
-              >
-                {selectedResource &&
-                  Object.entries(
-                    getCustomConfigSections(
-                      selectedResource.provider,
-                      selectedResource.type,
-                    ),
-                  ).map((entry, index) => {
-                    const Component = entry[1].component;
-                    return Component ? (
-                      <Component
-                        key={index}
-                        configResource={selectedResource}
-                        resource={environmentVersion.resources.get(
-                          selectedResource.toString(),
-                        )}
-                      />
-                    ) : null;
-                  })}
-                {promotedProperties &&
-                  [...promotedProperties.entries()].map(
-                    ([resourceId, properties]) => {
-                      if (resourceId === selectedResource?.toString()) {
-                        return (
-                          <ConfigGroup
-                            key={resourceId}
-                            configResource={NodeId.parse(resourceId)}
-                            fields={properties}
-                          />
-                        );
-                      } else {
-                        return (
-                          <ConfigSection
-                            key={resourceId.toString()}
-                            id={resourceId.toString()}
-                            title={resourceId.toString()}
-                          >
-                            <ConfigGroup
-                              configResource={NodeId.parse(resourceId)}
-                              fields={properties}
-                            />
-                          </ConfigSection>
-                        );
-                      }
-                    },
-                  )}
-              </ConfigSection>
+              {configSections ?? null}
               {remainingProperties?.length && (
                 <ConfigSection
                   id="remaining"
@@ -421,6 +443,7 @@ function toFormState(
   resourceId?: NodeId | string,
 ) {
   const formState: any = {};
+  console.log(metadata, fields, resourceId)
   if (!metadata) {
     return formState;
   }
@@ -475,7 +498,7 @@ function toFormState(
         }
     }
   });
-  console.log(formState)
+  console.log("current form state", formState);
   return formState;
 }
 

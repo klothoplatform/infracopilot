@@ -1,8 +1,19 @@
 import { type FC, useEffect, useRef, useState } from "react";
 import useApplicationStore from "../../pages/store/ApplicationStore";
-import { type NavHistoryEntry, RightSidebarDetailsTab, getNextRelevantHistoryEntry, getPreviousRelevantHistoryEntry } from "../../shared/sidebar-nav";
+import {
+  type NavHistoryEntry,
+  RightSidebarDetailsTab,
+  getNextRelevantHistoryEntry,
+  getPreviousRelevantHistoryEntry,
+} from "../../shared/sidebar-nav";
 import classNames from "classnames";
-import { Button, type CustomFlowbiteTheme, Tabs, type TabsRef, Tooltip } from "flowbite-react";
+import {
+  Button,
+  type CustomFlowbiteTheme,
+  Tabs,
+  type TabsRef,
+  Tooltip,
+} from "flowbite-react";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa6";
 import { ErrorBoundary } from "react-error-boundary";
 import { trackError } from "../../pages/store/ErrorStore";
@@ -12,7 +23,10 @@ import { HiCog6Tooth } from "react-icons/hi2";
 import { ResourceIdHeader } from "./ResourceIdHeader";
 import ConfigForm from "./ConfigForm";
 import AdditionalResources from "./AdditionalResources";
-import { isPropertyPromoted, resourceProperties } from "../../shared/architecture/EnvironmentVersion";
+import {
+  isPropertyPromoted,
+  resourceProperties,
+} from "../../shared/architecture/EnvironmentVersion";
 import type { Property } from "../../shared/resources/ResourceTypes";
 import React from "react";
 
@@ -156,116 +170,113 @@ export  const DetailsSidebar: FC<DetailsSidebarProps> = ({
     },
     tabpanel: "max-h-full min-h-0 h-full",
   };
-  
-  const Details: FC = function () {
-    const tabsRef = useRef<TabsRef>(null);
-    const {
-      rightSidebarSelector,
-      navigateRightSidebar,
-      selectedResource,
-      selectedEdge,
-      resourceTypeKB,
-      environmentVersion
-    } = useApplicationStore();
 
-    const [promotedProperties, setPromotedProperties] = React.useState<
+const Details: FC = function () {
+  const tabsRef = useRef<TabsRef>(null);
+  const {
+    rightSidebarSelector,
+    navigateRightSidebar,
+    selectedResource,
+    selectedEdge,
+    resourceTypeKB,
+    environmentVersion,
+  } = useApplicationStore();
+
+  const [promotedProperties, setPromotedProperties] = React.useState<
     Map<string, Property[]> | undefined
   >();
   const [remainingProperties, setRemainingProperties] = React.useState<
     Property[] | undefined
-  >();  
+  >();
 
-    useEffect(() => {
-        if (selectedResource) {
-          const allProperties = resourceProperties(
-            environmentVersion,
-            resourceTypeKB,
-            selectedResource,
-          );
-          const promotedProperties = new Map<string, Property[]>();
-          for (const [resourceId, properties] of allProperties) {
-            const metadata = environmentVersion.resources.get(
-              selectedResource.toString(),
-            );
-            let promotedProps = properties.filter((p) => isPropertyPromoted(p));
-            if (metadata?.imported) {
-              promotedProps = properties.filter((p) => !p.hidden);
-            }
-            if (promotedProps.length > 0) {
-              promotedProperties.set(resourceId.toString(), promotedProps);
-            }
-          }
-          let remainingProperties = allProperties
-            .get(selectedResource)
-            ?.filter(
-              (p) =>
-                !promotedProperties?.get(selectedResource.toString())?.includes(p),
-            );
-          if (promotedProperties.size === 0) {
-            promotedProperties.set(
-              selectedResource.toString(),
-              remainingProperties ?? [],
-            );
-            remainingProperties = undefined;
-          }
-          if (remainingProperties?.length === 0) {
-            remainingProperties = undefined;
-          }
-          setPromotedProperties(promotedProperties);
-          setRemainingProperties(remainingProperties);
+  useEffect(() => {
+    if (selectedResource) {
+      const allProperties = resourceProperties(
+        environmentVersion,
+        resourceTypeKB,
+        selectedResource,
+      );
+      const promotedProperties = new Map<string, Property[]>();
+      for (const [resourceId, properties] of allProperties) {
+        const metadata = environmentVersion.resources.get(
+          selectedResource.toString(),
+        );
+        let promotedProps = properties.filter((p) => isPropertyPromoted(p));
+        if (metadata?.imported) {
+          promotedProps = properties.filter((p) => !p.hidden);
         }
-      }, [selectedResource, environmentVersion, resourceTypeKB]);
+        if (promotedProps.length > 0) {
+          promotedProperties.set(resourceId.toString(), promotedProps);
+        }
+      }
+      let remainingProperties = allProperties
+        .get(selectedResource)
+        ?.filter(
+          (p) =>
+            !promotedProperties?.get(selectedResource.toString())?.includes(p),
+        );
+      if (promotedProperties.size === 0) {
+        promotedProperties.set(
+          selectedResource.toString(),
+          remainingProperties ?? [],
+        );
+        remainingProperties = undefined;
+      }
+      if (remainingProperties?.length === 0) {
+        remainingProperties = undefined;
+      }
+      setPromotedProperties(promotedProperties);
+      setRemainingProperties(remainingProperties);
+    }
+  }, [selectedResource, environmentVersion, resourceTypeKB]);
 
-    useEffect(() => {
-      tabsRef.current?.setActiveTab(rightSidebarSelector[1]);
-    }, [rightSidebarSelector]);
-    useEffect(() => {
-      tabsRef.current?.setActiveTab(rightSidebarSelector[1]);
-    }, [rightSidebarSelector]);
-  
-    return (
-      <Tabs
-        theme={detailsTabsTheme}
-        aria-label="Architecture Actions"
-        /* eslint-disable-next-line react/style-prop-object */
-        style={"fullWidth"}
-        ref={tabsRef}
-        onActiveTabChange={(tab) => {
-          if (tab === rightSidebarSelector[1]) {
-            return;
-          }
-          navigateRightSidebar([
-            rightSidebarSelector[0],
-            RightSidebarDetailsTab[
-              RightSidebarDetailsTab[tab] as keyof typeof RightSidebarDetailsTab
-            ],
-          ]);
-        }}
+  useEffect(() => {
+    tabsRef.current?.setActiveTab(rightSidebarSelector[1]);
+  }, [rightSidebarSelector]);
+
+  return (
+    <Tabs
+      theme={detailsTabsTheme}
+      aria-label="Architecture Actions"
+      /* eslint-disable-next-line react/style-prop-object */
+      style={"fullWidth"}
+      ref={tabsRef}
+      onActiveTabChange={(tab) => {
+        if (tab === rightSidebarSelector[1]) {
+          return;
+        }
+        navigateRightSidebar([
+          rightSidebarSelector[0],
+          RightSidebarDetailsTab[
+            RightSidebarDetailsTab[tab] as keyof typeof RightSidebarDetailsTab
+          ],
+        ]);
+      }}
+    >
+      <Tabs.Item
+        className="col flex h-full min-h-0"
+        active
+        title="Config"
+        icon={HiCog6Tooth}
       >
-        <Tabs.Item
-          className="col flex h-full min-h-0"
-          active
-          title="Config"
-          icon={HiCog6Tooth}
-        >
-          <div className="flex h-full min-h-0 flex-col">
-            <ResourceIdHeader
-              resourceId={selectedResource}
-              edgeId={selectedEdge}
+        <div className="flex h-full min-h-0 flex-col">
+          <ResourceIdHeader
+            resourceId={selectedResource}
+            edgeId={selectedEdge}
+          />
+          {selectedResource && (
+            <ConfigForm
+              key={`config-table-${selectedResource.toString()}`}
+              sections={promotedProperties}
+              remainingProperties={remainingProperties}
             />
-            {selectedResource && (
-              <ConfigForm 
-                key={`config-table-${selectedResource.toString()}`}
-                promotedProperties={promotedProperties}
-                remainingProperties={remainingProperties}
-              />
-            )}
-          </div>
-        </Tabs.Item>
-        <Tabs.Item title="Additional Resources">
-          <ResourceIdHeader resourceId={selectedResource} edgeId={selectedEdge} />
-          <AdditionalResources />
-        </Tabs.Item>
-      </Tabs>
-    );
-  };
+          )}
+        </div>
+      </Tabs.Item>
+      <Tabs.Item title="Additional Resources">
+        <ResourceIdHeader resourceId={selectedResource} edgeId={selectedEdge} />
+        <AdditionalResources />
+      </Tabs.Item>
+    </Tabs>
+  );
+};

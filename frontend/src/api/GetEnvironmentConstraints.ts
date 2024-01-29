@@ -15,14 +15,17 @@ export async function getEnvironmentConstraints(
 ): Promise<Constraint[]> {
   let response: AxiosResponse;
   try {
-    response = await axios.get(`/api/architecture/${architectureId}/environment/${environmentId}/constraints`, {
-      responseType: "json",
-      decompress: true,
-      headers: {
-        accept: "application/octet-stream",
-        ...(idToken && { Authorization: `Bearer ${idToken}` }),
+    response = await axios.get(
+      `/api/architecture/${architectureId}/environment/${environmentId}/constraints`,
+      {
+        responseType: "json",
+        decompress: true,
+        headers: {
+          accept: "application/octet-stream",
+          ...(idToken && { Authorization: `Bearer ${idToken}` }),
+        },
       },
-    });
+    );
   } catch (e: any) {
     const error = new ApiError({
       errorId: "GetEnvironmentConstraints",
