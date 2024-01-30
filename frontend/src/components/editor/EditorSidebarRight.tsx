@@ -42,7 +42,11 @@ import { FaHistory } from "react-icons/fa";
 import { ResizableSection } from "../Resizable";
 import { TbPlugConnected } from "react-icons/tb";
 import { OutlinedAlert } from "../../shared/custom-themes";
-import { canModifyConfiguration } from "../../shared/ViewSettings";
+import {
+  canModifyConfiguration,
+  isViewMode,
+  ViewMode,
+} from "../../shared/EditorViewSettings";
 
 const EditorSidebarRight: FC = () => {
   const menusRef = useRef<HTMLDivElement>(null);
@@ -87,36 +91,36 @@ const EditorSidebarRight: FC = () => {
     setTabState(updateActiveIndex(tabState, index, false));
   };
 
+  const shouldShowDetails =
+    tabState[RightSidebarMenu.Details] && !!(selectedResource || selectedEdge);
+  const shouldShowChanges =
+    tabState[RightSidebarMenu.Changes] &&
+    ((decisions?.length || failures?.length) ?? 0) &&
+    !isViewMode(viewSettings, ViewMode.View);
+  const shouldShowMenu = shouldShowDetails || shouldShowChanges;
+
   return (
     <>
-      <ResizableSection
-        childRef={menusRef}
-        handleSide="left"
-        disabled={!isResizable}
-      >
-        <div
-          ref={menusRef}
-          className={classNames(
-            "flex flex-col w-[600px] overflow-hidden min-w-[340px]",
-            {
-              hidden: Object.values(tabState).every((value) => !value),
-            },
-          )}
+      {shouldShowMenu && (
+        <ResizableSection
+          childRef={menusRef}
+          handleSide="left"
+          disabled={!isResizable}
         >
-          <DetailsSidebar
-            hidden={
-              !tabState[RightSidebarMenu.Details] ||
-              rightSidebarSelector[0] !== RightSidebarMenu.Details
-            }
-          />
-          <ChangesSidebar
-            hidden={
-              !tabState[RightSidebarMenu.Changes] ||
-              rightSidebarSelector[0] !== RightSidebarMenu.Changes
-            }
-          />
-        </div>
-      </ResizableSection>
+          <div
+            ref={menusRef}
+            className={classNames(
+              "flex flex-col w-[600px] overflow-hidden min-w-[340px]",
+              {
+                hidden: Object.values(tabState).every((value) => !value),
+              },
+            )}
+          >
+            <DetailsSidebar hidden={!shouldShowDetails} />
+            <ChangesSidebar hidden={!shouldShowChanges} />
+          </div>
+        </ResizableSection>
+      )}
       <Sidebar
         collapsed
         className={"border-l-[1px] dark:border-gray-700"}

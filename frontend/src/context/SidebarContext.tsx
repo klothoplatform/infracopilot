@@ -3,6 +3,8 @@ import { createContext, useContext, useEffect, useState } from "react";
 import isBrowser from "../helpers/is-browser";
 import { isSmallScreen } from "../helpers/screen-size";
 
+// this is a sample from the original flowbite example (not currently used)
+
 interface SidebarContextProps {
   isOpenOnSmallScreens: boolean;
   isPageWithSidebar: boolean;

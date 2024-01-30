@@ -24,6 +24,37 @@ def find_mutating_constraints(constraints: List[dict]) -> List[Constraint]:
     return non_resource_constraints
 
 
+def substitute_name_changes(
+    constraints: List[Constraint], oldId: ResourceID, newId: ResourceID
+) -> List[Constraint]:
+    """Substitute oldId with newId in all constraints.
+
+    Args:
+        constraints (List[Constraint]): List of constraints.
+        oldId (ResourceID): Old ID.
+        newId (ResourceID): New ID.
+
+    Returns:
+        List[Constraint]: List of constraints with substitutions.
+    """
+    for constraint in constraints:
+        if constraint.scope is ConstraintScope.Application:
+            if constraint.node == oldId:
+                constraint.node = newId
+        elif constraint.scope is ConstraintScope.Construct:
+            if constraint.target == oldId:
+                constraint.target = newId
+        elif constraint.scope is ConstraintScope.Edge:
+            if constraint.target.source == oldId:
+                constraint.target.source = newId
+            if constraint.target.target == oldId:
+                constraint.target.target = newId
+        elif constraint.scope is ConstraintScope.Resource:
+            if constraint.target == oldId:
+                constraint.target = newId
+    return constraints
+
+
 def parse_constraints(constraints: List[Dict[str, Any]]) -> List[Constraint]:
     """Parse a list of constraints.
 
@@ -37,6 +68,8 @@ def parse_constraints(constraints: List[Dict[str, Any]]) -> List[Constraint]:
         List[Constraint]: List of parsed constraints.
     """
     parsed_constraints: List[Constraint] = []
+    if constraints is None:
+        return parsed_constraints
     for constraint in constraints:
         if constraint["scope"] == ConstraintScope.Application.value:
             parsed_constraints.append(
@@ -45,7 +78,7 @@ def parse_constraints(constraints: List[Dict[str, Any]]) -> List[Constraint]:
                     ResourceID.from_string(constraint["node"]),
                     (
                         ResourceID.from_string(constraint["replacement_node"])
-                        if constraint["replacement_node"]
+                        if "replacement_node" in constraint
                         else None
                     ),
                 )
@@ -63,7 +96,10 @@ def parse_constraints(constraints: List[Dict[str, Any]]) -> List[Constraint]:
             parsed_constraints.append(
                 EdgeConstraint(
                     ConstraintOperator(constraint["operator"]),
-                    Edge.from_string(constraint["target"]),
+                    Edge(
+                        ResourceID.from_string(constraint["target"]["source"]),
+                        ResourceID.from_string(constraint["target"]["target"]),
+                    ),
                 )
             )
         elif constraint["scope"] == ConstraintScope.Resource.value:

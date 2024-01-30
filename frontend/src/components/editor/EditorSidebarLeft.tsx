@@ -17,6 +17,7 @@ import useApplicationStore from "../../pages/store/ApplicationStore";
 import { env } from "../../shared/environment";
 import ImportResourceModal from "../imports/ImportResourceModal";
 import ImportAccordion from "../imports/ImportAccordian";
+import { useScreenSize } from "../../shared/hooks/useScreenSize";
 
 const displayedClassifications = [
   "api",
@@ -42,9 +43,6 @@ const EditorSidebarLeft = forwardRef(
       getResourceTypeKB,
       environmentVersion: { architecture_id, id },
     } = useApplicationStore();
-
-    const { isOpenOnSmallScreens: isSidebarOpenOnSmallScreens } =
-      useSidebarContext();
 
     const [filterFunction, setFilterFunction] = useState<
       FilterFunction | undefined
@@ -115,12 +113,7 @@ const EditorSidebarLeft = forwardRef(
     });
 
     return (
-      <div
-        ref={ref}
-        className={classNames("flex w-full", {
-          hidden: isSidebarOpenOnSmallScreens,
-        })}
-      >
+      <div ref={ref} className={"flex w-full"}>
         {showImportModal && (
           <ImportResourceModal onClose={() => setShowImportModal(false)} />
         )}

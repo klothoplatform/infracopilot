@@ -7,26 +7,26 @@ import ReactFlow, {
   useReactFlow,
   useStore,
 } from "reactflow";
-import NodeTypes, { NodeType } from "../../shared/reactflow/NodeTypes";
+import NodeTypes, { NodeType } from "../../../../shared/reactflow/NodeTypes";
 import EdgeTypes, {
   defaultEdgeOptions,
-} from "../../shared/reactflow/EdgeTypes";
+} from "../../../../shared/reactflow/EdgeTypes";
 import type { MouseEvent as ReactMouseEvent } from "react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { NodeId } from "../../shared/architecture/TopologyNode";
-import useApplicationStore from "../store/ApplicationStore";
+import { NodeId } from "../../../../shared/architecture/TopologyNode";
+import useApplicationStore from "../../../store/ApplicationStore";
 import ContextMenu from "./ContextMenu";
-import { WorkingOverlay } from "../../components/WorkingOverlay";
-import { getIconMapping } from "../../shared/resources/ResourceMappings";
+import { WorkingOverlay } from "../../../../components/WorkingOverlay";
+import { getIconMapping } from "../../../../shared/resources/ResourceMappings";
 import { ErrorBoundary } from "react-error-boundary";
-import { FallbackRenderer } from "../../components/FallbackRenderer";
-import { UIError } from "../../shared/errors";
-import { trackError } from "../store/ErrorStore";
-import ConnectionLine from "../../shared/reactflow/ConnectionLine";
+import { FallbackRenderer } from "../../../../components/FallbackRenderer";
+import { UIError } from "../../../../shared/errors";
+import { trackError } from "../../../store/ErrorStore";
+import ConnectionLine from "../../../../shared/reactflow/ConnectionLine";
 import { shallow } from "zustand/shallow";
 import classNames from "classnames";
 import { VersionNavigator } from "./VersionNavigation";
-import { canModifyConfiguration } from "../../shared/ViewSettings";
+import { canModifyConfiguration } from "../../../../shared/EditorViewSettings";
 
 export default function EditorPane() {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);

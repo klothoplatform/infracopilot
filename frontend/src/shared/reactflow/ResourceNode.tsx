@@ -24,7 +24,7 @@ import { TbDotsCircleHorizontal } from "react-icons/tb";
 import { ThemeContext } from "flowbite-react/lib/esm/components/Flowbite/ThemeContext";
 import type { IconProps } from "../../components/editor/Icon";
 import { Tooltip } from "flowbite-react";
-import { canModifyTopology } from "../ViewSettings";
+import { canModifyTopology } from "../EditorViewSettings";
 
 interface ResourceNodeProps {
   id: string;

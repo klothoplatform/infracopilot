@@ -81,6 +81,23 @@ class TopologyDiff:
         return True
 
 
+class TopologicalChangesNotAllowed(Exception):
+    """
+    Exception to be raised when topological changes are not allowed.
+    """
+
+    def __init__(
+        self, env_id: str, constraints: List[dict] = None, diff: TopologyDiff = None
+    ):
+        super().__init__(
+            f"Topological changes are not allowed for environment {env_id}"
+        )
+        self.constraints = constraints
+        self.diff = diff
+        self.env_id = env_id
+        self.error_type = "topological_changes_not_allowed"
+
+
 class Topology:
     """
     Class to represent a topology.

@@ -8,7 +8,7 @@ import {
   RightSidebarDetailsTab,
   RightSidebarMenu,
 } from "../../../../shared/sidebar-nav";
-import { canModifyTopology } from "../../../../shared/ViewSettings";
+import { canModifyTopology } from "../../../../shared/EditorViewSettings";
 
 interface RouteNodeProps {
   id: string;

@@ -166,19 +166,62 @@ class EnvironmentVersionDAO:
         tracking_env: str,
         tracking_version_hash: str,
     ) -> List[EnvironmentVersion]:
-        stmt = select(EnvironmentVersion).where(
-            and_(
-                EnvironmentVersion.architecture_id == architecture_id,
-                EnvironmentVersion.id == id,
-                EnvironmentVersion.env_resource_configuration[
-                    ("tracks", "version_hash")
-                ].as_string()
-                == tracking_version_hash,
-                EnvironmentVersion.env_resource_configuration[
-                    ("tracks", "environment")
-                ].as_string()
-                == tracking_env,
+        stmt = (
+            select(EnvironmentVersion)
+            .where(
+                and_(
+                    EnvironmentVersion.architecture_id == architecture_id,
+                    EnvironmentVersion.id == id,
+                    EnvironmentVersion.env_resource_configuration[
+                        ("tracks", "version_hash")
+                    ].as_string()
+                    == tracking_version_hash,
+                    EnvironmentVersion.env_resource_configuration[
+                        ("tracks", "environment")
+                    ].as_string()
+                    == tracking_env,
+                )
             )
+            .order_by(EnvironmentVersion.version.asc())
+        )
+        result = await self._session.execute(stmt)
+        result = result.fetchall()
+        return [r[0] for r in result]
+
+    async def get_all_versions_after_hash(
+        self,
+        architecture_id: str,
+        id: str,
+        version_hash: str,
+    ) -> List[EnvironmentVersion]:
+        stmt = (
+            select(EnvironmentVersion)
+            .where(
+                and_(
+                    EnvironmentVersion.architecture_id == architecture_id,
+                    EnvironmentVersion.id == id,
+                    EnvironmentVersion.version_hash == version_hash,
+                )
+            )
+            .order_by(EnvironmentVersion.version.desc())
+            .limit(1)
+        )
+        result = await self._session.execute(stmt)
+        result = result.fetchone()
+        if result is None:
+            raise EnvironmentVersionDoesNotExistError
+        version = result[0].version
+
+        stmt = (
+            select(EnvironmentVersion)
+            .where(
+                and_(
+                    EnvironmentVersion.architecture_id == architecture_id,
+                    EnvironmentVersion.id == id,
+                    EnvironmentVersion.version > version,
+                )
+            )
+            .order_by(EnvironmentVersion.version.asc())
         )
         result = await self._session.execute(stmt)
         result = result.fetchall()

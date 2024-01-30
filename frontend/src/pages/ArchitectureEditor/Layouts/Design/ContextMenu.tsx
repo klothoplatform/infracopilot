@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect, useRef } from "react";
 import type { Edge, Node } from "reactflow";
 
-import useApplicationStore from "../store/ApplicationStore";
+import useApplicationStore from "../../../store/ApplicationStore";
 import { BiX } from "react-icons/bi";
-import type { ViewSettings } from "../../shared/ViewSettings";
-import { canModifyTopology } from "../../shared/ViewSettings";
+import type { EditorViewSettings } from "../../../../shared/EditorViewSettings";
+import { canModifyTopology } from "../../../../shared/EditorViewSettings";
 
 interface ContextMenuProps {
   node?: Node;
@@ -14,7 +14,7 @@ interface ContextMenuProps {
   right: number;
   bottom: number;
   onAction?: () => void;
-  viewSettings?: ViewSettings;
+  viewSettings?: EditorViewSettings;
 }
 
 export default function ContextMenu({
