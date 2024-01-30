@@ -76,11 +76,8 @@ import { updateArchitectureAccess } from "../../api/UpdateArchitectureAccess";
 import { getArchitectureAccess } from "../../api/GetArchitectureAccess";
 import type { ArchitectureAccess } from "../../shared/architecture/Access";
 import cloneArchitecture from "../../api/CloneArchitecture";
-import type {
-  EditorViewSettings} from "../../shared/EditorViewSettings";
-import {
-  EditorLayout
-} from "../../shared/EditorViewSettings";
+import type { EditorViewSettings } from "../../shared/EditorViewSettings";
+import { EditorLayout } from "../../shared/EditorViewSettings";
 import { isViewMode, ViewMode } from "../../shared/EditorViewSettings";
 
 interface EditorStoreState {
@@ -837,14 +834,17 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
         })
         .flat();
 
-      get().selectNode(selectedNode);
-
-      get().selectResource(selectedResource);
-      if (selectedNode && !selectedResource) {
+      if (selectedEdge) {
+        get().selectEdge(selectedEdge);
+      } else if (selectedNode && !selectedResource) {
         get().selectNode(selectedNode);
+      } else if (selectedResource) {
+        get().selectResource(selectedResource);
+      } else {
+        get().deselectResource();
+        get().deselectNode();
+        get().deselectEdge();
       }
-
-      get().selectEdge(selectedEdge);
 
       set(
         {
@@ -959,7 +959,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
         unappliedConstraints: [...get().unappliedConstraints, constraint],
       },
       false,
-      "editor/renameResource",
+      "editor/replaceResource",
     );
     analytics.track("replaceResource", {
       old: oldId,

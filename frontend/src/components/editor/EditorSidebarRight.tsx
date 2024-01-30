@@ -9,7 +9,7 @@ import {
   Tooltip,
   useTheme,
 } from "flowbite-react";
-import type { ComponentProps, FC, ReactElement } from "react";
+import type { FC, ReactElement } from "react";
 import React, { useContext, useEffect, useRef, useState } from "react";
 import {
   HiCheck,
@@ -36,7 +36,7 @@ import { ErrorBoundary } from "react-error-boundary";
 import { FallbackRenderer } from "../FallbackRenderer";
 import { trackError } from "../../pages/store/ErrorStore";
 import { UIError } from "../../shared/errors";
-import { FaArrowLeft, FaArrowRight, FaBars } from "react-icons/fa6";
+import { FaArrowLeft, FaArrowRight, FaBars, FaCircle } from "react-icons/fa6";
 import classNames from "classnames";
 import { FaHistory } from "react-icons/fa";
 import { ResizableSection } from "../Resizable";
@@ -47,6 +47,16 @@ import {
   isViewMode,
   ViewMode,
 } from "../../shared/EditorViewSettings";
+import type { IconType } from "react-icons";
+import { twMerge } from "tailwind-merge";
+import type { IconBaseProps } from "react-icons/lib/esm/iconBase";
+
+interface SidebarItemState {
+  [key: string]: {
+    visible: boolean | null;
+    hasNotification: boolean;
+  };
+}
 
 const EditorSidebarRight: FC = () => {
   const menusRef = useRef<HTMLDivElement>(null);
@@ -60,27 +70,24 @@ const EditorSidebarRight: FC = () => {
     viewSettings,
   } = useApplicationStore();
 
-  const [tabState, setTabState] = useState<{
-    [key: string]: boolean;
-  }>({});
-
+  const [itemState, setItemState] = useState<SidebarItemState>({});
   const [isResizable, setIsResizable] = useState(false);
 
   useEffect(() => {
     if (!rightSidebarSelector[0]) {
       return;
     }
-    setTabState((previous) =>
+    setItemState((previous) =>
       updateActiveIndex(previous, rightSidebarSelector[0] as string, true),
     );
   }, [rightSidebarSelector]);
 
   useEffect(() => {
-    setIsResizable(Object.values(tabState).some((v) => v));
-  }, [tabState]);
+    setIsResizable(Object.values(itemState).some((v) => v));
+  }, [itemState]);
 
   const onActivate = (index: string) => {
-    setTabState(updateActiveIndex(tabState, index, true));
+    setItemState(updateActiveIndex(itemState, index, true, true));
     navigateRightSidebar([
       RightSidebarMenu[index as keyof typeof RightSidebarMenu],
       rightSidebarSelector[1],
@@ -88,16 +95,30 @@ const EditorSidebarRight: FC = () => {
   };
 
   const onDeactivate = (index: string) => {
-    setTabState(updateActiveIndex(tabState, index, false));
+    setItemState(updateActiveIndex(itemState, index, null));
   };
 
   const shouldShowDetails =
-    tabState[RightSidebarMenu.Details] && !!(selectedResource || selectedEdge);
+    itemState[RightSidebarMenu.Details]?.visible &&
+    !!(selectedResource || selectedEdge);
   const shouldShowChanges =
-    tabState[RightSidebarMenu.Changes] &&
+    itemState[RightSidebarMenu.Changes]?.visible &&
     ((decisions?.length || failures?.length) ?? 0) &&
     !isViewMode(viewSettings, ViewMode.View);
   const shouldShowMenu = shouldShowDetails || shouldShowChanges;
+
+  const isChangesActive =
+    !!itemState[RightSidebarMenu.Changes]?.visible &&
+    !!(decisions?.length || failures?.length);
+
+  const isDetailsActive =
+    !!itemState[RightSidebarMenu.Details]?.visible &&
+    !!(selectedResource || selectedEdge);
+
+  const isDetailsDisabled = !selectedResource && !selectedEdge;
+  const detailsHasNotification =
+    !!itemState[RightSidebarMenu.Details]?.hasNotification &&
+    !isDetailsDisabled;
 
   return (
     <>
@@ -112,7 +133,7 @@ const EditorSidebarRight: FC = () => {
             className={classNames(
               "flex flex-col w-[600px] overflow-hidden min-w-[340px]",
               {
-                hidden: Object.values(tabState).every((value) => !value),
+                hidden: Object.values(itemState).every((value) => !value),
               },
             )}
           >
@@ -128,9 +149,10 @@ const EditorSidebarRight: FC = () => {
           root: {
             base: "h-full grow-0 shrink-0",
             inner:
-              "h-full overflow-y-auto overflow-x-hidden bg-gray-50 py-4 px-3 dark:bg-gray-800",
+              "flex justify-center h-full overflow-y-auto overflow-x-hidden bg-gray-50 py-4 dark:bg-gray-800",
             collapsed: {
               off: "",
+              on: "w-12",
             },
           },
         }}
@@ -138,38 +160,34 @@ const EditorSidebarRight: FC = () => {
         <Sidebar.Items className="h-full">
           <div className="flex h-full flex-col justify-between">
             <Sidebar.ItemGroup>
-              <SidebarMenuOptionGroup activeIndex={rightSidebarSelector[0]}>
+              <SidebarMenuOption
+                key={RightSidebarMenu.Details}
+                index={RightSidebarMenu.Details}
+                label={"Details"}
+                icon={FaBars}
+                onActivate={onActivate}
+                onDeactivate={onDeactivate}
+                active={isDetailsActive}
+                disabled={isDetailsDisabled}
+                showNotification={detailsHasNotification}
+              />
+              {canModifyConfiguration(viewSettings) ? (
                 <SidebarMenuOption
-                  key={RightSidebarMenu.Details}
-                  index={RightSidebarMenu.Details}
-                  label={"Details"}
-                  icon={FaBars}
+                  key={RightSidebarMenu.Changes}
+                  index={RightSidebarMenu.Changes}
+                  label={"Changes"}
+                  icon={FaHistory}
                   onActivate={onActivate}
                   onDeactivate={onDeactivate}
-                  active={
-                    tabState[RightSidebarMenu.Details] &&
-                    !!(selectedResource || selectedEdge)
+                  active={isChangesActive}
+                  disabled={decisions?.length === 0 && failures?.length === 0}
+                  showNotification={
+                    !!itemState[RightSidebarMenu.Changes]?.hasNotification
                   }
-                  disabled={!selectedResource && !selectedEdge}
                 />
-                {canModifyConfiguration(viewSettings) ? (
-                  <SidebarMenuOption
-                    key={RightSidebarMenu.Changes}
-                    index={RightSidebarMenu.Changes}
-                    label={"Changes"}
-                    icon={FaHistory}
-                    onActivate={onActivate}
-                    onDeactivate={onDeactivate}
-                    active={
-                      tabState[RightSidebarMenu.Changes] &&
-                      !!(decisions?.length || failures?.length)
-                    }
-                    disabled={decisions?.length === 0 && failures?.length === 0}
-                  />
-                ) : (
-                  <></>
-                )}
-              </SidebarMenuOptionGroup>
+              ) : (
+                <></>
+              )}
             </Sidebar.ItemGroup>
           </div>
         </Sidebar.Items>
@@ -178,57 +196,41 @@ const EditorSidebarRight: FC = () => {
   );
 };
 
-const SidebarMenuOptionGroup: FC<{
-  activeIndex: string | undefined;
-  children: ReactElement<typeof SidebarMenuOption>[];
-}> = ({ activeIndex, children }) => {
-  const [active, setActive] = useState<string | undefined>(activeIndex);
-
-  useEffect(() => {
-    setActive(activeIndex);
-  }, [activeIndex]);
-
-  return (
-    <SidebarOptionsContext.Provider
-      value={{
-        activeIndex: active,
-        setActiveIndex: setActive,
-      }}
-    >
-      {children}
-    </SidebarOptionsContext.Provider>
-  );
-};
-
-const SidebarOptionsContext = React.createContext<{
-  activeIndex?: string;
-  setActiveIndex: (index?: string) => void;
-}>({
-  activeIndex: undefined,
-  setActiveIndex: () => {},
-});
-
 function updateActiveIndex(
-  mappings: {
-    [key: string]: boolean;
-  },
+  mappings: SidebarItemState,
   index: number | string,
-  value?: boolean,
-): {
-  [key: string]: boolean;
-} {
+  value: boolean | null,
+  force?: boolean,
+): SidebarItemState {
   mappings = { ...mappings };
   let foundKey = false;
   Object.keys(mappings).forEach((key) => {
     if (key === index) {
       foundKey = true;
-      mappings[key] = value !== undefined ? value : !mappings[key];
+      const isManuallyHidden = mappings[key].visible === null;
+      if (value === true && isManuallyHidden) {
+        mappings[key] = {
+          visible: force ? true : null,
+          hasNotification: !force,
+        };
+      } else {
+        mappings[key] = {
+          visible: isManuallyHidden ? false : value,
+          hasNotification: value ? false : mappings[key].hasNotification,
+        };
+      }
     } else {
-      mappings[key] = false;
+      mappings[key] = {
+        visible: mappings[key].visible === null ? null : false,
+        hasNotification: mappings[key].hasNotification,
+      };
     }
   });
   if (!foundKey) {
-    mappings[index] = value !== undefined ? value : true;
+    mappings[index] = {
+      visible: value,
+      hasNotification: false,
+    };
   }
   return mappings;
 }
@@ -240,31 +242,26 @@ const SidebarMenuOption: FC<{
   disabled?: boolean;
   hidden?: boolean;
   label?: string;
-  icon?: FC<ComponentProps<"svg">>;
+  icon?: IconType;
   active?: boolean;
-}> = ({ index, onActivate, onDeactivate, disabled, label, icon, active }) => {
-  const [isActive, setIsActive] = useState(active && !disabled);
-  const { activeIndex, setActiveIndex } = useContext(SidebarOptionsContext);
-
-  useEffect(() => {
-    const shouldBeActive = activeIndex === index && !disabled;
-
-    if (shouldBeActive && !isActive) {
-      setIsActive(true);
-      console.debug("activating", index);
-      onActivate?.(index);
-    } else if (!shouldBeActive && isActive) {
-      setIsActive(false);
-      console.debug("deactivating", index);
-      onDeactivate?.(index);
-    }
-  }, [activeIndex, index]);
+  showNotification?: boolean;
+}> = ({
+  index,
+  onActivate,
+  onDeactivate,
+  disabled,
+  label,
+  icon,
+  active,
+  showNotification,
+}) => {
+  const Icon = icon ?? (React.Fragment as any);
 
   const handleClick = () => {
-    if (isActive) {
-      setActiveIndex(undefined);
+    if (active) {
+      onDeactivate?.(index);
     } else {
-      setActiveIndex(index);
+      onActivate?.(index);
     }
   };
 
@@ -276,15 +273,40 @@ const SidebarMenuOption: FC<{
         "w-fit cursor-default disabled:hover:bg-gray-50 disabled:text-gray-300 [&_svg]:disabled:fill-gray-300 [&_svg]:dark:disabled:fill-gray-600 dark:disabled:hover:bg-gray-800 disabled:cursor-not-allowed dark:disabled:text-gray-600",
         {
           "dark:hover:bg-primary-600 hover:bg-primary-600 bg-primary-600 [&_svg]:fill-white text-white":
-            isActive,
+            active,
         },
       )}
-      icon={icon}
+      icon={({ ...rest }) => (
+        <SidebarIcon {...rest} baseIcon={Icon} showCircle={showNotification} />
+      )}
       onClick={handleClick}
       disabled={disabled}
     >
       {label}
     </Sidebar.Item>
+  );
+};
+
+const SidebarIcon: FC<
+  {
+    baseIcon?: IconType;
+    circleSize?: number;
+    showCircle?: boolean;
+  } & IconBaseProps
+> = ({ baseIcon, circleSize, showCircle, ...rest }) => {
+  const Icon = baseIcon ?? (React.Fragment as IconType);
+  return (
+    <div className={"relative"}>
+      <Icon {...rest} className={twMerge(rest?.className, "relative")} />
+      {showCircle && (
+        <FaCircle
+          size={circleSize ?? 12}
+          className={
+            "absolute -right-0.5 -top-0.5 text-red-600 dark:text-red-500"
+          }
+        />
+      )}
+    </div>
   );
 };
 
