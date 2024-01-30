@@ -25,6 +25,7 @@ export default function ContextMenu({
   right,
   bottom,
   onAction,
+  viewSettings,
   ...props
 }: ContextMenuProps) {
   const { deleteElements } = useApplicationStore();
@@ -78,7 +79,7 @@ export default function ContextMenu({
         <ContextMenuButton
           icon={<BiX />}
           onClick={node ? deleteNode : deleteEdge}
-          disabled={!canModifyTopology(props.viewSettings)}
+          disabled={!canModifyTopology(viewSettings)}
         >
           Delete {node ? "Resource" : "Connection"}
         </ContextMenuButton>
