@@ -251,3 +251,40 @@ export function parseConstraints(constraints: any[]): Constraint[] {
     }
   });
 }
+
+export function removeEmptyKeys(input: any, isTopLevel: boolean = true): any {
+  if (typeof input === 'object' && input !== null) {
+      // If the input is an array then we just want to recurse into the items in the array since we wont modify the length of the array, etc
+      if (Array.isArray(input)) {
+        return input.map(item => removeEmptyKeys(item, false));
+      } else {
+        let output = {...input};
+
+        let keys = Object.keys(output);
+        console.log(keys)
+          // we want to provide a way for someone to unset a string, 
+          // so if the only thing being passed in is a single key that has a string value then we will allow it.
+          // Otherwise if theres multiple keys or you are a nested config we wont allow it
+          if (keys.length > 1 || !isTopLevel) {
+            for (let key of keys) {
+              console.log(key, output[key])
+                if (output[key] === "") {
+                    delete output[key];
+                }
+            }
+        }
+
+        for (let key of keys) {
+            // If the value is an object, process it recursively
+            if (typeof output[key] === 'object') {
+              console.log("recursing on", key, output[key])
+                output[key] = removeEmptyKeys(output[key], false);
+            }
+        }
+
+        return output;
+      }
+  }
+
+  return input;
+}

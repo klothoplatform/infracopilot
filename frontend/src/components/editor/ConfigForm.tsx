@@ -21,7 +21,7 @@ import {
   getCustomConfigSections,
   getCustomConfigState,
 } from "../../pages/ArchitectureEditor/config/CustomConfigMappings";
-import type { Constraint } from "../../shared/architecture/Constraints";
+import { type Constraint, removeEmptyKeys } from "../../shared/architecture/Constraints";
 import {
   ConstraintOperator,
   ResourceConstraint,
@@ -270,14 +270,18 @@ export default function ConfigForm() {
             resourceType?.properties,
           );
 
+          console.log(values)
+          const non_empty_values = removeEmptyKeys(values);
+          console.log(non_empty_values)
           const modifiedRootProperties = Object.fromEntries(
             [...modifiedFormFields.keys()].map((key) => {
               const rootKey = key.split(".", 2)[0].replaceAll(/\[\d+]/g, "");
-              const value = values[rootKey];
+              const value = non_empty_values[rootKey];
               return [rootKey, value];
             }),
           );
 
+          console.log(modifiedRootProperties)
           const resConstraints: Constraint[] = Object.entries(
             toResourceMetadata(
               modifiedRootProperties,
@@ -608,7 +612,6 @@ function applyCustomizers(
       return;
     }
     const prop = key.split("#", 2)[1];
-    console.log("submit", { key, value, prop, section: sections[prop] });
     const handler = sections[prop]?.stateHandler;
     if (handler) {
       constraints.push(
