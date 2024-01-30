@@ -267,7 +267,10 @@ const Details: FC = function () {
           {selectedResource && (
             <ConfigForm
               key={`config-table-${selectedResource.toString()}`}
-              sections={promotedProperties}
+              sections={ promotedProperties && [{
+                title: "Promoted Configurations",
+                propertyMap: promotedProperties,
+              }]}
               remainingProperties={remainingProperties}
             />
           )}

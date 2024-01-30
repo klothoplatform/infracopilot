@@ -9,23 +9,7 @@ from src.constraints.constraint import Constraint
 
 
 class EnvironmentTracker:
-    environment: str
-    version_hash: str
-
     def __init__(self, environment: str = "", version_hash: str = ""):
-        self.environment = environment
-        self.version_hash = version_hash
-
-    def to_dict(self):
-        return {"environment": self.environment, "version_hash": self.version_hash}
-
-    def from_dict(self, json: dict):
-        self.environment = json["environment"]
-        self.version_hash = json["version_hash"]
-
-
-class EnvironmentTracker:
-    def __init__(self, environment: str, version_hash: str):
         self.environment = environment
         self.version_hash = version_hash
 
@@ -39,12 +23,16 @@ class EnvironmentTracker:
 
 class EnvironmentResourceConfiguration:
     def __init__(
-        self, tracks: EnvironmentTracker, overrides: dict = None, diff: dict = None, config_errors: List[dict] = [],
+        self,
+        tracks: EnvironmentTracker = EnvironmentTracker(),
+        overrides: dict = None,
+        diff: dict = None,
+        config_errors: List[dict] = [],
     ):
         self.tracks = tracks
         self.overrides = overrides
         self.diff = diff
-        config_errors = config_errors
+        self.config_errors = config_errors
 
     def to_dict(self):
         return {
@@ -73,6 +61,7 @@ class EnvironmentResourceConfiguration:
             ),
             None if "overrides" not in json else json["overrides"],
             None if "diff" not in json else json["diff"],
+            [] if "config_errors" not in json else json["config_errors"],
         )
         return result
 

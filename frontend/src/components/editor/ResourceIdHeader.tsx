@@ -11,7 +11,7 @@ type ResourceIdHeaderProps = {
   edgeId?: string;
 };
 
-const ResourceIdHeader: FC<ResourceIdHeaderProps> = function ({
+export const ResourceIdHeader: FC<ResourceIdHeaderProps> = function ({
   resourceId,
   edgeId,
 }) {

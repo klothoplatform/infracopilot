@@ -39,6 +39,8 @@ import {
   resourceProperties,
 } from "../../shared/architecture/EnvironmentVersion";
 import { type ConfigurationError } from "../../shared/architecture/Architecture";
+import { get } from "http";
+import { sub } from "date-fns";
 
 interface ConfigFormSection {
   title: string;
@@ -68,29 +70,50 @@ export default function ConfigForm({
     if (!sections) {
       return {};
     }
-    sections.map((section) => {
-      return [...section.propertyMap.entries()].reduce(
-        (acc, [resourceId, properties]): any => {
+    let stateMap: {[key: string]: {}} = {}
+    sections.forEach((section) => {
+      return section.propertyMap.forEach((properties, resourceId): any => {
           const fs = toFormState(
             environmentVersion.resources.get(resourceId),
             properties,
             resourceId,
           );
-          return {
-            ...acc,
-            ...fs,
-          };
-        },
-        {},
-        )
+          Object.keys(fs).forEach((key) => {
+            console.log(key)
+              stateMap[key] = fs[key]
+          })
+        });
+
       })
+      console.log(stateMap, "stteMap")
+      return stateMap
   }
+
+  console.log(selectedResource,"selectedResource")
+
+  const state = getSectionsState(sections)
+  console.log(state, "state")
+  if (selectedResource) {
+  const defaults = {
+    ...getSectionsState(sections),
+    ...toFormState(
+      environmentVersion.resources.get(selectedResource.toString()),
+      remainingProperties,
+      selectedResource, // remaining properties are always on the selected resource
+    ),
+    ...getCustomConfigState(selectedResource, environmentVersion),
+  }
+  console.log("defaults", defaults)
+}
 
   const methods = useForm({
     shouldFocusError: true,
     defaultValues:
-      sections && selectedResource
-        ? {
+      !selectedResource ?
+        {
+          ...getSectionsState(sections),
+        } :
+         {
             ...getSectionsState(sections),
             ...toFormState(
               environmentVersion.resources.get(selectedResource.toString()),
@@ -99,9 +122,12 @@ export default function ConfigForm({
             ),
             ...getCustomConfigState(selectedResource, environmentVersion),
           }
-        : {},
   });
 
+  console.log(environmentVersion, "environmentVersion", "config form")
+  console.log(methods.getValues(), "methods.getValues()")
+  console.log(methods.formState.defaultValues, "methods.formState.defaultValues")
+   
   const formState = methods.formState;
   const {
     defaultValues,
@@ -143,14 +169,12 @@ export default function ConfigForm({
   ]);
 
   useEffect(() => {
+    console.log("HHHOOO in use effect", selectedResource)
     if (isSubmitted && !isSubmitSuccessful) {
+      console.log("returning")
       return;
     }
-
-    console.log("calling methods reset")
-
-    if (sections) {
-      if (selectedResource) {
+    if (sections && selectedResource) {
         methods.reset(
           {
             ...getSectionsState(sections),
@@ -162,14 +186,26 @@ export default function ConfigForm({
             ...getCustomConfigState(selectedResource, environmentVersion),
           }
         )
-    } else {
+    } else if (sections) {
+      console.log("resetting")
       methods.reset(
         {
           ...getSectionsState(sections),
         }
       )
+    } else if (selectedResource) {
+      console.log("resetting")
+      methods.reset(
+        {
+          ...toFormState(
+            environmentVersion.resources.get(selectedResource.toString()),
+            remainingProperties,
+            selectedResource, // remaining properties are always on the selected resource
+          ),
+          ...getCustomConfigState(selectedResource, environmentVersion),
+        }
+      )
     }
-  }
   const allSectionResources = sections?.map((section) => {
     return [...section.propertyMap.keys()]
   }).flat()
@@ -189,11 +225,13 @@ export default function ConfigForm({
     isSubmitSuccessful,
     isSubmitted,
     methods,
+    sections,
     selectedResource,
   ]);
 
   const submitConfigChanges: SubmitHandler<any> = useCallback(
     async (submittedValues: any) => {
+      console.log(submittedValues, "submittedValues")
       const valuesByResource = new Map<string, { values: any; dirty: any }>();
       for (let [key, value] of Object.entries(submittedValues)) {
         const resourceId = NodeId.parse(key.split("#", 2)[0]);
@@ -291,7 +329,6 @@ export default function ConfigForm({
       }
       try {
         const currConfigErrs = await applyConstraints(constraints);
-        console.log("currConfigErrs", currConfigErrs);
         setConfigErrors(currConfigErrs);
       } catch (e: any) {
         if (e instanceof ApplicationError) {
@@ -318,9 +355,10 @@ export default function ConfigForm({
     ],
   );
 
-  const configSections =  sections?.forEach((section) => {
+  const configSections =  sections?.map((section) => {
     return (
       <ConfigSection
+      key={section.title}
       id={section.title}
       title={section.title}
       removable={false}
@@ -443,7 +481,6 @@ function toFormState(
   resourceId?: NodeId | string,
 ) {
   const formState: any = {};
-  console.log(metadata, fields, resourceId)
   if (!metadata) {
     return formState;
   }
@@ -498,7 +535,6 @@ function toFormState(
         }
     }
   });
-  console.log("current form state", formState);
   return formState;
 }
 
@@ -556,14 +592,6 @@ function applyCustomizers(
     resourceId.provider,
     resourceId.type,
   );
-  console.log("applyCustomizers", {
-    sections,
-    resourceId,
-    submittedValues,
-    defaultValues,
-    modifiedValues,
-    environmentVersion,
-  });
 
   if (!sections) {
     return [];

@@ -187,6 +187,7 @@ async def promote(
         logger.error("Error promoting environment", exc_info=True)
         raise HTTPException(status_code=500, detail="internal server error")
 
+
 @router.get("/api/architecture/{id}/environment/{env_id}/constraints")
 async def get_all_constraints(
     request: Request,

@@ -338,6 +338,7 @@ class EnvironmentManager:
                         constraints.remove(c)
                 constraints.append(constraint)
 
+        return constraints
 
     async def get_all_constraints(
         self,
@@ -353,9 +354,9 @@ class EnvironmentManager:
         Returns:
             List[Constraint]: The list of constraints.
         """
-        versions: List[
-            EnvironmentVersion
-        ] = await self.ev_dao.list_environment_versions(architecture_id, env_id)
+        versions: List[EnvironmentVersion] = (
+            await self.ev_dao.list_environment_versions(architecture_id, env_id)
+        )
         constraints: List[Constraint] = []
         for v in versions:
             version_constraints = parse_constraints(v.constraints)

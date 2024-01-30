@@ -149,6 +149,7 @@ class TestArchitectureHandler(aiounittest.AsyncTestCase):
                     },
                     "overrides": None,
                     "diff": None,
+                    "config_errors": [],
                 },
             )
         )

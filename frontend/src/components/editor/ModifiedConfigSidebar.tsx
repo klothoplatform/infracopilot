@@ -198,23 +198,29 @@ const Details: FC = function () {
     unappliedConstraints,
   ]);
 
+
+
+  const sections = []
+  if (missingProperties.size > 0) {
+    sections.push({
+      title: "Missing Configurations",
+      propertyMap: missingProperties,
+    })
+  }
+  if (modifiedProperties.size > 0) {
+    sections.push({
+      title: "Modified Configurations",
+      propertyMap: modifiedProperties,
+    })
+  }
+
+
   return (
     <div className="flex h-full min-h-0 flex-col">
         <div>
-          <h3 className="text-sm font-medium dark:text-white">
-            Missing Configurations
-          </h3>
           <ConfigForm
             key={`config-table-missing`}
-            sections={[{
-              title: "Missing Configurations",
-              propertyMap: missingProperties,
-            },
-            {
-              title: "Modified Configurations",
-              propertyMap: modifiedProperties,
-            }
-          ]}
+            sections={sections}
           />
         </div>
       
