@@ -347,3 +347,25 @@ export function deriveDisplayName(type: string): string {
     )
     .join(" ");
 }
+
+export function getNewValue(properties: Property[] | undefined): object {
+  const val: any = {};
+  for (const property of properties ?? []) {
+    switch (property.type) {
+      case PrimitiveTypes.Number:
+        val[property.name] = 0;
+        break;
+      case PrimitiveTypes.Boolean:
+        val[property.name] = false;
+        break;
+      case CollectionTypes.List:
+      case CollectionTypes.Set:
+      case CollectionTypes.Map:
+        val[property.name] = [];
+        break;
+      default:
+        val[property.name] = "";
+    }
+  }
+  return val;
+}

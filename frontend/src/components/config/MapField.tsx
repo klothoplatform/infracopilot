@@ -125,11 +125,6 @@ const PrimitiveMap: FC<PrimitiveMapProps> = ({ id, disabled }) => {
   const errorMessage =
     error?.type === "manual" ? error.message : error?.root?.message;
 
-  const removeItem = (index: number) => {
-    remove(index);
-    unregister(`${id}[${index}]`);
-  };
-
   return (
     <div
       className={classNames("flex w-full flex-col gap-1", {
@@ -219,7 +214,7 @@ const PrimitiveMap: FC<PrimitiveMapProps> = ({ id, disabled }) => {
                   color={"red"}
                   size={"md"}
                   onClick={() => {
-                    removeItem(index);
+                  remove(index);
                   }}
                 >
                   <HiMinusCircle />

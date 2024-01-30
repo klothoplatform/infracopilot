@@ -7,6 +7,7 @@ import type {
   Property,
   ResourceProperty,
 } from "../../shared/resources/ResourceTypes";
+import { getNewValue } from "../../shared/resources/ResourceTypes";
 import {
   CollectionTypes,
   isCollection,
@@ -41,7 +42,7 @@ export const ListField: FC<ListProps> = ({
   disabled,
 }) => {
   qualifiedFieldName = qualifiedFieldName ?? "UNKNOWN-LIST";
-  const { register, unregister, control, formState } = useFormContext();
+  const { register, control, formState } = useFormContext();
   const { fields, append, remove } = useFieldArray({
     control,
     name: qualifiedFieldName,
@@ -82,11 +83,6 @@ export const ListField: FC<ListProps> = ({
 
   disabled = configurationDisabled || disabled;
 
-  const removeField = (index: number) => {
-    remove(index);
-    unregister(`${qualifiedFieldName}[${index}]`);
-  };
-
   if (isPrimitive(itemType)) {
     return (
       <ErrorHelper error={error}>
@@ -108,7 +104,7 @@ export const ListField: FC<ListProps> = ({
                 resourceTypes={(field as ResourceProperty).resourceTypes}
                 allowedValues={(field as EnumProperty).allowedValues}
                 disabled={disabled}
-                remove={removeField}
+                remove={remove}
               />
             );
           })}
@@ -144,7 +140,7 @@ export const ListField: FC<ListProps> = ({
                 properties={properties}
                 required={field.required}
                 disabled={disabled}
-                remove={removeField}
+                remove={remove}
               />
             );
           })}
@@ -153,9 +149,7 @@ export const ListField: FC<ListProps> = ({
               size="sm"
               className={"mt-1 h-fit w-fit"}
               color="purple"
-              onClick={() => {
-                append({});
-              }}
+              onClick={() => append(getNewValue(properties))}
             >
               <HiPlusCircle />
             </Button>
