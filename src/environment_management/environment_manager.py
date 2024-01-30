@@ -366,5 +366,4 @@ class EnvironmentManager:
                         constraints.remove(curr)
                         break
                 constraints.append(c)
-        logger.info(f"Found constraints {constraints}")
         return constraints
