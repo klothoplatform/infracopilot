@@ -189,7 +189,6 @@ const Details: FC = function () {
     Property[] | undefined
   >();
 
-  console.log("rendering details")
   useEffect(() => {
     if (selectedResource) {
       const allProperties = resourceProperties(
@@ -236,9 +235,6 @@ const Details: FC = function () {
   }, [rightSidebarSelector]);
 
 
-  useEffect(() => {
-    console.log("selected resource changed")
-    }, [selectedResource]);
   return (
     <Tabs
       theme={detailsTabsTheme}

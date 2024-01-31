@@ -131,6 +131,11 @@ const Details: FC<DetailsProps> = function ({
 
         const constraintsPropertyMap = new Map<string, Property[]>();
         resourceConstraints.forEach((constraint) => {
+
+         const metadata = environmentVersion.resources.get(constraint.target.toString());
+          if (!metadata) {
+            return;
+          }
       const allProperties = resourceProperties(
         environmentVersion,
         resourceTypeKB,
@@ -163,7 +168,6 @@ const Details: FC<DetailsProps> = function ({
       const configErrors = environmentVersion.config_errors;
       const configErrorsMap = new Map<string, Property[]>();
       configErrors.forEach((configError) => {
-        console.log(configError)
         const allProperties = resourceProperties(
           environmentVersion,
           resourceTypeKB,
@@ -184,7 +188,6 @@ const Details: FC<DetailsProps> = function ({
           });
         }
       });
-      console.log(configErrorsMap)
       setMissingProperties(configErrorsMap);
       if (configErrorsMap.size > 0) {
         setWarnMissingProperties(true);

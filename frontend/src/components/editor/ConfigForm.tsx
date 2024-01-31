@@ -71,13 +71,11 @@ export default function ConfigForm({
     let stateMap: {[key: string]: {}} = {}
     sections.forEach((section) => {
       return section.propertyMap.forEach((properties, resourceId): any => {
-        console.log(resourceId, "resourceId", environmentVersion.resources.get(resourceId), environmentVersion.resources)
           const fs = toFormState(
             environmentVersion.resources.get(resourceId),
             properties,
             resourceId,
           );
-          console.log(fs)
           Object.keys(fs).forEach((key) => {
               stateMap[key] = fs[key]
           })
@@ -105,7 +103,6 @@ export default function ConfigForm({
           }
   });
 
-  console.log("re render config form", sections, remainingProperties, methods.formState.defaultValues)
 
   const formState = methods.formState;
   const {
@@ -455,7 +452,6 @@ function toFormState(
   resourceId?: NodeId | string,
 ) {
   const formState: any = {};
-  console.log(metadata, "metadata", fields, "fields", resourceId, "resourceId")
   if (!metadata) {
     return formState;
   }
@@ -510,7 +506,6 @@ function toFormState(
         }
     }
   });
-  console.log(formState, "formState")
   return formState;
 }
 

@@ -212,7 +212,6 @@ function updateActiveIndex(
 ): SidebarItemState {
   mappings = { ...mappings };
   let foundKey = false;
-  console.log(mappings, index, value, force)
   Object.keys(mappings).forEach((key) => {
     if (key === index) {
       foundKey = true;
