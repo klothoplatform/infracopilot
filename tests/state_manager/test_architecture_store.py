@@ -143,7 +143,7 @@ class TestArchitectureStore(aiounittest.AsyncTestCase):
         self.mock_s3.Object.return_value = mock_object
         get_object_mock.return_value = b"test-content"
         result = self.arch_storage.get_iac_from_fs(self.test_env)
-        self.assertEqual(result.getvalue(), b"test-content")
+        self.assertEqual(result, b"test-content")
         self.mock_s3.Object.assert_called_once_with(self.test_env.iac_location)
         get_object_mock.assert_called_once_with(mock_object)
 
@@ -156,7 +156,7 @@ class TestArchitectureStore(aiounittest.AsyncTestCase):
         self.mock_s3.Object.return_value = mock_object
         get_object_mock.return_value = "test-content"
         result = self.arch_storage.get_iac_from_fs(self.test_env)
-        self.assertEqual(result.getvalue(), b"test-content")
+        self.assertEqual(result, b"test-content")
         self.mock_s3.Object.assert_called_once_with(self.test_env.iac_location)
         get_object_mock.assert_called_once_with(mock_object)
 

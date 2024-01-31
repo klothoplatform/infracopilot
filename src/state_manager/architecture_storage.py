@@ -69,7 +69,7 @@ class ArchitectureStorage:
                 )
             raise
 
-    def get_iac_from_fs(self, arch: EnvironmentVersion) -> Optional[BytesIO]:
+    def get_iac_from_fs(self, arch: EnvironmentVersion) -> Optional[bytes]:
         if arch.iac_location is None:
             return None
         try:
@@ -81,7 +81,7 @@ class ArchitectureStorage:
                 )
             if isinstance(iac_raw, str):
                 iac_raw = iac_raw.encode()
-            return BytesIO(iac_raw)
+            return iac_raw
 
         except FileNotFoundError:
             raise ArchitectureStateDoesNotExistError(
