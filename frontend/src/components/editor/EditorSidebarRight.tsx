@@ -186,7 +186,7 @@ const EditorSidebarRight: FC = () => {
                   <SidebarMenuOption
                     key={RightSidebarMenu.MissingConfig}
                     index={RightSidebarMenu.MissingConfig}
-                    label={"Missing Config"}
+                    label={"Modified Properties"}
                     icon={FaArrowRightArrowLeft}
                     onActivate={onActivate}
                     onDeactivate={onDeactivate}
