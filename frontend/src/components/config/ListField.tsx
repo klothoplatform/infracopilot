@@ -27,9 +27,21 @@ import {
 import { ConfigSection } from "./ConfigSection";
 import { ConfigGroup } from "./ConfigGroup";
 import classNames from "classnames";
-import { env } from "../../shared/environment";
-import { BiSolidHand, BiSolidPencil } from "react-icons/bi";
 import type { NodeId } from "../../shared/architecture/TopologyNode";
+import { PrimitiveTable } from "./PrimitiveTable";
+
+const tableViewFieldMappings: {
+  [key: string]: {
+    [key: string]: string[];
+  };
+} = {
+  "kubernetes:pod": {
+    "Object.spec.containers.env": ["name", "value"],
+  },
+  "aws:ecs_task_definition": {
+    "ContainerDefinitions.Environment": ["Name", "Value"],
+  },
+};
 
 type ListProps = ConfigFieldProps & {
   field: ListProperty;
@@ -126,6 +138,19 @@ export const ListField: FC<ListProps> = ({
   }
 
   if (isCollection(itemType)) {
+    const tableViewFields =
+      tableViewFieldMappings[configResource.qualifiedType]?.[
+        field.qualifiedName
+      ];
+    if (tableViewFields) {
+      return (
+        <PrimitiveTable
+          id={qualifiedFieldName}
+          disabled={disabled}
+          properties={tableViewFields}
+        />
+      );
+    }
     return (
       <ErrorHelper error={error}>
         <div className="flex flex-col gap-1">
@@ -194,7 +219,6 @@ const PrimitiveListItem: FC<{
   const { register, formState } = useFormContext();
   const { errors } = formState;
   const [error, setError] = useState<any>();
-  const { touchedFields, dirtyFields } = formState;
 
   useEffect(() => {
     const error = errors[qualifiedFieldName as string];
@@ -280,20 +304,6 @@ const PrimitiveListItem: FC<{
   }
   return (
     <Fragment key={index}>
-      {env.debug.has("config-state") && (
-        <div className={"flex flex-row"}>
-          {findChildProperty(touchedFields, id) === true && (
-            <span className={"inline-flex text-blue-500"}>
-              <BiSolidHand />
-            </span>
-          )}
-          {findChildProperty(dirtyFields, id) === true && (
-            <span className={"inline-flex text-yellow-700"}>
-              <BiSolidPencil />
-            </span>
-          )}
-        </div>
-      )}
       <div className="my-[.1rem] flex w-full flex-row gap-1">
         <div className="w-full overflow-hidden p-[1px]">{item}</div>
         {!disabled && (
