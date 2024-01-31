@@ -9,8 +9,8 @@ import {
   Tooltip,
   useTheme,
 } from "flowbite-react";
-import type { FC, ReactElement } from "react";
-import React, { useContext, useEffect, useRef, useState } from "react";
+import type { FC } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   HiCheck,
   HiCheckCircle,
@@ -277,7 +277,12 @@ const SidebarMenuOption: FC<{
         },
       )}
       icon={({ ...rest }) => (
-        <SidebarIcon {...rest} baseIcon={Icon} showCircle={showNotification} />
+        <SidebarIcon
+          {...rest}
+          disabled={disabled}
+          baseIcon={Icon}
+          showCircle={showNotification}
+        />
       )}
       onClick={handleClick}
       disabled={disabled}
@@ -287,25 +292,60 @@ const SidebarMenuOption: FC<{
   );
 };
 
+function NotificationBubble(props: { disabled: boolean | undefined }) {
+  return (
+    <svg
+      id="svg1"
+      viewBox="0 0 14 14"
+      className={classNames(
+        "absolute -right-1 -top-1 stroke-2 stroke-red-900 w-[14px] h-[14px]",
+        {
+          "[&_circle]:fill-red-600 [&_circle]:opacity-95 [&_circle]:stroke-red-700":
+            !props.disabled,
+          "[&_circle]:fill-gray-300 [&_circle]:stroke-gray-300 dark:[&_circle]:fill-gray-700 dark:[&_circle]:stroke-gray-700":
+            props.disabled,
+        },
+      )}
+      filter="url(#inset-shadow)"
+    >
+      <defs>
+        <filter id="inset-shadow" x="-50%" y="-50%" width="200%" height="200%">
+          <feComponentTransfer in="SourceAlpha">
+            <feFuncA type="table" tableValues="1 0" />
+          </feComponentTransfer>
+          <feGaussianBlur stdDeviation="1" />
+          <feOffset dx="0" dy="-2" result="offsetblur" />
+          <feFlood floodColor="rgba(0, 0, 0, .2)" result="color" />
+          <feComposite in2="offsetblur" operator="in" />
+          <feComposite in2="SourceAlpha" operator="in" />
+          <feMerge>
+            <feMergeNode in="SourceGraphic" />
+            <feMergeNode />
+          </feMerge>
+        </filter>
+      </defs>
+      <path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512z"></path>
+      <circle cx="7" cy="7" r="6" fill="none" stroke="#000" strokeWidth="1" />
+    </svg>
+  );
+}
+
 const SidebarIcon: FC<
   {
     baseIcon?: IconType;
     circleSize?: number;
     showCircle?: boolean;
+    disabled?: boolean;
   } & IconBaseProps
-> = ({ baseIcon, circleSize, showCircle, ...rest }) => {
+> = ({ baseIcon, circleSize, showCircle, disabled, ...rest }) => {
   const Icon = baseIcon ?? (React.Fragment as IconType);
   return (
     <div className={"relative"}>
-      <Icon {...rest} className={twMerge(rest?.className, "relative")} />
-      {showCircle && (
-        <FaCircle
-          size={circleSize ?? 12}
-          className={
-            "absolute -right-0.5 -top-0.5 text-red-600 dark:text-red-500"
-          }
-        />
-      )}
+      <Icon
+        {...rest}
+        className={twMerge(rest?.className, "relative sidebar-icon-bubble")}
+      />
+      {showCircle && <NotificationBubble disabled={disabled} />}
     </div>
   );
 };
