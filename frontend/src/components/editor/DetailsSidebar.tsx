@@ -189,8 +189,6 @@ const Details: FC = function () {
     Property[] | undefined
   >();
 
-  const [loadedProperties, setLoadedProperties] = React.useState<boolean>(false);
-
   console.log("rendering details")
   useEffect(() => {
     if (selectedResource) {
@@ -230,7 +228,6 @@ const Details: FC = function () {
       }
       setPromotedProperties(promotedProperties);
       setRemainingProperties(remainingProperties);
-      setLoadedProperties(true);
     }
   }, [selectedResource, environmentVersion, resourceTypeKB]);
 
@@ -272,7 +269,7 @@ const Details: FC = function () {
             resourceId={selectedResource}
             edgeId={selectedEdge}
           />
-          {selectedResource && loadedProperties && (
+          {selectedResource && (
             <ConfigForm
               key={`config-table-${selectedResource.toString()}`}
               sections={ promotedProperties && [{
@@ -280,6 +277,7 @@ const Details: FC = function () {
                 propertyMap: promotedProperties,
               }]}
               remainingProperties={remainingProperties}
+              showCustomConfig={true}
             />
           )}
         </div>

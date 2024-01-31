@@ -46,11 +46,13 @@ interface ConfigFormSection {
 interface ConfigFormProps {
   sections?: ConfigFormSection[];
   remainingProperties?: Property[];
+  showCustomConfig?: boolean;
 }
 
 export default function ConfigForm({
   sections,
   remainingProperties,
+  showCustomConfig,
 }: ConfigFormProps) {
   const {
     selectedResource,
@@ -61,6 +63,7 @@ export default function ConfigForm({
     deselectResource,
   } = useApplicationStore();
 
+
   const getSectionsState = (sections?: ConfigFormSection[]) => {
     if (!sections) {
       return {};
@@ -68,11 +71,13 @@ export default function ConfigForm({
     let stateMap: {[key: string]: {}} = {}
     sections.forEach((section) => {
       return section.propertyMap.forEach((properties, resourceId): any => {
+        console.log(resourceId, "resourceId", environmentVersion.resources.get(resourceId), environmentVersion.resources)
           const fs = toFormState(
             environmentVersion.resources.get(resourceId),
             properties,
             resourceId,
           );
+          console.log(fs)
           Object.keys(fs).forEach((key) => {
               stateMap[key] = fs[key]
           })
@@ -100,7 +105,8 @@ export default function ConfigForm({
           }
   });
 
-   
+  console.log("re render config form", sections, remainingProperties, methods.formState.defaultValues)
+
   const formState = methods.formState;
   const {
     defaultValues,
@@ -175,27 +181,26 @@ export default function ConfigForm({
         }
       )
     }
-  const allSectionResources = sections?.map((section) => {
-    return [...section.propertyMap.keys()]
-  }).flat()
-  configErrors?.forEach((e) => {
-    if (
-      e.resource.toString() === selectedNode ||
-      allSectionResources?.includes(e.resource.toString())
-    ) {
-      methods.setError(`${e.resource}#${e.property}`, {
-        message: e.error,
-        type: "manual",
-      });
-    }
-  });
+    const allSectionResources = sections?.map((section) => {
+      return [...section.propertyMap.keys()]
+    }).flat()
+    configErrors?.forEach((e) => {
+      if (
+        e.resource.toString() === selectedNode ||
+        allSectionResources?.includes(e.resource.toString())
+      ) {
+        methods.setError(`${e.resource}#${e.property}`, {
+          message: e.error,
+          type: "manual",
+        });
+      }
+    });
   }, [
     environmentVersion,
     isSubmitSuccessful,
     isSubmitted,
     methods,
     sections,
-    selectedResource,
   ]);
 
   const submitConfigChanges: SubmitHandler<any> = useCallback(
@@ -229,9 +234,7 @@ export default function ConfigForm({
             resourceType?.properties,
           );
 
-          console.log(values)
           const non_empty_values = removeEmptyKeys(values);
-          console.log(non_empty_values)
           const modifiedRootProperties = Object.fromEntries(
             [...modifiedFormFields.keys()].map((key) => {
               const rootKey = key.split(".", 2)[0].replaceAll(/\[\d+]/g, "");
@@ -240,7 +243,6 @@ export default function ConfigForm({
             }),
           );
 
-          console.log(modifiedRootProperties)
           const resConstraints: Constraint[] = Object.entries(
             toResourceMetadata(
               modifiedRootProperties,
@@ -346,7 +348,10 @@ export default function ConfigForm({
           >
             <div className="mb-2 max-h-full min-h-0 w-full overflow-y-auto overflow-x-hidden pb-2 [&>*:not(:last-child)]:mb-2">
               {
-                sections?.map((section) => {
+                sections?.map((section, index) => {
+                  if (index > 0 && section.propertyMap.size == 0) {
+                    return null;
+                  }
                   return (
                     <ConfigSection
                     key={section.title}
@@ -355,7 +360,7 @@ export default function ConfigForm({
                     removable={false}
                     defaultOpened={true}
                   >
-                    {selectedResource &&
+                    {selectedResource && showCustomConfig && index == 0 &&
                       Object.entries(
                         getCustomConfigSections(
                           selectedResource.provider,
@@ -450,6 +455,7 @@ function toFormState(
   resourceId?: NodeId | string,
 ) {
   const formState: any = {};
+  console.log(metadata, "metadata", fields, "fields", resourceId, "resourceId")
   if (!metadata) {
     return formState;
   }
@@ -504,6 +510,7 @@ function toFormState(
         }
     }
   });
+  console.log(formState, "formState")
   return formState;
 }
 

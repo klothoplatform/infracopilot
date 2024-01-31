@@ -23,7 +23,7 @@ import { ErrorBoundary } from "react-error-boundary";
 import { FallbackRenderer } from "../FallbackRenderer";
 import { trackError } from "../../pages/store/ErrorStore";
 import { UIError } from "../../shared/errors";
-import { FaArrowLeft, FaArrowRight, FaBars } from "react-icons/fa6";
+import { FaArrowLeft, FaArrowRightArrowLeft, FaBars, FaCircle } from "react-icons/fa6";
 import classNames from "classnames";
 import { FaHistory } from "react-icons/fa";
 import { ResizableSection } from "../Resizable";
@@ -187,7 +187,7 @@ const EditorSidebarRight: FC = () => {
                     key={RightSidebarMenu.MissingConfig}
                     index={RightSidebarMenu.MissingConfig}
                     label={"Missing Config"}
-                    icon={MdNotificationImportant}
+                    icon={FaArrowRightArrowLeft}
                     onActivate={onActivate}
                     onDeactivate={onDeactivate}
                     active={

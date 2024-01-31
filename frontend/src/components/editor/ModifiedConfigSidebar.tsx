@@ -33,6 +33,7 @@ export const ModifiedConfigSidebar: FC<DetailsSidebarProps> = ({
   hidden,
   setWarnMissingProperties,
 }: DetailsSidebarProps) => {
+
   return (
     <div
       className={classNames("flex flex-col h-full w-full overflow-hidden", {
@@ -102,7 +103,6 @@ const Details: FC<DetailsProps> = function ({
     unappliedConstraints,
   } = useApplicationStore();
 
-
   const [missingProperties, setMissingProperties] = React.useState<
     Map<string, Property[]>
   >(new Map<string, Property[]>());
@@ -113,14 +113,6 @@ const Details: FC<DetailsProps> = function ({
   const [isLoadingConstraints, setIsLoadingConstraints] =
     React.useState<boolean>(false);
 
-  console.log("rendering modified config details",
-  isLoadingConstraints,
-  architecture,
-  environmentVersion,
-  currentIdToken,
-  unappliedConstraints,
-  environmentVersion.config_errors, resourceTypeKB
-  )
   useEffect(() => {
     if (
       !isLoadingConstraints &&
@@ -157,8 +149,8 @@ const Details: FC<DetailsProps> = function ({
       }
     });
       setModifiedProperties(constraintsPropertyMap);
-        setIsLoadingConstraints(false);
-      });
+      setIsLoadingConstraints(false);
+    });
     }
   }, [
     architecture,
@@ -171,6 +163,7 @@ const Details: FC<DetailsProps> = function ({
       const configErrors = environmentVersion.config_errors;
       const configErrorsMap = new Map<string, Property[]>();
       configErrors.forEach((configError) => {
+        console.log(configError)
         const allProperties = resourceProperties(
           environmentVersion,
           resourceTypeKB,
@@ -191,6 +184,7 @@ const Details: FC<DetailsProps> = function ({
           });
         }
       });
+      console.log(configErrorsMap)
       setMissingProperties(configErrorsMap);
       if (configErrorsMap.size > 0) {
         setWarnMissingProperties(true);
@@ -220,10 +214,13 @@ const Details: FC<DetailsProps> = function ({
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-          <ConfigForm
-            key={`config-table-missing`}
-            sections={sections}
-          />      
+      { 
+        <ConfigForm
+          key={`config-table-missing`}
+          sections={sections}
+          showCustomConfig={false}
+        />      
+      }
     </div>
   );
 };
