@@ -189,6 +189,9 @@ const Details: FC = function () {
     Property[] | undefined
   >();
 
+  const [loadedProperties, setLoadedProperties] = React.useState<boolean>(false);
+
+  console.log("rendering details")
   useEffect(() => {
     if (selectedResource) {
       const allProperties = resourceProperties(
@@ -227,6 +230,7 @@ const Details: FC = function () {
       }
       setPromotedProperties(promotedProperties);
       setRemainingProperties(remainingProperties);
+      setLoadedProperties(true);
     }
   }, [selectedResource, environmentVersion, resourceTypeKB]);
 
@@ -234,6 +238,10 @@ const Details: FC = function () {
     tabsRef.current?.setActiveTab(rightSidebarSelector[1]);
   }, [rightSidebarSelector]);
 
+
+  useEffect(() => {
+    console.log("selected resource changed")
+    }, [selectedResource]);
   return (
     <Tabs
       theme={detailsTabsTheme}
@@ -264,11 +272,11 @@ const Details: FC = function () {
             resourceId={selectedResource}
             edgeId={selectedEdge}
           />
-          {selectedResource && (
+          {selectedResource && loadedProperties && (
             <ConfigForm
               key={`config-table-${selectedResource.toString()}`}
               sections={ promotedProperties && [{
-                title: "Promoted Configurations",
+                title: "Properties",
                 propertyMap: promotedProperties,
               }]}
               remainingProperties={remainingProperties}

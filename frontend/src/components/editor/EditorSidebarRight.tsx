@@ -56,11 +56,12 @@ const EditorSidebarRight: FC = () => {
     rightSidebarSelector,
     navigateRightSidebar,
     viewSettings,
-    environmentVersion,
   } = useApplicationStore();
 
   const [itemState, setItemState] = useState<SidebarItemState>({});
   const [isResizable, setIsResizable] = useState(false);
+
+  const [warnMissingProperties, setWarnMissingProperties] = useState<boolean>(false);
 
   useEffect(() => {
     if (!rightSidebarSelector[0]) {
@@ -94,9 +95,8 @@ const EditorSidebarRight: FC = () => {
     itemState[RightSidebarMenu.Changes]?.visible &&
     ((decisions?.length || failures?.length) ?? 0) &&
     !isViewMode(viewSettings, ViewMode.View);
-  const shouldShowMissingConfig = itemState[RightSidebarMenu.MissingConfig]?.visible &&
-    environmentVersion.config_errors?.length > 0;
-  const shouldShowMenu = shouldShowDetails || shouldShowChanges;
+  const shouldShowMissingConfig = itemState[RightSidebarMenu.MissingConfig]?.visible
+  const shouldShowMenu = shouldShowDetails || shouldShowChanges || shouldShowMissingConfig;
 
   const isChangesActive =
     !!itemState[RightSidebarMenu.Changes]?.visible &&
@@ -107,8 +107,7 @@ const EditorSidebarRight: FC = () => {
     !!(selectedResource || selectedEdge);
 
   const isModifiedConfigActive =
-    !!itemState[RightSidebarMenu.MissingConfig]?.visible &&
-    environmentVersion.config_errors?.length > 0;
+    !!itemState[RightSidebarMenu.MissingConfig]?.visible
 
   const isDetailsDisabled = !selectedResource && !selectedEdge;
   const detailsHasNotification =
@@ -134,7 +133,7 @@ const EditorSidebarRight: FC = () => {
           >
             <DetailsSidebar hidden={!shouldShowDetails} />
             <ChangesSidebar hidden={!shouldShowChanges} />
-            <ModifiedConfigSidebar hidden={!shouldShowMissingConfig} />
+            <ModifiedConfigSidebar hidden={!shouldShowMissingConfig} setWarnMissingProperties={setWarnMissingProperties}  />
           </div>
         </ResizableSection>
       )}
@@ -168,7 +167,6 @@ const EditorSidebarRight: FC = () => {
                 showNotification={detailsHasNotification}
               />
               {canModifyConfiguration(viewSettings) ? (
-                <>
                   <SidebarMenuOption
                     key={RightSidebarMenu.Changes}
                     index={RightSidebarMenu.Changes}
@@ -182,6 +180,9 @@ const EditorSidebarRight: FC = () => {
                       !!itemState[RightSidebarMenu.Changes]?.hasNotification
                     }
                   />
+                ) : (
+                  <></>
+                )}
                   <SidebarMenuOption
                     key={RightSidebarMenu.MissingConfig}
                     index={RightSidebarMenu.MissingConfig}
@@ -192,12 +193,9 @@ const EditorSidebarRight: FC = () => {
                     active={
                       isModifiedConfigActive
                     }
-                    warning={environmentVersion.config_errors?.length > 0}
+                    showNotification={warnMissingProperties}
                   />
-                </>  
-                ) : (
-                  <></>
-                )}
+                
             </Sidebar.ItemGroup>
           </div>
         </Sidebar.Items>
@@ -214,6 +212,7 @@ function updateActiveIndex(
 ): SidebarItemState {
   mappings = { ...mappings };
   let foundKey = false;
+  console.log(mappings, index, value, force)
   Object.keys(mappings).forEach((key) => {
     if (key === index) {
       foundKey = true;
@@ -255,7 +254,6 @@ const SidebarMenuOption: FC<{
   icon?: IconType;
   active?: boolean;
   showNotification?: boolean;
-  warning?: boolean;
 }> = ({
   index,
   onActivate,
@@ -265,7 +263,6 @@ const SidebarMenuOption: FC<{
   icon,
   active,
   showNotification,
-  warning,
 }) => {
   const Icon = icon ?? (React.Fragment as any);
 
@@ -286,8 +283,6 @@ const SidebarMenuOption: FC<{
         {
           "dark:hover:bg-primary-600 hover:bg-primary-600 bg-primary-600 [&_svg]:fill-white text-white":
             active,
-            "[&_svg]:fill-yellow-500 text-white":
-            warning,
         },
       )}
       icon={({ ...rest }) => (

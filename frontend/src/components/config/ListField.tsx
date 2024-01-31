@@ -48,6 +48,7 @@ type ListProps = ConfigFieldProps & {
 };
 
 export const ListField: FC<ListProps> = ({
+  configResource,
   qualifiedFieldName,
   field,
   disabled,
@@ -136,7 +137,7 @@ export const ListField: FC<ListProps> = ({
   }
 
   if (isCollection(itemType)) {
-    const tableViewFields =
+    const tableViewFields = configResource &&
       tableViewFieldMappings[configResource.qualifiedType]?.[
         field.qualifiedName
       ];

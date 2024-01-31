@@ -26,10 +26,12 @@ import { getEnvironmentConstraints } from "../../api/GetEnvironmentConstraints";
 
 interface DetailsSidebarProps {
   hidden?: boolean;
+  setWarnMissingProperties: (missing: boolean) => void;
 }
 
 export const ModifiedConfigSidebar: FC<DetailsSidebarProps> = ({
   hidden,
+  setWarnMissingProperties,
 }: DetailsSidebarProps) => {
   return (
     <div
@@ -39,7 +41,7 @@ export const ModifiedConfigSidebar: FC<DetailsSidebarProps> = ({
     >
       <div className="flex h-10 w-full shrink-0 grow-0 items-baseline justify-between border-b-[1px] p-2 dark:border-gray-700">
         <h2 className={"text-md font-medium dark:text-white"}>
-          Modified Configuration
+          Modified Properties
         </h2>
       </div>
       <ErrorBoundary
@@ -56,7 +58,7 @@ export const ModifiedConfigSidebar: FC<DetailsSidebarProps> = ({
         fallbackRender={FallbackRenderer}
       >
         <div className="flex h-full min-h-0 w-full flex-col justify-between p-2">
-          <Details />
+          <Details setWarnMissingProperties={setWarnMissingProperties} />
         </div>
       </ErrorBoundary>
     </div>
@@ -85,8 +87,13 @@ const detailsTabsTheme: CustomFlowbiteTheme["tab"] = {
   tabpanel: "max-h-full min-h-0 h-full",
 };
 
-const Details: FC = function () {
-  const tabsRef = useRef<TabsRef>(null);
+interface DetailsProps {
+  setWarnMissingProperties: (missing: boolean) => void;
+}
+
+const Details: FC<DetailsProps> = function ({
+  setWarnMissingProperties,
+}) {
   const {
     environmentVersion,
     resourceTypeKB,
@@ -94,6 +101,7 @@ const Details: FC = function () {
     currentIdToken,
     unappliedConstraints,
   } = useApplicationStore();
+
 
   const [missingProperties, setMissingProperties] = React.useState<
     Map<string, Property[]>
@@ -104,73 +112,33 @@ const Details: FC = function () {
 
   const [isLoadingConstraints, setIsLoadingConstraints] =
     React.useState<boolean>(false);
-  const [loadedConstraints, setLoadedConstraints] =
-    React.useState<boolean>(false);
-  const [constraints, setConstraints] = React.useState<ResourceConstraint[]>(
-    [],
-  );
 
+  console.log("rendering modified config details",
+  isLoadingConstraints,
+  architecture,
+  environmentVersion,
+  currentIdToken,
+  unappliedConstraints,
+  environmentVersion.config_errors, resourceTypeKB
+  )
   useEffect(() => {
     if (
       !isLoadingConstraints &&
       architecture.id != undefined &&
       environmentVersion.id != undefined
     ) {
-
-      console.log("should be reloading constraints")
       setIsLoadingConstraints(true);
       getEnvironmentConstraints(
         architecture.id,
         environmentVersion.id,
         currentIdToken.idToken,
       ).then((constraints): void => {
-        console.log("got constraints", constraints)
         const resourceConstraints = constraints.filter(
           (constraint) => constraint.scope === ConstraintScope.Resource,
         ) as ResourceConstraint[];
-        setConstraints(resourceConstraints);
-        setLoadedConstraints(true);
-        setIsLoadingConstraints(false);
-      });
-    }
-  }, [
-    architecture,
-    environmentVersion,
-    currentIdToken,
-    unappliedConstraints,
-  ]);
 
-  useEffect(() => {
-    if (environmentVersion.config_errors?.length > 0) {
-      const configErrors = environmentVersion.config_errors;
-      const configErrorsMap = new Map<string, Property[]>();
-      configErrors.forEach((configError) => {
-        const allProperties = resourceProperties(
-          environmentVersion,
-          resourceTypeKB,
-          configError.resource,
-        );
-        for (const [resourceId, properties] of allProperties) {
-          properties.forEach((property) => {
-            if (property.name === configError.property) {
-              if (configErrorsMap.has(resourceId.toString())) {
-                configErrorsMap.get(resourceId.toString())?.push(property);
-              } else {
-                configErrorsMap.set(resourceId.toString(), [property]);
-              }
-            }
-          });
-        }
-      });
-      setMissingProperties(configErrorsMap);
-    } else {
-      setMissingProperties(new Map<string, Property[]>());
-    }
-  }, [environmentVersion.config_errors, resourceTypeKB, unappliedConstraints]);
-
-  useEffect(() => {
-    const constraintsPropertyMap = new Map<string, Property[]>();
-    constraints.forEach((constraint) => {
+        const constraintsPropertyMap = new Map<string, Property[]>();
+        resourceConstraints.forEach((constraint) => {
       const allProperties = resourceProperties(
         environmentVersion,
         resourceTypeKB,
@@ -188,28 +156,63 @@ const Details: FC = function () {
         });
       }
     });
-    setModifiedProperties(constraintsPropertyMap);
+      setModifiedProperties(constraintsPropertyMap);
+        setIsLoadingConstraints(false);
+      });
+    }
   }, [
-    isLoadingConstraints,
-    loadedConstraints,
-    constraints,
     architecture,
     environmentVersion,
     unappliedConstraints,
   ]);
 
+  useEffect(() => {
+    if (environmentVersion.config_errors?.length > 0) {
+      const configErrors = environmentVersion.config_errors;
+      const configErrorsMap = new Map<string, Property[]>();
+      configErrors.forEach((configError) => {
+        const allProperties = resourceProperties(
+          environmentVersion,
+          resourceTypeKB,
+          configError.resource,
+        );
+        for (const [resourceId, properties] of allProperties) {
+          properties.forEach((property) => {
+            if (property.hidden || property.configurationDisabled || property.deployTime) {
+              return;
+            }
+            if (property.name === configError.property) {
+              if (configErrorsMap.has(resourceId.toString())) {
+                configErrorsMap.get(resourceId.toString())?.push(property);
+              } else {
+                configErrorsMap.set(resourceId.toString(), [property]);
+              }
+            }
+          });
+        }
+      });
+      setMissingProperties(configErrorsMap);
+      if (configErrorsMap.size > 0) {
+        setWarnMissingProperties(true);
+      }
+
+    } else {
+      setMissingProperties(new Map<string, Property[]>());
+      setWarnMissingProperties(false);
+    }
+  }, [environmentVersion.config_errors, resourceTypeKB, unappliedConstraints]);
 
 
   const sections = []
   if (missingProperties.size > 0) {
     sections.push({
-      title: "Missing Configurations",
+      title: "Missing Properties",
       propertyMap: missingProperties,
     })
   }
   if (modifiedProperties.size > 0) {
     sections.push({
-      title: "Modified Configurations",
+      title: "Modified Properties",
       propertyMap: modifiedProperties,
     })
   }
@@ -217,13 +220,10 @@ const Details: FC = function () {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-        <div>
           <ConfigForm
             key={`config-table-missing`}
             sections={sections}
-          />
-        </div>
-      
+          />      
     </div>
   );
 };

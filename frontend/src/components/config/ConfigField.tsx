@@ -36,6 +36,7 @@ import { HiMiniArrowUpRight } from "react-icons/hi2";
 import { IoInformationCircleOutline } from "react-icons/io5";
 
 export interface ConfigFieldProps {
+  configResource?: NodeId;
   // qualifiedFieldName is the qualified name of the field, including the resource id prefix
   // in the format `${resourceId}#${fieldName}`.
   qualifiedFieldName: string;
