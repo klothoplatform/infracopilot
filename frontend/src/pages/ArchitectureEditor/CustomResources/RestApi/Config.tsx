@@ -12,6 +12,7 @@ export const RestApiRouteConfig: FC<{ configResource: NodeId }> = ({
     <ListField
       qualifiedFieldName={`${configResource}#Routes`}
       field={RoutesField}
+      configResource={configResource}
     />
   </ConfigSection>
 );

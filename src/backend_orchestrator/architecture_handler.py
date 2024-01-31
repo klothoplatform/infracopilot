@@ -296,9 +296,8 @@ class ArchitectureHandler:
                     else None
                 ),
                 config_errors=(
-                    arch.env_resource_configuration["config_errors"]
+                    arch.env_resource_configuration.get("config_errors", [])
                     if arch.env_resource_configuration is not None
-                    and "config_errors" in arch.env_resource_configuration
                     else []
                 ),
                 env_resource_configuration=arch.env_resource_configuration,
@@ -355,9 +354,8 @@ class ArchitectureHandler:
                     else None
                 ),
                 config_errors=(
-                    arch.env_resource_configuration["config_errors"]
+                    arch.env_resource_configuration.get("config_errors", [])
                     if arch.env_resource_configuration is not None
-                    and "config_errors" in arch.env_resource_configuration
                     else []
                 ),
                 env_resource_configuration=arch.env_resource_configuration,
@@ -404,9 +402,8 @@ class ArchitectureHandler:
                     else {}
                 ),
                 config_errors=(
-                    arch.env_resource_configuration["config_errors"]
+                    arch.env_resource_configuration.get("config_errors", [])
                     if arch.env_resource_configuration is not None
-                    and "config_errors" in arch.env_resource_configuration
                     else []
                 ),
             )

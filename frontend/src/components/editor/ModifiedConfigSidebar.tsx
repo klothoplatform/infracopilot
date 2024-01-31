@@ -66,28 +66,6 @@ export const ModifiedConfigSidebar: FC<DetailsSidebarProps> = ({
   );
 };
 
-const detailsTabsTheme: CustomFlowbiteTheme["tab"] = {
-  base: "flex flex-col gap-2 min-h-0 h-full",
-  tablist: {
-    base: "max-h-12 bg-transparent",
-    tabitem: {
-      styles: {
-        fullWidth: {
-          base: "rounded-t-lg max-h-12 focus:ring-primary-300",
-          active: {
-            on: "bg-primary-600 text-white dark:bg-primary-700 dark:white active:border-primary-300",
-            off: "text-gray-500 hover:bg-gray-50 hover:text-gray-600 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-300",
-          },
-        },
-      },
-    },
-  },
-  tabitemcontainer: {
-    base: "flex flex-col min-h-0 h-full",
-  },
-  tabpanel: "max-h-full min-h-0 h-full",
-};
-
 interface DetailsProps {
   setWarnMissingProperties: (missing: boolean) => void;
 }
@@ -120,42 +98,50 @@ const Details: FC<DetailsProps> = function ({
       environmentVersion.id != undefined
     ) {
       setIsLoadingConstraints(true);
-      getEnvironmentConstraints(
-        architecture.id,
-        environmentVersion.id,
-        currentIdToken.idToken,
-      ).then((constraints): void => {
-        const resourceConstraints = constraints.filter(
-          (constraint) => constraint.scope === ConstraintScope.Resource,
-        ) as ResourceConstraint[];
 
-        const constraintsPropertyMap = new Map<string, Property[]>();
-        resourceConstraints.forEach((constraint) => {
+      (async () => {
+        try {
+          const constraints = await getEnvironmentConstraints(
+            architecture.id,
+            environmentVersion.id,
+            currentIdToken.idToken,
+          )
+          const resourceConstraints = constraints.filter(
+            (constraint) => constraint.scope === ConstraintScope.Resource,
+          ) as ResourceConstraint[];
 
-         const metadata = environmentVersion.resources.get(constraint.target.toString());
-          if (!metadata) {
-            return;
-          }
-      const allProperties = resourceProperties(
-        environmentVersion,
-        resourceTypeKB,
-        constraint.target,
-      );
-      for (const [resourceId, properties] of allProperties) {
-        properties.forEach((property) => {
-          if (property.name === constraint.property) {
-            if (constraintsPropertyMap.has(resourceId.toString())) {
-              constraintsPropertyMap.get(resourceId.toString())?.push(property);
-            } else {
-              constraintsPropertyMap.set(resourceId.toString(), [property]);
+          const constraintsPropertyMap = new Map<string, Property[]>();
+          resourceConstraints.forEach((constraint) => {
+
+          const metadata = environmentVersion.resources.get(constraint.target.toString());
+            if (!metadata) {
+              return;
             }
+          const allProperties = resourceProperties(
+            environmentVersion,
+            resourceTypeKB,
+            constraint.target,
+          );
+          for (const [resourceId, properties] of allProperties) {
+            properties.forEach((property) => {
+              if (property.name === constraint.property) {
+                if (constraintsPropertyMap.has(resourceId.toString())) {
+                  constraintsPropertyMap.get(resourceId.toString())?.push(property);
+                } else {
+                  constraintsPropertyMap.set(resourceId.toString(), [property]);
+                }
+              }
+            });
           }
         });
+        setModifiedProperties(constraintsPropertyMap);
+        setIsLoadingConstraints(false);
+      } catch (e: any) {
+        console.error(e);
+      } finally {
+        setIsLoadingConstraints(false);
       }
-    });
-      setModifiedProperties(constraintsPropertyMap);
-      setIsLoadingConstraints(false);
-    });
+      })();
     }
   }, [
     architecture,

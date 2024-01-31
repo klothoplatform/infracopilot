@@ -18,6 +18,7 @@ export function ALBRouteConfig({
             ...ListenerField,
             hidden: false,
           }}
+          configResource={configResource}
           qualifiedFieldName={`${configResource}#Listener`}
         />
       )}

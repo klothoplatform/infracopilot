@@ -15,7 +15,7 @@ if [ -n "$files" ]; then
   echo '╭────────────────────────╮'
   echo '│ Reformatting .py files │'
   echo '╰────────────────────────╯'
-  black $files
+  make black
   echo '✅'
 else
   echo "ℹ️ No python files to reformat, skipping"

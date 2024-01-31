@@ -41,17 +41,16 @@ import { type ConfigurationError } from "../../shared/architecture/Architecture"
 interface ConfigFormSection {
   title: string;
   propertyMap: Map<string, Property[]>
+  defaultOpened?: boolean;
 }
 
 interface ConfigFormProps {
   sections?: ConfigFormSection[];
-  remainingProperties?: Property[];
   showCustomConfig?: boolean;
 }
 
 export default function ConfigForm({
   sections,
-  remainingProperties,
   showCustomConfig,
 }: ConfigFormProps) {
   const {
@@ -94,11 +93,6 @@ export default function ConfigForm({
         } :
          {
             ...getSectionsState(sections),
-            ...toFormState(
-              environmentVersion.resources.get(selectedResource.toString()),
-              remainingProperties,
-              selectedResource, // remaining properties are always on the selected resource
-            ),
             ...getCustomConfigState(selectedResource, environmentVersion),
           }
   });
@@ -152,11 +146,6 @@ export default function ConfigForm({
         methods.reset(
           {
             ...getSectionsState(sections),
-            ...toFormState(
-              environmentVersion.resources.get(selectedResource.toString()),
-              remainingProperties,
-              selectedResource, // remaining properties are always on the selected resource
-            ),
             ...getCustomConfigState(selectedResource, environmentVersion),
           }
         )
@@ -169,11 +158,6 @@ export default function ConfigForm({
     } else if (selectedResource) {
       methods.reset(
         {
-          ...toFormState(
-            environmentVersion.resources.get(selectedResource.toString()),
-            remainingProperties,
-            selectedResource, // remaining properties are always on the selected resource
-          ),
           ...getCustomConfigState(selectedResource, environmentVersion),
         }
       )
@@ -355,7 +339,7 @@ export default function ConfigForm({
                     id={section.title}
                     title={section.title}
                     removable={false}
-                    defaultOpened={true}
+                    defaultOpened={section.defaultOpened ?? true}
                   >
                     {selectedResource && showCustomConfig && index == 0 &&
                       Object.entries(
@@ -409,19 +393,6 @@ export default function ConfigForm({
                   )
                 })
               }
-              {remainingProperties?.length && (
-                <ConfigSection
-                  id="remaining"
-                  title="more properties"
-                  removable={false}
-                  defaultOpened={false}
-                >
-                  <ConfigGroup
-                    configResource={selectedResource!}
-                    fields={remainingProperties}
-                  />
-                </ConfigSection>
-              )}
             </div>
             {isDirty && (
               <div className="flex flex-col gap-2 border-t border-gray-200 pt-2 dark:border-gray-700">

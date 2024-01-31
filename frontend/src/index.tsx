@@ -13,12 +13,6 @@ const container = document.getElementById("root");
 if (!container) {
   throw new Error("React root element doesn't exist!");
 }
-if (process.env.NODE_ENV === 'development') {
-  const whyDidYouRender = require('@welldone-software/why-did-you-render');
-  whyDidYouRender(React, {
-    trackAllPureComponents: true,
-  });
-}
 
 function enableSessionRewind(args: {
   apiKey: string;

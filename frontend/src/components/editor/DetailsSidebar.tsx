@@ -235,6 +235,24 @@ const Details: FC = function () {
   }, [rightSidebarSelector]);
 
 
+  const sections = []
+  
+  if (promotedProperties) {
+    sections.push({
+      title: "properties",
+      propertyMap: promotedProperties,
+    });
+  }
+  if (remainingProperties && selectedResource) {
+    sections.push({
+      title: "more properties",
+      defaultOpened: false,
+      propertyMap: new Map([
+        [selectedResource.toString(), remainingProperties],
+      ]),
+    });
+  }
+
   return (
     <Tabs
       theme={detailsTabsTheme}
@@ -268,11 +286,7 @@ const Details: FC = function () {
           {selectedResource && (
             <ConfigForm
               key={`config-table-${selectedResource.toString()}`}
-              sections={ promotedProperties && [{
-                title: "Properties",
-                propertyMap: promotedProperties,
-              }]}
-              remainingProperties={remainingProperties}
+              sections={sections}
               showCustomConfig={true}
             />
           )}
