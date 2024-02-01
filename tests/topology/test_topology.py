@@ -49,6 +49,21 @@ class TestTopology(aiounittest.AsyncTestCase):
         self.assertEqual(edge.target.namespace, "rest_api_0")
         self.assertEqual(edge.target.name, "api_deployment-0")
 
+    async def test_from_string_no_resources(self):
+        yaml_string = """
+        resources:
+        edges:
+        """
+        topology = Topology.from_string(yaml_string)
+        self.assertEqual(len(topology.resources), 0)
+        self.assertEqual(len(topology.edges), 0)
+
+    async def test_from_string_is_empty(self):
+        yaml_string = ""
+        topology = Topology.from_string(yaml_string)
+        self.assertEqual(len(topology.resources), 0)
+        self.assertEqual(len(topology.edges), 0)
+
     async def test_diff_topology(self):
         id1 = ResourceID.from_string("aws:api_stage:rest_api_0:api_stage-0")
         properties1 = {

@@ -122,11 +122,24 @@ class Topology:
         :return: A Topology object.
         """
         data = yaml.safe_load(yaml_string)
-        resources = [
-            Resource(ResourceID.from_string(id), properties)
-            for id, properties in data["resources"].items()
-        ]
-        edges = [Edge.from_string(edge) for edge, value in data["edges"].items()]
+
+        if data is None:
+            return Topology([], [])
+
+        resources = (
+            []
+            if data["resources"] is None
+            else [
+                Resource(ResourceID.from_string(id), properties)
+                for id, properties in data["resources"].items()
+            ]
+        )
+
+        edges = (
+            []
+            if data["edges"] is None
+            else [Edge.from_string(edge) for edge, value in data["edges"].items()]
+        )
         return Topology(resources, edges)
 
     def diff_topology(
