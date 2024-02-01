@@ -21,7 +21,7 @@ import { UIError } from "../../shared/errors";
 import { FallbackRenderer } from "../FallbackRenderer";
 import { HiCog6Tooth } from "react-icons/hi2";
 import { ResourceIdHeader } from "./ResourceIdHeader";
-import ConfigForm from "./ConfigForm";
+import ConfigForm, { type ConfigFormSection } from "./ConfigForm";
 import AdditionalResources from "./AdditionalResources";
 import {
   isPropertyPromoted,
@@ -29,6 +29,7 @@ import {
 } from "../../shared/architecture/EnvironmentVersion";
 import type { Property } from "../../shared/resources/ResourceTypes";
 import React from "react";
+import { type NodeId } from "../../shared/architecture/TopologyNode";
 
 interface DetailsSidebarProps {
     hidden?: boolean;
@@ -182,12 +183,10 @@ const Details: FC = function () {
     environmentVersion,
   } = useApplicationStore();
 
-  const [promotedProperties, setPromotedProperties] = React.useState<
-    Map<string, Property[]> | undefined
+  const [sections, setSections] = React.useState<
+    ConfigFormSection[] | undefined
   >();
-  const [remainingProperties, setRemainingProperties] = React.useState<
-    Property[] | undefined
-  >();
+  const [formResource, setFormResource] = React.useState<NodeId | undefined>();
 
   useEffect(() => {
     if (selectedResource) {
@@ -225,9 +224,26 @@ const Details: FC = function () {
       if (remainingProperties?.length === 0) {
         remainingProperties = undefined;
       }
-      setPromotedProperties(promotedProperties);
-      setRemainingProperties(remainingProperties);
-    }
+      const newSections = []
+  
+      if (promotedProperties) {
+        newSections.push({
+          title: "properties",
+          propertyMap: promotedProperties,
+        });
+      }
+      if (remainingProperties && selectedResource) {
+        newSections.push({
+          title: "more properties",
+          defaultOpened: false,
+          propertyMap: new Map([
+            [selectedResource.toString(), remainingProperties],
+          ]),
+        });
+      }
+      setSections(newSections);
+      setFormResource(selectedResource);
+    } 
   }, [selectedResource, environmentVersion, resourceTypeKB]);
 
   useEffect(() => {
@@ -235,23 +251,8 @@ const Details: FC = function () {
   }, [rightSidebarSelector]);
 
 
-  const sections = []
-  
-  if (promotedProperties) {
-    sections.push({
-      title: "properties",
-      propertyMap: promotedProperties,
-    });
-  }
-  if (remainingProperties && selectedResource) {
-    sections.push({
-      title: "more properties",
-      defaultOpened: false,
-      propertyMap: new Map([
-        [selectedResource.toString(), remainingProperties],
-      ]),
-    });
-  }
+
+  console.log("DetailsSidebarProps: ", selectedResource, sections);
 
   return (
     <Tabs
@@ -280,10 +281,10 @@ const Details: FC = function () {
       >
         <div className="flex h-full min-h-0 flex-col">
           <ResourceIdHeader
-            resourceId={selectedResource}
+            resourceId={formResource}
             edgeId={selectedEdge}
           />
-          {selectedResource && (
+          {selectedResource && formResource == selectedResource && (
             <ConfigForm
               key={`config-table-${selectedResource.toString()}`}
               sections={sections}

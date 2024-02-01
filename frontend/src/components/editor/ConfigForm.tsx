@@ -38,7 +38,7 @@ import {
 } from "../../shared/architecture/EnvironmentVersion";
 import { type ConfigurationError } from "../../shared/architecture/Architecture";
 
-interface ConfigFormSection {
+export interface ConfigFormSection {
   title: string;
   propertyMap: Map<string, Property[]>
   defaultOpened?: boolean;
