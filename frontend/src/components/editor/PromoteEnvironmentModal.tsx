@@ -1,7 +1,6 @@
-import { Button, Dropdown, Label, Modal } from "flowbite-react";
+import { Button, Dropdown, Modal } from "flowbite-react";
 import { useForm } from "react-hook-form";
-import React, { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
 import { AiOutlineLoading } from "react-icons/ai";
 import useApplicationStore from "../../pages/store/ApplicationStore";
 import { UIError } from "../../shared/errors";

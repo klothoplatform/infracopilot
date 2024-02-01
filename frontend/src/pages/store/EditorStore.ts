@@ -79,7 +79,6 @@ import cloneArchitecture from "../../api/CloneArchitecture";
 import type { EditorViewSettings } from "../../shared/EditorViewSettings";
 import { EditorLayout } from "../../shared/EditorViewSettings";
 import { isViewMode, ViewMode } from "../../shared/EditorViewSettings";
-import type { PromoteToEnvironmentRequest } from "../../api/PromoteToEnvironment";
 import { promoteToEnvironment } from "../../api/PromoteToEnvironment";
 
 interface EditorStoreState {

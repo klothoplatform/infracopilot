@@ -28,7 +28,7 @@ const LoginButton: FC<{ tooltip?: boolean }> = ({ tooltip }) => {
           await loginWithPopup({});
         }}
       >
-        <RiLoginBoxLine className="md:[h-14px] h-[18px] w-[18px] md:w-[14px]" />
+        <RiLoginBoxLine className="md:[h-14px] size-[18px] md:w-[14px]" />
         <span
           className={classNames(
             "hidden whitespace-nowrap md:block rounded-full p-0 ml-2",

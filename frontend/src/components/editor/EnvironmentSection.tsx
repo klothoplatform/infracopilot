@@ -4,11 +4,7 @@ import { Button, Dropdown } from "flowbite-react";
 import useApplicationStore from "../../pages/store/ApplicationStore";
 import { WorkingOverlay } from "../WorkingOverlay";
 import { UIError } from "../../shared/errors";
-import {
-  canModifyConfiguration,
-  isViewMode,
-  ViewMode,
-} from "../../shared/EditorViewSettings";
+import { canModifyConfiguration } from "../../shared/EditorViewSettings";
 import PromoteEnvironmentModal from "./PromoteEnvironmentModal";
 import classNames from "classnames";
 

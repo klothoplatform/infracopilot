@@ -314,8 +314,8 @@ export async function autoLayout(
         const sourceNode = elkNodesById.get(sourceId);
         const targetNode = elkNodesById.get(targetId);
 
-        const sourceParent = elkNodes.find(
-          (n) => n.children?.find((c) => c.id === sourceId),
+        const sourceParent = elkNodes.find((n) =>
+          n.children?.find((c) => c.id === sourceId),
         );
         // const targetParent = elkNodes.find((n) =>
         //   n.children?.find((c) => c.id === targetId)

@@ -115,7 +115,7 @@ const ApiIntegrationNode = memo(
         }}
       >
         <button
-          className="pointer-events-auto h-full w-full border-2 border-gray-300 bg-gray-100 p-1 dark:border-gray-900 dark:bg-gray-700"
+          className="pointer-events-auto size-full border-2 border-gray-300 bg-gray-100 p-1 dark:border-gray-900 dark:bg-gray-700"
           onClick={onSelect}
         >
           <div className="flex items-center justify-start gap-2 text-ellipsis px-1 dark:text-white">

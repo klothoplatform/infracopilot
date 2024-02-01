@@ -265,7 +265,7 @@ export default function EditorPane() {
       fallbackRender={FallbackRenderer}
     >
       <div
-        className={"grow-1 mx-2 h-full w-full bg-gray-50 dark:bg-gray-900"}
+        className={"grow-1 mx-2 size-full bg-gray-50 dark:bg-gray-900"}
         ref={reactFlowWrapper}
       >
         <ReactFlow

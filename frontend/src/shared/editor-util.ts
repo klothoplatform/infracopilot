@@ -30,8 +30,8 @@ export function refreshSelection({
     }
   }
   if (selectedResource) {
-    const node = nodes?.find(
-      (n) => n.data.resourceId?.equals(selectedResource),
+    const node = nodes?.find((n) =>
+      n.data.resourceId?.equals(selectedResource),
     );
     if (node) {
       node.selected = true;

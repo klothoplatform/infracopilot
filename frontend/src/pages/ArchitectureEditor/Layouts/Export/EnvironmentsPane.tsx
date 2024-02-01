@@ -1,3 +1,3 @@
 export const EnvironmentsPane = () => {
-  return <div className="flex h-full w-full">Environments</div>;
+  return <div className="flex size-full">Environments</div>;
 };

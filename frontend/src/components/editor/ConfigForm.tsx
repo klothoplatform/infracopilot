@@ -5,7 +5,6 @@ import type {
   ListProperty,
   MapProperty,
   Property,
-  ResourceType,
 } from "../../shared/resources/ResourceTypes";
 import {
   CollectionTypes,
@@ -21,7 +20,10 @@ import {
   getCustomConfigSections,
   getCustomConfigState,
 } from "../../pages/ArchitectureEditor/config/CustomConfigMappings";
-import { type Constraint, removeEmptyKeys } from "../../shared/architecture/Constraints";
+import {
+  type Constraint,
+  removeEmptyKeys,
+} from "../../shared/architecture/Constraints";
 import {
   ConstraintOperator,
   ResourceConstraint,
@@ -33,14 +35,12 @@ import { ErrorBoundary } from "react-error-boundary";
 import { FallbackRenderer } from "../FallbackRenderer";
 import { ApplicationError, UIError } from "../../shared/errors";
 import { ConfigSection } from "../config/ConfigSection";
-import {
-  type EnvironmentVersion,
-} from "../../shared/architecture/EnvironmentVersion";
+import { type EnvironmentVersion } from "../../shared/architecture/EnvironmentVersion";
 import { type ConfigurationError } from "../../shared/architecture/Architecture";
 
 export interface ConfigFormSection {
   title: string;
-  propertyMap: Map<string, Property[]>
+  propertyMap: Map<string, Property[]>;
   defaultOpened?: boolean;
 }
 
@@ -62,41 +62,37 @@ export default function ConfigForm({
     deselectResource,
   } = useApplicationStore();
 
-
   const getSectionsState = (sections?: ConfigFormSection[]) => {
     if (!sections) {
       return {};
     }
-    let stateMap: {[key: string]: {}} = {}
+    let stateMap: { [key: string]: {} } = {};
     sections.forEach((section) => {
       return section.propertyMap.forEach((properties, resourceId): any => {
-          const fs = toFormState(
-            environmentVersion.resources.get(resourceId),
-            properties,
-            resourceId,
-          );
-          Object.keys(fs).forEach((key) => {
-              stateMap[key] = fs[key]
-          })
+        const fs = toFormState(
+          environmentVersion.resources.get(resourceId),
+          properties,
+          resourceId,
+        );
+        Object.keys(fs).forEach((key) => {
+          stateMap[key] = fs[key];
         });
-
-      })
-      return stateMap
-  }
+      });
+    });
+    return stateMap;
+  };
 
   const methods = useForm({
     shouldFocusError: true,
-    defaultValues:
-      !selectedResource ?
-        {
+    defaultValues: !selectedResource
+      ? {
           ...getSectionsState(sections),
-        } :
-         {
-            ...getSectionsState(sections),
-            ...getCustomConfigState(selectedResource, environmentVersion),
-          }
+        }
+      : {
+          ...getSectionsState(sections),
+          ...getCustomConfigState(selectedResource, environmentVersion),
+        },
   });
-
 
   const formState = methods.formState;
   const {
@@ -115,9 +111,11 @@ export default function ConfigForm({
   const { selectedNode } = useApplicationStore();
 
   useEffect(() => {
-    const allSectionResources = sections?.map((section) => {
-      return [...section.propertyMap.keys()]
-    }).flat()
+    const allSectionResources = sections
+      ?.map((section) => {
+        return [...section.propertyMap.keys()];
+      })
+      .flat();
     configErrors?.forEach((e) => {
       if (
         e.resource.toString() === selectedNode ||
@@ -129,42 +127,31 @@ export default function ConfigForm({
         });
       }
     });
-  }, [
-    configErrors,
-    errors,
-    methods,
-    sections,
-    selectedNode,
-    selectedResource,
-  ]);
+  }, [configErrors, errors, methods, sections, selectedNode, selectedResource]);
 
   useEffect(() => {
     if (isSubmitted && !isSubmitSuccessful) {
       return;
     }
     if (sections && selectedResource) {
-        methods.reset(
-          {
-            ...getSectionsState(sections),
-            ...getCustomConfigState(selectedResource, environmentVersion),
-          }
-        )
+      methods.reset({
+        ...getSectionsState(sections),
+        ...getCustomConfigState(selectedResource, environmentVersion),
+      });
     } else if (sections) {
-      methods.reset(
-        {
-          ...getSectionsState(sections),
-        }
-      )
+      methods.reset({
+        ...getSectionsState(sections),
+      });
     } else if (selectedResource) {
-      methods.reset(
-        {
-          ...getCustomConfigState(selectedResource, environmentVersion),
-        }
-      )
+      methods.reset({
+        ...getCustomConfigState(selectedResource, environmentVersion),
+      });
     }
-    const allSectionResources = sections?.map((section) => {
-      return [...section.propertyMap.keys()]
-    }).flat()
+    const allSectionResources = sections
+      ?.map((section) => {
+        return [...section.propertyMap.keys()];
+      })
+      .flat();
     configErrors?.forEach((e) => {
       if (
         e.resource.toString() === selectedNode ||
@@ -176,17 +163,11 @@ export default function ConfigForm({
         });
       }
     });
-  }, [
-    environmentVersion,
-    isSubmitSuccessful,
-    isSubmitted,
-    methods,
-    sections,
-  ]);
+  }, [environmentVersion, isSubmitSuccessful, isSubmitted, methods, sections]);
 
   const submitConfigChanges: SubmitHandler<any> = useCallback(
     async (submittedValues: any) => {
-      console.log(submittedValues, "submittedValues")
+      console.log(submittedValues, "submittedValues");
       const valuesByResource = new Map<string, { values: any; dirty: any }>();
       for (let [key, value] of Object.entries(submittedValues)) {
         const resourceId = NodeId.parse(key.split("#", 2)[0]);
@@ -307,7 +288,6 @@ export default function ConfigForm({
     ],
   );
 
-
   return (
     <ErrorBoundary
       onError={(error, info) =>
@@ -322,97 +302,97 @@ export default function ConfigForm({
       }
       fallbackRender={FallbackRenderer}
     >
-        <FormProvider {...methods}>
-          <form
-            className="flex h-full min-h-0 w-full flex-col justify-between"
-            onSubmit={methods.handleSubmit(submitConfigChanges)}
-          >
-            <div className="mb-2 max-h-full min-h-0 w-full overflow-y-auto overflow-x-hidden pb-2 [&>*:not(:last-child)]:mb-2">
-              {
-                sections?.map((section, index) => {
-                  if (index > 0 && section.propertyMap.size == 0) {
-                    return null;
-                  }
-                  return (
-                    <ConfigSection
-                    key={section.title}
-                    id={section.title}
-                    title={section.title}
-                    removable={false}
-                    defaultOpened={section.defaultOpened ?? true}
-                  >
-                    {selectedResource && showCustomConfig && index == 0 &&
-                      Object.entries(
-                        getCustomConfigSections(
-                          selectedResource.provider,
-                          selectedResource.type,
-                        ),
-                      ).map((entry, index) => {
-                        const Component = entry[1].component;
-                        return Component ? (
-                          <Component
-                            key={index}
-                            configResource={selectedResource}
-                            resource={environmentVersion.resources.get(
-                              selectedResource.toString(),
-                            )}
-                          />
-                        ) : null;
-                      })}
-                    {section.propertyMap.size > 0 &&
-                      [...section.propertyMap.entries()].map(
-                        ([resourceId, properties]) => {
-                          if (properties.length === 0) {
-                            return null;
-                          }
-                          if (resourceId === selectedResource?.toString()) {
-                            return (
+      <FormProvider {...methods}>
+        <form
+          className="flex size-full min-h-0 flex-col justify-between"
+          onSubmit={methods.handleSubmit(submitConfigChanges)}
+        >
+          <div className="mb-2 max-h-full min-h-0 w-full overflow-y-auto overflow-x-hidden pb-2 [&>*:not(:last-child)]:mb-2">
+            {sections?.map((section, index) => {
+              if (index > 0 && section.propertyMap.size == 0) {
+                return null;
+              }
+              return (
+                <ConfigSection
+                  key={section.title}
+                  id={section.title}
+                  title={section.title}
+                  removable={false}
+                  defaultOpened={section.defaultOpened ?? true}
+                >
+                  {selectedResource &&
+                    showCustomConfig &&
+                    index == 0 &&
+                    Object.entries(
+                      getCustomConfigSections(
+                        selectedResource.provider,
+                        selectedResource.type,
+                      ),
+                    ).map((entry, index) => {
+                      const Component = entry[1].component;
+                      return Component ? (
+                        <Component
+                          key={index}
+                          configResource={selectedResource}
+                          resource={environmentVersion.resources.get(
+                            selectedResource.toString(),
+                          )}
+                        />
+                      ) : null;
+                    })}
+                  {section.propertyMap.size > 0 &&
+                    [...section.propertyMap.entries()].map(
+                      ([resourceId, properties]) => {
+                        if (properties.length === 0) {
+                          return null;
+                        }
+                        if (resourceId === selectedResource?.toString()) {
+                          return (
+                            <ConfigGroup
+                              key={resourceId}
+                              configResource={NodeId.parse(resourceId)}
+                              fields={properties}
+                            />
+                          );
+                        } else {
+                          return (
+                            <ConfigSection
+                              key={resourceId.toString()}
+                              id={resourceId.toString()}
+                              title={resourceId.toString()}
+                            >
                               <ConfigGroup
-                                key={resourceId}
                                 configResource={NodeId.parse(resourceId)}
                                 fields={properties}
                               />
-                            );
-                          } else {
-                            return (
-                              <ConfigSection
-                                key={resourceId.toString()}
-                                id={resourceId.toString()}
-                                title={resourceId.toString()}
-                              >
-                                <ConfigGroup
-                                  configResource={NodeId.parse(resourceId)}
-                                  fields={properties}
-                                />
-                              </ConfigSection>
-                            );
-                          }
-                        },
-                      )}
-                  </ConfigSection>
-                  )
-                })
-              }
-            </div>
-            {isDirty && (
-              <div className="flex flex-col gap-2 border-t border-gray-200 pt-2 dark:border-gray-700">
-                <div className="flex justify-end gap-2">
-                  <Button
-                    outline
-                    color=""
-                    onClick={() => deselectResource(selectedResource)}
-                  >
-                    Cancel
-                  </Button>
+                            </ConfigSection>
+                          );
+                        }
+                      },
+                    )}
+                </ConfigSection>
+              );
+            })}
+          </div>
+          {isDirty && (
+            <div className="flex flex-col gap-2 border-t border-gray-200 pt-2 dark:border-gray-700">
+              <div className="flex justify-end gap-2">
+                <Button
+                  outline
+                  color=""
+                  onClick={() => deselectResource(selectedResource)}
+                >
+                  Cancel
+                </Button>
 
-                  <Button type="submit" color="purple">
-                    Save
-                  </Button>
-                </div>
+                <Button type="submit" color="purple">
+                  Save
+                </Button>
               </div>
-            )}
-          </form>
-        </FormProvider>
+            </div>
+          )}
+        </form>
+      </FormProvider>
     </ErrorBoundary>
   );
 }

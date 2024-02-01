@@ -27,7 +27,6 @@ import {
 import { ConfigSection } from "./ConfigSection";
 import { ConfigGroup } from "./ConfigGroup";
 import classNames from "classnames";
-import type { NodeId } from "../../shared/architecture/TopologyNode";
 import { PrimitiveTable } from "./PrimitiveTable";
 
 const tableViewFieldMappings: {
@@ -137,7 +136,8 @@ export const ListField: FC<ListProps> = ({
   }
 
   if (isCollection(itemType)) {
-    const tableViewFields = configResource &&
+    const tableViewFields =
+      configResource &&
       tableViewFieldMappings[configResource.qualifiedType]?.[
         field.qualifiedName
       ];
@@ -170,7 +170,7 @@ export const ListField: FC<ListProps> = ({
           {!disabled && (
             <Button
               size="sm"
-              className={"mt-1 h-fit w-fit"}
+              className={"mt-1 size-fit"}
               color="purple"
               onClick={() => append(getNewValue(properties))}
             >

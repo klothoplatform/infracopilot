@@ -40,9 +40,11 @@ export const ConfigGroup: FC<ConfigGroupProps> = ({
 
   const parentLength = qualifiedFieldName?.split(".").length;
   // Make sure that all field names are fully qualified with the configResource prefix
-  const prefix = qualifiedFieldName?.startsWith(`${configResource}#`) || configResource === undefined
-    ? ""
-    : `${configResource}#`;
+  const prefix =
+    qualifiedFieldName?.startsWith(`${configResource}#`) ||
+    configResource === undefined
+      ? ""
+      : `${configResource}#`;
   const addRow = (property: Property, resourceId?: NodeId) => {
     if (filter) {
       if (filter(property, resourceId)) {
@@ -61,7 +63,7 @@ export const ConfigGroup: FC<ConfigGroupProps> = ({
         return;
       }
     }
-    
+
     rows.push(
       <div key={rows.length} className="h-fit max-w-full p-1">
         <ConfigField
@@ -90,7 +92,7 @@ export const ConfigGroup: FC<ConfigGroupProps> = ({
             !canModifyConfiguration(viewSettings)
           }
         />
-      </div>
+      </div>,
     );
   };
 

@@ -31,7 +31,7 @@ export default function ImportAccordion({
       >
         <div className={"mr-3 flex w-full"}>
           {icon && (
-            <div className={"h-[20px] min-h-[20px] w-[20px] min-w-[20px]"}>
+            <div className={"size-[20px] min-h-[20px] min-w-[20px]"}>
               {icon}
             </div>
           )}

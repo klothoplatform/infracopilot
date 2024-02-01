@@ -96,9 +96,9 @@ function ArchitectureListPage() {
               />
             </div>
           </HeaderNavBar>
-          <div className="flex h-full w-full flex-row overflow-hidden">
+          <div className="flex size-full flex-row overflow-hidden">
             <LeftSideBar />
-            <div className="flex h-full w-full grow flex-col gap-6 px-4 py-6">
+            <div className="flex size-full grow flex-col gap-6 px-4 py-6">
               <div
                 className={
                   "flex min-h-fit w-full flex-col gap-2 rounded-lg bg-gray-100 p-4 dark:bg-gray-900"
@@ -117,7 +117,7 @@ function ArchitectureListPage() {
                 <h2 className={"mb-2 text-lg font-semibold dark:text-white"}>
                   Architectures
                 </h2>
-                <div className="h-full w-full overflow-auto p-4">
+                <div className="size-full overflow-auto p-4">
                   <ArchitecturesTable
                     user={user}
                     architectures={architectures}

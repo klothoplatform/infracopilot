@@ -1,12 +1,4 @@
-import type { CustomFlowbiteTheme } from "flowbite-react";
-import {
-  Alert,
-  Sidebar,
-  Tabs,
-  type TabsRef,
-  Tooltip,
-  useThemeMode,
-} from "flowbite-react";
+import { Alert, Sidebar } from "flowbite-react";
 import type { FC } from "react";
 import React, { useEffect, useRef, useState } from "react";
 import {
@@ -16,14 +8,12 @@ import {
   HiXCircle,
 } from "react-icons/hi";
 import useApplicationStore from "../../pages/store/ApplicationStore";
-import {
-  RightSidebarMenu,
-} from "../../shared/sidebar-nav";
+import { RightSidebarMenu } from "../../shared/sidebar-nav";
 import { ErrorBoundary } from "react-error-boundary";
 import { FallbackRenderer } from "../FallbackRenderer";
 import { trackError } from "../../pages/store/ErrorStore";
 import { UIError } from "../../shared/errors";
-import { FaArrowLeft, FaArrowRightArrowLeft, FaBars, FaCircle } from "react-icons/fa6";
+import { FaArrowRightArrowLeft, FaBars } from "react-icons/fa6";
 import classNames from "classnames";
 import { FaHistory } from "react-icons/fa";
 import { ResizableSection } from "../Resizable";
@@ -35,7 +25,6 @@ import {
 } from "../../shared/EditorViewSettings";
 import type { IconBaseProps, IconType } from "react-icons";
 import { twMerge } from "tailwind-merge";
-import { MdNotificationImportant } from "react-icons/md";
 import { ModifiedConfigSidebar } from "./ModifiedConfigSidebar";
 import { DetailsSidebar } from "./DetailsSidebar";
 
@@ -61,7 +50,8 @@ const EditorSidebarRight: FC = () => {
   const [itemState, setItemState] = useState<SidebarItemState>({});
   const [isResizable, setIsResizable] = useState(false);
 
-  const [warnMissingProperties, setWarnMissingProperties] = useState<boolean>(false);
+  const [warnMissingProperties, setWarnMissingProperties] =
+    useState<boolean>(false);
 
   useEffect(() => {
     if (!rightSidebarSelector[0]) {
@@ -95,8 +85,10 @@ const EditorSidebarRight: FC = () => {
     itemState[RightSidebarMenu.Changes]?.visible &&
     ((decisions?.length || failures?.length) ?? 0) &&
     !isViewMode(viewSettings, ViewMode.View);
-  const shouldShowMissingConfig = itemState[RightSidebarMenu.MissingConfig]?.visible
-  const shouldShowMenu = shouldShowDetails || shouldShowChanges || shouldShowMissingConfig;
+  const shouldShowMissingConfig =
+    itemState[RightSidebarMenu.MissingConfig]?.visible;
+  const shouldShowMenu =
+    shouldShowDetails || shouldShowChanges || shouldShowMissingConfig;
 
   const isChangesActive =
     !!itemState[RightSidebarMenu.Changes]?.visible &&
@@ -107,7 +99,7 @@ const EditorSidebarRight: FC = () => {
     !!(selectedResource || selectedEdge);
 
   const isModifiedConfigActive =
-    !!itemState[RightSidebarMenu.MissingConfig]?.visible
+    !!itemState[RightSidebarMenu.MissingConfig]?.visible;
 
   const isDetailsDisabled = !selectedResource && !selectedEdge;
   const detailsHasNotification =
@@ -133,7 +125,10 @@ const EditorSidebarRight: FC = () => {
           >
             <DetailsSidebar hidden={!shouldShowDetails} />
             <ChangesSidebar hidden={!shouldShowChanges} />
-            <ModifiedConfigSidebar hidden={!shouldShowMissingConfig} setWarnMissingProperties={setWarnMissingProperties}  />
+            <ModifiedConfigSidebar
+              hidden={!shouldShowMissingConfig}
+              setWarnMissingProperties={setWarnMissingProperties}
+            />
           </div>
         </ResizableSection>
       )}
@@ -167,35 +162,32 @@ const EditorSidebarRight: FC = () => {
                 showNotification={detailsHasNotification}
               />
               {canModifyConfiguration(viewSettings) ? (
-                  <SidebarMenuOption
-                    key={RightSidebarMenu.Changes}
-                    index={RightSidebarMenu.Changes}
-                    label={"Changes"}
-                    icon={FaHistory}
-                    onActivate={onActivate}
-                    onDeactivate={onDeactivate}
-                    active={isChangesActive}
-                    disabled={decisions?.length === 0 && failures?.length === 0}
-                    showNotification={
-                      !!itemState[RightSidebarMenu.Changes]?.hasNotification
-                    }
-                  />
-                ) : (
-                  <></>
-                )}
-                  <SidebarMenuOption
-                    key={RightSidebarMenu.MissingConfig}
-                    index={RightSidebarMenu.MissingConfig}
-                    label={"Modified Properties"}
-                    icon={FaArrowRightArrowLeft}
-                    onActivate={onActivate}
-                    onDeactivate={onDeactivate}
-                    active={
-                      isModifiedConfigActive
-                    }
-                    showNotification={warnMissingProperties}
-                  />
-                
+                <SidebarMenuOption
+                  key={RightSidebarMenu.Changes}
+                  index={RightSidebarMenu.Changes}
+                  label={"Changes"}
+                  icon={FaHistory}
+                  onActivate={onActivate}
+                  onDeactivate={onDeactivate}
+                  active={isChangesActive}
+                  disabled={decisions?.length === 0 && failures?.length === 0}
+                  showNotification={
+                    !!itemState[RightSidebarMenu.Changes]?.hasNotification
+                  }
+                />
+              ) : (
+                <></>
+              )}
+              <SidebarMenuOption
+                key={RightSidebarMenu.MissingConfig}
+                index={RightSidebarMenu.MissingConfig}
+                label={"Modified Properties"}
+                icon={FaArrowRightArrowLeft}
+                onActivate={onActivate}
+                onDeactivate={onDeactivate}
+                active={isModifiedConfigActive}
+                showNotification={warnMissingProperties}
+              />
             </Sidebar.ItemGroup>
           </div>
         </Sidebar.Items>

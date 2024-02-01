@@ -159,8 +159,10 @@ export function deleteRemovedRules(
   const deletionConstraints: Constraint[] = [];
   modifiedValues.forEach((v, k) => {
     if (/^Listener.Rules\[\d+]$/.test(k) && v === undefined) {
-      const ruleId = findChildProperty(defaultValues, `${loadBalancerId}#${k}`)
-        ?.id;
+      const ruleId = findChildProperty(
+        defaultValues,
+        `${loadBalancerId}#${k}`,
+      )?.id;
       if (!ruleId) {
         return;
       }

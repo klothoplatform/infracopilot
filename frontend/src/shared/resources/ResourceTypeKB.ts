@@ -32,21 +32,20 @@ export class ResourceTypeKB {
   getResourceTypes(filter?: ResourceTypeFilter): ResourceType[] {
     let resourceTypes = [...this.resourceTypes.values()];
     if (filter?.providers) {
-      resourceTypes = resourceTypes.filter(
-        (resourceType) => filter.providers?.includes(resourceType.provider),
+      resourceTypes = resourceTypes.filter((resourceType) =>
+        filter.providers?.includes(resourceType.provider),
       );
     }
     if (filter?.types) {
-      resourceTypes = resourceTypes.filter(
-        (resourceType) => filter.types?.includes(resourceType.type),
+      resourceTypes = resourceTypes.filter((resourceType) =>
+        filter.types?.includes(resourceType.type),
       );
     }
     if (filter?.classifications) {
-      resourceTypes = resourceTypes.filter(
-        (resourceType) =>
-          resourceType.classifications?.some(
-            (c) => filter.classifications?.includes(c),
-          ),
+      resourceTypes = resourceTypes.filter((resourceType) =>
+        resourceType.classifications?.some((c) =>
+          filter.classifications?.includes(c),
+        ),
       );
     }
     if (filter?.excludedProviders) {
@@ -69,20 +68,18 @@ export class ResourceTypeKB {
       );
     }
     if (filter?.excludedClassifications) {
-      resourceTypes = resourceTypes.filter(
-        (resourceType) =>
-          resourceType.classifications?.every(
-            (c) => !filter.excludedClassifications?.includes(c),
-          ),
+      resourceTypes = resourceTypes.filter((resourceType) =>
+        resourceType.classifications?.every(
+          (c) => !filter.excludedClassifications?.includes(c),
+        ),
       );
     }
     if (filter?.iconSizes) {
-      resourceTypes = resourceTypes.filter(
-        (resourceType) =>
-          filter.iconSizes?.includes(
-            resourceType.views.get(ArchitectureView.DataFlow) ??
-              ViewNodeType.Small,
-          ),
+      resourceTypes = resourceTypes.filter((resourceType) =>
+        filter.iconSizes?.includes(
+          resourceType.views.get(ArchitectureView.DataFlow) ??
+            ViewNodeType.Small,
+        ),
       );
     }
     return resourceTypes.sort((a, b) => a.type.localeCompare(b.type));

@@ -34,7 +34,7 @@ const NewArchitectureBigButton: FC<NewArchitectureButtonProps> = (
         outline
         fullSized
       >
-        <BiPlus className="h-[3rem] w-[3rem]" />
+        <BiPlus className="size-[3rem]" />
       </Button>
     </div>
   );

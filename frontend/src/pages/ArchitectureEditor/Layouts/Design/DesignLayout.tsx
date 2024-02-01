@@ -26,7 +26,7 @@ export const DesignLayout: FC = function () {
   };
 
   return (
-    <ResizableContainer className="flex h-full w-full gap-0 overflow-hidden bg-gray-50 dark:bg-gray-800">
+    <ResizableContainer className="flex size-full gap-0 overflow-hidden bg-gray-50 dark:bg-gray-800">
       {architecture?.id && canModifyTopology(viewSettings) && (
         <ResizableSection
           childRef={leftSidebarRef}
@@ -40,7 +40,7 @@ export const DesignLayout: FC = function () {
           </div>
         </ResizableSection>
       )}
-      <div className="grow-1 shrink-1 box-border flex h-full w-full min-w-[30%]">
+      <div className="grow-1 shrink-1 box-border flex size-full min-w-[30%]">
         <MainContent>
           <EditorPane />
         </MainContent>
@@ -53,7 +53,7 @@ export const MainContent = forwardRef(
   ({ children }: PropsWithChildren, ref: ForwardedRef<HTMLDivElement>) => {
     return (
       <div
-        className="relative h-full w-full overflow-hidden dark:bg-gray-900"
+        className="relative size-full overflow-hidden dark:bg-gray-900"
         ref={ref}
       >
         {children}

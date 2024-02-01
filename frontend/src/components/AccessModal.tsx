@@ -70,7 +70,7 @@ function AddPeopleOrTeamsItem(props: { user?: User; entity: Entity }) {
     <li key={props.entity.id}>
       <div className="flex items-center justify-between gap-5 rounded-md p-2 hover:bg-gray-100 dark:hover:bg-gray-900">
         <div className="flex items-center justify-between gap-5">
-          <div className={"h-8 max-h-8 w-8 max-w-8 rounded-full"}>
+          <div className={"size-8 max-h-8 max-w-8 rounded-full"}>
             {props.entity.icon}
           </div>
           <EntityCard title={props.entity.name} subtitle={props.entity.email} />
@@ -92,9 +92,8 @@ const AddPeopleOrTeams: FC<{
   const handleChange = (e: any) => {
     setSearch(e.target.value);
     setFilteredEntities(
-      entities.filter(
-        (entity) =>
-          entity.name?.toLowerCase().includes(e.target.value.toLowerCase()),
+      entities.filter((entity) =>
+        entity.name?.toLowerCase().includes(e.target.value.toLowerCase()),
       ),
     );
   };
@@ -335,7 +334,7 @@ export const AccessModal: FC<{
               }
 
               return (
-                <div className="flex h-full w-full items-center justify-center rounded-full bg-primary-400 text-lg font-light text-white dark:bg-primary-500">
+                <div className="flex size-full items-center justify-center rounded-full bg-primary-400 text-lg font-light text-white dark:bg-primary-500">
                   {`${entity.givenName?.[0] ?? ""}${
                     entity.familyName?.[0] ?? ""
                   }`}
@@ -759,7 +758,7 @@ const SharedWithItem: FC<{
     <li key={entity.id}>
       <div className="flex items-center justify-between gap-5 rounded-md p-2 hover:bg-gray-100 dark:hover:bg-gray-900">
         <div className="flex items-center justify-between gap-5">
-          <div className={"h-8 max-h-8 w-8 max-w-8 rounded-full"}>
+          <div className={"size-8 max-h-8 max-w-8 rounded-full"}>
             {entity.icon}
           </div>
           {!entity.name && !entity.email ? (

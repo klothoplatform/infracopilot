@@ -536,7 +536,7 @@ export const ResourceField: FC<ResourceProps> = ({
       {!!watchValue?.length && (
         <Button
           title={"Show this resource"}
-          className={"h-[16px] w-[16px] rounded-md"}
+          className={"size-[16px] rounded-md"}
           color={"light"}
           onClick={() => {
             selectResource(NodeId.parse(watchValue));

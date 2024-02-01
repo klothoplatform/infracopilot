@@ -1,24 +1,16 @@
-import { type FC, useEffect, useRef } from "react";
+import { type FC, useEffect } from "react";
 import useApplicationStore from "../../pages/store/ApplicationStore";
 import classNames from "classnames";
-import {
-  type CustomFlowbiteTheme,
-  Tabs,
-  type TabsRef,
-  Tooltip,
-} from "flowbite-react";
+
 import { ErrorBoundary } from "react-error-boundary";
 import { trackError } from "../../pages/store/ErrorStore";
 import { UIError } from "../../shared/errors";
 import { FallbackRenderer } from "../FallbackRenderer";
-import { RightSidebarDetailsTab } from "../../shared/sidebar-nav";
-import { HiCog6Tooth } from "react-icons/hi2";
 import ConfigForm from "./ConfigForm";
 import { type Property } from "../../shared/resources/ResourceTypes";
 import React from "react";
 import { resourceProperties } from "../../shared/architecture/EnvironmentVersion";
 import {
-  type Constraint,
   ConstraintScope,
   type ResourceConstraint,
 } from "../../shared/architecture/Constraints";
@@ -33,7 +25,6 @@ export const ModifiedConfigSidebar: FC<DetailsSidebarProps> = ({
   hidden,
   setWarnMissingProperties,
 }: DetailsSidebarProps) => {
-
   return (
     <div
       className={classNames("flex flex-col h-full w-full overflow-hidden", {
@@ -58,7 +49,7 @@ export const ModifiedConfigSidebar: FC<DetailsSidebarProps> = ({
         }
         fallbackRender={FallbackRenderer}
       >
-        <div className="flex h-full min-h-0 w-full flex-col justify-between p-2">
+        <div className="flex size-full min-h-0 flex-col justify-between p-2">
           <Details setWarnMissingProperties={setWarnMissingProperties} />
         </div>
       </ErrorBoundary>
@@ -70,9 +61,7 @@ interface DetailsProps {
   setWarnMissingProperties: (missing: boolean) => void;
 }
 
-const Details: FC<DetailsProps> = function ({
-  setWarnMissingProperties,
-}) {
+const Details: FC<DetailsProps> = function ({ setWarnMissingProperties }) {
   const {
     environmentVersion,
     resourceTypeKB,
@@ -105,49 +94,50 @@ const Details: FC<DetailsProps> = function ({
             architecture.id,
             environmentVersion.id,
             currentIdToken.idToken,
-          )
+          );
           const resourceConstraints = constraints.filter(
             (constraint) => constraint.scope === ConstraintScope.Resource,
           ) as ResourceConstraint[];
 
           const constraintsPropertyMap = new Map<string, Property[]>();
           resourceConstraints.forEach((constraint) => {
-
-          const metadata = environmentVersion.resources.get(constraint.target.toString());
+            const metadata = environmentVersion.resources.get(
+              constraint.target.toString(),
+            );
             if (!metadata) {
               return;
             }
-          const allProperties = resourceProperties(
-            environmentVersion,
-            resourceTypeKB,
-            constraint.target,
-          );
-          for (const [resourceId, properties] of allProperties) {
-            properties.forEach((property) => {
-              if (property.name === constraint.property) {
-                if (constraintsPropertyMap.has(resourceId.toString())) {
-                  constraintsPropertyMap.get(resourceId.toString())?.push(property);
-                } else {
-                  constraintsPropertyMap.set(resourceId.toString(), [property]);
+            const allProperties = resourceProperties(
+              environmentVersion,
+              resourceTypeKB,
+              constraint.target,
+            );
+            for (const [resourceId, properties] of allProperties) {
+              properties.forEach((property) => {
+                if (property.name === constraint.property) {
+                  if (constraintsPropertyMap.has(resourceId.toString())) {
+                    constraintsPropertyMap
+                      .get(resourceId.toString())
+                      ?.push(property);
+                  } else {
+                    constraintsPropertyMap.set(resourceId.toString(), [
+                      property,
+                    ]);
+                  }
                 }
-              }
-            });
-          }
-        });
-        setModifiedProperties(constraintsPropertyMap);
-        setIsLoadingConstraints(false);
-      } catch (e: any) {
-        console.error(e);
-      } finally {
-        setIsLoadingConstraints(false);
-      }
+              });
+            }
+          });
+          setModifiedProperties(constraintsPropertyMap);
+          setIsLoadingConstraints(false);
+        } catch (e: any) {
+          console.error(e);
+        } finally {
+          setIsLoadingConstraints(false);
+        }
       })();
     }
-  }, [
-    architecture,
-    environmentVersion,
-    unappliedConstraints,
-  ]);
+  }, [architecture, environmentVersion, unappliedConstraints]);
 
   useEffect(() => {
     if (environmentVersion.config_errors?.length > 0) {
@@ -161,7 +151,11 @@ const Details: FC<DetailsProps> = function ({
         );
         for (const [resourceId, properties] of allProperties) {
           properties.forEach((property) => {
-            if (property.hidden || property.configurationDisabled || property.deployTime) {
+            if (
+              property.hidden ||
+              property.configurationDisabled ||
+              property.deployTime
+            ) {
               return;
             }
             if (property.name === configError.property) {
@@ -178,37 +172,34 @@ const Details: FC<DetailsProps> = function ({
       if (configErrorsMap.size > 0) {
         setWarnMissingProperties(true);
       }
-
     } else {
       setMissingProperties(new Map<string, Property[]>());
       setWarnMissingProperties(false);
     }
   }, [environmentVersion.config_errors, resourceTypeKB, unappliedConstraints]);
 
-
-  const sections = []
+  const sections = [];
   if (missingProperties.size > 0) {
     sections.push({
       title: "Missing Properties",
       propertyMap: missingProperties,
-    })
+    });
   }
   if (modifiedProperties.size > 0) {
     sections.push({
       title: "Modified Properties",
       propertyMap: modifiedProperties,
-    })
+    });
   }
-
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      { 
+      {
         <ConfigForm
           key={`config-table-missing`}
           sections={sections}
           showCustomConfig={false}
-        />      
+        />
       }
     </div>
   );

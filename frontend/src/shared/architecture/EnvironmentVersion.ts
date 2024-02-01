@@ -102,12 +102,11 @@ function getNodesFromGraph(
       extent: node.vizMetadata.parent ? "parent" : undefined,
     } as Node;
   }).sort(compareNodes);
-  rfNodes.map(
-    (node: Node) =>
-      customConfigMappings[node.data.resourceId.qualifiedType]?.nodeModifier?.(
-        node,
-        environmentVersion,
-      ),
+  rfNodes.map((node: Node) =>
+    customConfigMappings[node.data.resourceId.qualifiedType]?.nodeModifier?.(
+      node,
+      environmentVersion,
+    ),
   );
   return rfNodes;
 }

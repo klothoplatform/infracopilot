@@ -1,10 +1,8 @@
-import classNames from "classnames";
 import { Accordion, Sidebar, TextInput } from "flowbite-react";
 import type { ChangeEvent, ForwardedRef } from "react";
 import React, { forwardRef, useCallback, useState } from "react";
 import { HiSearch } from "react-icons/hi";
 
-import { useSidebarContext } from "../../context/SidebarContext";
 import type { FilterFunction } from "./ResourceAccordion";
 import ResourceAccordion from "./ResourceAccordion";
 import debounce from "lodash.debounce";
@@ -17,7 +15,6 @@ import useApplicationStore from "../../pages/store/ApplicationStore";
 import { env } from "../../shared/environment";
 import ImportResourceModal from "../imports/ImportResourceModal";
 import ImportAccordion from "../imports/ImportAccordian";
-import { useScreenSize } from "../../shared/hooks/useScreenSize";
 
 const displayedClassifications = [
   "api",

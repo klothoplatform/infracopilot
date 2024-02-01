@@ -1,5 +1,9 @@
 import { Banner, Button, useThemeMode } from "flowbite-react";
-import { HiCheck, HiInformationCircle, HiOutlineClipboardCopy } from "react-icons/hi";
+import {
+  HiCheck,
+  HiInformationCircle,
+  HiOutlineClipboardCopy,
+} from "react-icons/hi";
 import { TbPlugConnected } from "react-icons/tb";
 import { NodeIcon } from "../../shared/resources/ResourceMappings";
 import { type FC, useState } from "react";
