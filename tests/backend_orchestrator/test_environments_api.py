@@ -2,6 +2,8 @@ from unittest import mock
 import aiounittest
 from unittest.mock import MagicMock, patch, AsyncMock
 from fastapi import HTTPException
+from src.constraints.constraint import ConstraintOperator
+from src.constraints.resource_constraint import ResourceConstraint
 from src.environment_management.environment_manager import (
     EnvironmentTrackingError,
     EnvironmentNotTrackedError,
@@ -12,6 +14,7 @@ from src.backend_orchestrator.environments_api import (
     env_in_sync,
     env_diff,
     BASE_ENV_ID,
+    get_all_constraints,
     promote,
 )
 from src.auth_service.entity import User
@@ -19,6 +22,7 @@ from src.environment_management.environment_version import (
     EnvironmentVersionDoesNotExistError,
 )
 from src.state_manager.architecture_storage import ArchitectureStateDoesNotExistError
+from src.topology.resource import ResourceID
 
 from src.topology.topology import Topology, TopologyDiff, DiffStatus, Diff
 
@@ -421,4 +425,58 @@ class TestPromote(aiounittest.AsyncTestCase):
         get_user_id.assert_called_once_with(request)
         authz_service.can_write_to_architecture.assert_called_once_with(
             User(id="user_id"), "id"
+        )
+
+
+class TestGetAllConstraints(aiounittest.AsyncTestCase):
+    @mock.patch("src.backend_orchestrator.environments_api.SessionLocal")
+    @mock.patch("src.backend_orchestrator.environments_api.get_environment_manager")
+    @patch(
+        "src.backend_orchestrator.environments_api.deps.authz_service",
+        new_callable=MagicMock,
+    )
+    @mock.patch(
+        "src.backend_orchestrator.environments_api.get_user_id",
+        new_callable=AsyncMock,
+    )
+    async def test_get_all_constraints_happy_path(
+        self, get_user_id, authz_service, get_environment_manager, session_local
+    ):
+        # Arrange
+        get_user_id.return_value = "user"
+        manager = MagicMock()
+        manager.get_all_constraints = AsyncMock(
+            return_value=[
+                ResourceConstraint(
+                    operator=ConstraintOperator.Equals,
+                    value="value",
+                    target=ResourceID(),
+                    property="property",
+                )
+            ]
+        )
+        get_environment_manager.return_value = manager
+        session = MagicMock()
+        session_local.begin.return_value.__aenter__.return_value = session
+        authz_service.can_read_architecture = AsyncMock(return_value=True)
+
+        # Act
+        result = await get_all_constraints(MagicMock(), "architecture_id", "env_id")
+
+        # Assert
+        self.assertEqual(
+            result,
+            [
+                ResourceConstraint(
+                    operator=ConstraintOperator.Equals,
+                    value="value",
+                    target=ResourceID(),
+                    property="property",
+                ).to_dict()
+            ],
+        )
+        get_environment_manager.assert_called_once_with(session)
+        manager.get_all_constraints.assert_called_once_with("architecture_id", "env_id")
+        authz_service.can_read_architecture.assert_called_once_with(
+            User(id="user"), "architecture_id"
         )

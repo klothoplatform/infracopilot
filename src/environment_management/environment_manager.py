@@ -248,7 +248,6 @@ class EnvironmentManager:
     ) -> List[Constraint]:
         """
         Get the overrides for the specified environment, for the specified architecture, to the specified environment.
-
         Args:
             architecture_id (str): The ID of the architecture.
             base_env_id (str): The ID of the base environment.
@@ -339,4 +338,32 @@ class EnvironmentManager:
                         constraints.remove(c)
                 constraints.append(constraint)
 
+        return constraints
+
+    async def get_all_constraints(
+        self,
+        architecture_id: str,
+        env_id: str,
+    ) -> List[Constraint]:
+        """Get all constraints for the specified environment.
+
+        Args:
+            architecture_id (str): The ID of the architecture.
+            env_id (str): The ID of the environment.
+
+        Returns:
+            List[Constraint]: The list of constraints.
+        """
+        versions: List[EnvironmentVersion] = (
+            await self.ev_dao.list_environment_versions(architecture_id, env_id)
+        )
+        constraints: List[Constraint] = []
+        for v in versions:
+            version_constraints = parse_constraints(v.constraints)
+            for c in version_constraints:
+                for curr in constraints:
+                    if c.cancels_out(curr):
+                        constraints.remove(curr)
+                        break
+                constraints.append(c)
         return constraints

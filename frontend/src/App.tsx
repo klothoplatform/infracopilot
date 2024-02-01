@@ -24,6 +24,7 @@ export const analytics = AnalyticsBrowser.load(
   },
 );
 
+
 const App: FC = function () {
   const { updateAuthentication } = useApplicationStore();
   const authContext = useAuth0();

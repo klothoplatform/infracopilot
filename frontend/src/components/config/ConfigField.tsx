@@ -36,7 +36,7 @@ import { HiMiniArrowUpRight } from "react-icons/hi2";
 import { IoInformationCircleOutline } from "react-icons/io5";
 
 export interface ConfigFieldProps {
-  configResource: NodeId;
+  configResource?: NodeId;
   // qualifiedFieldName is the qualified name of the field, including the resource id prefix
   // in the format `${resourceId}#${fieldName}`.
   qualifiedFieldName: string;
@@ -48,7 +48,6 @@ export interface ConfigFieldProps {
 }
 
 type InputProps = {
-  configResource: NodeId;
   qualifiedFieldName: string;
   rules?: RegisterOptions;
   required?: boolean;
@@ -73,7 +72,6 @@ type BooleanProps = {
   ConfigFieldProps;
 
 type ResourceProps = {
-  configResource: NodeId;
   qualifiedFieldName: string;
   resourceTypes?: string[];
   disabled?: boolean;
@@ -83,7 +81,6 @@ type ResourceProps = {
 };
 
 type EnumProps = {
-  configResource: NodeId;
   qualifiedFieldName: string;
   allowedValues?: string[];
   disabled?: boolean;
@@ -394,7 +391,6 @@ export const IntField: FC<NumberProps> = ({
 };
 
 const InputField: FC<InputProps> = ({
-  configResource,
   qualifiedFieldName,
   required,
   valueSelector,
@@ -404,7 +400,6 @@ const InputField: FC<InputProps> = ({
 }) => {
   const { register } = useFormContext();
   const id = qualifiedFieldName + (valueSelector ?? "");
-
   return (
     <TextInput
       sizing={"sm"}
@@ -423,7 +418,6 @@ const InputField: FC<InputProps> = ({
 };
 
 export const BooleanField: FC<BooleanProps> = ({
-  configResource,
   qualifiedFieldName,
   field,
   valueSelector,

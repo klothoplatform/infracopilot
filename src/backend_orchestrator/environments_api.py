@@ -186,3 +186,35 @@ async def promote(
     except Exception as e:
         logger.error("Error promoting environment", exc_info=True)
         raise HTTPException(status_code=500, detail="internal server error")
+
+
+@router.get("/api/architecture/{id}/environment/{env_id}/constraints")
+async def get_all_constraints(
+    request: Request,
+    id: str,
+    env_id: str,
+):
+    logger.info(f"get_all_constraints: {id}, {env_id}")
+    authz: AuthzService = deps.authz_service
+    user_id = await get_user_id(request)
+    authorized = await authz.can_read_architecture(User(id=user_id), id)
+    if not authorized:
+        raise AuthError(
+            detail=f"User {user_id} is not authorized to read architecture {id}",
+            error={
+                "code": "unauthorized",
+                "description": f"User is not authorized to write to architecture {id}",
+            },
+        )
+    async with SessionLocal.begin() as db:
+        try:
+            manager: EnvironmentManager = get_environment_manager(db)
+            constraints = await manager.get_all_constraints(id, env_id)
+            return [c.to_dict() for c in constraints]
+        except EnvironmentVersionDoesNotExistError as e:
+            raise HTTPException(
+                status_code=404, detail=f"Environment {env_id} not found"
+            )
+        except Exception as e:
+            logger.error(e, exc_info=True)
+            raise HTTPException(status_code=500, detail="internal server error")

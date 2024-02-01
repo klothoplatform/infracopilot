@@ -31,6 +31,10 @@ class Constraint(ABC):
             return False
         pass
 
+    @abstractmethod
+    def to_dict(self):
+        pass
+
     @staticmethod
     def valid_operators() -> List[ConstraintOperator]:
         """Subclasses should override this method."""

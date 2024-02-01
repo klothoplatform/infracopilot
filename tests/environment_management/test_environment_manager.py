@@ -438,3 +438,45 @@ class TestEnvironmentManager(aiounittest.AsyncTestCase):
         mock_parse_constraints.assert_any_call([{"name": "override1", "type": "type1"}])
         mock_parse_constraints.assert_any_call([{"name": "override2", "type": "type2"}])
         constraint2.cancels_out.assert_called_once_with(constraint1)
+
+    @mock.patch(
+        "src.environment_management.environment_manager.parse_constraints",
+        new_callable=Mock,
+    )
+    async def test_get_all_constraints(self, mock_parse_constraints):
+        self.ev_dao.list_environment_versions = AsyncMock(
+            return_value=[
+                MagicMock(
+                    version=1,
+                    constraints=[
+                        {"name": "override1", "type": "type1"},
+                    ],
+                ),
+                MagicMock(
+                    version=2,
+                    constraints=[
+                        {"name": "override2", "type": "type2"},
+                    ],
+                ),
+            ]
+        )
+        constraint1 = MagicMock()
+        constraint2 = MagicMock()
+        mock_parse_constraints.side_effect = [
+            [constraint1],
+            [constraint2],
+        ]
+
+        constraint2.cancels_out = Mock(return_value=True)
+
+        # Act
+        result = await self.manager.get_all_constraints("architecture_id", "env_id")
+
+        # Assert
+        self.assertEqual(result, [constraint2])
+        self.ev_dao.list_environment_versions.assert_called_once_with(
+            "architecture_id", "env_id"
+        )
+        mock_parse_constraints.assert_any_call([{"name": "override1", "type": "type1"}])
+        mock_parse_constraints.assert_any_call([{"name": "override2", "type": "type2"}])
+        constraint2.cancels_out.assert_called_once_with(constraint1)

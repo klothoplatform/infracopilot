@@ -14,11 +14,11 @@ export function ALBRouteConfig({
     <>
       {resource?.Type === "application" && (
         <MapField
-          configResource={configResource}
           field={{
             ...ListenerField,
             hidden: false,
           }}
+          configResource={configResource}
           qualifiedFieldName={`${configResource}#Listener`}
         />
       )}

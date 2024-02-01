@@ -295,6 +295,11 @@ class ArchitectureHandler:
                     if state is not None
                     else None
                 ),
+                config_errors=(
+                    arch.env_resource_configuration.get("config_errors", [])
+                    if arch.env_resource_configuration is not None
+                    else []
+                ),
                 env_resource_configuration=arch.env_resource_configuration,
             )
             return (
@@ -348,6 +353,11 @@ class ArchitectureHandler:
                     if state is not None
                     else None
                 ),
+                config_errors=(
+                    arch.env_resource_configuration.get("config_errors", [])
+                    if arch.env_resource_configuration is not None
+                    else []
+                ),
                 env_resource_configuration=arch.env_resource_configuration,
             )
             return (
@@ -390,6 +400,11 @@ class ArchitectureHandler:
                     arch.env_resource_configuration
                     if arch.env_resource_configuration is not None
                     else {}
+                ),
+                config_errors=(
+                    arch.env_resource_configuration.get("config_errors", [])
+                    if arch.env_resource_configuration is not None
+                    else []
                 ),
             )
             return (

@@ -152,7 +152,7 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
         self.assertEqual(result.status_code, 200)
         self.assertEqual(
             result.body,
-            b'{"architecture_id": "test-architecture-id", "id": "test-id", "version": 2, "state": {"resources_yaml": "test-yaml", "topology_yaml": "test-yaml"}, "env_resource_configuration": {"tracks": {"environment": "test-id", "version_hash": "test-hash"}}, "config_errors": [], "diff": {"resources": {"test:test:None": {"status": "CHANGED"}}, "edges": {"test:test:None": {"status": "ADDED", "target": "test:test2:None"}}}}',
+            b'{"architecture_id": "test-architecture-id", "id": "test-id", "version": 2, "state": {"resources_yaml": "test-yaml", "topology_yaml": "test-yaml"}, "env_resource_configuration": {"tracks": {"environment": "test-id", "version_hash": "test-hash"}, "overrides": null, "diff": null, "config_errors": []}, "config_errors": [], "diff": {"resources": {"test:test:None": {"status": "CHANGED"}}, "edges": {"test:test:None": {"status": "ADDED", "target": "test:test2:None"}}}}',
         )
         self.mock_ev_dao.get_current_version.assert_called_once_with(
             "test-architecture-id", "test-id"
@@ -181,7 +181,10 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
             created_by="user:test-owner",
             created_at=self.created_at,
             env_resource_configuration={
-                "tracks": {"environment": "test-id", "version_hash": "test-hash"}
+                "tracks": {"environment": "test-id", "version_hash": "test-hash"},
+                "overrides": None,
+                "diff": None,
+                "config_errors": [],
             },
         )
         self.mock_store.write_state_to_fs.assert_called_once_with(
@@ -262,7 +265,7 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
         self.assertEqual(result.status_code, 200)
         self.assertEqual(
             result.body,
-            b'{"architecture_id": "test-architecture-id", "id": "test-id", "version": 2, "state": {"resources_yaml": "test-yaml", "topology_yaml": "test-yaml"}, "env_resource_configuration": {"tracks": {"environment": "test-id", "version_hash": "test-hash"}}, "config_errors": [], "diff": {"resources": {}, "edges": {}}}',
+            b'{"architecture_id": "test-architecture-id", "id": "test-id", "version": 2, "state": {"resources_yaml": "test-yaml", "topology_yaml": "test-yaml"}, "env_resource_configuration": {"tracks": {"environment": "test-id", "version_hash": "test-hash"}, "overrides": null, "diff": null, "config_errors": []}, "config_errors": [], "diff": {"resources": {}, "edges": {}}}',
         )
         self.mock_ev_dao.get_current_version.assert_called_once_with(
             "test-architecture-id", "test-id"
@@ -294,7 +297,10 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
             created_by="user:test-owner",
             created_at=self.created_at,
             env_resource_configuration={
-                "tracks": {"environment": "test-id", "version_hash": "test-hash"}
+                "tracks": {"environment": "test-id", "version_hash": "test-hash"},
+                "overrides": None,
+                "diff": None,
+                "config_errors": [],
             },
         )
         self.mock_store.write_state_to_fs.assert_called_once_with(
@@ -455,7 +461,6 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
         )
 
         self.assertEqual(result.status_code, 400)
-        print(result.body)
         self.assertEqual(
             result.body,
             b'{"error_type": "topological_changes_not_allowed", "environment": "test-id", "constraints": [{"scope": "application"}], "diff": {"resources": {"test:test:None": {"status": "CHANGED"}}, "edges": {}}}',

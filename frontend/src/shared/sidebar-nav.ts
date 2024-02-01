@@ -4,6 +4,7 @@ import { type EnvironmentVersion } from "./architecture/EnvironmentVersion";
 export enum RightSidebarMenu {
   Changes = "Changes",
   Details = "Details",
+  MissingConfig = "MissingConfig",
 }
 
 export enum RightSidebarDetailsTab {

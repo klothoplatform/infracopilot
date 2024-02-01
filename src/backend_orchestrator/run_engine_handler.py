@@ -27,7 +27,11 @@ from src.environment_management.environment_version import (
     EnvironmentVersion,
     EnvironmentVersionDoesNotExistError,
 )
-from src.environment_management.models import Environment
+from src.environment_management.models import (
+    Environment,
+    EnvironmentResourceConfiguration,
+    EnvironmentTracker,
+)
 
 from src.environment_management.environment import (
     EnvironmentDAO,
@@ -131,6 +135,10 @@ class EngineOrchestrator:
                 await self.ev_dao.get_latest_version(architecture_id, env_id)
             )
             current_version = latest_architecture.version + 1
+            new_env_config = EnvironmentResourceConfiguration.from_dict(
+                architecture.env_resource_configuration
+            )
+            new_env_config.config_errors = result.config_errors_json
             arch = EnvironmentVersion(
                 architecture_id=architecture.architecture_id,
                 id=architecture.id,
@@ -140,7 +148,7 @@ class EngineOrchestrator:
                 created_at=datetime.utcnow(),
                 created_by=architecture.created_by,
                 state_location=None,
-                env_resource_configuration=architecture.env_resource_configuration,
+                env_resource_configuration=new_env_config.to_dict(),
             )
             if body.overwrite:
                 print(
@@ -164,7 +172,7 @@ class EngineOrchestrator:
                     resources_yaml=result.resources_yaml,
                     topology_yaml=result.topology_yaml,
                 ),
-                env_resource_configuration=arch.env_resource_configuration,
+                env_resource_configuration=new_env_config.to_dict(),
                 config_errors=result.config_errors_json,
                 diff=diff.__dict__(),
             )
