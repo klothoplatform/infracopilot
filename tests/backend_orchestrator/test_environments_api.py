@@ -259,7 +259,9 @@ class TestEnvDiff(aiounittest.AsyncTestCase):
             User(id="user_id"), "id"
         )
         get_environment_manager.assert_called_once_with(session)
-        manager.diff_environments.assert_called_once_with("id", BASE_ENV_ID, "env_id")
+        manager.diff_environments.assert_called_once_with(
+            "id", BASE_ENV_ID, "env_id", True
+        )
 
     @mock.patch(
         "src.backend_orchestrator.environments_api.get_user_id",
@@ -325,7 +327,9 @@ class TestEnvDiff(aiounittest.AsyncTestCase):
             User(id="user_id"), "id"
         )
         get_environment_manager.assert_called_once_with(session)
-        manager.diff_environments.assert_called_once_with("id", BASE_ENV_ID, "env_id")
+        manager.diff_environments.assert_called_once_with(
+            "id", BASE_ENV_ID, "env_id", True
+        )
 
     @mock.patch(
         "src.backend_orchestrator.environments_api.get_user_id",
@@ -363,7 +367,9 @@ class TestEnvDiff(aiounittest.AsyncTestCase):
             User(id="user_id"), "id"
         )
         get_environment_manager.assert_called_once_with(session)
-        manager.diff_environments.assert_called_once_with("id", BASE_ENV_ID, "env_id")
+        manager.diff_environments.assert_called_once_with(
+            "id", BASE_ENV_ID, "env_id", True
+        )
 
 
 class TestPromote(aiounittest.AsyncTestCase):

@@ -342,3 +342,39 @@ export function resourceProperties(
   });
   return properties;
 }
+
+export interface ExpectedDiff {
+  expected?: string;
+  actual?: string;
+}
+
+export class EnvironmentsInSync {
+  constructor(
+    public inSync: boolean,
+    public envDiff?: ExpectedDiff,
+    public versionDiff?: ExpectedDiff,
+  ) {}
+}
+
+export function parseEnvironmentsInSync(rawDiff: any): EnvironmentsInSync {
+  if (!isObject(rawDiff)) {
+    throw new ApplicationError({
+      errorId: "ParseEnvironmentsInSync",
+      message: "EnvironmentsInSync state is invalid.",
+      data: {
+        rawDiff,
+      },
+    });
+  }
+  return {
+    inSync: rawDiff.in_sync,
+    envDiff: rawDiff.env_diff && {
+      expected: rawDiff.env_diff.expected,
+      actual: rawDiff.env_diff.actual,
+    },
+    versionDiff: rawDiff.version_diff && {
+      expected: rawDiff.version_diff.expected,
+      actual: rawDiff.version_diff.actual,
+    },
+  };
+}

@@ -89,6 +89,10 @@ class Resource:
         """
 
         def diff_dict(d1, d2, path=""):
+
+            d1 = d1 or {}
+            d2 = d2 or {}
+
             for k in set(d1.keys()).union(d2.keys()):
                 if k not in d1:
                     differences[f"{path}.{k}"] = (None, d2[k])
@@ -96,6 +100,12 @@ class Resource:
                     differences[f"{path}.{k}"] = (d1[k], None)
                 elif isinstance(d1[k], dict) and isinstance(d2[k], dict):
                     diff_dict(d1[k], d2[k], path=f"{path}.{k}")
+                elif isinstance(d1[k], list) and isinstance(d2[k], list):
+                    for i, (a, b) in enumerate(zip(d1[k], d2[k])):
+                        if isinstance(a, dict) and isinstance(b, dict):
+                            diff_dict(a, b, path=f"{path}.{k}[{i}]")
+                        elif a != b:
+                            differences[f"{path}.{k}[{i}]"] = (a, b)
                 elif d1[k] != d2[k]:
                     differences[f"{path}.{k}"] = (d1[k], d2[k])
 
