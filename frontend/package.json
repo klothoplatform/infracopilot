@@ -52,6 +52,7 @@
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-tailwindcss": "^3.14.1",
+    "eslint-plugin-unused-imports": "^2.0.0",
     "eslint-plugin-vitest": "^0.3.21",
     "flowbite-typography": "^1.0.3",
     "postcss": "^8.4.33",
@@ -97,7 +98,8 @@
       "project": "./tsconfig.json"
     },
     "plugins": [
-      "vitest"
+      "vitest",
+      "unused-imports"
     ],
     "root": true,
     "rules": {
@@ -117,6 +119,17 @@
         "off",
         {
           "config": "./tailwind.config.js"
+        }
+      ],
+      "@typescript-eslint/no-unused-vars": "off",
+      "unused-imports/no-unused-imports": "error",
+      "unused-imports/no-unused-vars": [
+        "warn",
+        {
+          "vars": "all",
+          "varsIgnorePattern": "^_",
+          "args": "after-used",
+          "argsIgnorePattern": "^_"
         }
       ]
     },
@@ -140,7 +153,7 @@
   },
   "proxy": "http://127.0.0.1:3000",
   "lint-staged": {
-    "*.{ts,tsx,js,jsx,ejs,cjs,html,": [
+    "*.{ts,tsx,js,jsx,ejs,cjs,html}": [
       "eslint --fix",
       "prettier --write"
     ],

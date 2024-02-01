@@ -27,7 +27,7 @@ if [ -n "$files" ]; then
   echo '╭──────────────────────────╮'
   echo '│ Fixing up frontend files │'
   echo '╰──────────────────────────╯'
-  npm exec --prefix frontend --package lint-staged
+  (cd frontend && npx lint-staged)
   echo '✅'
 else
   echo "ℹ️ No frontend files to fixup, skipping"

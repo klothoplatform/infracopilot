@@ -15,7 +15,7 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "types": ["vitest/globals, vitest/importMeta"]
+    "types": ["vitest/globals, vitest/importMeta"],
   },
-  "include": ["src", "./*.ts", "node_modules/vitest/*.d.ts"]
+  "include": ["src", "./*.ts", "node_modules/vitest/*.d.ts"],
 }
