@@ -406,7 +406,7 @@ class TestPromote(aiounittest.AsyncTestCase):
         session_local.begin.return_value.__aenter__.return_value = session
 
         # Act
-        result = await promote(request, "id", "env_id", session)
+        result = await promote(request, "id", "env_id")
 
         # Assert
         self.assertEqual(result.status_code, 200)

@@ -1,7 +1,10 @@
-from fastapi import Depends, HTTPException, Request, Response
+from fastapi import APIRouter
+from fastapi import HTTPException, Request, Response
 from pydantic import BaseModel
+
+from src.auth_service.entity import User
 from src.auth_service.main import AuthzService
-from src.auth_service.token import PUBLIC_USER, AuthError, get_user_id
+from src.auth_service.token import AuthError, get_user_id
 from src.backend_orchestrator.architecture_handler import (
     EnvironmentVersionResponseObject,
     VersionState,
@@ -10,23 +13,18 @@ from src.dependency_injection.injection import (
     SessionLocal,
     deps,
     get_environment_manager,
-    get_db,
 )
-from fastapi import APIRouter
-from sqlalchemy.ext.asyncio import AsyncSession
-from src.auth_service.entity import User
-from src.environment_management.environment_version import (
-    EnvironmentVersionDoesNotExistError,
-)
-from src.state_manager.architecture_storage import ArchitectureStateDoesNotExistError
-from src.util.logging import logger
 from src.environment_management.environment_manager import (
     EnvironmentManager,
     EnvironmentTrackingError,
     EnvironmentNotTrackedError,
     BASE_ENV_ID,
-    PROD_ENV_ID,
 )
+from src.environment_management.environment_version import (
+    EnvironmentVersionDoesNotExistError,
+)
+from src.state_manager.architecture_storage import ArchitectureStateDoesNotExistError
+from src.util.logging import logger
 
 router = APIRouter()
 
@@ -129,7 +127,6 @@ async def promote(
     request: Request,
     id: str,
     env_id: str,
-    db: AsyncSession = Depends(get_db),
 ):
     logger.info(f"Promoting environment: {env_id} to architecture: {id}")
     user_id = await get_user_id(request)
@@ -145,19 +142,22 @@ async def promote(
         )
     try:
         accept = request.headers.get("accept")
-        manager: EnvironmentManager = get_environment_manager(db)
-        env, result = await manager.promote(id, BASE_ENV_ID, env_id, User(id=user_id))
-        payload = EnvironmentVersionResponseObject(
-            architecture_id=env.architecture_id,
-            id=env.id,
-            version=env.version,
-            state=VersionState(
-                resources_yaml=result.resources_yaml,
-                topology_yaml=result.topology_yaml,
-            ),
-            env_resource_configuration=env.env_resource_configuration,
-            config_errors=result.config_errors_json,
-        )
+        async with SessionLocal.begin() as db:
+            manager: EnvironmentManager = get_environment_manager(db)
+            env, result = await manager.promote(
+                id, BASE_ENV_ID, env_id, User(id=user_id)
+            )
+            payload = EnvironmentVersionResponseObject(
+                architecture_id=env.architecture_id,
+                id=env.id,
+                version=env.version,
+                state=VersionState(
+                    resources_yaml=result.resources_yaml,
+                    topology_yaml=result.topology_yaml,
+                ),
+                env_resource_configuration=env.env_resource_configuration,
+                config_errors=result.config_errors_json,
+            )
         return Response(
             headers={
                 "Content-Type": (
