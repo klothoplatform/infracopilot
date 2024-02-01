@@ -6,6 +6,7 @@ import useApplicationStore from "../pages/store/ApplicationStore";
 import { useNavigate } from "react-router-dom";
 import { UIError } from "../shared/errors";
 import { AiOutlineLoading } from "react-icons/ai";
+import { FormFooter } from "./FormFooter";
 
 interface NewArchitectureModalProps {
   onClose: () => void;
@@ -165,15 +166,17 @@ export default function NewArchitectureModal({
           </div>
         </Modal.Body>
         <Modal.Footer>
-          <Button
-            type="submit"
-            color="purple"
-            disabled={Object.entries(errors).length > 0}
-            isProcessing={isSubmitting}
-            processingSpinner={<AiOutlineLoading className="animate-spin" />}
-          >
-            Create
-          </Button>
+          <FormFooter>
+            <Button
+              type="submit"
+              color="purple"
+              disabled={Object.entries(errors).length > 0}
+              isProcessing={isSubmitting}
+              processingSpinner={<AiOutlineLoading className="animate-spin" />}
+            >
+              Create
+            </Button>
+          </FormFooter>
         </Modal.Footer>
       </form>
     </Modal>

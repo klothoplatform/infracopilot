@@ -14,7 +14,7 @@ export const LayoutSelector: FC = () => {
 
   return (
     <div className="w-fit min-w-fit">
-      <Tabs.Group
+      <Tabs
         theme={{
           tabpanel: "",
           tablist: {
@@ -51,7 +51,7 @@ export const LayoutSelector: FC = () => {
             />
           );
         })}
-      </Tabs.Group>
+      </Tabs>
     </div>
   );
 };

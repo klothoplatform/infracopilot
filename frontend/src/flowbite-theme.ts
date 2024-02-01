@@ -43,7 +43,7 @@ const flowbiteTheme: CustomFlowbiteTheme = {
     },
   },
   button: {
-    base: "group flex items-stretch items-center justify-center p-0.5 text-center relative focus:z-10 focus:outline-none",
+    base: "group flex items-stretch items-center justify-center p-0.5 text-center relative focus:outline-none",
     color: {
       red: "text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800",
       gray: "text-gray-900 bg-white border border-gray-200 enabled:hover:bg-gray-100 enabled:hover:text-blue-700 :ring-blue-700 focus:text-blue-700 dark:bg-transparent dark:text-gray-400 dark:border-gray-600 dark:enabled:hover:text-white dark:enabled:hover:bg-gray-700 focus:ring-2",
@@ -120,17 +120,18 @@ const flowbiteTheme: CustomFlowbiteTheme = {
     field: {
       base: "relative w-full",
       input: {
+        base: "block w-full border disabled:cursor-not-allowed disabled:opacity-50 text-green-500",
         colors: {
           success:
-            "focus:outline-none focus:ring-1 bg-green-50 border border-green-500 text-green-900 dark:text-green-400 placeholder-green-700 dark:placeholder-green-500 text-sm rounded-lg focus:ring-green-500 focus:border-green-500 block w-full p-2.5 dark:bg-gray-700 dark:border-green-500",
+            "focus:outline-none focus:ring-1 bg-green-50 border-green-500 text-green-900 dark:text-green-400 placeholder-green-700 dark:placeholder-green-500 focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:border-green-500",
           failure:
-            "focus:outline-none focus:ring-1 bg-red-50 border border-red-500 text-red-900 placeholder-red-700 text-sm rounded-lg focus:ring-red-500 dark:bg-gray-700 focus:border-red-500 block w-full p-2.5 dark:text-red-500 dark:placeholder-red-500 dark:border-red-500",
+            "focus:outline-none focus:ring-1 bg-red-50 border-red-500 text-red-900 placeholder-red-700 focus:ring-red-500 dark:bg-gray-700 focus:border-red-500 dark:text-red-500 dark:placeholder-red-500 dark:border-red-500",
           warning:
-            "focus:outline-none focus:ring-1 bg-yellow-50 border border-yellow-500 text-yellow-900 placeholder-yellow-700 text-sm rounded-lg focus:ring-yellow-500 dark:bg-gray-700 focus:border-yellow-500 block w-full p-2.5 dark:text-yellow-500 dark:placeholder-yellow-500 dark:border-yellow-500",
-          info: "focus:outline-none focus:ring-1 bg-blue-50 border border-blue-500 text-blue-900 placeholder-blue-700 text-sm rounded-lg focus:ring-blue-500 dark:bg-gray-700 focus:border-blue-500 block w-full p-2.5 dark:text-blue-500 dark:placeholder-blue-500 dark:border-blue-500",
-          gray: "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
+            "focus:outline-none focus:ring-1 bg-yellow-50 border-yellow-500 text-yellow-900 placeholder-yellow-700 focus:ring-yellow-500 dark:bg-gray-700 focus:border-yellow-500 dark:text-yellow-500 dark:placeholder-yellow-500 dark:border-yellow-500",
+          info: "focus:outline-none focus:ring-1 bg-blue-50 border-blue-500 text-blue-900 placeholder-blue-700 focus:ring-blue-500 dark:bg-gray-700 focus:border-blue-500 dark:text-blue-500 dark:placeholder-blue-500 dark:border-blue-500",
+          gray: "bg-gray-50 border-gray-300 text-gray-900 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500",
           purple:
-            "focus:outline-none focus:ring-1 bg-purple-50 border border-purple-500 text-purple-900 placeholder-purple-700 text-sm rounded-lg focus:ring-purple-500 dark:bg-gray-700 focus:border-purple-500 block w-full p-2.5 dark:text-purple-500 dark:placeholder-purple-500 dark:border-purple-500",
+            "focus:outline-none focus:ring-1 bg-purple-50 border-purple-500 text-purple-900 placeholder-purple-700 focus:ring-purple-500 dark:bg-gray-700 focus:border-purple-500 dark:text-purple-500 dark:placeholder-purple-500 dark:border-purple-500",
         },
         withIcon: {
           on: "!pl-12",

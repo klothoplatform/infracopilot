@@ -1,7 +1,6 @@
 import type { FC } from "react";
 import React, {
   memo,
-  useContext,
   useEffect,
   useMemo,
   useReducer,
@@ -21,9 +20,8 @@ import {
   RightSidebarMenu,
 } from "../../shared/sidebar-nav";
 import { TbDotsCircleHorizontal } from "react-icons/tb";
-import { ThemeContext } from "flowbite-react/lib/esm/components/Flowbite/ThemeContext";
 import type { IconProps } from "../../components/editor/Icon";
-import { Tooltip } from "flowbite-react";
+import { Tooltip, useThemeMode } from "flowbite-react";
 import { canModifyTopology } from "../EditorViewSettings";
 
 interface ResourceNodeProps {
@@ -253,7 +251,7 @@ const ResourceIcon: FC<ResourceIconProps> = ({
   onClick,
   iconProps,
 }) => {
-  const { mode } = useContext(ThemeContext);
+  const { mode } = useThemeMode();
   return (
     <button
       className={className}
@@ -385,7 +383,7 @@ const AdditionalResourcesAction: FC<AdditionalResourcesProps> = ({
   return (
     <Tooltip content={"Additional resources"}>
       <button
-        className="h-[25px] w-[25px]"
+        className="size-[25px]"
         type="button"
         onClick={() => {
           selectResource(resourceId);

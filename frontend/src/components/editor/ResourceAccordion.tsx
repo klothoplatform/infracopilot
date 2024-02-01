@@ -1,12 +1,11 @@
 import type { MouseEventHandler } from "react";
 import * as React from "react";
-import { useContext, useEffect } from "react";
-import { Accordion, Badge, Card } from "flowbite-react";
+import { useEffect } from "react";
+import { Accordion, Badge, Card, useThemeMode } from "flowbite-react";
 
 import "./ResourceAccordion.scss";
 import classNames from "classnames";
 import { FaAngleDown } from "react-icons/fa6";
-import { ThemeContext } from "flowbite-react/lib/esm/components/Flowbite/ThemeContext";
 import type { ResourceTypeFilter } from "../../shared/resources/ResourceTypes";
 import useApplicationStore from "../../pages/store/ApplicationStore";
 import { NodeIcon } from "../../shared/resources/ResourceMappings";
@@ -114,7 +113,7 @@ export default function ResourceAccordion({
       >
         <div className={"mr-3 flex w-full"}>
           {icon && (
-            <div className={"h-[20px] min-h-[20px] w-[20px] min-w-[20px]"}>
+            <div className={"size-[20px] min-h-[20px] min-w-[20px]"}>
               {icon}
             </div>
           )}
@@ -172,7 +171,7 @@ const ResourceCard = ({
   onDragStart,
   orientation,
 }: ResourceCardProps) => {
-  const { mode } = useContext(ThemeContext);
+  const { mode } = useThemeMode();
 
   return (
     <Card
@@ -205,12 +204,12 @@ const ResourceCard = ({
         </div>
       )}
       {orientation === "horizontal" && (
-        <div className="my-3 ml-1 flex h-full w-full items-center gap-3">
+        <div className="my-3 ml-1 flex size-full items-center gap-3">
           <NodeIcon
             provider={option.provider}
             type={option.type}
             variant={mode}
-            className="fixed-image h-[30px] w-[30px] shrink-0 grow-0"
+            className="fixed-image size-[30px] shrink-0 grow-0"
           />
           <div className={"truncate text-start text-xs"}>{option.name}</div>
         </div>

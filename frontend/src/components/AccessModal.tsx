@@ -27,6 +27,7 @@ import {
   GeneralAccess,
   publicUserId,
 } from "../shared/architecture/Access";
+import { FormFooter } from "./FormFooter";
 
 interface Entity extends ArchitectureAccessEntity {
   icon: React.ReactElement;
@@ -494,43 +495,47 @@ export const AccessModal: FC<{
               )}
             </ErrorBoundary>
           </Modal.Body>
-          <Modal.Footer className={"flex justify-between"}>
-            <div className={"flex items-center gap-2"}>
-              <Button color="gray" outline onClick={onClickCopyButton}>
-                <FaLink />
-                <span className="ml-2">Copy Link</span>
-              </Button>
-              <div className="">
-                {copied && (
-                  <FaCheck
-                    size={24}
-                    className="text-green-500 dark:text-green-400"
-                  />
+          <Modal.Footer>
+            <FormFooter>
+              <div className={"flex items-center gap-2"}>
+                <Button color="gray" outline onClick={onClickCopyButton}>
+                  <FaLink />
+                  <span className="ml-2">Copy Link</span>
+                </Button>
+                <div className="">
+                  {copied && (
+                    <FaCheck
+                      size={24}
+                      className="text-green-500 dark:text-green-400"
+                    />
+                  )}
+                </div>
+              </div>
+              <div className={"flex items-center gap-2"}>
+                {isDirty && (
+                  <>
+                    <span
+                      className={
+                        "pr-4 text-sm italic text-gray-500 dark:text-gray-400"
+                      }
+                    >
+                      {isSaving ? "" : "Pending Changes"}
+                    </span>
+                    <Button
+                      color="purple"
+                      isProcessing={isSaving && !isGeneralAccessDirty}
+                      onClick={onSave}
+                      processingSpinner={
+                        <AiOutlineLoading className="animate-spin" />
+                      }
+                      disabled={isSaving && isGeneralAccessDirty}
+                    >
+                      {isSaving ? "Saving" : "Save"}
+                    </Button>
+                  </>
                 )}
               </div>
-            </div>
-            {isDirty && (
-              <div className={"flex items-center gap-2"}>
-                <span
-                  className={
-                    "pr-4 text-sm italic text-gray-500 dark:text-gray-400"
-                  }
-                >
-                  {isSaving ? "" : "Pending Changes"}
-                </span>
-                <Button
-                  color="purple"
-                  isProcessing={isSaving && !isGeneralAccessDirty}
-                  onClick={onSave}
-                  processingSpinner={
-                    <AiOutlineLoading className="animate-spin" />
-                  }
-                  disabled={isSaving && isGeneralAccessDirty}
-                >
-                  {isSaving ? "Saving" : "Save"}
-                </Button>
-              </div>
-            )}
+            </FormFooter>
           </Modal.Footer>
         </form>
       </FormProvider>

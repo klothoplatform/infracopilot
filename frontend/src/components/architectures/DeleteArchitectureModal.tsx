@@ -5,6 +5,7 @@ import useApplicationStore from "../../pages/store/ApplicationStore";
 import deleteArchitecture from "../../api/DeleteArchitecture";
 import { UIError } from "../../shared/errors";
 import { AiOutlineLoading } from "react-icons/ai";
+import { FormFooter } from "../FormFooter";
 
 interface DeleteArchitectureModalProps {
   onClose: () => void;
@@ -147,18 +148,26 @@ export default function DeleteArchitectureModal({
           </div>
         </Modal.Body>
         <Modal.Footer>
-          <Button type="reset" color="clear" className="dark:text-white">
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            color="purple"
-            disabled={Object.entries(errors).length > 0 || !watchConfirmation}
-            isProcessing={isSubmitting}
-            processingSpinner={<AiOutlineLoading className="animate-spin" />}
-          >
-            Delete
-          </Button>
+          <FormFooter>
+            <div className="flex gap-2">
+              <Button type="reset" color="clear" className="dark:text-white">
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                color="purple"
+                disabled={
+                  Object.entries(errors).length > 0 || !watchConfirmation
+                }
+                isProcessing={isSubmitting}
+                processingSpinner={
+                  <AiOutlineLoading className="animate-spin" />
+                }
+              >
+                Delete
+              </Button>
+            </div>
+          </FormFooter>
         </Modal.Footer>
       </form>
     </Modal>

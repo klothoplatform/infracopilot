@@ -1,15 +1,14 @@
-import { Table } from "flowbite-react";
+import { Table, useThemeMode } from "flowbite-react";
 import type { FC, ReactNode } from "react";
 import * as React from "react";
-import { useContext, useEffect, useState } from "react";
-import { ThemeContext } from "flowbite-react/lib/esm/components/Flowbite/ThemeContext";
+import { useEffect, useState } from "react";
 import useApplicationStore from "../../pages/store/ApplicationStore";
 import { NodeIcon } from "../../shared/resources/ResourceMappings";
 import { ArchitectureView } from "../../shared/architecture/Architecture";
 import type { NodeId } from "../../shared/architecture/TopologyNode";
 
 function AdditionalResources() {
-  const { mode } = useContext(ThemeContext);
+  const { mode } = useThemeMode();
   const [resourceRows, setResourceRows] = useState<ReactNode[]>([]);
   const { environmentVersion, nodes, edges, selectedResource, selectedEdge } =
     useApplicationStore();
@@ -45,7 +44,7 @@ function AdditionalResources() {
               <NodeIcon
                 provider={nodeId.provider}
                 type={nodeId.type}
-                className="h-full w-full"
+                className="size-full"
                 variant={mode}
               />
             }
@@ -60,7 +59,7 @@ function AdditionalResources() {
   }
 
   return (
-    <div className="border-box relative h-full w-full overflow-auto">
+    <div className="border-box relative size-full overflow-auto">
       <Table
         hoverable
         theme={{
@@ -91,7 +90,7 @@ const ResourceItem: FC<ResourceItemProps> = function ({ icon, resourceId }) {
       }}
     >
       <Table.Cell className="pr-0 font-medium text-gray-900 dark:text-white">
-        <div className="block h-5 w-5">{icon}</div>
+        <div className="block size-5">{icon}</div>
       </Table.Cell>
       <Table.Cell className="w-full pl-4 dark:text-white">
         {resourceId.toString()}

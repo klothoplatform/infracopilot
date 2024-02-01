@@ -138,7 +138,7 @@ const EditorSidebarLeft = forwardRef(
               getResourceTypeKB(architecture_id, id, true);
             }}
           >
-            <div className="flex h-full w-full flex-col justify-between gap-2 py-2">
+            <div className="flex size-full flex-col justify-between gap-2 py-2">
               <TextInput
                 icon={HiSearch}
                 type="search"
@@ -147,7 +147,7 @@ const EditorSidebarLeft = forwardRef(
                 size={32}
                 onChange={debouncedHandleInputChange}
               />
-              <div className={"h-full w-full"}>
+              <div className={"size-full"}>
                 <Accordion>{sections}</Accordion>
               </div>
             </div>

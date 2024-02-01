@@ -1,10 +1,11 @@
 import { Button, Label, Modal, TextInput } from "flowbite-react";
 import { useForm } from "react-hook-form";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import useApplicationStore from "../../pages/store/ApplicationStore";
 import cloneArchitecture from "../../api/CloneArchitecture";
 import { UIError } from "../../shared/errors";
 import { AiOutlineLoading } from "react-icons/ai";
+import { FormFooter } from "../FormFooter";
 
 interface CloneArchitectureModalProps {
   onClose: () => void;
@@ -158,18 +159,24 @@ export default function CloneArchitectureModal({
           </div>
         </Modal.Body>
         <Modal.Footer>
-          <Button type="reset" color="clear" className="dark:text-white">
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            color="purple"
-            disabled={Object.entries(errors).length > 0}
-            isProcessing={isSubmitting}
-            processingSpinner={<AiOutlineLoading className="animate-spin" />}
-          >
-            Clone
-          </Button>
+          <FormFooter>
+            <div className="flex gap-2">
+              <Button type="reset" color="clear" className="dark:text-white">
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                color="purple"
+                disabled={Object.entries(errors).length > 0}
+                isProcessing={isSubmitting}
+                processingSpinner={
+                  <AiOutlineLoading className="animate-spin" />
+                }
+              >
+                Clone
+              </Button>
+            </div>
+          </FormFooter>
         </Modal.Footer>
       </form>
     </Modal>

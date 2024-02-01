@@ -4,7 +4,13 @@ import { Button, Dropdown } from "flowbite-react";
 import useApplicationStore from "../../pages/store/ApplicationStore";
 import { WorkingOverlay } from "../WorkingOverlay";
 import { UIError } from "../../shared/errors";
-import { isViewMode, ViewMode } from "../../shared/EditorViewSettings";
+import {
+  canModifyConfiguration,
+  isViewMode,
+  ViewMode,
+} from "../../shared/EditorViewSettings";
+import PromoteEnvironmentModal from "./PromoteEnvironmentModal";
+import classNames from "classnames";
 
 interface EnvironmentSectionProps {
   small: boolean;
@@ -21,7 +27,6 @@ export const EnvironmentSection: FC<EnvironmentSectionProps> = ({
     addError,
   } = useApplicationStore();
 
-  const isPromotable = currentEnvironmentId === defaultEnvironment && false; // TODO: enable promote button
   const [newEnvironment, setNewEnvironment] = useState<string | null>(null);
 
   const changeEnvironment = (env: string) => {
@@ -53,16 +58,15 @@ export const EnvironmentSection: FC<EnvironmentSectionProps> = ({
   };
 
   return (
-    <div className="flex h-fit w-fit items-center gap-2 rounded-t-lg border-x border-t border-gray-300 bg-gray-100 p-2 dark:border-gray-700 dark:bg-gray-900">
-      <span className="text-xs font-medium dark:text-white">Environment:</span>
+    <div className="flex size-fit items-center gap-2 rounded-t-lg border-x border-t border-gray-300 bg-gray-100 p-2 dark:border-gray-700 dark:bg-gray-900">
       <EnvironmentDropdown
         environments={environments.map((env) => env.id)}
         defaultEnvironment={defaultEnvironment}
         selectedEnvironment={currentEnvironmentId}
         onChange={changeEnvironment}
       />
-      {isViewMode(viewSettings, ViewMode.Edit) && (
-        <PromoteEnvironmentButton small={small} disabled={!isPromotable} />
+      {canModifyConfiguration(viewSettings) && (
+        <PromoteEnvironmentButton small={small} />
       )}
       {newEnvironment && (
         <WorkingOverlay
@@ -80,10 +84,23 @@ const EnvironmentDropdown: FC<{
   selectedEnvironment: string;
   onChange?: (env: string) => void;
 }> = ({ environments, defaultEnvironment, selectedEnvironment, onChange }) => {
+  const isDefault = selectedEnvironment === defaultEnvironment;
   return (
     <Dropdown
-      label={selectedEnvironment}
-      color={"light"}
+      label={
+        <div>
+          <span
+            className={classNames({
+              "text-gray-500 dark:text-gray-300": isDefault,
+              "text-green-200 dark:text-green-300": !isDefault,
+            })}
+          >
+            environment:{" "}
+          </span>
+          {selectedEnvironment}
+        </div>
+      }
+      color={isDefault ? "light" : "success"}
       arrowIcon={true}
       size={"xs"}
       theme={{
@@ -105,14 +122,22 @@ const PromoteEnvironmentButton: FC<{
   small?: boolean;
   disabled?: boolean;
 }> = ({ small, disabled }) => {
+  const [show, setShow] = useState(false);
+
   return (
-    <Button
-      disabled={disabled}
-      color={"purple"}
-      className="btn btn-primary"
-      size={"xs"}
-    >
-      Promote
-    </Button>
+    <>
+      <Button
+        disabled={disabled}
+        color={"purple"}
+        className="btn btn-primary"
+        size={"xs"}
+        onClick={() => {
+          setShow(true);
+        }}
+      >
+        Promote
+      </Button>
+      <PromoteEnvironmentModal onClose={() => setShow(false)} show={show} />
+    </>
   );
 };

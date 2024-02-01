@@ -5,6 +5,7 @@ import useApplicationStore from "../../pages/store/ApplicationStore";
 import modifyArchitecture from "../../api/ModifyArchitecture";
 import { UIError } from "../../shared/errors";
 import { AiOutlineLoading } from "react-icons/ai";
+import { FormFooter } from "../FormFooter";
 
 interface ModifyArchitectureModalProps {
   onClose: () => void;
@@ -150,18 +151,24 @@ export default function NewArchitectureModal({
           </div>
         </Modal.Body>
         <Modal.Footer>
-          <Button type="reset" color="clear" className="dark:text-white">
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            color="purple"
-            isProcessing={isSubmitting}
-            processingSpinner={<AiOutlineLoading className="animate-spin" />}
-            disabled={Object.entries(errors).length > 0}
-          >
-            Rename
-          </Button>
+          <FormFooter>
+            <div className="flex gap-2">
+              <Button type="reset" color="clear" className="dark:text-white">
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                color="purple"
+                isProcessing={isSubmitting}
+                processingSpinner={
+                  <AiOutlineLoading className="animate-spin" />
+                }
+                disabled={Object.entries(errors).length > 0}
+              >
+                Rename
+              </Button>
+            </div>
+          </FormFooter>
         </Modal.Footer>
       </form>
     </Modal>

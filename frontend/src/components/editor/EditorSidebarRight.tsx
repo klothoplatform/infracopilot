@@ -7,7 +7,7 @@ import {
   Tabs,
   type TabsRef,
   Tooltip,
-  useTheme,
+  useThemeMode,
 } from "flowbite-react";
 import type { FC } from "react";
 import React, { useEffect, useRef, useState } from "react";
@@ -36,7 +36,7 @@ import { ErrorBoundary } from "react-error-boundary";
 import { FallbackRenderer } from "../FallbackRenderer";
 import { trackError } from "../../pages/store/ErrorStore";
 import { UIError } from "../../shared/errors";
-import { FaArrowLeft, FaArrowRight, FaBars, FaCircle } from "react-icons/fa6";
+import { FaArrowLeft, FaArrowRight, FaBars } from "react-icons/fa6";
 import classNames from "classnames";
 import { FaHistory } from "react-icons/fa";
 import { ResizableSection } from "../Resizable";
@@ -47,9 +47,8 @@ import {
   isViewMode,
   ViewMode,
 } from "../../shared/EditorViewSettings";
-import type { IconType } from "react-icons";
+import type { IconBaseProps, IconType } from "react-icons";
 import { twMerge } from "tailwind-merge";
-import type { IconBaseProps } from "react-icons/lib/esm/iconBase";
 
 interface SidebarItemState {
   [key: string]: {
@@ -516,7 +515,7 @@ const DetailsSidebar: FC<DetailsSidebarProps> = ({
         }
         fallbackRender={FallbackRenderer}
       >
-        <div className="flex h-full min-h-0 w-full flex-col justify-between p-2">
+        <div className="flex size-full min-h-0 flex-col justify-between p-2">
           <Details />
         </div>
       </ErrorBoundary>
@@ -524,7 +523,7 @@ const DetailsSidebar: FC<DetailsSidebarProps> = ({
   );
 };
 
-const detailsTabsTheme: CustomFlowbiteTheme["tab"] = {
+const detailsTabsTheme: CustomFlowbiteTheme["tabs"] = {
   base: "flex flex-col gap-2 min-h-0 h-full",
   tablist: {
     base: "max-h-12 bg-transparent",
@@ -560,7 +559,7 @@ const Details: FC = function () {
   }, [rightSidebarSelector]);
 
   return (
-    <Tabs.Group
+    <Tabs
       theme={detailsTabsTheme}
       aria-label="Architecture Actions"
       /* eslint-disable-next-line react/style-prop-object */
@@ -598,7 +597,7 @@ const Details: FC = function () {
         <ResourceIdHeader resourceId={selectedResource} edgeId={selectedEdge} />
         <AdditionalResources />
       </Tabs.Item>
-    </Tabs.Group>
+    </Tabs>
   );
 };
 
@@ -611,7 +610,7 @@ const ResourceIdHeader: FC<ResourceIdHeaderProps> = function ({
   resourceId,
   edgeId,
 }) {
-  const { mode } = useTheme();
+  const { mode } = useThemeMode();
 
   const [copied, setCopied] = useState(false);
 
@@ -695,7 +694,7 @@ const ResourceIdHeader: FC<ResourceIdHeaderProps> = function ({
               <div className="flex w-full justify-between border-b border-gray-200 bg-gray-50 p-4 dark:border-gray-600 dark:bg-gray-700">
                 <div className="mx-auto flex items-center">
                   <p className="flex items-center text-sm font-normal text-gray-500 dark:text-gray-400">
-                    <HiInformationCircle className="mr-4 h-4 w-4" />
+                    <HiInformationCircle className="mr-4 size-4" />
                     <span className="[&_p]:inline">
                       This resource is imported and configured externally
                     </span>

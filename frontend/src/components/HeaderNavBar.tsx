@@ -39,7 +39,7 @@ export const HeaderNavBarRow1Right: FC<{
   const { isSmallScreen } = useScreenSize();
 
   return (
-    <div className="flex h-fit w-fit items-center justify-end lg:gap-3">
+    <div className="flex size-fit items-center justify-end lg:gap-3">
       {isAuthenticated && user ? (
         <AccountDropdown />
       ) : (
@@ -52,7 +52,7 @@ export const HeaderNavBarRow1Right: FC<{
 const AccountDropdown: FC = function () {
   const { user, logout } = useApplicationStore();
   const [noPicture, setNoPicture] = useState(false);
-  const [mode, setMode, toggleMode] = useThemeMode();
+  const { mode, toggleMode } = useThemeMode();
 
   if (!user) {
     return null;
@@ -68,10 +68,10 @@ const AccountDropdown: FC = function () {
       arrowIcon={false}
       inline
       label={
-        <span className="h-9 w-9 rounded-full">
+        <span className="size-9 rounded-full">
           <div className="sr-only">account menu</div>
           {noPicture ? (
-            <div className="flex h-full w-full items-center justify-center rounded-full bg-primary-400 text-lg font-light text-white dark:bg-primary-500">
+            <div className="flex size-full items-center justify-center rounded-full bg-primary-400 text-lg font-light text-white dark:bg-primary-500">
               {(user.given_name ?? "")[0] ?? ""}
               {(user.family_name ?? "")[0] ?? ""}
             </div>
@@ -89,7 +89,7 @@ const AccountDropdown: FC = function () {
       <Dropdown.Header>
         <div className="flex items-center gap-2">
           {noPicture ? (
-            <div className="flex h-[3.25rem] w-[3.25rem] items-center justify-center rounded-full bg-primary-400 text-lg font-light text-white dark:bg-primary-500">
+            <div className="flex size-[3.25rem] items-center justify-center rounded-full bg-primary-400 text-lg font-light text-white dark:bg-primary-500">
               {(user.given_name ?? "")[0] ?? ""}
               {(user.family_name ?? "")[0] ?? ""}
             </div>

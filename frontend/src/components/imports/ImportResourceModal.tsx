@@ -16,6 +16,8 @@ import {
   ResourceConstraint,
 } from "../../shared/architecture/Constraints";
 import { NodeId } from "../../shared/architecture/TopologyNode";
+import { FormFooter } from "../FormFooter";
+import classNames from "classnames";
 
 interface NewArchitectureModalProps {
   onClose: () => void;
@@ -132,7 +134,7 @@ export default function ImportResourceModal({
         }
       }
     },
-    [addError, getIdToken, onClose, methods.reset, resetEditorState, user?.sub],
+    [applyConstraints, addError, onClose, methods, resetEditorState],
   );
 
   useEffect(() => {
@@ -147,9 +149,8 @@ export default function ImportResourceModal({
     return () => {
       window.removeEventListener("keydown", handleEsc);
     };
-  }, [onClose, methods.reset]);
+  }, [onClose, methods]);
 
-  console.log(errors);
   return (
     <Modal
       show={true}
@@ -161,38 +162,45 @@ export default function ImportResourceModal({
       <FormProvider {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmit)}>
           <Modal.Header>Import a resource</Modal.Header>
-          <Modal.Body>
+          <Modal.Body className="divide-y divide-gray-300 dark:divide-gray-600">
             <div>
-              <p className="text-base leading-relaxed text-gray-500 dark:text-gray-400">
+              <p className="text-gray-700 dark:text-gray-200">
                 Select the resource type you want to import and fill in the
                 required fields.
               </p>
-              <p className="py-1 text-base leading-relaxed text-gray-500 dark:text-gray-400">
+              <p className="py-1 text-sm text-gray-700 dark:text-gray-200">
                 Imported resources can be used in your architecture, but are
                 configured externally.
               </p>
-              <div className="mb-2 block py-2">
+              <div className="mb-4 mt-8 flex flex-col gap-1">
                 <Label htmlFor="Resource Type" value="Resource Type" />
+                <ResourceTypeDropdown
+                  onResourceSelection={(rt) =>
+                    methods.setValue("ResourceType", rt, {
+                      shouldTouch: true,
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    })
+                  }
+                  selectedValue={resourceType}
+                />
               </div>
-              <ResourceTypeDropdown
-                onResourceSelection={(rt) =>
-                  methods.setValue("ResourceType", rt, {
-                    shouldTouch: true,
-                    shouldDirty: true,
-                    shouldValidate: true,
-                  })
-                }
-                selectedValue={resourceType}
-              />
-              {resourceType && (
-                <div className="py-2">
-                  <hr />
-                  <div className="mb-2 block">
-                    <Label htmlFor="Name" value="Name" />
-                  </div>
+            </div>
+            {resourceType && (
+              <div className="flex flex-col justify-center gap-2 pt-4">
+                <div className="flex flex-col gap-1 p-1">
+                  <Label
+                    className={classNames({
+                      "text-red-600 dark:text-red-500": errors["name"],
+                    })}
+                    htmlFor="Name"
+                    value="Name"
+                  />
                   <TextInput
                     placeholder="Name"
-                    color={errors["name"] ? "failure" : undefined}
+                    sizing="sm"
+                    type="text"
+                    color={errors["name"] ? "failure" : "gray"}
                     helperText={
                       errors["name"] && (
                         <span>{errors["name"].message?.toString()}</span>
@@ -214,34 +222,34 @@ export default function ImportResourceModal({
                       },
                     })}
                   />
-                  <ConfigGroup
-                    fields={fields}
-                    configResource={
-                      new NodeId(
-                        resourceType.type,
-                        "",
-                        "",
-                        resourceType.provider,
-                      )
-                    }
-                    filter={(field: Property, resourceID?: NodeId) => false}
-                  />
                 </div>
-              )}
-            </div>
+                <ConfigGroup
+                  fields={fields}
+                  configResource={
+                    new NodeId(resourceType.type, "", "", resourceType.provider)
+                  }
+                  filter={(field: Property, resourceID?: NodeId) => false}
+                />
+              </div>
+            )}
           </Modal.Body>
           <Modal.Footer>
-            <Button
-              type="submit"
-              color="purple"
-              disabled={
-                Object.entries(errors).length > 0 || resourceType === undefined
-              }
-              isProcessing={isSubmitting}
-              processingSpinner={<AiOutlineLoading className="animate-spin" />}
-            >
-              Create
-            </Button>
+            <FormFooter>
+              <Button
+                type="submit"
+                color="purple"
+                disabled={
+                  Object.entries(errors).length > 0 ||
+                  resourceType === undefined
+                }
+                isProcessing={isSubmitting}
+                processingSpinner={
+                  <AiOutlineLoading className="animate-spin" />
+                }
+              >
+                {isSubmitting ? "Importing" : "Import"}
+              </Button>
+            </FormFooter>
           </Modal.Footer>
         </form>
       </FormProvider>

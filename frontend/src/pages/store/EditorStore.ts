@@ -79,6 +79,8 @@ import cloneArchitecture from "../../api/CloneArchitecture";
 import type { EditorViewSettings } from "../../shared/EditorViewSettings";
 import { EditorLayout } from "../../shared/EditorViewSettings";
 import { isViewMode, ViewMode } from "../../shared/EditorViewSettings";
+import type { PromoteToEnvironmentRequest } from "../../api/PromoteToEnvironment";
+import { promoteToEnvironment } from "../../api/PromoteToEnvironment";
 
 interface EditorStoreState {
   architecture: Architecture;
@@ -228,6 +230,7 @@ interface EditorStoreActions {
   goToPreviousState: () => Promise<void>;
   goToNextState: () => Promise<void>;
   updateViewSettings: (settings: Partial<EditorViewSettings>) => void;
+  promoteToEnvironment: (targetEnvironmentId: string) => Promise<void>;
 }
 
 type EditorStoreBase = EditorStoreState & EditorStoreActions;
@@ -1497,6 +1500,20 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
           invocation: Promise.resolve({}),
         };
     }
+  },
+  promoteToEnvironment: async (targetEnvironmentId: string) => {
+    const ev = await promoteToEnvironment({
+      architectureId: get().architecture.id,
+      targetEnvironmentId,
+      idToken: await get().getIdToken(),
+    });
+    set(
+      {
+        environmentVersion: ev,
+      },
+      false,
+      "editor/promoteToEnvironment",
+    );
   },
 });
 

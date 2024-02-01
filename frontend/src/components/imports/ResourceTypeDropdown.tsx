@@ -25,10 +25,13 @@ export const ResourceTypeDropdown = ({
   return (
     <>
       <Dropdown
-        color={"purple"}
-        label={selectedValue?.displayName ?? "Select Type"}
+        color={"light"}
+        size={"sm"}
+        label={selectedValue?.displayName ?? "Select a resource type"}
         dismissOnClick={true}
+        placement={"bottom-start"}
       >
+        <Dropdown.Header>Select a resource type</Dropdown.Header>
         {importableResources.map(
           (resourceType) =>
             resourceType.provider === environmentVersion.provider ||

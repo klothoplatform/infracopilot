@@ -8,7 +8,11 @@ const FlowbiteWrapper: FC<PropsWithChildren> = ({ children }) => {
     storedTheme === "dark" ||
     (storedTheme === null &&
       window.matchMedia?.("(prefers-color-scheme: dark)").matches);
-  return <Flowbite theme={{ dark, theme }}>{children}</Flowbite>;
+  return (
+    <Flowbite theme={{ mode: dark ? "dark" : "light", theme }}>
+      {children}
+    </Flowbite>
+  );
 };
 
 export default FlowbiteWrapper;
