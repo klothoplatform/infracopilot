@@ -1,7 +1,7 @@
 name: Deploy
 
 env:
-  NODE_VERSION: "18.x"
+  NODE_VERSION: "20.x"
   GO_VERSION: "1.20.3"
   PYTHON_VERSION: "3.11"
   ZIG_VERSION: "0.9.1"
