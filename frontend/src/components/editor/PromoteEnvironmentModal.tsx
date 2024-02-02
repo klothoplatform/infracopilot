@@ -1,4 +1,4 @@
-import { Button, Dropdown, Modal } from "flowbite-react";
+import { Badge, Button, Dropdown, Modal } from "flowbite-react";
 import { useForm } from "react-hook-form";
 import React, { useEffect, useState } from "react";
 import { AiOutlineLoading } from "react-icons/ai";
@@ -21,13 +21,8 @@ export default function PromoteEnvironmentModal({
   onClose,
   show,
 }: PromoteEnvironmentModalProps) {
-  const {
-    resetEditorState,
-    addError,
-    architecture,
-    promoteToEnvironment,
-    environmentVersion,
-  } = useApplicationStore();
+  const { addError, architecture, promoteToEnvironment, environmentVersion } =
+    useApplicationStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const sourceEnvironment = architecture.defaultEnvironment;
@@ -38,19 +33,12 @@ export default function PromoteEnvironmentModal({
 
   const targetFieldId = "targetEnvironmentId";
 
-  const {
-    setValue,
-    register,
-    unregister,
-    reset,
-    watch,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<PromoteEnvironmentFormState>({
-    defaultValues: {
-      targetEnvironmentId: defaultTargetEnvironment,
-    },
-  });
+  const { setValue, register, unregister, reset, watch, handleSubmit } =
+    useForm<PromoteEnvironmentFormState>({
+      defaultValues: {
+        targetEnvironmentId: defaultTargetEnvironment,
+      },
+    });
 
   useEffect(() => {
     if (show) {
@@ -77,7 +65,6 @@ export default function PromoteEnvironmentModal({
   };
 
   let onSubmit = async (state: PromoteEnvironmentFormState) => {
-    let id;
     let success = false;
     setIsSubmitting(true);
     try {
@@ -97,28 +84,10 @@ export default function PromoteEnvironmentModal({
           cause: e as Error,
         }),
       );
-    }
-    setIsSubmitting(false);
-    if (success) {
-      onClose();
-      if (id) {
-        try {
-          resetEditorState();
-        } catch (e: any) {
-          addError(
-            new UIError({
-              errorId: "PromoteEnvironmentModal:Submit",
-              message: `Promotion from ${sourceEnvironment} to ${watchTargetEnvironmentId} failed.`,
-              messageComponent: (
-                <span>
-                  Promotion from <i>{sourceEnvironment}</i> to{" "}
-                  <i>{watchTargetEnvironmentId}</i> failed.
-                </span>
-              ),
-              cause: e,
-            }),
-          );
-        }
+    } finally {
+      setIsSubmitting(false);
+      if (success) {
+        onClose();
       }
     }
   };
@@ -168,7 +137,10 @@ export default function PromoteEnvironmentModal({
               size={"sm"}
             >
               <Dropdown.Header>Choose a source environment</Dropdown.Header>
-              <Dropdown.Item>{sourceEnvironment} (default)</Dropdown.Item>
+              <Dropdown.Item className={"flex justify-between gap-2"}>
+                {sourceEnvironment}
+                <Badge color={"light"}>default</Badge>
+              </Dropdown.Item>
             </Dropdown>
             <FaArrowRight />
             <Dropdown

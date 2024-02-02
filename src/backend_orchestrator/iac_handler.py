@@ -38,7 +38,7 @@ class IaCOrchestrator:
         self,
         architecture_id: str,
         env_id: str,
-        version: int,
+        version: Optional[int],
         accept: Optional[str] = None,
     ):
         try:
@@ -50,7 +50,7 @@ class IaCOrchestrator:
                 raise ArchitectureStateDoesNotExistError(
                     "Architecture with id, {request.architecture_id}, does not exist"
                 )
-            elif env_version.version != version:
+            elif version is not None and env_version.version != version:
                 raise EnvironmentVersionNotLatestError(
                     f"Architecture state is not current. Expected {env_version.version}, got {version}"
                 )

@@ -1,6 +1,6 @@
 import type { FC } from "react";
 import { useState } from "react";
-import { Button, Dropdown } from "flowbite-react";
+import { Badge, Button, Dropdown } from "flowbite-react";
 import useApplicationStore from "../../pages/store/ApplicationStore";
 import { WorkingOverlay } from "../WorkingOverlay";
 import { UIError } from "../../shared/errors";
@@ -105,8 +105,15 @@ const EnvironmentDropdown: FC<{
     >
       {environments.map((env) => {
         return (
-          <Dropdown.Item key={env} onClick={() => onChange?.(env)}>
-            {env} {env === defaultEnvironment && "(default)"}
+          <Dropdown.Item
+            className={"flex justify-between gap-2"}
+            key={env}
+            onClick={() => onChange?.(env)}
+          >
+            {env}{" "}
+            {env === defaultEnvironment && (
+              <Badge color={"light"}>default</Badge>
+            )}
           </Dropdown.Item>
         );
       })}

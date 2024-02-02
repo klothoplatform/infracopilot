@@ -4,10 +4,10 @@ import { analytics } from "../App";
 import { ApiError } from "../shared/errors";
 import { trackError } from "../pages/store/ErrorStore";
 
-export default async function ExportIaC(
+export default async function exportIaC(
   architectureId: string,
   environment: string,
-  state: number,
+  state: number | null,
   idToken: string,
 ): Promise<any> {
   let response: AxiosResponse;
@@ -15,9 +15,7 @@ export default async function ExportIaC(
     response = await axios.get(
       `/api/architecture/${architectureId}/environment/${environment}/iac`,
       {
-        params: {
-          state: `${state}`,
-        },
+        params: { state },
         responseType: "blob",
         headers: {
           accept: "application/octet-stream",

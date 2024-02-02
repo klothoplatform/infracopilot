@@ -80,6 +80,7 @@ import type { EditorViewSettings } from "../../shared/EditorViewSettings";
 import { EditorLayout } from "../../shared/EditorViewSettings";
 import { isViewMode, ViewMode } from "../../shared/EditorViewSettings";
 import { promoteToEnvironment } from "../../api/PromoteToEnvironment";
+import exportIaC from "../../api/ExportIaC";
 
 interface EditorStoreState {
   architecture: Architecture;
@@ -230,6 +231,11 @@ interface EditorStoreActions {
   goToNextState: () => Promise<void>;
   updateViewSettings: (settings: Partial<EditorViewSettings>) => void;
   promoteToEnvironment: (targetEnvironmentId: string) => Promise<void>;
+  exportIaC: (
+    architectureId: string,
+    environment: string,
+    state?: number,
+  ) => Promise<any>;
 }
 
 type EditorStoreBase = EditorStoreState & EditorStoreActions;
@@ -1501,18 +1507,19 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     }
   },
   promoteToEnvironment: async (targetEnvironmentId: string) => {
-    const ev = await promoteToEnvironment({
+    await promoteToEnvironment({
       architectureId: get().architecture.id,
       targetEnvironmentId,
       idToken: await get().getIdToken(),
     });
-    set(
-      {
-        environmentVersion: ev,
-      },
-      false,
-      "editor/promoteToEnvironment",
-    );
+  },
+  exportIaC: async (
+    architectureId: string,
+    environment: string,
+    state?: number,
+  ) => {
+    const idToken = await get().getIdToken();
+    return await exportIaC(architectureId, environment, state ?? null, idToken);
   },
 });
 
