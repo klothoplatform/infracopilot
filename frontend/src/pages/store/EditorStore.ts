@@ -77,13 +77,20 @@ import { getArchitectureAccess } from "../../api/GetArchitectureAccess";
 import type { ArchitectureAccess } from "../../shared/architecture/Access";
 import cloneArchitecture from "../../api/CloneArchitecture";
 import type { EditorViewSettings } from "../../shared/EditorViewSettings";
-import { EditorLayout } from "../../shared/EditorViewSettings";
-import { isViewMode, ViewMode } from "../../shared/EditorViewSettings";
+import {
+  EditorLayout,
+  isViewMode,
+  ViewMode,
+} from "../../shared/EditorViewSettings";
 import { promoteToEnvironment } from "../../api/PromoteToEnvironment";
 import exportIaC from "../../api/ExportIaC";
 
+import type { ChangeNotification } from "../../components/editor/ChangesSidebar";
+import { NotificationType } from "../../components/editor/ChangesSidebar";
+
 interface EditorStoreState {
   architecture: Architecture;
+  changeNotifications: ChangeNotification[];
   environmentVersion: EnvironmentVersion;
   previousState?: EnvironmentVersion;
   nextState?: EnvironmentVersion;
@@ -91,7 +98,6 @@ interface EditorStoreState {
   canApplyConstraints: boolean;
   connectionSourceId?: string;
   deletingNodes: boolean;
-  decisions: Decision[];
   edges: Edge[];
   edgeTargetState: {
     environmentVersion: number;
@@ -111,7 +117,6 @@ interface EditorStoreState {
   };
   isEditorInitialized: boolean;
   isEditorInitializing: boolean;
-  failures: Failure[];
   layoutOptions: LayoutOptions;
   layoutRefreshing: boolean;
   nodes: Node[];
@@ -128,9 +133,9 @@ interface EditorStoreState {
 const initialState: () => EditorStoreState = () => ({
   architecture: {} as Architecture,
   architectureAccess: undefined,
+  changeNotifications: [],
   nodes: [],
   edges: [],
-  decisions: [],
   configErrors: [],
   editorSidebarState: {
     right: {
@@ -145,7 +150,6 @@ const initialState: () => EditorStoreState = () => ({
       },
     },
   },
-  failures: [],
   willOverwriteState: false,
   isEditorInitialized: false,
   isEditorInitializing: false,
@@ -859,8 +863,18 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
           environmentVersion: response.environmentVersion,
           nodes: result.nodes,
           edges: result.edges,
-          decisions: decisions.concat(get().decisions),
-          failures: [],
+          changeNotifications: get()
+            .changeNotifications.filter(
+              (n) => n.type !== NotificationType.Failure,
+            )
+            .concat(
+              ...decisions.map((d) => ({
+                title: d.formatTitle(),
+                details: d.formatInfo(),
+                type: NotificationType.Success,
+                timestamp: Date.now(),
+              })),
+            ),
           unappliedConstraints: [],
           canApplyConstraints: true,
           edgeTargetState: initialState().edgeTargetState,
@@ -880,18 +894,23 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
         get().environmentVersion.architecture_id,
         get().environmentVersion.id,
       );
+
+      const failure = new Failure(get().unappliedConstraints, [
+        {
+          cause:
+            "The Klotho engine ran into an unexpected issue, the team was notified and is investigating, please try again. If this keeps occurring please join us on discord",
+        },
+      ]);
       set(
         {
           unappliedConstraints: [],
           canApplyConstraints: true,
-          failures: [
-            new Failure(get().unappliedConstraints, [
-              {
-                cause:
-                  "The Klotho engine ran into an unexpected issue, the team was notified and is investigating, please try again. If this keeps occurring please join us on discord",
-              },
-            ]),
-          ],
+          changeNotifications: get().changeNotifications.concat({
+            title: failure.formatTitle(),
+            details: failure.formatInfo(),
+            type: NotificationType.Failure,
+            timestamp: Date.now(),
+          }),
         },
         false,
         "editor/applyConstraints:error",
@@ -974,8 +993,10 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       new: newId,
     });
     await get().applyConstraints();
-    const failures = get().failures;
-    if (failures.length === 0) {
+    const failure = get().changeNotifications.find(
+      (n) => n.type === NotificationType.Failure,
+    );
+    if (!failure) {
       get().selectResource(newId);
     }
   },
@@ -1507,11 +1528,42 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     }
   },
   promoteToEnvironment: async (targetEnvironmentId: string) => {
-    await promoteToEnvironment({
-      architectureId: get().architecture.id,
-      targetEnvironmentId,
-      idToken: await get().getIdToken(),
-    });
+    let notification: any;
+    try {
+      await promoteToEnvironment({
+        architectureId: get().architecture.id,
+        targetEnvironmentId,
+        idToken: await get().getIdToken(),
+      });
+      notification = {
+        title: `Promoted architecture from default to ${targetEnvironmentId}`,
+        type: NotificationType.Success,
+        timestamp: Date.now(),
+      };
+    } catch (e) {
+      console.error("error promoting to environment", e);
+      notification = {
+        title: `Promoting architecture to ${targetEnvironmentId} failed!`,
+        type: NotificationType.Failure,
+        timestamp: Date.now(),
+      };
+    } finally {
+      set(
+        {
+          changeNotifications: get()
+            .changeNotifications.filter(
+              (n) => n.type !== NotificationType.Failure,
+            )
+            .concat(notification),
+        },
+        false,
+        "editor/promoteToEnvironment",
+      );
+      get().navigateRightSidebar([
+        RightSidebarMenu.Changes,
+        get().rightSidebarSelector[1],
+      ]);
+    }
   },
   exportIaC: async (
     architectureId: string,

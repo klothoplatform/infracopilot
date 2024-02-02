@@ -1,23 +1,12 @@
-import { Alert, Sidebar } from "flowbite-react";
+import { Sidebar } from "flowbite-react";
 import type { FC } from "react";
 import React, { useEffect, useRef, useState } from "react";
-import {
-  HiCheckCircle,
-  HiExclamation,
-  HiInformationCircle,
-  HiXCircle,
-} from "react-icons/hi";
 import useApplicationStore from "../../pages/store/ApplicationStore";
 import { RightSidebarMenu } from "../../shared/sidebar-nav";
-import { ErrorBoundary } from "react-error-boundary";
-import { FallbackRenderer } from "../FallbackRenderer";
-import { trackError } from "../../pages/store/ErrorStore";
-import { UIError } from "../../shared/errors";
 import { FaArrowRightArrowLeft, FaBars } from "react-icons/fa6";
 import classNames from "classnames";
 import { FaHistory } from "react-icons/fa";
 import { ResizableSection } from "../Resizable";
-import { OutlinedAlert } from "../../shared/custom-themes";
 import {
   canModifyConfiguration,
   isViewMode,
@@ -27,6 +16,7 @@ import type { IconBaseProps, IconType } from "react-icons";
 import { twMerge } from "tailwind-merge";
 import { ModifiedConfigSidebar } from "./ModifiedConfigSidebar";
 import { DetailsSidebar } from "./DetailsSidebar";
+import { ChangesSidebar } from "./ChangesSidebar";
 
 interface SidebarItemState {
   [key: string]: {
@@ -40,11 +30,10 @@ const EditorSidebarRight: FC = () => {
   const {
     selectedResource,
     selectedEdge,
-    decisions,
-    failures,
     rightSidebarSelector,
     navigateRightSidebar,
     viewSettings,
+    changeNotifications,
   } = useApplicationStore();
 
   const [itemState, setItemState] = useState<SidebarItemState>({});
@@ -83,7 +72,7 @@ const EditorSidebarRight: FC = () => {
     !!(selectedResource || selectedEdge);
   const shouldShowChanges =
     itemState[RightSidebarMenu.Changes]?.visible &&
-    ((decisions?.length || failures?.length) ?? 0) &&
+    changeNotifications.length > 0 &&
     !isViewMode(viewSettings, ViewMode.View);
   const shouldShowMissingConfig =
     itemState[RightSidebarMenu.MissingConfig]?.visible;
@@ -92,7 +81,7 @@ const EditorSidebarRight: FC = () => {
 
   const isChangesActive =
     !!itemState[RightSidebarMenu.Changes]?.visible &&
-    !!(decisions?.length || failures?.length);
+    changeNotifications.length > 0;
 
   const isDetailsActive =
     !!itemState[RightSidebarMenu.Details]?.visible &&
@@ -170,7 +159,7 @@ const EditorSidebarRight: FC = () => {
                   onActivate={onActivate}
                   onDeactivate={onDeactivate}
                   active={isChangesActive}
-                  disabled={decisions?.length === 0 && failures?.length === 0}
+                  disabled={changeNotifications.length === 0}
                   showNotification={
                     !!itemState[RightSidebarMenu.Changes]?.hasNotification
                   }
@@ -346,114 +335,6 @@ const SidebarIcon: FC<
         className={twMerge(rest?.className, "relative sidebar-icon-bubble")}
       />
       {showCircle && <NotificationBubble disabled={disabled} />}
-    </div>
-  );
-};
-
-const ChangesSidebar: FC<{
-  hidden?: boolean;
-}> = ({ hidden }) => {
-  const { decisions, failures } = useApplicationStore();
-
-  let notifications = [] as EventProps[];
-  if (failures?.length) {
-    for (const failure of failures) {
-      if (failure.cause.length > 0) {
-        notifications.push({
-          type: "failure",
-          title: failure.formatTitle(),
-          details: failure.formatInfo(),
-        });
-      }
-    }
-  }
-  decisions?.forEach((decision) => {
-    notifications.push({
-      type: "success",
-      title: decision.formatTitle(),
-      details: decision.formatInfo(),
-    });
-  });
-
-  return (
-    <div
-      className={classNames("flex flex-col h-full w-full", {
-        hidden: hidden,
-      })}
-    >
-      <div className="flex h-10 w-full items-baseline justify-between border-b-[1px] p-2 dark:border-gray-700">
-        <h2 className={"text-md font-medium dark:text-white"}>Changes</h2>
-      </div>
-      <ErrorBoundary
-        onError={(error, info) =>
-          trackError(
-            new UIError({
-              message: "uncaught error in EditorSidebarRight",
-              errorId: "EditorSidebarLeft:ErrorBoundary",
-              cause: error,
-              data: { info },
-            }),
-          )
-        }
-        fallbackRender={FallbackRenderer}
-      >
-        <div className="flex h-full flex-col justify-between overflow-y-auto px-2 py-4">
-          <EventNotifications events={notifications} />
-        </div>
-      </ErrorBoundary>
-    </div>
-  );
-};
-
-export interface EventProps {
-  type: "success" | "failure" | "warning" | "info";
-  title: string;
-  details?: string;
-}
-
-const eventIconMap = {
-  success: HiCheckCircle,
-  failure: HiXCircle,
-  warning: HiExclamation,
-  info: HiInformationCircle,
-};
-
-const EventNotification: FC<EventProps> = function ({ type, title, details }) {
-  return (
-    <div className="flex flex-col">
-      <Alert
-        theme={OutlinedAlert}
-        color={type}
-        icon={eventIconMap[type]}
-        title={title}
-      >
-        <div className="text-ellipsis">{title}</div>
-      </Alert>
-
-      {details && (
-        <div className="mx-2 break-all border-[1px] border-t-0 border-gray-300 bg-white py-2 pl-4 pr-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-          {details.split(/\n/).map((line, index) => (
-            <React.Fragment key={index}>
-              {line}
-              <br />
-            </React.Fragment>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
-
-interface EventNotificationsProps {
-  events: EventProps[];
-}
-
-const EventNotifications: FC<EventNotificationsProps> = function ({ events }) {
-  return (
-    <div className="flex max-h-full flex-col space-y-4">
-      {events.map((event, index) => (
-        <EventNotification key={index} {...event} />
-      ))}
     </div>
   );
 };
