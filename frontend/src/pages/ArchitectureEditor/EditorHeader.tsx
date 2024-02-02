@@ -5,7 +5,6 @@ import { useScreenSize } from "../../shared/hooks/useScreenSize";
 import { UIError } from "../../shared/errors";
 import { ArchitectureButtonAndModal } from "../../components/NewArchitectureButton";
 import { CloneCurrentArchitectureButton } from "../../components/editor/CloneCurrentArchitectureButton";
-import { ExportIacButton } from "../../components/editor/ExportIacButton";
 import { ViewModeDropdown } from "../../components/ViewModeDropdown";
 import { ShareButton } from "../../components/ShareButton";
 import { EditableLabel } from "../../components/EditableLabel";
@@ -17,7 +16,6 @@ import {
 import type { EditorViewSettings } from "../../shared/EditorViewSettings";
 import { isViewMode, ViewMode } from "../../shared/EditorViewSettings";
 import { LayoutSelector } from "./LayoutSelector";
-import { env } from "../../shared/environment";
 
 export const EditorHeader: FC = () => {
   const {
@@ -30,7 +28,9 @@ export const EditorHeader: FC = () => {
   } = useApplicationStore();
 
   const shouldHideCloneButton =
-    auth0?.isLoading || architecture.owner === `user:${user?.sub}`;
+    auth0?.isLoading ||
+    architecture.owner === `user:${user?.sub}` ||
+    !isEditorInitialized;
 
   return (
     <HeaderNavBar>
@@ -51,7 +51,6 @@ export const EditorHeader: FC = () => {
       <div className="flex items-center justify-between gap-4">
         <Row1bLeft
           hideNewArchitectureButton={!isAuthenticated}
-          hideExportButton={!isEditorInitialized}
           hideCloneButton={shouldHideCloneButton}
         />
         <Row1bRight />
@@ -75,9 +74,8 @@ const Row1aLeft: FC<{
 
 const Row1bLeft: FC<{
   hideNewArchitectureButton?: boolean;
-  hideExportButton?: boolean;
   hideCloneButton?: boolean;
-}> = ({ hideNewArchitectureButton, hideExportButton, hideCloneButton }) => {
+}> = ({ hideNewArchitectureButton, hideCloneButton }) => {
   const { isSmallScreen } = useScreenSize();
 
   return (
@@ -89,9 +87,8 @@ const Row1bLeft: FC<{
         {!hideCloneButton && (
           <CloneCurrentArchitectureButton small={isSmallScreen} />
         )}
-        {!hideExportButton && <ExportIacButton small={isSmallScreen} />}
       </div>
-      {env.debug.has("layout-selector") && <LayoutSelector />}
+      <LayoutSelector />
     </div>
   );
 };

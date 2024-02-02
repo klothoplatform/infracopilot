@@ -87,7 +87,7 @@ jobs:
           stack-name: "infracopilot-${{ inputs.stage }}-${{ inputs.region }}"
           upsert: true
       - name: Use Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
       - name: npm install

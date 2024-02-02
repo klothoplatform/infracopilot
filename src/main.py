@@ -262,7 +262,7 @@ async def export_iac(
     request: Request,
     id,
     env_id,
-    state: int,
+    state: Optional[int] = None,
     accept: Annotated[Optional[str], Header()] = None,
 ):
     async with SessionLocal.begin() as db:
