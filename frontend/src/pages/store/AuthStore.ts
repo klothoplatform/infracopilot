@@ -3,6 +3,7 @@ import type { Auth0ContextInterface, User } from "@auth0/auth0-react";
 import type { ErrorStore } from "./ErrorStore";
 import { analytics } from "../../App";
 import { env } from "../../shared/environment";
+import { chatSignup } from "../../api/ChatSignup";
 
 const logoutUrl = env.auth0.logoutUrl;
 
@@ -13,6 +14,7 @@ export interface AuthStoreState {
   redirectedPostLogin: boolean;
   user?: User;
   isLoggingIn: boolean;
+  isChatSignupComplete?: boolean;
 }
 
 export interface AuthStoreBase extends AuthStoreState {
@@ -21,6 +23,7 @@ export interface AuthStoreBase extends AuthStoreState {
   loginWithRedirect: (appState: { [key: string]: any }) => Promise<void>;
   updateAuthentication: (context: Auth0ContextInterface) => Promise<void>;
   resetAuthState: () => void;
+  chatSignup: () => Promise<void>;
 }
 
 const initialState: () => AuthStoreState = () => ({
@@ -30,6 +33,7 @@ const initialState: () => AuthStoreState = () => ({
   redirectedPostLogin: false,
   user: undefined,
   isLoggingIn: false,
+  isChatSignupComplete: false,
 });
 
 export type AuthStore = AuthStoreBase & ErrorStore;
@@ -145,10 +149,19 @@ export const authStore: StateCreator<AuthStore, [], [], AuthStoreBase> = (
         isAuthenticated,
         auth0: context,
         isLoggingIn: !isAuthenticated,
+        isChatSignupComplete: user?.ChatSignup || get().isChatSignupComplete,
       },
       false,
       "updateAuthentication/authenticated",
     );
+  },
+  chatSignup: async () => {
+    const idToken = await get().getIdToken();
+    if (!idToken) {
+      return;
+    }
+    await chatSignup(idToken);
+    set({ isChatSignupComplete: true }, false, "chatSignup");
   },
   resetAuthState: () => set(initialState(), false, "resetAuthState"),
 });

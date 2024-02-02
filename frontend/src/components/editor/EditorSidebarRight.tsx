@@ -17,6 +17,8 @@ import { twMerge } from "tailwind-merge";
 import { ModifiedConfigSidebar } from "./ModifiedConfigSidebar";
 import { DetailsSidebar } from "./DetailsSidebar";
 import { ChangesSidebar } from "./ChangesSidebar";
+import { ChatSidebar } from "./ChatSidebar";
+import { IoIosChatboxes } from "react-icons/io";
 
 interface SidebarItemState {
   [key: string]: {
@@ -76,8 +78,6 @@ const EditorSidebarRight: FC = () => {
     !isViewMode(viewSettings, ViewMode.View);
   const shouldShowMissingConfig =
     itemState[RightSidebarMenu.MissingConfig]?.visible;
-  const shouldShowMenu =
-    shouldShowDetails || shouldShowChanges || shouldShowMissingConfig;
 
   const isChangesActive =
     !!itemState[RightSidebarMenu.Changes]?.visible &&
@@ -94,6 +94,14 @@ const EditorSidebarRight: FC = () => {
   const detailsHasNotification =
     !!itemState[RightSidebarMenu.Details]?.hasNotification &&
     !isDetailsDisabled;
+
+  const isChatActive = !!itemState[RightSidebarMenu.Chat]?.visible;
+
+  const shouldShowMenu =
+    shouldShowDetails ||
+    shouldShowChanges ||
+    shouldShowMissingConfig ||
+    isChatActive;
 
   return (
     <>
@@ -118,6 +126,7 @@ const EditorSidebarRight: FC = () => {
               hidden={!shouldShowMissingConfig}
               setWarnMissingProperties={setWarnMissingProperties}
             />
+            <ChatSidebar hidden={!isChatActive} />
           </div>
         </ResizableSection>
       )}
@@ -176,6 +185,17 @@ const EditorSidebarRight: FC = () => {
                 onDeactivate={onDeactivate}
                 active={isModifiedConfigActive}
                 showNotification={warnMissingProperties}
+              />
+            </Sidebar.ItemGroup>
+            <Sidebar.ItemGroup>
+              <SidebarMenuOption
+                key={RightSidebarMenu.Chat}
+                index={RightSidebarMenu.Chat}
+                label={"Chat"}
+                icon={IoIosChatboxes}
+                onActivate={onActivate}
+                onDeactivate={onDeactivate}
+                active={isChatActive}
               />
             </Sidebar.ItemGroup>
           </div>

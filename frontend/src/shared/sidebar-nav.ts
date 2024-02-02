@@ -5,6 +5,7 @@ export enum RightSidebarMenu {
   Changes = "Changes",
   Details = "Details",
   MissingConfig = "MissingConfig",
+  Chat = "Chat",
 }
 
 export enum RightSidebarDetailsTab {

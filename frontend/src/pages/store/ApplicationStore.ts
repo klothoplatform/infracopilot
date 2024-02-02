@@ -48,6 +48,7 @@ const useApplicationStoreBase = createWithEqualityFn<ApplicationStore>()(
           currentIdToken: state.currentIdToken,
           user: state.user,
           isAuthenticated: state.isAuthenticated,
+          isChatSignupComplete: state.isChatSignupComplete,
         }),
       },
     ),

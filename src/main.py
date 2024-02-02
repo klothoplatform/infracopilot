@@ -516,3 +516,10 @@ if os.getenv("PROFILING", "false").lower() == "true":
 
         # Proceed without profiling
         return await call_next(request)
+
+
+@app.post("/api/chat-signup")
+async def chat_signup(request: Request):
+    auth0: Auth0Manager = deps.auth0_manager
+    user_id = await get_user_id(request)
+    auth0.update_user(user_id, {"app_metadata": {"chat_signup": True}})

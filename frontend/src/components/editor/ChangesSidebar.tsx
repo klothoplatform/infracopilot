@@ -20,8 +20,6 @@ export const ChangesSidebar: FC<{
 }> = ({ hidden }) => {
   const { changeNotifications } = useApplicationStore();
 
-  console.log(changeNotifications);
-
   return (
     <div
       className={classNames("flex flex-col h-full w-full", {

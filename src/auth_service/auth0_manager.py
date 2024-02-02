@@ -100,3 +100,7 @@ class Auth0Manager:
             page += 1
 
         return users
+
+    def update_user(self, user_id: str, data: dict):
+        """Updates a user in Auth0"""
+        self.get_client().users.update(user_id, data)
