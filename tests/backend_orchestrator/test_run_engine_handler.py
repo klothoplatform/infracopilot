@@ -585,7 +585,7 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
         self.mock_env_dao.get_environment = mock.AsyncMock(return_value=self.test_env)
         self.mock_store.get_state_from_fs = mock.Mock(return_value=self.test_result)
         mock_run_engine.side_effect = FailedRunException(
-            "test", error_type="test-error", config_errors_json=[]
+            "test", error_type="test-error", error_details=[]
         )
         result = await self.arch_handler.run(
             "test-architecture-id",

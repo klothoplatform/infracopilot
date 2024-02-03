@@ -9,10 +9,10 @@ services:
     ports:
       - "9000:9000"
     volumes:
-      - ./state:/data
+      - minio_data:/data
     environment:
-      - "MINIO_ACCESS_KEY=minio"
-      - "MINIO_SECRET_KEY=minio123"
+      - "MINIO_ROOT_USER=minio"
+      - "MINIO_ROOT_PASSWORD=minio123"
     command: server /data
 
   postgres:
@@ -22,6 +22,8 @@ services:
       - openfga
     ports:
       - "5432:5432"
+    volumes:
+      - fga_db:/var/lib/postgresql
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
@@ -69,10 +71,15 @@ services:
     image: minio/mc
     depends_on:
       - minio
-    entrypoint: >
-      /bin/sh -e -c "
-      /usr/bin/mc alias set myminio http://minio:9000 minio minio123;
-      /usr/bin/mc mb myminio/ifcp-architecture-storage;
-      /usr/bin/mc policy set public myminio/ifcp-architecture-storage;
-      exit 0;
-      "
+    entrypoint:
+      - /bin/sh
+      - -ex
+      - -c
+    command:
+      - |
+        /usr/bin/mc alias set myminio http://minio:9000 minio minio123
+        /usr/bin/mc mb myminio/ifcp-architecture-storage
+        /usr/bin/mc anonymous set public myminio/ifcp-architecture-storage
+volumes:
+  minio_data:
+  fga_db:

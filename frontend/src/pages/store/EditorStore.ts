@@ -50,7 +50,7 @@ import {
   RightSidebarDetailsTab,
   RightSidebarMenu,
 } from "../../shared/sidebar-nav";
-import { Decision, Failure } from "../../shared/architecture/Decision";
+import { Decision } from "../../shared/architecture/Decision";
 import { getResourceTypes } from "../../api/GetResourceTypes";
 import type { AuthStoreBase } from "./AuthStore";
 import { ResourceTypeKB } from "../../shared/resources/ResourceTypeKB";
@@ -59,7 +59,7 @@ import { type ErrorStore } from "./ErrorStore";
 import { analytics } from "../../App";
 import { customConfigMappings } from "../ArchitectureEditor/config/CustomConfigMappings";
 import { getValidEdgeTargets } from "../../api/GetValidEdgeTargets";
-import { ApplicationError } from "../../shared/errors";
+import { ApplicationError, EngineError } from "../../shared/errors";
 import { getNextState } from "../../api/GetNextState";
 import { getPrevState } from "../../api/GetPreviousState";
 import { setCurrentState } from "../../api/SetCurrentState";
@@ -889,28 +889,42 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       get().updateEdgeTargets();
       return response.environmentVersion.config_errors ?? [];
     } catch (e) {
-      console.error("error applying constraints", e);
+      console.error("error applying constraints", { e });
       await get().refreshArchitecture(
         get().environmentVersion.architecture_id,
         get().environmentVersion.id,
       );
+      const notifications: ChangeNotification[] = [];
+      if (e instanceof EngineError) {
+        notifications.push({
+          title: e.title,
+          details: e.details,
+          type: NotificationType.Failure,
+          timestamp: Date.now(),
+        });
+      } else {
+        const constraints = get().unappliedConstraints;
+        const title = constraints
+          .map((c) => c.toFailureMessage())
+          .join(", ")
+          .replace(/:$/g, "");
+        const details =
+          "The Klotho engine ran into an unexpected issue, the team was notified and is investigating, please try again. If this keeps occurring please join us on discord";
+        notifications.push({
+          title,
+          details,
+          type: NotificationType.Failure,
+          timestamp: Date.now(),
+        });
+      }
 
-      const failure = new Failure(get().unappliedConstraints, [
-        {
-          cause:
-            "The Klotho engine ran into an unexpected issue, the team was notified and is investigating, please try again. If this keeps occurring please join us on discord",
-        },
-      ]);
       set(
         {
           unappliedConstraints: [],
           canApplyConstraints: true,
-          changeNotifications: get().changeNotifications.concat({
-            title: failure.formatTitle(),
-            details: failure.formatInfo(),
-            type: NotificationType.Failure,
-            timestamp: Date.now(),
-          }),
+          changeNotifications: get().changeNotifications.concat(
+            ...notifications,
+          ),
         },
         false,
         "editor/applyConstraints:error",

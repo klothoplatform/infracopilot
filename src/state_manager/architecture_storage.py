@@ -54,7 +54,7 @@ class ArchitectureStorage:
                 resources_yaml=data.get("resources_yaml", ""),
                 topology_yaml=data.get("topology_yaml", ""),
                 iac_topology=data.get("iac_topology", ""),
-                config_errors_json=data.get("config_errors_json", []),
+                config_errors=data.get("config_errors_json", []),
             )
         except FileNotFoundError as e:
             raise ArchitectureStateDoesNotExistError(
