@@ -195,6 +195,7 @@ class EnvironmentManager:
                     overrides, c.node, c.replacement_node
                 )
 
+        overrides_dict = [o.to_dict() for o in overrides]
         # Get the state of the base environment
         base_state: RunEngineResult = self.architecture_storage.get_state_from_fs(
             curr_base
@@ -206,7 +207,7 @@ class EnvironmentManager:
             input_graph=base_state.resources_yaml if base_state is not None else None,
             templates=[],
             engine_version=1.0,
-            constraints=overrides,
+            constraints=overrides_dict,
         )
         result: RunEngineResult = await run_engine(request)
         diff: TopologyDiff = diff_engine_results(result, base_state)
@@ -218,14 +219,14 @@ class EnvironmentManager:
         )
         env_specific_config.tracks.version_hash = curr_base.version_hash
         env_specific_config.diff = diff.__dict__()
-        env_specific_config.overrides = jsons.dump(overrides)
+        env_specific_config.overrides = [o.to_dict() for o in overrides]
         # Create the new environment version
         new_version = EnvironmentVersion(
             architecture_id=architecture_id,
             id=env_id,
             version=env_version.version + 1,
             version_hash=str(uuid.uuid4()),
-            constraints=overrides,
+            constraints=overrides_dict,
             env_resource_configuration=env_specific_config.to_dict(),
             created_at=datetime.utcnow(),
             created_by=requester.to_auth_string(),

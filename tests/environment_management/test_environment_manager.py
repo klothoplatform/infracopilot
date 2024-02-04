@@ -2,6 +2,7 @@ from unittest import mock
 import aiounittest
 from unittest.mock import MagicMock, AsyncMock, Mock, patch
 from src.auth_service.entity import User
+from src.constraints.constraint import ConstraintOperator
 from src.constraints.resource_constraint import ResourceConstraint
 from src.engine_service.binaries.fetcher import Binary
 from src.engine_service.engine_commands.run import RunEngineRequest
@@ -15,6 +16,7 @@ from src.environment_management.models import (
     EnvironmentTracker,
     EnvironmentVersion,
 )
+from src.topology.resource import ResourceID
 from src.topology.topology import Topology, TopologyDiff, DiffStatus, Diff
 
 
@@ -250,7 +252,15 @@ class TestEnvironmentManager(aiounittest.AsyncTestCase):
         )
         mock_is_in_sync.return_value = (False, "version_hash", "version_hash")
         mock_constraints_list.return_value = []
-        mock_get_overrides.return_value = []
+        overrides = [
+            ResourceConstraint(
+                operator=ConstraintOperator.Equals,
+                target=ResourceID("p", "t", "ns", "n"),
+                property="property",
+                value="value",
+            )
+        ]
+        mock_get_overrides.return_value = overrides
         base_state = MagicMock(resources_yaml="base_env_yaml")
         self.architecture_storage.get_state_from_fs = Mock(
             return_value=base_state,
@@ -271,7 +281,7 @@ class TestEnvironmentManager(aiounittest.AsyncTestCase):
                 environment=None,
                 version_hash="version_hash",
             ),
-            overrides=[],
+            overrides=[override.to_dict() for override in overrides],
             diff={"resources": {}, "edges": {}},
         )
         new_version = EnvironmentVersion(
@@ -279,7 +289,7 @@ class TestEnvironmentManager(aiounittest.AsyncTestCase):
             id="env_id",
             version=env_version.version + 1,
             version_hash="uuid",
-            constraints=[],
+            constraints=[override.to_dict() for override in overrides],
             env_resource_configuration=env_config.to_dict(),
             created_at="now",
             created_by=user.to_auth_string(),
@@ -309,7 +319,7 @@ class TestEnvironmentManager(aiounittest.AsyncTestCase):
                 id="architecture_id",
                 templates=[],
                 input_graph="base_env_yaml",
-                constraints=[],
+                constraints=[override.to_dict() for override in overrides],
                 engine_version=1.0,
             )
         )

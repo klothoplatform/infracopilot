@@ -42,6 +42,7 @@ export interface ConfigFormSection {
   title: string;
   propertyMap: Map<string, Property[]>;
   defaultOpened?: boolean;
+  ignoreSelectedResource?: boolean;
 }
 
 interface ConfigFormProps {
@@ -346,7 +347,10 @@ export default function ConfigForm({
                         if (properties.length === 0) {
                           return null;
                         }
-                        if (resourceId === selectedResource?.toString()) {
+                        if (
+                          resourceId === selectedResource?.toString() &&
+                          !section.ignoreSelectedResource
+                        ) {
                           return (
                             <ConfigGroup
                               key={resourceId}
