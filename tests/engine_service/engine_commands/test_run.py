@@ -1,17 +1,14 @@
 from pathlib import Path, PosixPath
 import aiounittest
 import tempfile
-import shutil
-import os
 from unittest import mock
 
 from src.engine_service.engine_commands.run import (
-    FailedRunException,
     run_engine,
     RunEngineRequest,
     RunEngineResult,
+    EngineException,
 )
-from src.engine_service.engine_commands.util import ConfigValidationException
 
 
 class TestRunEngine(aiounittest.AsyncTestCase):
@@ -76,7 +73,7 @@ class TestRunEngine(aiounittest.AsyncTestCase):
                 resources_yaml="resources_yaml",
                 topology_yaml="topology_yaml",
                 iac_topology="iac_topology",
-                config_errors_json=[],
+                config_errors=[],
             ),
         )
 
@@ -101,11 +98,21 @@ class TestRunEngine(aiounittest.AsyncTestCase):
             "",
             "",
         )
-        mock_eng_cmd.side_effect = self.run_engine_side_effect(self.temp_dir.name)
-        mock_eng_cmd.side_effect = ConfigValidationException("test", "", "")
-        with self.assertRaises(FailedRunException) as fre:
+
+        def run(*args, **kwargs):
+            self.run_engine_side_effect(self.temp_dir.name)
+            raise EngineException(
+                "Run",
+                1,
+                "out_logs",
+                "err_logs",
+            )
+
+        mock_eng_cmd.side_effect = run
+        with self.assertRaises(EngineException) as fre:
             await run_engine(request)
-            self.assertEqual(fre.error_type, "ConfigValidationException")
+        self.assertEqual(fre.exception.returncode, 1)
+
         mock_temp_dir.assert_called_once()
         mock_eng_cmd.assert_called_once_with(
             "Run",

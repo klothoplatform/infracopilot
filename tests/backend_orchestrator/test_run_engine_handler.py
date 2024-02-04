@@ -18,9 +18,9 @@ from src.environment_management.models import (
     Environment,
 )
 from src.engine_service.engine_commands.run import (
-    FailedRunException,
     RunEngineRequest,
     RunEngineResult,
+    EngineException,
 )
 
 from fastapi import HTTPException
@@ -69,7 +69,9 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
             topology_yaml="test-yaml",
             iac_topology="test-yaml",
         )
-        self.test_constraints = [{"scope": "application"}]
+        self.test_constraints = [
+            {"scope": "application", "operator": "add", "node": "aws:lambda_function:a"}
+        ]
         self.mock_store: mock.Mock = mock.Mock()
         self.mock_ev_dao: mock.Mock = mock.Mock()
         self.mock_env_dao: mock.Mock = mock.Mock()
@@ -380,7 +382,7 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
         self.assertEqual(result.status_code, 400)
         self.assertEqual(
             result.body,
-            b'{"error_type": "topological_changes_not_allowed", "environment": "test-id", "constraints": [{"scope": "application"}]}',
+            b'{"error_type": "topological_changes_not_allowed", "environment": "test-id", "constraints": [{"scope": "application", "operator": "add", "node": "aws:lambda_function:a"}]}',
         )
         self.mock_ev_dao.get_current_version.assert_called_once_with(
             "test-architecture-id", "test-id"
@@ -463,7 +465,7 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
         self.assertEqual(result.status_code, 400)
         self.assertEqual(
             result.body,
-            b'{"error_type": "topological_changes_not_allowed", "environment": "test-id", "constraints": [{"scope": "application"}], "diff": {"resources": {"test:test:None": {"status": "CHANGED"}}, "edges": {}}}',
+            b'{"error_type": "topological_changes_not_allowed", "environment": "test-id", "constraints": [{"scope": "application", "operator": "add", "node": "aws:lambda_function:a"}], "diff": {"resources": {"test:test:None": {"status": "CHANGED"}}, "edges": {}}}',
         )
         self.mock_ev_dao.get_current_version.assert_called_once_with(
             "test-architecture-id", "test-id"
@@ -584,8 +586,8 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
         )
         self.mock_env_dao.get_environment = mock.AsyncMock(return_value=self.test_env)
         self.mock_store.get_state_from_fs = mock.Mock(return_value=self.test_result)
-        mock_run_engine.side_effect = FailedRunException(
-            "test", error_type="test-error", error_details=[]
+        mock_run_engine.side_effect = EngineException(
+            "test", returncode=1, stdout="[]", stderr=""
         )
         result = await self.arch_handler.run(
             "test-architecture-id",
@@ -597,7 +599,8 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
             False,
         )
         self.assertEqual(
-            result.body, b'{"error_type": "test-error", "config_errors": []}'
+            result.body,
+            b'{"title": "Could not add aws:lambda_function:a", "details": "", "full_details": []}',
         )
         self.assertEqual(result.status_code, 400)
         self.mock_binary_store.ensure_binary.assert_called_once_with(Binary.ENGINE)

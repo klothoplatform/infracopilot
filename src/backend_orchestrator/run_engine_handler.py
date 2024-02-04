@@ -288,6 +288,8 @@ def format_error_message(body: CopilotRunRequest, e: EngineException):
         case _:
             title = f"Could not apply constraint {action}"
 
+    if len(reason) == 0:
+        return title, ""
     if len(reason) == 1:
         return title, reason[0]
     else:
