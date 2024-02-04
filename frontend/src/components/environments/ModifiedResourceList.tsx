@@ -88,14 +88,14 @@ export const ModifiedResourceList: FC<ModifiedResourceListProps> = ({
                 propertyDiffTable(resource.properties)}
               {resource.status === DiffStatus.ADDED && (
                 <p>
-                  This edge exists in {targetEnvironmentId}, but does not exist
-                  in {sourceEnvironment}
+                  This resource exists in {targetEnvironmentId}, but does not
+                  exist in {sourceEnvironment}
                 </p>
               )}
               {resource.status === DiffStatus.REMOVED && (
                 <p>
-                  This edge exists in {sourceEnvironment}, but does not exist in{" "}
-                  {targetEnvironmentId}
+                  This resource exists in {sourceEnvironment}, but does not
+                  exist in {targetEnvironmentId}
                 </p>
               )}
             </Accordion.Content>
