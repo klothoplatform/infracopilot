@@ -513,9 +513,9 @@ class ArchitectureHandler:
             )
             await authz.add_architecture_owner(owner, newArch.id)
             self.arch_dao.add_architecture(newArch)
-            environments: List[Environment] = (
-                await self.env_dao.get_environments_for_architecture(id)
-            )
+            environments: List[
+                Environment
+            ] = await self.env_dao.get_environments_for_architecture(id)
             for env in environments:
                 self.env_dao.add_environment(
                     Environment(
@@ -525,9 +525,9 @@ class ArchitectureHandler:
                         tags=env.tags,
                     )
                 )
-                versions: List[EnvironmentVersion] = (
-                    await self.ev_dao.list_environment_versions(id, env.id)
-                )
+                versions: List[
+                    EnvironmentVersion
+                ] = await self.ev_dao.list_environment_versions(id, env.id)
                 for v in versions:
                     new_version = EnvironmentVersion(
                         id=v.id,
