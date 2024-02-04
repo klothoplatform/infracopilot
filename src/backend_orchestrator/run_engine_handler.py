@@ -173,7 +173,7 @@ class EngineOrchestrator:
                     topology_yaml=result.topology_yaml,
                 ),
                 env_resource_configuration=arch.env_resource_configuration,
-                config_errors=result.config_errors_json,
+                config_errors=result.config_errors,
                 diff=diff.__dict__(),
             )
 
