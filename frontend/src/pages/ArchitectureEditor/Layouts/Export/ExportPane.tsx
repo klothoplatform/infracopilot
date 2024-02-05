@@ -6,6 +6,10 @@ import { UIError } from "../../../../shared/errors";
 import { useForm } from "react-hook-form";
 import { downloadFile } from "../../../../helpers/download-file";
 import { LiaFileExportSolid } from "react-icons/lia";
+import IacExplorer from "../../../../components/environments/IacExplorer";
+import { trackError } from "../../../store/ErrorStore";
+import { FallbackRenderer } from "../../../../components/FallbackRenderer";
+import { ErrorBoundary } from "react-error-boundary";
 
 const iacOptions = [
   {
@@ -37,8 +41,13 @@ interface ExportFormState {
 type FieldName = keyof ExportFormState;
 
 export const ExportPane = () => {
-  const { environmentVersion, architecture, addError, exportIaC } =
-    useApplicationStore();
+  const {
+    environmentVersion,
+    architecture,
+    addError,
+    exportIaC,
+    resetUserDataState,
+  } = useApplicationStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const environmentIdField = "environmentId";
@@ -105,92 +114,123 @@ export const ExportPane = () => {
     }
   };
 
-  console.log(watchEnvironmentId);
-  console.log(watchIacProvider);
-
   return (
-    <div className="flex size-full justify-center p-4">
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <div
-          className={
-            "mt-[10%] flex h-full flex-col gap-10 overflow-auto text-gray-700 dark:text-gray-200"
-          }
-        >
-          <div className="mb-6 flex items-center gap-4">
-            <span
-              className={"size-fit rounded-full bg-primary-600 p-2 text-white "}
-            >
-              <LiaFileExportSolid size={32} />
-            </span>
-            <h2 className={"text-3xl"}>Export infrastructure as code.</h2>
-          </div>
-          <div className="text-md flex flex-col flex-wrap items-center gap-4 sm:flex-row">
-            export
-            <Dropdown
-              label={
-                <div>
-                  <span className={"text-gray-500 dark:text-gray-300"}>
-                    environment:{" "}
-                  </span>
-                  {watchEnvironmentId}
-                </div>
+    <div className="flex w-full flex-col justify-center">
+      <ErrorBoundary
+        fallbackRender={FallbackRenderer}
+        onError={(error, info) => {
+          trackError(
+            new UIError({
+              message: "uncaught error in ExportPane",
+              errorId: "ExportPane:ErrorBoundary",
+              cause: error,
+              data: {
+                info,
+              },
+            }),
+          );
+        }}
+        onReset={() => resetUserDataState()}
+      >
+        <div className="flex size-full justify-center p-4">
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <div
+              className={
+                "mt-[10%] flex h-full flex-col gap-10 overflow-auto text-gray-700 dark:text-gray-200"
               }
-              color={"light"}
-              placement={"bottom-start"}
             >
-              <Dropdown.Header>Choose an environment to export</Dropdown.Header>
-              {architecture.environments.map((env) => (
-                <Dropdown.Item
-                  className={"flex justify-between gap-2"}
-                  key={env.id}
-                  onClick={() => onClick(environmentIdField, env.id)}
+              <div className="mb-6 flex items-center gap-4">
+                <span
+                  className={
+                    "size-fit rounded-full bg-primary-600 p-2 text-white "
+                  }
                 >
-                  <span className={"mr-2"}>{env.id}</span>
-                  {env.id === architecture.defaultEnvironment && (
-                    <Badge color={"light"}>default</Badge>
-                  )}
-                </Dropdown.Item>
-              ))}
-            </Dropdown>
-            as
-            <Dropdown
-              label={
-                <div>
-                  <span className={"text-gray-500 dark:text-gray-300"}>
-                    iac provider:{" "}
-                  </span>
-                  {watchIacProvider}
-                </div>
-              }
-              color={"light"}
-              placement={"bottom-start"}
-            >
-              <Dropdown.Header>Choose an IaC Provider</Dropdown.Header>
-              {iacOptions.map((option) => (
-                <Dropdown.Item
-                  className={"flex justify-between gap-2 disabled:opacity-50"}
-                  key={option.value}
-                  onClick={() => onClick(iacProviderField, option.value)}
-                  disabled={option.disabled}
+                  <LiaFileExportSolid size={32} />
+                </span>
+                <h2 className={"text-3xl"}>Export infrastructure as code.</h2>
+              </div>
+              <div className="text-md flex flex-col flex-wrap items-center gap-4 sm:flex-row">
+                export
+                <Dropdown
+                  label={
+                    <div>
+                      <span className={"text-gray-500 dark:text-gray-300"}>
+                        environment:{" "}
+                      </span>
+                      {watchEnvironmentId}
+                    </div>
+                  }
+                  color={"light"}
+                  placement={"bottom-start"}
                 >
-                  {option.label}
-                </Dropdown.Item>
-              ))}
-            </Dropdown>
-          </div>
-          <Button
-            className="mx-auto w-full max-w-[50%]"
-            size={"xl"}
-            type="submit"
-            color="purple"
-            disabled={isSubmitting || !watchEnvironmentId || !watchIacProvider}
-            isProcessing={isSubmitting}
-            processingSpinner={<AiOutlineLoading className="animate-spin" />}
-          >
-            {isSubmitting ? "Downloading" : "Download"}
-          </Button>
+                  <Dropdown.Header>
+                    Choose an environment to export
+                  </Dropdown.Header>
+                  {architecture.environments.map((env) => (
+                    <Dropdown.Item
+                      className={"flex justify-between gap-2"}
+                      key={env.id}
+                      onClick={() => onClick(environmentIdField, env.id)}
+                    >
+                      <span className={"mr-2"}>{env.id}</span>
+                      {env.id === architecture.defaultEnvironment && (
+                        <Badge color={"light"}>default</Badge>
+                      )}
+                    </Dropdown.Item>
+                  ))}
+                </Dropdown>
+                as
+                <Dropdown
+                  label={
+                    <div>
+                      <span className={"text-gray-500 dark:text-gray-300"}>
+                        iac provider:{" "}
+                      </span>
+                      {watchIacProvider}
+                    </div>
+                  }
+                  color={"light"}
+                  placement={"bottom-start"}
+                >
+                  <Dropdown.Header>Choose an IaC Provider</Dropdown.Header>
+                  {iacOptions.map((option) => (
+                    <Dropdown.Item
+                      className={
+                        "flex justify-between gap-2 disabled:opacity-50"
+                      }
+                      key={option.value}
+                      onClick={() => onClick(iacProviderField, option.value)}
+                      disabled={option.disabled}
+                    >
+                      {option.label}
+                    </Dropdown.Item>
+                  ))}
+                </Dropdown>
+              </div>
+              <Button
+                className="mx-auto w-full max-w-[50%]"
+                size={"xl"}
+                type="submit"
+                color="purple"
+                disabled={
+                  isSubmitting || !watchEnvironmentId || !watchIacProvider
+                }
+                isProcessing={isSubmitting}
+                processingSpinner={
+                  <AiOutlineLoading className="animate-spin" />
+                }
+              >
+                {isSubmitting ? "Downloading" : "Download"}
+              </Button>
+            </div>
+          </form>
         </div>
-      </form>
+        <div className="flex w-full flex-col justify-center">
+          <div className="flex size-full justify-center p-4">
+            <IacExplorer />
+          </div>
+        </div>
+      </ErrorBoundary>
     </div>
   );
 };
