@@ -172,7 +172,7 @@ class EngineOrchestrator:
                     resources_yaml=result.resources_yaml,
                     topology_yaml=result.topology_yaml,
                 ),
-                env_resource_configuration=arch.env_resource_configuration,
+                env_resource_configuration=new_env_config.to_dict(),
                 config_errors=result.config_errors,
                 diff=diff.__dict__(),
             )
@@ -251,8 +251,6 @@ def format_error_message(body: CopilotRunRequest, e: EngineException):
     reason = []
     for detail in details:
         match detail["error_code"]:
-            case "test":
-                reason.append(detail["message"])
             case "config_invalid":
                 reason.append(
                     f"{detail['resource']}#{detail['property']} invalid value '{detail['value']}': {detail['validation_error']}"
