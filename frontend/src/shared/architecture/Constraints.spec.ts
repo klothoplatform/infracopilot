@@ -107,8 +107,7 @@ describe("generateConstraintMetadataFromFormState", () => {
 
     expect(result).toEqual({
       testProperty: {
-        key: "testKey",
-        value: "testValue",
+        testKey: "testValue",
       },
     });
   });

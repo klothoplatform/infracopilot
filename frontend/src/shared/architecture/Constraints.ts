@@ -363,12 +363,13 @@ export function generateConstraintMetadataFromFormState(
               value: any;
             };
             const val = getDataFromPath(path.join("."), resourceMetadata);
-            if (!val) {
-              constraintMetadata[path.join(".")] = value;
-            } else {
-              val[mapVal.key] = mapVal.value;
-              constraintMetadata[path.join(".")] = val;
-            }
+            const currVal = constraintMetadata[path.join(".")];
+            const newVal = {
+              ...val,
+              ...currVal,
+              [mapVal.key]: mapVal.value,
+            };
+            constraintMetadata[path.join(".")] = newVal;
             break;
           }
           case CollectionTypes.Set:
