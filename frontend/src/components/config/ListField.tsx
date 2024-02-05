@@ -28,6 +28,7 @@ import { ConfigSection } from "./ConfigSection";
 import { ConfigGroup } from "./ConfigGroup";
 import classNames from "classnames";
 import { PrimitiveTable } from "./PrimitiveTable";
+import { NodeId } from "../../shared/architecture/TopologyNode";
 
 const tableViewFieldMappings: {
   [key: string]: {
@@ -136,11 +137,15 @@ export const ListField: FC<ListProps> = ({
   }
 
   if (isCollection(itemType)) {
+    const resourceType =
+      configResource?.qualifiedType ||
+      (qualifiedFieldName.includes("#")
+        ? NodeId.parse(qualifiedFieldName.split("#")[0]).qualifiedType
+        : null);
+
     const tableViewFields =
-      configResource &&
-      tableViewFieldMappings[configResource.qualifiedType]?.[
-        field.qualifiedName
-      ];
+      resourceType &&
+      tableViewFieldMappings[resourceType]?.[field.qualifiedName];
     if (tableViewFields) {
       return (
         <PrimitiveTable
