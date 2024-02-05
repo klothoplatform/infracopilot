@@ -1,5 +1,10 @@
 import { NodeId } from "./TopologyNode";
 import TopologyEdge from "./TopologyEdge";
+import {
+  CollectionTypes,
+  type Property,
+  type ResourceType,
+} from "../resources/ResourceTypes";
 
 export enum ConstraintOperator {
   MustExist = "must_exist",
@@ -284,4 +289,193 @@ export function removeEmptyKeys(input: any, isTopLevel: boolean = true): any {
   }
 
   return input;
+}
+
+export function generateConstraintMetadataFromFormState(
+  resourceMetadata: any,
+  state: any,
+  resourceType: ResourceType,
+): any {
+  const constraintMetadata: { [path: string]: any } = {};
+  Object.entries(state).forEach(([key, value]) => {
+    const pathstr = key.split("#")[1];
+    const propertyPath: string[] = pathstr.split(".");
+    let currentProperty: Property;
+    let path: string[] = [];
+
+    let stopPathExecution = false;
+    propertyPath.forEach((prop) => {
+      const name = prop.split("[")[0];
+      if (stopPathExecution) {
+        return;
+      }
+      // ensure we understand the current path string is representing and set as the current property
+      // we ensure if the property is a list we look to see if the list exists to understand if the path in the metadata should include an index
+      if (currentProperty === undefined) {
+        resourceType!.properties?.forEach((field) => {
+          if (field.name === name) {
+            currentProperty = field;
+            if (
+              field.type === CollectionTypes.List ||
+              field.type === CollectionTypes.Set
+            ) {
+              const val = resourceMetadata[name];
+              if (val) {
+                path.push(prop);
+                return;
+              }
+            }
+            path.push(prop.split("[")[0]);
+          }
+        });
+      } else {
+        currentProperty.properties?.forEach((field) => {
+          if (field.name === name) {
+            currentProperty = field;
+            if (
+              field.type === CollectionTypes.List ||
+              field.type === CollectionTypes.Set
+            ) {
+              const val = getDataFromPath(path.join("."), resourceMetadata);
+              if (val) {
+                path.push(prop);
+                return;
+              }
+            }
+            path.push(prop.split("[")[0]);
+          }
+        });
+      }
+
+      // if there is a synthetic property found we just set the constraint metadata to the value
+      // this is for the case of customized configuration
+      if (currentProperty.synthetic) {
+        constraintMetadata[path.join(".")] = value;
+        return;
+      }
+
+      // if there are no sub properties then we know we have to set the constraint metadata rather than looping deeper into the proeprties
+      if (currentProperty?.properties === undefined) {
+        switch (currentProperty?.type) {
+          case CollectionTypes.Map: {
+            const mapVal = value as {
+              key: any;
+              value: any;
+            };
+            const val = getDataFromPath(path.join("."), resourceMetadata);
+            const currVal = constraintMetadata[path.join(".")];
+            const newVal = {
+              ...val,
+              ...currVal,
+              [mapVal.key]: mapVal.value,
+            };
+            constraintMetadata[path.join(".")] = newVal;
+            break;
+          }
+          case CollectionTypes.Set:
+          case CollectionTypes.List: {
+            const val = getDataFromPath(path.join("."), resourceMetadata);
+            if (!val) {
+              constraintMetadata[path.join(".")] = [value];
+            } else {
+              val.push(value);
+              constraintMetadata[path.join(".")] = val;
+            }
+            break;
+          }
+          default:
+            constraintMetadata[key] = value;
+        }
+      } else {
+        // If there are sub properties we just need to ensure that we are not at an empty list or a non existent list object
+        // if we are then we need to ensure we create the nested values and are setting the overall list in the constraint metadata so we can use an equals constraint
+        const val = getDataFromPath(path.join("."), resourceMetadata);
+        switch (currentProperty?.type) {
+          case CollectionTypes.Set:
+          case CollectionTypes.List: {
+            if (!val) {
+              const nonIndexPath = path.join(".").split("[")[0];
+              const currVal = getDataFromPath(nonIndexPath, resourceMetadata);
+              if (currVal && constraintMetadata[nonIndexPath] === undefined) {
+                constraintMetadata[nonIndexPath] = currVal;
+              }
+              setNestedValue(
+                constraintMetadata[nonIndexPath],
+                pathstr.substring(nonIndexPath.length),
+                value,
+              );
+              stopPathExecution = true;
+            }
+          }
+        }
+      }
+    });
+  });
+  return constraintMetadata;
+}
+
+const getDataFromPath = (path: string, resourceMetadata: any) => {
+  const properties: string[] = path.split(".");
+  // deep copy so that resource metadata doesnt get modified in parent functions
+  let currentData = JSON.parse(JSON.stringify(resourceMetadata));
+  properties.forEach((prop) => {
+    const splitProp = prop.split("[");
+    currentData = currentData[splitProp[0]];
+    if (currentData === undefined) {
+      return undefined;
+    }
+    if (splitProp.length > 1) {
+      const index = parseInt(splitProp[1].split("]")[0]);
+      currentData = currentData[index];
+    }
+  });
+  return currentData;
+};
+
+export function setNestedValue(obj: any, path: string, value: any) {
+  const keys = path.split(".");
+  let current = obj;
+
+  for (let i = 0; i < keys.length; i++) {
+    const key = keys[i];
+    const isArrayIndex = key.endsWith("]");
+    const arrayKey = isArrayIndex ? key.slice(0, key.indexOf("[")) : key;
+    const arrayIndex = isArrayIndex
+      ? parseInt(key.slice(key.indexOf("[") + 1, -1))
+      : -1;
+
+    if (i === keys.length - 1) {
+      // If this is the last key, set the value
+      if (isArrayIndex) {
+        current[arrayKey][arrayIndex] = value;
+      } else {
+        current[key] = value;
+      }
+    } else {
+      if (isArrayIndex) {
+        if (i === 0) {
+          // If the path starts with an array index
+          if (current[arrayIndex] === undefined) {
+            current[arrayIndex] = {};
+          }
+          current = current[arrayIndex];
+        } else {
+          // If the key is an array index, make sure the array exists and has the necessary length
+          if (!Array.isArray(current[arrayKey])) {
+            current[arrayKey] = [];
+          }
+          if (current[arrayKey][arrayIndex] === undefined) {
+            current[arrayKey][arrayIndex] = {};
+          }
+          current = current[arrayKey][arrayIndex];
+        }
+      } else {
+        // If the key is not an array index, make sure the object exists
+        if (current[key] === undefined) {
+          current[key] = {};
+        }
+        current = current[key];
+      }
+    }
+  }
 }

@@ -23,6 +23,7 @@ import {
 import {
   type Constraint,
   removeEmptyKeys,
+  generateConstraintMetadataFromFormState,
 } from "../../shared/architecture/Constraints";
 import {
   ConstraintOperator,
@@ -197,34 +198,29 @@ export default function ConfigForm({
             resourceType?.properties,
           );
 
-          const non_empty_values = removeEmptyKeys(values);
-          const modifiedRootProperties = Object.fromEntries(
-            [...modifiedFormFields.keys()].map((key) => {
-              const rootKey = key.split(".", 2)[0].replaceAll(/\[\d+]/g, "");
-              const value = non_empty_values[rootKey];
-              return [rootKey, value];
-            }),
+          const non_empty_values = removeEmptyKeys(
+            Object.fromEntries(modifiedFormFields),
+          );
+
+          const resourceMetadata =
+            environmentVersion.resources.get(resourceIdStr);
+
+          const constraintMetadata = generateConstraintMetadataFromFormState(
+            resourceMetadata,
+            non_empty_values,
+            resourceType!,
           );
 
           const resConstraints: Constraint[] = Object.entries(
-            toResourceMetadata(
-              modifiedRootProperties,
-              resourceType?.properties,
-            ) as any,
-          )
-            .filter(
-              ([key]) =>
-                !resourceType?.properties?.find((field) => field.name === key)
-                  ?.synthetic,
-            )
-            .map(([key, value]): ResourceConstraint => {
-              return new ResourceConstraint(
-                ConstraintOperator.Equals,
-                resourceId,
-                key.split("#", 2)[1] ?? key,
-                value,
-              );
-            });
+            constraintMetadata,
+          ).map(([key, value]): ResourceConstraint => {
+            return new ResourceConstraint(
+              ConstraintOperator.Equals,
+              resourceId,
+              key.split("#", 2)[1] ?? key,
+              value,
+            );
+          });
 
           if (selectedResource) {
             if (resourceId.equals(selectedResource)) {
@@ -462,49 +458,6 @@ function toFormState(
     }
   });
   return formState;
-}
-
-function toResourceMetadata(formState: any, fields: Property[] = []) {
-  if (!formState) {
-    return {};
-  }
-
-  const metadata: any = {};
-  fields = fields.filter(
-    (field) =>
-      !field.deployTime && !field.configurationDisabled && !field.synthetic,
-  );
-
-  Object.keys(formState).forEach((rawKey) => {
-    const key = rawKey.includes("#") ? rawKey.split("#", 2)[1] : rawKey;
-    const value = formState[rawKey];
-    const field = fields.find((field) => field.name === key);
-    switch (field?.type) {
-      case CollectionTypes.Map:
-        if (isCollection((field as MapProperty).valueType)) {
-          metadata[key] = toResourceMetadata(value, field.properties);
-        } else {
-          metadata[key] = Object.fromEntries(
-            value.map((item: any) => {
-              return [item.key, item.value];
-            }),
-          );
-        }
-        break;
-      case CollectionTypes.Set:
-      case CollectionTypes.List:
-        metadata[key] = value.map((item: any) => {
-          if (isCollection((field as ListProperty).itemType)) {
-            return toResourceMetadata(item, field.properties);
-          }
-          return item.value;
-        });
-        break;
-      default:
-        metadata[key] = value;
-    }
-  });
-  return metadata;
 }
 
 function applyCustomizers(
