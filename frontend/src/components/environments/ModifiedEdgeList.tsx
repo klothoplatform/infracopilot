@@ -17,35 +17,32 @@ export const ModifiedEdgeList: FC<ModifiedEdgeListProps> = ({
   const edgeComponents =
     edges &&
     Object.entries(edges).map(([key, edge]) => (
-      <Accordion key={key} className="p-5">
+      <Accordion key={key}>
         <Accordion.Panel>
-          <div className="mb-4 pl-4">
-            <Accordion.Title>
-              {accordianHeader(
-                key,
-                edge,
-                sourceEnvironment,
-                targetEnvironmentId,
-              )}
-            </Accordion.Title>
-            <Accordion.Content>
-              {edge.status === DiffStatus.ADDED && (
-                <p>
-                  This edge exists in {targetEnvironmentId}, but does not exist
-                  in {sourceEnvironment}
-                </p>
-              )}
-              {edge.status === DiffStatus.REMOVED && (
-                <p>
-                  This edge exists in {sourceEnvironment}, but does not exist in{" "}
-                  {targetEnvironmentId}
-                </p>
-              )}
-            </Accordion.Content>
-          </div>
+          <Accordion.Title>
+            {accordianHeader(key, edge, sourceEnvironment, targetEnvironmentId)}
+          </Accordion.Title>
+          <Accordion.Content>
+            {edge.status === DiffStatus.ADDED && (
+              <p>
+                This edge exists in {targetEnvironmentId}, but does not exist in{" "}
+                {sourceEnvironment}
+              </p>
+            )}
+            {edge.status === DiffStatus.REMOVED && (
+              <p>
+                This edge exists in {sourceEnvironment}, but does not exist in{" "}
+                {targetEnvironmentId}
+              </p>
+            )}
+          </Accordion.Content>
         </Accordion.Panel>
       </Accordion>
     ));
 
-  return <div>{edgeComponents ?? "No edges modified"}</div>;
+  return (
+    <div className="flex flex-col gap-2">
+      {edgeComponents ?? "No edges modified"}
+    </div>
+  );
 };

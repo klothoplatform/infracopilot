@@ -15,7 +15,7 @@ export const accordianHeader = (
   targetEnvironmentId: string,
 ) => {
   return (
-    <div className="align-items-center flex">
+    <div className="flex items-center">
       <h3 className="grow-1 mb-2 flex  p-2">{key}</h3>
       {resource.status === DiffStatus.ADDED ? (
         <Badge color="success">Added to {targetEnvironmentId}</Badge>
@@ -71,38 +71,40 @@ export const ModifiedResourceList: FC<ModifiedResourceListProps> = ({
   const resourceComponents =
     resources &&
     Object.entries(resources).map(([key, resource]) => (
-      <Accordion key={key} className="p-5">
+      <Accordion key={key}>
         <Accordion.Panel>
-          <div className="mb-4 pl-4">
-            <Accordion.Title>
-              {accordianHeader(
-                key,
-                resource,
-                sourceEnvironment,
-                targetEnvironmentId,
-              )}
-            </Accordion.Title>
+          <Accordion.Title>
+            {accordianHeader(
+              key,
+              resource,
+              sourceEnvironment,
+              targetEnvironmentId,
+            )}
+          </Accordion.Title>
 
-            <Accordion.Content>
-              {resource.status === DiffStatus.CHANGED &&
-                propertyDiffTable(resource.properties)}
-              {resource.status === DiffStatus.ADDED && (
-                <p>
-                  This resource exists in {targetEnvironmentId}, but does not
-                  exist in {sourceEnvironment}
-                </p>
-              )}
-              {resource.status === DiffStatus.REMOVED && (
-                <p>
-                  This resource exists in {sourceEnvironment}, but does not
-                  exist in {targetEnvironmentId}
-                </p>
-              )}
-            </Accordion.Content>
-          </div>
+          <Accordion.Content>
+            {resource.status === DiffStatus.CHANGED &&
+              propertyDiffTable(resource.properties)}
+            {resource.status === DiffStatus.ADDED && (
+              <p>
+                This resource exists in {targetEnvironmentId}, but does not
+                exist in {sourceEnvironment}
+              </p>
+            )}
+            {resource.status === DiffStatus.REMOVED && (
+              <p>
+                This resource exists in {sourceEnvironment}, but does not exist
+                in {targetEnvironmentId}
+              </p>
+            )}
+          </Accordion.Content>
         </Accordion.Panel>
       </Accordion>
     ));
 
-  return <div>{resourceComponents ?? "No resources modified"}</div>;
+  return (
+    <div className="flex flex-col gap-2">
+      {resourceComponents ?? "No resources modified"}
+    </div>
+  );
 };

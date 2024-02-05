@@ -41,14 +41,8 @@ export function parseTopologyDiff(rawDiff: any): TopologyDiff {
   }
   const resources: { [key: string]: Diff } = {};
   const edges: { [key: string]: Diff } = {};
-  console.log(rawDiff);
-  console.log(rawDiff.resources, "in parseTopologyDiff");
-  console.log(rawDiff.edges, "in parseTopologyDiff");
-  console.log(Object.entries(rawDiff.resources), "in parseTopologyDiff");
   for (const [key, value] of Object.entries(rawDiff.resources)) {
-    console.log(key, value, "in resources loop");
     const typedValue = value as Value;
-    console.log(typedValue);
     resources[key] = new Diff(
       typedValue.status,
       typedValue.properties,
@@ -56,7 +50,6 @@ export function parseTopologyDiff(rawDiff: any): TopologyDiff {
     );
   }
   for (const [key, value] of Object.entries(rawDiff.edges)) {
-    console.log(key, value, "in edges loop");
     const typedValue = value as Value;
     edges[key] = new Diff(
       typedValue.status,

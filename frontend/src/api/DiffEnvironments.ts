@@ -1,7 +1,3 @@
-// invoke /api/architecture/{id}/environment/{env_id}/promote
-
-import type { EnvironmentVersion } from "../shared/architecture/EnvironmentVersion";
-import { parseEnvironmentVersion } from "../shared/architecture/EnvironmentVersion";
 import axios, { type AxiosResponse } from "axios";
 import { ApiError } from "../shared/errors";
 import { trackError } from "../pages/store/ErrorStore";
