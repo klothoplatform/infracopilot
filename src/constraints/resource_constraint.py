@@ -35,7 +35,7 @@ class ResourceConstraint(Constraint):
         super().cancels_out(other)
         if not isinstance(other, ResourceConstraint):
             return False
-        if self.target != other.target:
+        if self.target != other.target or self.property != other.property:
             return False
         if self.operator == ConstraintOperator.Equals:
             return True

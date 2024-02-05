@@ -250,8 +250,6 @@ const Details: FC = function () {
     tabsRef.current?.setActiveTab(rightSidebarSelector[1]);
   }, [rightSidebarSelector]);
 
-  console.log("DetailsSidebarProps: ", selectedResource, sections);
-
   return (
     <Tabs
       theme={detailsTabsTheme}

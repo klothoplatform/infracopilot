@@ -183,12 +183,14 @@ const Details: FC<DetailsProps> = function ({ setWarnMissingProperties }) {
     sections.push({
       title: "Missing Properties",
       propertyMap: missingProperties,
+      ignoreSelectedResource: true,
     });
   }
   if (modifiedProperties.size > 0) {
     sections.push({
       title: "Modified Properties",
       propertyMap: modifiedProperties,
+      ignoreSelectedResource: true,
     });
   }
 
