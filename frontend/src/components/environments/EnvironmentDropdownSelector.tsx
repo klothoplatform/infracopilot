@@ -1,13 +1,16 @@
-import { Dropdown } from "flowbite-react";
+import { Button, Dropdown } from "flowbite-react";
 import { FaArrowLeft } from "react-icons/fa6";
 import useApplicationStore from "../../pages/store/ApplicationStore";
 import { type FC } from "react";
+import { AiOutlineLoading } from "react-icons/ai";
 
 interface EnvironmentDropdownSelectorProps {
   setSourceEnvironment: (sourceEnvironment: string) => void;
   setTargetEnvironmentId: (targetEnvironmentId: string) => void;
   sourceEnvironment: string;
   targetEnvironmentId: string;
+  onRefresh?: () => void;
+  isSubmitting?: boolean;
 }
 
 export const EnvironmentDropdownSelector: FC<
@@ -17,6 +20,8 @@ export const EnvironmentDropdownSelector: FC<
   setTargetEnvironmentId,
   sourceEnvironment,
   targetEnvironmentId,
+  onRefresh,
+  isSubmitting,
 }) => {
   const { architecture } = useApplicationStore();
 
@@ -62,6 +67,15 @@ export const EnvironmentDropdownSelector: FC<
             </Dropdown.Item>
           ))}
       </Dropdown>
+      <Button
+        type="submit"
+        color="purple"
+        isProcessing={isSubmitting}
+        onClick={onRefresh}
+        processingSpinner={<AiOutlineLoading className="animate-spin" />}
+      >
+        {isSubmitting ? "Refreshing" : "Refresh"}
+      </Button>
     </div>
   );
 };
