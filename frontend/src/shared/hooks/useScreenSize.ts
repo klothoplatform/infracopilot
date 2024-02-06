@@ -3,6 +3,7 @@ import { screenSizeIsAtMost } from "../../helpers/screen-size";
 
 interface ScreenSize {
   isSmallScreen: boolean;
+  isXSmallScreen: boolean;
 }
 
 /**
@@ -12,10 +13,14 @@ interface ScreenSize {
  */
 export const useScreenSize = (): ScreenSize => {
   const [isSmallScreen, setIsSmallScreen] = useState(screenSizeIsAtMost("md"));
+  const [isXSmallScreen, setIsXSmallScreen] = useState(
+    screenSizeIsAtMost("sm"),
+  );
 
   useEffect(() => {
     function handleResize() {
       setIsSmallScreen(screenSizeIsAtMost("md"));
+      setIsXSmallScreen(screenSizeIsAtMost("sm"));
     }
 
     window.addEventListener("resize", handleResize);
@@ -25,5 +30,5 @@ export const useScreenSize = (): ScreenSize => {
     };
   }, []);
 
-  return { isSmallScreen };
+  return { isSmallScreen, isXSmallScreen };
 };

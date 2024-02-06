@@ -3,17 +3,19 @@ import { FallbackRenderer } from "../../../../components/FallbackRenderer";
 import { trackError } from "../../../store/ErrorStore";
 import { UIError } from "../../../../shared/errors";
 import useApplicationStore from "../../../store/ApplicationStore";
-import { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { type TopologyDiff } from "../../../../shared/architecture/TopologyDiff";
 import { environmentsInSync } from "../../../../api/EnvironmentsInSync";
 import { diffEnvironments } from "../../../../api/DiffEnvironments";
 import { type EnvironmentsInSync } from "../../../../shared/architecture/EnvironmentVersion";
 import { EnvironmentDropdownSelector } from "../../../../components/environments/EnvironmentDropdownSelector";
 import { FaCheckCircle } from "react-icons/fa";
-import { FaCircleXmark } from "react-icons/fa6";
+import { FaArrowsRotate, FaCircleXmark } from "react-icons/fa6";
 import { ModifiedResourceList } from "../../../../components/environments/ModifiedResourceList";
 import { ModifiedEdgeList } from "../../../../components/environments/ModifiedEdgeList";
 import { WorkingOverlay } from "../../../../components/WorkingOverlay";
+import { Button } from "flowbite-react";
+import classNames from "classnames";
 
 export const EnvironmentsPane = () => {
   const {
@@ -21,7 +23,7 @@ export const EnvironmentsPane = () => {
     user,
     addError,
     resetUserDataState,
-    currentIdToken,
+    getIdToken,
     environmentVersion,
   } = useApplicationStore();
 
@@ -34,24 +36,26 @@ export const EnvironmentsPane = () => {
       : architecture.environments.find((a) => !a.default)?.id ?? "",
   );
   const [diff, setDiff] = useState<TopologyDiff | undefined>(undefined);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [status, setStatus] = useState<"initial" | "loading" | "loaded">(
+    "initial",
+  );
   const [inSync, setInSync] = useState<EnvironmentsInSync | undefined>(
     undefined,
   );
 
-  const getDiff = async () => {
-    setIsLoading(true);
+  const getDiff = useCallback(async () => {
+    setStatus("loading");
     try {
       const diff = await diffEnvironments({
         architectureId: architecture.id,
         targetEnvironmentId: targetEnvironmentId,
-        idToken: currentIdToken.idToken,
+        idToken: await getIdToken(),
       });
       setDiff(diff);
       const inSync = await environmentsInSync({
         architectureId: architecture.id,
         targetEnvironmentId: targetEnvironmentId,
-        idToken: currentIdToken.idToken,
+        idToken: await getIdToken(),
       });
       setInSync(inSync);
     } catch (error: any) {
@@ -65,25 +69,21 @@ export const EnvironmentsPane = () => {
         }),
       );
     } finally {
-      setIsLoading(false);
+      setStatus("loaded");
     }
-  };
+  }, [architecture.id, getIdToken, targetEnvironmentId]);
+
   useEffect(() => {
     (async () => {
-      if (!isLoading && architecture) {
+      if (status === "initial" && architecture) {
         await getDiff();
       }
     })();
-  }, [
-    architecture,
-    targetEnvironmentId,
-    sourceEnvironment,
-    environmentVersion,
-  ]);
+  }, [status, architecture, getDiff]);
 
   console.log(diff);
   return (
-    <div className="flex w-full flex-col  items-center  justify-center  dark:bg-gray-900">
+    <div className="flex w-full flex-col overflow-x-auto dark:bg-gray-900">
       <ErrorBoundary
         fallbackRender={FallbackRenderer}
         onError={(error, info) => {
@@ -100,47 +100,59 @@ export const EnvironmentsPane = () => {
         }}
         onReset={() => resetUserDataState()}
       >
-        <div className="justify-left items-left flex w-full p-2">
-          <div className="items-left col-2 flex flex-col gap-4">
-            <div className="dark:text-white">
-              <h2>Comparing Changes</h2>
+        <div className="flex w-full p-4">
+          <div className="flex w-full flex-col gap-4">
+            <div className="mb-2 w-full border-b border-gray-300 pb-1 dark:border-gray-700 dark:text-white">
+              <h2 className="text-2xl">Comparing environments</h2>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Choose two environments to see what's changed or ready to be
-                promoted
+                promoted.
               </p>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex w-full items-center gap-4 rounded-lg border border-gray-300 bg-gray-100 p-2 dark:border-gray-700 dark:bg-gray-800">
               <EnvironmentDropdownSelector
                 sourceEnvironment={sourceEnvironment}
                 targetEnvironmentId={targetEnvironmentId}
                 setSourceEnvironment={setSourceEnvironment}
                 setTargetEnvironmentId={setTargetEnvironmentId}
-                onRefresh={getDiff}
-                isSubmitting={isLoading}
+                isSubmitting={status === "loading"}
               />
 
               {!inSync ? null : inSync?.inSync ? (
                 <>
-                  <span className="me-2 text-green-600 dark:text-green-400">
+                  <FaCheckCircle className="text-green-600 dark:text-green-400" />
+                  <span className="text-green-600 dark:text-green-400">
                     In sync
                   </span>
-                  <FaCheckCircle className="text-green-600 dark:text-green-400" />
                 </>
               ) : (
-                <>
-                  <span className="me-2 text-red-600 dark:text-red-400">
+                <div className={"flex items-center gap-2"}>
+                  <FaCircleXmark className="text-red-700 dark:text-red-400" />
+                  <span className="text-red-700 dark:text-red-400">
                     Out of sync
                   </span>
-                  <FaCircleXmark className="text-red-600 dark:text-red-400" />
-                </>
+                </div>
               )}
+              <Button
+                className={"ml-auto"}
+                size="sm"
+                type="submit"
+                color="light"
+                onClick={getDiff}
+              >
+                <FaArrowsRotate
+                  className={classNames({
+                    "animate-spin": status === "loading",
+                  })}
+                />
+              </Button>
             </div>
           </div>
         </div>
-        <div className="position-fixed end-0 start-0 mb-2 max-h-full min-h-0 w-full overflow-y-auto overflow-x-hidden pb-2">
-          <div className="d-flex flex-column vh-100 w-full">
+        <div className="mb-2 max-h-full min-h-0 w-full overflow-y-auto overflow-x-hidden px-4 pb-2">
+          <div className="flex-column flex">
             <div className="bg-dark grow-1 w-full gap-2 overflow-auto rounded p-4 dark:text-white">
-              <h2 className="text-x mb-4 font-normal">Modified Resources</h2>
+              <h2 className="mb-4 font-normal">Modified Resources</h2>
               <ModifiedResourceList
                 resources={diff?.resources}
                 sourceEnvironment={sourceEnvironment}
@@ -148,8 +160,8 @@ export const EnvironmentsPane = () => {
               />
             </div>
           </div>
-          <div className="d-flex flex-column vh-100">
-            <div className="bg-dark grow-1 gap-2 overflow-auto rounded p-4 dark:text-white">
+          <div className="flex-column flex">
+            <div className="bg-dark grow-1 w-full gap-2 overflow-auto rounded p-4 dark:text-white">
               <h2 className="text-x my-4 font-normal">Modified Edges</h2>
               <ModifiedEdgeList
                 edges={diff?.edges}
@@ -159,8 +171,11 @@ export const EnvironmentsPane = () => {
             </div>
           </div>
         </div>
-        {isLoading && (
-          <WorkingOverlay show={isLoading} message={"Getting Differences"} />
+        {status && (
+          <WorkingOverlay
+            show={status === "loading"}
+            message={"Getting Differences"}
+          />
         )}
       </ErrorBoundary>
     </div>
