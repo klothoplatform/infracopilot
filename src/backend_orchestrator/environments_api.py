@@ -107,7 +107,7 @@ async def env_diff(
     async with SessionLocal.begin() as db:
         try:
             manager: EnvironmentManager = get_environment_manager(db)
-            diff = await manager.diff_environments(id, BASE_ENV_ID, env_id)
+            diff = await manager.diff_environments(id, BASE_ENV_ID, env_id, True)
             logger.info(diff.__dict__())
             return diff.__dict__()
         except EnvironmentVersionDoesNotExistError as e:
@@ -119,6 +119,7 @@ async def env_diff(
                 status_code=404, detail=f"Environment {env_id} state not found"
             )
         except Exception as e:
+            logger.error("Error getting diff for environment", exc_info=True)
             raise HTTPException(status_code=500, detail="internal server error")
 
 
