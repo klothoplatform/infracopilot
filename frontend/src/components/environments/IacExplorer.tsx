@@ -65,6 +65,15 @@ const IacExplorer = () => {
         const filePromises = Object.values(zip.files).map(async (file) => {
           const content = await file.async("text");
           contents[file.name] = content;
+          if (file.name === "index.ts") {
+            setSelectedFile({
+              id: file.name,
+              name: file.name,
+              isDir: file.dir,
+              modDate: new Date(),
+              size: content.length,
+            });
+          }
           return {
             id: file.name,
             name: file.name,
