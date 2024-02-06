@@ -248,17 +248,30 @@ class EngineOrchestrator:
 
 def format_error_message(body: CopilotRunRequest, e: EngineException):
     details = jsons.loads(e.stdout)
+    action = body.constraints[0]
     reason = []
+
+    # Unsupported edges need to be deduped because they can result in multiple errors for each classification that could not be expanded
+    unsupported_edges = set()
     for detail in details:
         match detail["error_code"]:
             case "config_invalid":
                 reason.append(
                     f"{detail['resource']}#{detail['property']} invalid value '{detail['value']}': {detail['validation_error']}"
                 )
+            case "edge_unsupported" | "edge_invalid":
+                edge = (
+                    detail["satisfaction_edge"]["Source"],
+                    detail["satisfaction_edge"]["Target"],
+                )
+                if edge not in unsupported_edges:
+                    reason.append(
+                        "We could not find a way to complete this architecture, for immediate support, please reach out to us on discord"
+                    )
+                    unsupported_edges.add(edge)
             case "internal" | _:
                 reason.append("An internal error occurred")
 
-    action = body.constraints[0]
     match (action["scope"], action["operator"]):
         case ("application", "add"):
             title = f"Could not add {action['node']}"
