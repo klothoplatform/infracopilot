@@ -11,16 +11,15 @@ interface ModifiedResourceListProps {
 export const accordianHeader = (
   key: string,
   resource: any,
-  sourceEnvironment: string,
   targetEnvironmentId: string,
 ) => {
   return (
     <div className="flex items-center">
       <h3 className="grow-1 mb-2 flex  p-2">{key}</h3>
       {resource.status === DiffStatus.ADDED ? (
-        <Badge color="success">Added to {targetEnvironmentId}</Badge>
+        <Badge color="success">Only exists in {targetEnvironmentId}</Badge>
       ) : resource.status === DiffStatus.REMOVED ? (
-        <Badge color="failure">Removed from {sourceEnvironment}</Badge>
+        <Badge color="failure">Does not exist in {targetEnvironmentId}</Badge>
       ) : (
         <Badge color="warning">Modified Properties</Badge>
       )}
@@ -74,12 +73,7 @@ export const ModifiedResourceList: FC<ModifiedResourceListProps> = ({
       <Accordion key={key}>
         <Accordion.Panel>
           <Accordion.Title>
-            {accordianHeader(
-              key,
-              resource,
-              sourceEnvironment,
-              targetEnvironmentId,
-            )}
+            {accordianHeader(key, resource, targetEnvironmentId)}
           </Accordion.Title>
 
           <Accordion.Content>

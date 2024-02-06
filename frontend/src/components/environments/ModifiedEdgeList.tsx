@@ -20,7 +20,7 @@ export const ModifiedEdgeList: FC<ModifiedEdgeListProps> = ({
       <Accordion key={key}>
         <Accordion.Panel>
           <Accordion.Title>
-            {accordianHeader(key, edge, sourceEnvironment, targetEnvironmentId)}
+            {accordianHeader(key, edge, targetEnvironmentId)}
           </Accordion.Title>
           <Accordion.Content>
             {edge.status === DiffStatus.ADDED && (
