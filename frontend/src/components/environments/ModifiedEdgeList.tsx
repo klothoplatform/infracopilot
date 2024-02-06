@@ -17,7 +17,7 @@ export const ModifiedEdgeList: FC<ModifiedEdgeListProps> = ({
   const edgeComponents =
     edges &&
     Object.entries(edges).map(([key, edge]) => (
-      <Accordion key={key} collapseAll>
+      <Accordion key={key + edge.target} collapseAll>
         <Accordion.Panel>
           <Accordion.Title
             theme={{
@@ -26,7 +26,7 @@ export const ModifiedEdgeList: FC<ModifiedEdgeListProps> = ({
             }}
           >
             <AccordianHeader
-              resourceId={key}
+              resourceId={key + " -> " + edge.target}
               resource={edge}
               targetEnvironmentId={targetEnvironmentId}
             />
