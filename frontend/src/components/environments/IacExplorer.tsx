@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   FileBrowser,
   FileList,
@@ -6,13 +6,13 @@ import {
   type FileActionData,
   type FileData,
   type FileAction,
+  type FileBrowserHandle,
 } from "chonky";
 import JSZip from "jszip";
 import exportIaC from "../../api/ExportIaC";
 import useApplicationStore from "../../pages/store/ApplicationStore";
 import AceEditor from "react-ace";
 
-import "ace-builds/src-min-noconflict/ext-language_tools";
 import "ace-builds/src-noconflict/mode-python";
 import "ace-builds/src-noconflict/mode-javascript";
 import "ace-builds/src-noconflict/mode-json";
@@ -43,7 +43,7 @@ const IacExplorer = () => {
   const [fileContent, setFileContent] = useState<{ [key: string]: string }>({});
   const [editorTheme, setEditorTheme] = useState<string>("github");
   const [editorMode, setEditorMode] = useState<string>("text");
-
+  const ref = useRef<FileBrowserHandle | null>(null);
   const { mode } = useThemeMode();
 
   const { architecture, environmentVersion, currentIdToken } =
@@ -112,11 +112,12 @@ const IacExplorer = () => {
 
   const content = selectedFile ? fileContent[selectedFile?.id] : "";
   return (
-    <div className="flex w-full overflow-auto p-2">
-      <div className="w-1/8 grow pr-4">
+    <div className="flex size-full overflow-auto p-2">
+      <div className="w-1/8 h-full grow pr-4">
         {files.length > 0 && (
           <FileBrowser
             files={files}
+            ref={ref}
             onFileAction={handleFileAction}
             darkMode={mode == "dark"}
           >

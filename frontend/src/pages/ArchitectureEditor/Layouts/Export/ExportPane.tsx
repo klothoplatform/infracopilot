@@ -225,10 +225,8 @@ export const ExportPane = () => {
             </div>
           </form>
         </div>
-        <div className="flex w-full flex-col justify-center">
-          <div className="flex size-full justify-center p-4">
-            <IacExplorer />
-          </div>
+        <div className="flex size-full justify-center p-4">
+          <IacExplorer />
         </div>
       </ErrorBoundary>
     </div>

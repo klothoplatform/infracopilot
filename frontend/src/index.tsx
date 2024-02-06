@@ -16,7 +16,7 @@ if (!container) {
   throw new Error("React root element doesn't exist!");
 }
 
-setChonkyDefaults({ iconComponent: ChonkyIconFA });
+setChonkyDefaults({ iconComponent: ChonkyIconFA, disableDragAndDrop: true });
 
 function enableSessionRewind(args: {
   apiKey: string;
