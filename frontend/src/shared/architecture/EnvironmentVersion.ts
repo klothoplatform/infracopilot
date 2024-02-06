@@ -288,6 +288,28 @@ export function isPropertyPromoted(property: Property): boolean {
   return false;
 }
 
+export function filterPromotedProperties(
+  property: Property,
+): Property | undefined {
+  let important =
+    (property.important ||
+      (property.required &&
+        !property.deployTime &&
+        !property.configurationDisabled &&
+        !property.hidden)) ??
+    false;
+  if (important) {
+    return property;
+  }
+  const subprops = property.properties
+    ?.map(filterPromotedProperties)
+    .filter((p) => p !== undefined) as Property[];
+  if (subprops?.length > 0) {
+    return { ...property, properties: subprops };
+  }
+  return undefined;
+}
+
 export function resourceProperties(
   version: EnvironmentVersion,
   resourceTypes: ResourceTypeKB,
@@ -309,19 +331,6 @@ export function resourceProperties(
     .get(ArchitectureView.DataFlow)
     ?.Nodes.find((n) => n.resourceId.equals(resourceId));
   // Look deep into the property for potentially nested important properties
-  const promotedProp = (p: Property): Property | undefined => {
-    const isPromoted = isPropertyPromoted(p);
-    if (!isPromoted) {
-      return undefined;
-    }
-    if (p.properties?.length) {
-      const props = p.properties.filter(promotedProp);
-      if (props.length > 0) {
-        p = { ...p, properties: props };
-      }
-    }
-    return p;
-  };
   resNode?.vizMetadata?.children?.forEach((child) => {
     const childResType = resourceTypes.getResourceType(
       child.provider,
@@ -330,7 +339,7 @@ export function resourceProperties(
     // Only pull up the important or required properties from children
     const important =
       childResType?.properties?.reduce((acc: Property[], p) => {
-        const prop = promotedProp(p);
+        const prop = filterPromotedProperties(p);
         if (prop) {
           acc.push(prop);
         }

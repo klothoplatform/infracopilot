@@ -24,7 +24,7 @@ import { ResourceIdHeader } from "./ResourceIdHeader";
 import ConfigForm, { type ConfigFormSection } from "./ConfigForm";
 import AdditionalResources from "./AdditionalResources";
 import {
-  isPropertyPromoted,
+  filterPromotedProperties,
   resourceProperties,
 } from "../../shared/architecture/EnvironmentVersion";
 import type { Property } from "../../shared/resources/ResourceTypes";
@@ -200,7 +200,9 @@ const Details: FC = function () {
         const metadata = environmentVersion.resources.get(
           selectedResource.toString(),
         );
-        let promotedProps = properties.filter((p) => isPropertyPromoted(p));
+        let promotedProps = properties
+          .map((p) => filterPromotedProperties(p))
+          .filter((p) => p !== undefined) as Property[];
         if (metadata?.imported) {
           promotedProps = properties.filter((p) => !p.hidden);
         }
