@@ -52,30 +52,34 @@ const IacExplorer = () => {
   useEffect(() => {
     const fetchAndUnzipFiles = async () => {
       // Replace with your API endpoint
-      const response = await exportIaC(
-        architecture.id,
-        environmentVersion.id,
-        environmentVersion.version,
-        currentIdToken.idToken,
-      );
+      try {
+        const response = await exportIaC(
+          architecture.id,
+          environmentVersion.id,
+          environmentVersion.version,
+          currentIdToken.idToken,
+        );
 
-      const zip = await JSZip.loadAsync(response);
-      const contents: { [key: string]: string } = {};
-      const filePromises = Object.values(zip.files).map(async (file) => {
-        const content = await file.async("text");
-        contents[file.name] = content;
-        return {
-          id: file.name,
-          name: file.name,
-          isDir: file.dir,
-          modDate: new Date(),
-          size: content.length,
-        };
-      });
+        const zip = await JSZip.loadAsync(response);
+        const contents: { [key: string]: string } = {};
+        const filePromises = Object.values(zip.files).map(async (file) => {
+          const content = await file.async("text");
+          contents[file.name] = content;
+          return {
+            id: file.name,
+            name: file.name,
+            isDir: file.dir,
+            modDate: new Date(),
+            size: content.length,
+          };
+        });
 
-      const fileData = await Promise.all(filePromises);
-      setFiles(fileData);
-      setFileContent(contents);
+        const fileData = await Promise.all(filePromises);
+        setFiles(fileData);
+        setFileContent(contents);
+      } catch (e: any) {
+        console.error(e);
+      }
     };
 
     fetchAndUnzipFiles();
@@ -109,18 +113,21 @@ const IacExplorer = () => {
   const content = selectedFile ? fileContent[selectedFile?.id] : "";
   return (
     <div className="flex w-full overflow-auto p-2">
-      <div className="w-2/4 grow pr-4">
-        <FileBrowser
-          files={files}
-          onFileAction={handleFileAction}
-          darkMode={mode == "dark"}
-        >
-          <FileList />
-        </FileBrowser>
+      <div className="w-1/8 grow pr-4">
+        {files.length > 0 && (
+          <FileBrowser
+            files={files}
+            onFileAction={handleFileAction}
+            darkMode={mode == "dark"}
+          >
+            <FileList />
+          </FileBrowser>
+        )}
       </div>
       <div className="grow pl-4">
         {selectedFile && (
           <AceEditor
+            width="100%"
             mode={editorMode}
             setOptions={{ useWorker: false }}
             theme={editorTheme}
@@ -128,7 +135,7 @@ const IacExplorer = () => {
             onChange={console.log}
             defaultValue={content}
             value={content}
-            name="UNIQUE_ID_OF_DIV"
+            name="editor"
             editorProps={{ $blockScrolling: true }}
           />
         )}
