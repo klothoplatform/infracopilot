@@ -89,7 +89,6 @@ class Resource:
         """
 
         def diff_dict(d1, d2, path=""):
-
             d1 = d1 or {}
             d2 = d2 or {}
 
