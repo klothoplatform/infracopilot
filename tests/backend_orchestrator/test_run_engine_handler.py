@@ -386,7 +386,7 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
         self.assertEqual(result.status_code, 400)
         self.assertEqual(
             result.body,
-            b'{"title": "Could not add aws:lambda_function:a", "details": "An internal error occurred", "full_details": [{"error_code": "internal"}]}',
+            b'{"title": "Could not add aws:lambda_function:a", "details": "The Klotho engine ran into an unexpected issue, the team was notified and is investigating, please try again. If this keeps occurring please join us on discord", "full_details": [{"error_code": "internal"}]}',
         )
 
     @mock.patch(
