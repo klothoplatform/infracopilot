@@ -270,7 +270,9 @@ def format_error_message(body: CopilotRunRequest, e: EngineException):
                     )
                     unsupported_edges.add(edge)
             case "internal" | _:
-                reason.append("An internal error occurred")
+                reason.append(
+                    "The Klotho engine ran into an unexpected issue, the team was notified and is investigating, please try again. If this keeps occurring please join us on discord"
+                )
 
     match (action["scope"], action["operator"]):
         case ("application", "add"):
