@@ -175,10 +175,10 @@ class EnvironmentManager:
             architecture_id, base_env_id
         )
 
-        base_constraints: List[
-            Constraint
-        ] = await self.get_constraint_list_stream_since_last_promotion(
-            architecture_id, env_id, base_env_id
+        base_constraints: List[Constraint] = (
+            await self.get_constraint_list_stream_since_last_promotion(
+                architecture_id, env_id, base_env_id
+            )
         )
 
         overrides: List[Constraint] = await self.get_overrides(
@@ -273,10 +273,10 @@ class EnvironmentManager:
         if env_specific_config.tracks.version_hash is None:
             raise EnvironmentNotTrackedError(env_id)
 
-        versions_after_hash: List[
-            EnvironmentVersion
-        ] = await self.ev_dao.get_all_versions_after_hash(
-            architecture_id, base_env_id, env_specific_config.tracks.version_hash
+        versions_after_hash: List[EnvironmentVersion] = (
+            await self.ev_dao.get_all_versions_after_hash(
+                architecture_id, base_env_id, env_specific_config.tracks.version_hash
+            )
         )
 
         constraints = []
@@ -322,13 +322,13 @@ class EnvironmentManager:
         if env_specific_config.tracks.version_hash is None:
             raise EnvironmentNotTrackedError(env_id)
 
-        tracking_versions: List[
-            EnvironmentVersion
-        ] = await self.ev_dao.get_all_versions_tracking_hash(
-            architecture_id,
-            env_id,
-            env_specific_config.tracks.environment,
-            env_specific_config.tracks.version_hash,
+        tracking_versions: List[EnvironmentVersion] = (
+            await self.ev_dao.get_all_versions_tracking_hash(
+                architecture_id,
+                env_id,
+                env_specific_config.tracks.environment,
+                env_specific_config.tracks.version_hash,
+            )
         )
 
         constraints = []
@@ -355,9 +355,9 @@ class EnvironmentManager:
         Returns:
             List[Constraint]: The list of constraints.
         """
-        versions: List[
-            EnvironmentVersion
-        ] = await self.ev_dao.list_environment_versions(architecture_id, env_id)
+        versions: List[EnvironmentVersion] = (
+            await self.ev_dao.list_environment_versions(architecture_id, env_id)
+        )
         constraints: List[Constraint] = []
         for v in versions:
             version_constraints = parse_constraints(v.constraints)
