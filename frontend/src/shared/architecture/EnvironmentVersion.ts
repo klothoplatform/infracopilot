@@ -269,25 +269,6 @@ export function parseEnvironmentVersion(
   }
 }
 
-export function isPropertyPromoted(property: Property): boolean {
-  let important =
-    (property.important ||
-      (property.required &&
-        !property.deployTime &&
-        !property.configurationDisabled &&
-        !property.hidden)) ??
-    false;
-  if (important) {
-    return true;
-  }
-  for (const p of property.properties ?? []) {
-    if (isPropertyPromoted(p)) {
-      return true;
-    }
-  }
-  return false;
-}
-
 export function filterPromotedProperties(
   property: Property,
 ): Property | undefined {
