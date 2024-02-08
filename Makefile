@@ -18,13 +18,16 @@ export IAC_PATH ?= $(iacCliPath)
 else
 endif
 
+export KEEP_TEMP ?= True
+export CAPTURE_ENGINE_FAILURES ?= True
+export ENGINE_PROFILING ?= True
+
 # Backend commands
 
 run:
 	@echo "ENGINE_PATH: $(ENGINE_PATH)"
 	@echo "IAC_PATH: $(IAC_PATH)"
 	PYTHONPATH=. \
-	KEEP_TMP="True" \
 	AUTH0_DOMAIN="klotho-dev.us.auth0.com" \
 	AUTH0_AUDIENCE="A0sIE3wvh8LpG8mtJEjWPnBqZgBs5cNM" \
 	FGA_API_HOST="localhost:8080" \

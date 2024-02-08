@@ -16,7 +16,7 @@ from src.backend_orchestrator.architecture_handler import (
 from src.constraints.util import find_mutating_constraints
 from src.engine_service.binaries.fetcher import BinaryStorage, Binary
 from src.engine_service.engine_commands.run import (
-    FailedRunException,
+    EngineException,
     run_engine,
     RunEngineRequest,
 )
@@ -35,7 +35,6 @@ from src.environment_management.models import (
 
 from src.environment_management.environment import (
     EnvironmentDAO,
-    EnvironmentDoesNotExistError,
 )
 
 from src.state_manager.architecture_storage import (
@@ -49,6 +48,7 @@ from src.engine_service.engine_commands.get_resource_types import (
 
 from src.constraints.constraint import ConstraintScope
 from src.topology.topology import Topology, TopologyDiff
+from src.topology.resource import ResourceID
 from src.topology.util import diff_engine_results
 
 log = logging.getLogger(__name__)
@@ -138,7 +138,7 @@ class EngineOrchestrator:
             new_env_config = EnvironmentResourceConfiguration.from_dict(
                 architecture.env_resource_configuration
             )
-            new_env_config.config_errors = result.config_errors_json
+            new_env_config.config_errors = result.config_errors
             arch = EnvironmentVersion(
                 architecture_id=architecture.architecture_id,
                 id=architecture.id,
@@ -173,7 +173,7 @@ class EngineOrchestrator:
                     topology_yaml=result.topology_yaml,
                 ),
                 env_resource_configuration=new_env_config.to_dict(),
-                config_errors=result.config_errors_json,
+                config_errors=result.config_errors,
                 diff=diff.__dict__(),
             )
 
@@ -187,21 +187,19 @@ class EngineOrchestrator:
                 },
                 content=payload.model_dump(mode="json"),
             )
-        except FailedRunException as e:
-            print(
-                jsons.dumps(
-                    {
-                        "error_type": e.error_type,
-                        "config_errors": e.config_errors_json,
-                    }
-                )
-            )
+        except EngineException as e:
+            try:
+                error_details = jsons.loads(e.stdout)
+            except:
+                error_details = []
+            title, details = format_error_message(body, e)
             return Response(
                 status_code=400,
                 content=jsons.dumps(
                     {
-                        "error_type": e.error_type,
-                        "config_errors": e.config_errors_json,
+                        "title": title,
+                        "details": details,
+                        "full_details": error_details,
                     }
                 ),
             )
@@ -246,3 +244,67 @@ class EngineOrchestrator:
         except Exception:
             log.error("Error getting resource types", exc_info=True)
             raise HTTPException(status_code=500, detail="internal server error")
+
+
+def format_error_message(body: CopilotRunRequest, e: EngineException):
+    details = jsons.loads(e.stdout)
+    action = body.constraints[0]
+    reason = []
+
+    # Unsupported edges need to be deduped because they can result in multiple errors for each classification that could not be expanded
+    unsupported_edges = set()
+    for detail in details:
+        match detail["error_code"]:
+            case "config_invalid":
+                reason.append(
+                    f"{detail['resource']}#{detail['property']} invalid value '{detail['value']}': {detail['validation_error']}"
+                )
+            case "edge_unsupported" | "edge_invalid":
+                edge = (
+                    detail["satisfaction_edge"]["Source"],
+                    detail["satisfaction_edge"]["Target"],
+                )
+                if edge not in unsupported_edges:
+                    reason.append(
+                        "We could not find a way to complete this architecture, for immediate support, please reach out to us on discord"
+                    )
+                    unsupported_edges.add(edge)
+            case "internal" | _:
+                reason.append(
+                    "The Klotho engine ran into an unexpected issue, the team was notified and is investigating, please try again. If this keeps occurring please join us on discord"
+                )
+
+    match (action["scope"], action["operator"]):
+        case ("application", "add"):
+            title = f"Could not add {action['node']}"
+        case ("application", "remove"):
+            title = f"Could not remove {action['node']}"
+        case ("application", "replace"):
+            original = ResourceID.from_string(action["node"])
+            replacement = ResourceID.from_string(action["replacement_node"])
+            if original.name == replacement.name:
+                title = f"Could not change type of {original.name} from {original.provider}:{original.type} to {replacement.provider}:{replacement.type}"
+            elif (original.provider, original.type, original.namespace) == (
+                replacement.provider,
+                replacement.type,
+                replacement.namespace,
+            ):
+                title = f"Could not rename {action['node']} to {replacement.name}"
+            else:
+                title = f"Could not replace {action['node']} with {action['replacement_node']}"
+        case ("resource", _):
+            title = f"Could not configure {action['target']}"
+        case ("edge", "must_exist"):
+            title = f"Could not connect {action['target']['source']} ➔ {action['target']['target']}"
+        case ("edge", "must_not_exist"):
+            title = f"Could not disconnect {action['target']['source']} ➔ {action['target']['target']}"
+        case _:
+            title = f"Could not apply constraint {action}"
+
+    if len(reason) == 0:
+        return title, ""
+    if len(reason) == 1:
+        return title, reason[0]
+    else:
+        reason_str = "\n• " + "\n• ".join(reason)
+        return title, reason_str

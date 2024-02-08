@@ -18,9 +18,9 @@ from src.environment_management.models import (
     Environment,
 )
 from src.engine_service.engine_commands.run import (
-    FailedRunException,
     RunEngineRequest,
     RunEngineResult,
+    EngineException,
 )
 
 from fastapi import HTTPException
@@ -68,8 +68,11 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
             resources_yaml="test-yaml",
             topology_yaml="test-yaml",
             iac_topology="test-yaml",
+            config_errors=[{"title": "config_error"}],
         )
-        self.test_constraints = [{"scope": "application"}]
+        self.test_constraints = [
+            {"scope": "application", "operator": "add", "node": "aws:lambda_function:a"}
+        ]
         self.mock_store: mock.Mock = mock.Mock()
         self.mock_ev_dao: mock.Mock = mock.Mock()
         self.mock_env_dao: mock.Mock = mock.Mock()
@@ -152,7 +155,7 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
         self.assertEqual(result.status_code, 200)
         self.assertEqual(
             result.body,
-            b'{"architecture_id": "test-architecture-id", "id": "test-id", "version": 2, "state": {"resources_yaml": "test-yaml", "topology_yaml": "test-yaml"}, "env_resource_configuration": {"tracks": {"environment": "test-id", "version_hash": "test-hash"}, "overrides": null, "diff": null, "config_errors": []}, "config_errors": [], "diff": {"resources": {"test:test:None": {"status": "CHANGED"}}, "edges": {"test:test:None": {"status": "ADDED", "target": "test:test2:None"}}}}',
+            b'{"architecture_id": "test-architecture-id", "id": "test-id", "version": 2, "state": {"resources_yaml": "test-yaml", "topology_yaml": "test-yaml"}, "env_resource_configuration": {"tracks": {"environment": "test-id", "version_hash": "test-hash"}, "overrides": null, "diff": null, "config_errors": [{"title": "config_error"}]}, "config_errors": [{"title": "config_error"}], "diff": {"resources": {"test:test:None": {"status": "CHANGED"}}, "edges": {"test:test:None": {"status": "ADDED", "target": "test:test2:None"}}}}',
         )
         self.mock_ev_dao.get_current_version.assert_called_once_with(
             "test-architecture-id", "test-id"
@@ -184,7 +187,7 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
                 "tracks": {"environment": "test-id", "version_hash": "test-hash"},
                 "overrides": None,
                 "diff": None,
-                "config_errors": [],
+                "config_errors": [{"title": "config_error"}],
             },
         )
         self.mock_store.write_state_to_fs.assert_called_once_with(
@@ -265,7 +268,7 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
         self.assertEqual(result.status_code, 200)
         self.assertEqual(
             result.body,
-            b'{"architecture_id": "test-architecture-id", "id": "test-id", "version": 2, "state": {"resources_yaml": "test-yaml", "topology_yaml": "test-yaml"}, "env_resource_configuration": {"tracks": {"environment": "test-id", "version_hash": "test-hash"}, "overrides": null, "diff": null, "config_errors": []}, "config_errors": [], "diff": {"resources": {}, "edges": {}}}',
+            b'{"architecture_id": "test-architecture-id", "id": "test-id", "version": 2, "state": {"resources_yaml": "test-yaml", "topology_yaml": "test-yaml"}, "env_resource_configuration": {"tracks": {"environment": "test-id", "version_hash": "test-hash"}, "overrides": null, "diff": null, "config_errors": [{"title": "config_error"}]}, "config_errors": [{"title": "config_error"}], "diff": {"resources": {}, "edges": {}}}',
         )
         self.mock_ev_dao.get_current_version.assert_called_once_with(
             "test-architecture-id", "test-id"
@@ -300,7 +303,7 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
                 "tracks": {"environment": "test-id", "version_hash": "test-hash"},
                 "overrides": None,
                 "diff": None,
-                "config_errors": [],
+                "config_errors": [{"title": "config_error"}],
             },
         )
         self.mock_store.write_state_to_fs.assert_called_once_with(
@@ -324,6 +327,67 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
             self.test_result,
         )
         mock_find_mutating_constraints.assert_not_called()
+
+    @mock.patch(
+        "src.backend_orchestrator.run_engine_handler.run_engine",
+        new_callable=mock.AsyncMock,
+    )
+    @mock.patch(
+        "src.backend_orchestrator.run_engine_handler.datetime",
+        new_callable=mock.Mock,
+    )
+    @mock.patch(
+        "src.backend_orchestrator.run_engine_handler.uuid",
+        new_callable=mock.Mock,
+    )
+    @mock.patch(
+        "src.backend_orchestrator.run_engine_handler.find_mutating_constraints",
+        new_callable=mock.Mock,
+    )
+    @mock.patch(
+        "src.backend_orchestrator.run_engine_handler.diff_engine_results",
+        new_callable=mock.Mock,
+    )
+    async def test_run_engine_failure(
+        self,
+        mock_diff_engine_results: mock.Mock,
+        mock_find_mutating_constraints: mock.Mock,
+        mock_uuid: mock.Mock,
+        mock_datetime: mock.Mock,
+        mock_run_engine: mock.AsyncMock,
+    ):
+        test_hash = "hash"
+        mock_datetime.utcnow.return_value = self.created_at
+        mock_uuid.uuid4.return_value = test_hash
+        self.mock_ev_dao.get_current_version = mock.AsyncMock(return_value=self.test_ev)
+        self.mock_ev_dao.get_environment_version = mock.AsyncMock(
+            return_value=self.test_ev
+        )
+        self.mock_env_dao.get_environment = mock.AsyncMock(return_value=self.test_env)
+        self.mock_store.get_state_from_fs = mock.Mock(return_value=self.test_result)
+        test_result = EngineException([], 1, '[{"error_code": "internal"}]', "")
+        mock_run_engine.side_effect = test_result
+        self.mock_ev_dao.get_latest_version = mock.AsyncMock(return_value=self.test_ev)
+        self.mock_store.write_state_to_fs = mock.Mock(return_value="test-location")
+        self.mock_ev_dao.add_environment_version = mock.Mock(return_value=None)
+        self.mock_ev_dao.delete_future_versions = mock.AsyncMock(return_value=None)
+        self.mock_env_dao.set_current_version = mock.AsyncMock(return_value=None)
+        mock_diff_engine_results.return_value = TopologyDiff()
+        result = await self.arch_handler.run(
+            "test-architecture-id",
+            "test-id",
+            0,
+            CopilotRunRequest(
+                constraints=self.test_constraints,
+                overwrite=True,
+            ),
+            True,
+        )
+        self.assertEqual(result.status_code, 400)
+        self.assertEqual(
+            result.body,
+            b'{"title": "Could not add aws:lambda_function:a", "details": "The Klotho engine ran into an unexpected issue, the team was notified and is investigating, please try again. If this keeps occurring please join us on discord", "full_details": [{"error_code": "internal"}]}',
+        )
 
     @mock.patch(
         "src.backend_orchestrator.run_engine_handler.run_engine",
@@ -380,7 +444,7 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
         self.assertEqual(result.status_code, 400)
         self.assertEqual(
             result.body,
-            b'{"error_type": "topological_changes_not_allowed", "environment": "test-id", "constraints": [{"scope": "application"}]}',
+            b'{"error_type": "topological_changes_not_allowed", "environment": "test-id", "constraints": [{"scope": "application", "operator": "add", "node": "aws:lambda_function:a"}]}',
         )
         self.mock_ev_dao.get_current_version.assert_called_once_with(
             "test-architecture-id", "test-id"
@@ -463,7 +527,7 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
         self.assertEqual(result.status_code, 400)
         self.assertEqual(
             result.body,
-            b'{"error_type": "topological_changes_not_allowed", "environment": "test-id", "constraints": [{"scope": "application"}], "diff": {"resources": {"test:test:None": {"status": "CHANGED"}}, "edges": {}}}',
+            b'{"error_type": "topological_changes_not_allowed", "environment": "test-id", "constraints": [{"scope": "application", "operator": "add", "node": "aws:lambda_function:a"}], "diff": {"resources": {"test:test:None": {"status": "CHANGED"}}, "edges": {}}}',
         )
         self.mock_ev_dao.get_current_version.assert_called_once_with(
             "test-architecture-id", "test-id"
@@ -584,8 +648,8 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
         )
         self.mock_env_dao.get_environment = mock.AsyncMock(return_value=self.test_env)
         self.mock_store.get_state_from_fs = mock.Mock(return_value=self.test_result)
-        mock_run_engine.side_effect = FailedRunException(
-            "test", error_type="test-error", config_errors_json=[]
+        mock_run_engine.side_effect = EngineException(
+            "test", returncode=1, stdout="[]", stderr=""
         )
         result = await self.arch_handler.run(
             "test-architecture-id",
@@ -597,7 +661,8 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
             False,
         )
         self.assertEqual(
-            result.body, b'{"error_type": "test-error", "config_errors": []}'
+            result.body,
+            b'{"title": "Could not add aws:lambda_function:a", "details": "", "full_details": []}',
         )
         self.assertEqual(result.status_code, 400)
         self.mock_binary_store.ensure_binary.assert_called_once_with(Binary.ENGINE)

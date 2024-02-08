@@ -7,17 +7,10 @@ from src.backend_orchestrator.get_valid_edge_targets_handler import (
     EdgeTargetHandler,
 )
 
-from src.backend_orchestrator.run_engine_handler import (
-    CopilotRunRequest,
-    EngineOrchestrator,
-)
 from src.engine_service.binaries.fetcher import Binary
 from src.engine_service.engine_commands.get_valid_edge_targets import (
     GetValidEdgeTargetsRequest,
     GetValidEdgeTargetsResult,
-)
-from src.environment_management.environment_version import (
-    EnvironmentVersionDoesNotExistError,
 )
 from src.environment_management.models import (
     Architecture,
@@ -25,12 +18,8 @@ from src.environment_management.models import (
     Environment,
 )
 from src.engine_service.engine_commands.run import (
-    FailedRunException,
-    RunEngineRequest,
     RunEngineResult,
 )
-
-from fastapi import HTTPException
 
 
 class TestValidEdgeTargetsHandler(aiounittest.AsyncTestCase):

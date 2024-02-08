@@ -46,33 +46,3 @@ export class Decision {
     return infostr;
   }
 }
-
-export class Failure {
-  constraints: Constraint[];
-  cause: string[];
-
-  constructor(constraints: Constraint[], json: any[]) {
-    this.constraints = constraints;
-    let cause: string[] = [];
-    if (json != undefined) {
-      json.forEach((j) => {
-        if (j.cause == undefined) {
-          return;
-        }
-        cause.push(j.cause);
-      });
-    }
-    this.cause = cause;
-  }
-
-  formatTitle(): string {
-    return this.constraints
-      .map((c) => c.toFailureMessage())
-      .join(", ")
-      .replace(/:$/g, "");
-  }
-
-  formatInfo(): string {
-    return this.cause.map((c) => "• " + c).join("\n");
-  }
-}

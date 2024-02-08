@@ -1,17 +1,14 @@
 from pathlib import Path, PosixPath
 import aiounittest
 import tempfile
-import shutil
-import os
 from unittest import mock
 
 from src.engine_service.engine_commands.run import (
-    FailedRunException,
     run_engine,
     RunEngineRequest,
     RunEngineResult,
+    EngineException,
 )
-from src.engine_service.engine_commands.util import ConfigValidationException
 
 
 class TestRunEngine(aiounittest.AsyncTestCase):
@@ -76,7 +73,63 @@ class TestRunEngine(aiounittest.AsyncTestCase):
                 resources_yaml="resources_yaml",
                 topology_yaml="topology_yaml",
                 iac_topology="iac_topology",
-                config_errors_json=[],
+                config_errors=[],
+            ),
+        )
+
+    @mock.patch(
+        "src.engine_service.engine_commands.run.run_engine_command",
+        new_callable=mock.AsyncMock,
+    )
+    @mock.patch("tempfile.TemporaryDirectory")
+    async def test_run_engine_configerr(
+        self, mock_temp_dir: mock.Mock, mock_eng_cmd: mock.Mock
+    ):
+        request = RunEngineRequest(
+            id="test",
+            templates=[],
+            constraints=[],
+            input_graph="test",
+            engine_version=0.0,
+        )
+        mock_temp_dir.return_value.__enter__.return_value = self.temp_dir.name
+
+        mock_eng_cmd.return_value = (
+            "",
+            "",
+        )
+
+        def run(*args, **kwargs):
+            self.run_engine_side_effect(self.temp_dir.name)
+            raise EngineException(
+                "Run",
+                2,
+                '[{"error_code": "error"}]',
+                "err_logs",
+            )
+
+        mock_eng_cmd.side_effect = run
+        result = await run_engine(request)
+        mock_temp_dir.assert_called_once()
+        mock_eng_cmd.assert_called_once_with(
+            "Run",
+            "--input-graph",
+            f"{self.temp_dir.name}/graph.yaml",
+            "--constraints",
+            f"{self.temp_dir.name}/constraints.yaml",
+            "--provider",
+            "aws",
+            "--output-dir",
+            self.temp_dir.name,
+            cwd=PosixPath(self.temp_dir.name),
+        )
+        self.assertEqual(
+            result,
+            RunEngineResult(
+                resources_yaml="resources_yaml",
+                topology_yaml="topology_yaml",
+                iac_topology="iac_topology",
+                config_errors=[{"error_code": "error"}],
             ),
         )
 
@@ -101,11 +154,19 @@ class TestRunEngine(aiounittest.AsyncTestCase):
             "",
             "",
         )
-        mock_eng_cmd.side_effect = self.run_engine_side_effect(self.temp_dir.name)
-        mock_eng_cmd.side_effect = ConfigValidationException("test", "", "")
-        with self.assertRaises(FailedRunException) as fre:
+
+        mock_eng_cmd.side_effect = EngineException(
+            "Run",
+            1,
+            "out_logs",
+            "err_logs",
+        )
+        with self.assertRaises(EngineException) as fre:
             await run_engine(request)
-            self.assertEqual(fre.error_type, "ConfigValidationException")
+        self.assertEqual(fre.exception.returncode, 1)
+        self.assertEqual(fre.exception.stdout, "out_logs")
+        self.assertEqual(fre.exception.stderr, "err_logs")
+
         mock_temp_dir.assert_called_once()
         mock_eng_cmd.assert_called_once_with(
             "Run",

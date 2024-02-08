@@ -1,7 +1,7 @@
 import type { Constraint } from "../shared/architecture/Constraints";
 import { formatConstraints } from "../shared/architecture/Constraints";
 import axios from "axios";
-import { ApiError } from "../shared/errors";
+import { EngineError } from "../shared/errors";
 import { trackError } from "../pages/store/ErrorStore";
 import {
   type EnvironmentVersion,
@@ -57,26 +57,16 @@ export async function applyConstraints(
     console.log("response from apply constraints", data);
   } catch (e: any) {
     console.log("error from apply constraints", e);
-    if (
-      e.response.status === 400 &&
-      e.response.data?.error_type === "ConfigValidation"
-    ) {
-      console.log(e.response.data.config_errors);
-      return {
-        environmentVersion: parseEnvironmentVersion(e.response.data),
-        errorType: ApplyConstraintsErrorType.ConfigValidation,
-      };
-    }
-    const error = new ApiError({
-      errorId: "ApplyConstraints",
-      message: "An error occurred while applying constraints.",
-      status: e.status,
-      statusText: e.message,
-      url: e.request?.url,
-      cause: e,
-    });
+    const error = new EngineError(
+      e.response.data?.title ??
+        constraints
+          .map((c) => c.toFailureMessage())
+          .join(", ")
+          .replace(/:$/g, ""),
+      e.response.data?.details ??
+        "An error occurred while applying constraints.",
+    );
 
-    console.log((window as any).CommandBar);
     (async () => {
       (window as any).CommandBar?.trackEvent("apply_constraints_500", {});
       trackError(error);

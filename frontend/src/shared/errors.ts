@@ -13,7 +13,6 @@ type Keyed = {
 };
 
 export class ApplicationError extends Error {
-  __proto__ = Error;
   errorId?: string;
   id: string;
   data?: Keyed;
@@ -35,7 +34,6 @@ export class ApplicationError extends Error {
     cause?: Error;
   }) {
     super(message, { cause });
-    Object.setPrototypeOf(this, ApplicationError.prototype);
 
     this.messageComponent = messageComponent;
     this.name = type ?? ErrorType.Application;
@@ -77,11 +75,24 @@ export class ApiError extends ApplicationError {
       cause,
       messageComponent,
     });
-    Object.setPrototypeOf(this, ApiError.prototype);
 
     this.status = status;
     this.statusText = statusText;
     this.url = url;
+  }
+}
+
+export class EngineError extends ApplicationError {
+  constructor(
+    public title: string,
+    public details: string,
+    errorId?: string,
+  ) {
+    super({
+      message: `${title}: ${details}`,
+      errorId,
+      data: { details },
+    });
   }
 }
 
@@ -107,6 +118,5 @@ export class UIError extends ApplicationError {
       cause,
       messageComponent,
     });
-    Object.setPrototypeOf(this, UIError.prototype);
   }
 }

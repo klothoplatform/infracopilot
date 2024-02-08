@@ -4,7 +4,6 @@ import json
 import logging
 import os
 import shutil
-import subprocess
 from pathlib import Path
 
 from src.engine_service.binaries.fetcher import Binary
@@ -12,49 +11,16 @@ from src.engine_service.binaries.fetcher import Binary
 log = logging.getLogger()
 
 CAPTURE_ENGINE_FAILURES = os.getenv("CAPTURE_ENGINE_FAILURES", False)
+ENGINE_PROFILING = os.getenv("ENGINE_PROFILING", False)
 
 
 class EngineException(Exception):
-    type: str
-
-    def __init__(self, message, stdout: str | None = None, stderr: str | None = None):
-        super().__init__(message)
+    def __init__(self, cmd, returncode: int, stdout: str, stderr: str):
+        super().__init__(f"Command {cmd} failed with return code {returncode}")
+        self.cmd = cmd
         self.stdout = stdout
         self.stderr = stderr
-        self.type = "Engine"
-
-    def err_log_str(self):
-        if self.stderr is None:
-            return ""
-        err_logs = [
-            json.loads(line)
-            for line in self.stderr.splitlines()
-            if line.startswith("{")
-        ]
-        return "\n".join(
-            f'{entry["level"].upper()}: {entry["msg"]}'
-            for entry in err_logs
-            if (
-                entry["level"] in ["warn", "error"]
-                and "Not logged in" not in entry["msg"]
-                and "Klotho compilation failed" not in entry["msg"]
-            )
-        )
-
-
-class ConfigValidationException(EngineException):
-    type: str
-
-    def __init__(self, message, stdout: str, stderr: str):
-        super().__init__(message, stdout, stderr)
-        self.type = "ConfigValidation"
-
-
-class IacException(Exception):
-    def __init__(self, message, stdout: str, stderr: str):
-        super().__init__(message)
-        self.stdout = stdout
-        self.stderr = stderr
+        self.returncode = returncode
 
     def err_log_str(self):
         err_logs = [
@@ -73,17 +39,24 @@ class IacException(Exception):
         )
 
 
-async def run_engine_command(*args, **kwargs) -> tuple[str, str]:
-    cwd = kwargs.get("cwd", None)
-
+async def run_command(
+    b: Binary, *args, cwd: None | Path | str = None
+) -> tuple[str, str]:
     env = os.environ.copy()
+    cwd = Path(cwd) if cwd else None
 
     cmd = [
-        f"{Binary.ENGINE.path}",
+        f"{b.path}",
         *args,
     ]
-    print(f"Running engine command: {' '.join(cmd)}")
-    log.debug("Running engine command: %s", " ".join(cmd))
+    if ENGINE_PROFILING and cwd is not None:
+        if ENGINE_PROFILING.lower() == "true":
+            profile_root = cwd if cwd else Path("profiling")
+        else:
+            profile_root = Path(ENGINE_PROFILING)
+        cmd.append(f"--profiling={(profile_root / cwd.name).absolute()}.prof")
+    print(f"Running {b.value} command: {' '.join(cmd)}")
+    log.debug("Running %s command: %s", b.value, " ".join(cmd))
 
     process: Process = await asyncio.create_subprocess_exec(
         *cmd,
@@ -96,21 +69,16 @@ async def run_engine_command(*args, **kwargs) -> tuple[str, str]:
     out_logs = "" if stdout is None else stdout.decode()
     err_logs = "" if stderr is None else stderr.decode()
 
-    log.debug("engine output:\n%s", out_logs)
+    log.info("%s output:\n%s", b.value, out_logs)
     if err_logs is not None and len(err_logs.strip()) > 0:
-        log.error("engine error:\n%s", err_logs)
+        log.error("%s error:\n%s", b.value, err_logs)
     if cwd is not None:
-        capture_failure("failures/engine", cmd, cwd, err_logs)
+        capture_failure(f"failures/{b.value}", cmd, cwd, out_logs, err_logs)
 
     if process.returncode != 0:
-        if process.returncode == 2:
-            raise ConfigValidationException(
-                f"Engine {cmd} returned non-zero exit code: {process.returncode}",
-                out_logs,
-                err_logs,
-            )
         raise EngineException(
-            f"Engine {cmd} returned non-zero exit code: {process.returncode}",
+            cmd,
+            process.returncode,
             out_logs,
             err_logs,
         )
@@ -118,43 +86,21 @@ async def run_engine_command(*args, **kwargs) -> tuple[str, str]:
     return out_logs, err_logs
 
 
-async def run_iac_command(*args, **kwargs) -> tuple[str, str]:
-    cwd = kwargs.get("cwd", None)
-
-    env = os.environ.copy()
-
-    cmd = [
-        f"{Binary.IAC.path}",
-        *args,
-    ]
-    print("Running iac command: %s", " ".join(cmd))
-    log.debug("Running iac command: %s", " ".join(cmd))
-
-    process: Process = await asyncio.create_subprocess_exec(
-        *cmd,
-        cwd=cwd,
-        env=env,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE,
-    )
-    stdout, stderr = await process.communicate()
-    out_logs = "" if stdout is None else stdout.decode()
-    err_logs = "" if stderr is None else stderr.decode()
-
-    log.debug("iac output:\n%s", out_logs)
-    if err_logs is not None and len(err_logs.strip()) > 0:
-        log.error("iac error:\n%s", err_logs)
-    capture_failure("failures/iac", cmd, cwd, err_logs)
-    if process.returncode != 0:
-        raise EngineException(
-            f"Engine {cmd} returned non-zero exit code: {process.returncode}",
-            out_logs,
-            err_logs,
-        )
-    return out_logs, err_logs
+async def run_engine_command(*args, cwd: None | Path | str = None) -> tuple[str, str]:
+    return await run_command(Binary.ENGINE, *args, cwd=cwd)
 
 
-def capture_failure(failures_dir: Path | str, cmd: list, cwd: Path, err_logs: str):
+async def run_iac_command(*args, cwd: None | Path | str = None) -> tuple[str, str]:
+    return await run_command(Binary.IAC, *args, cwd=cwd)
+
+
+def capture_failure(
+    failures_dir: Path | str,
+    cmd: list,
+    cwd: Path,
+    out_logs: str,
+    err_logs: str,
+):
     if not CAPTURE_ENGINE_FAILURES:
         return
 
@@ -168,5 +114,6 @@ def capture_failure(failures_dir: Path | str, cmd: list, cwd: Path, err_logs: st
             + " ".join(cmd).replace(str(cwd), str(capture_dir.absolute()))
             + "\n\n"
         )
-        file.write(err_logs)
     shutil.copytree(cwd, capture_dir)
+    (cwd / "out.log").write_text(out_logs)
+    (cwd / "err.log").write_text(err_logs)
