@@ -2,7 +2,7 @@ import json
 import os
 import tempfile
 from pathlib import Path
-from typing import List, NamedTuple, Dict
+from typing import List, NamedTuple, Dict, Optional
 import logging
 import yaml
 import contextlib
@@ -24,6 +24,7 @@ class RunEngineRequest(NamedTuple):
     input_graph: str
     constraints: List[dict]
     engine_version: float
+    overwrite: Optional[bool] = False
 
 
 class RunEngineResult(NamedTuple):

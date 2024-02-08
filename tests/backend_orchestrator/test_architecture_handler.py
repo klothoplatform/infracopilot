@@ -12,6 +12,9 @@ from src.auth_service.entity import User, Team
 from src.auth_service.sharing_manager import SharingManager, public_user
 from src.backend_orchestrator.architecture_handler import (
     ArchitectureHandler,
+    ShareArchitectureRequest,
+)
+from src.backend_orchestrator.models import (
     CreateArchitectureRequest,
     ShareArchitectureRequest,
 )

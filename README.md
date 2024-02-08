@@ -11,6 +11,9 @@ git config --local core.hooksPath .githooks/
 Change the auth0 domain in `/src/auth_service/token` to our dev domain
 
 ensure the following files/keys exist:
+- auth0_client_id.key
+- auth0_client_secret.key
+- azure_openai_api_key.key
 - fga_client_id.key
 - fga_model_id.key
 - fga_secret.key

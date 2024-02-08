@@ -1,0 +1,2 @@
+{parse_prompt_content_short}----
+only respond with CSV lines with the same format as the examples. Group together actions based on type. Do not include any explanations, notes, warnings, logs, or other information, reasons, or human readable text. Only the CSV lines to the best of your understanding.

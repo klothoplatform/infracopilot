@@ -1,0 +1,30 @@
+.ms-TextField-field:focus {
+  // remove the blue border
+  box-shadow: none !important;
+}
+
+.ms-TextField-fieldGroup textarea::placeholder {
+  color: theme("colors.gray.500") !important;
+}
+
+span[data-ui-id="message-timestamp"] {
+  color: theme("colors.gray.600");
+}
+
+.fui-ChatMessage__author > span {
+  color: theme("colors.gray.600");
+}
+
+.dark {
+  .ms-TextField-fieldGroup textarea::placeholder {
+    color: theme("colors.gray.400") !important;
+  }
+
+  span[data-ui-id="message-timestamp"] {
+    color: theme("colors.gray.400");
+  }
+
+  .fui-ChatMessage__author > span {
+    color: theme("colors.gray.400");
+  }
+}

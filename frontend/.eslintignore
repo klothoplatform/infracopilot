@@ -1,5 +1,5 @@
 src/components/icons/**
-tailwind.config.js
+tailwind.config.ts
 src/dev/**
 public/**
 postcss.config.js

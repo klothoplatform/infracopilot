@@ -1,27 +1,33 @@
-from datetime import datetime
 import logging
-from logging import config
-from typing import List, Optional
 import uuid
+from datetime import datetime
+from typing import List, Optional
 
 import jsons
 from fastapi import HTTPException, Response
 from pydantic import BaseModel
 
-from src.backend_orchestrator.architecture_handler import (
-    EnvironmentVersionNotLatestError,
+from src.backend_orchestrator.models import (
     EnvironmentVersionResponseObject,
+    EnvironmentVersionNotLatestError,
     VersionState,
+    SendMessageResponse,
 )
+from src.chat.conversation import Conversation
 from src.constraints.util import find_mutating_constraints
 from src.engine_service.binaries.fetcher import BinaryStorage, Binary
+from src.engine_service.engine_commands.get_resource_types import (
+    get_resource_types,
+)
 from src.engine_service.engine_commands.run import (
     EngineException,
     run_engine,
     RunEngineRequest,
+    RunEngineResult,
 )
-from src.topology.topology import TopologicalChangesNotAllowed
-
+from src.environment_management.environment import (
+    EnvironmentDAO,
+)
 from src.environment_management.environment_version import (
     EnvironmentVersionDAO,
     EnvironmentVersion,
@@ -30,26 +36,16 @@ from src.environment_management.environment_version import (
 from src.environment_management.models import (
     Environment,
     EnvironmentResourceConfiguration,
-    EnvironmentTracker,
 )
-
-from src.environment_management.environment import (
-    EnvironmentDAO,
-)
-
 from src.state_manager.architecture_storage import (
     ArchitectureStorage,
     ArchitectureStateDoesNotExistError,
 )
-
-from src.engine_service.engine_commands.get_resource_types import (
-    get_resource_types,
-)
-
-from src.constraints.constraint import ConstraintScope
-from src.topology.topology import Topology, TopologyDiff
 from src.topology.resource import ResourceID
+from src.topology.topology import TopologicalChangesNotAllowed
+from src.topology.topology import TopologyDiff
 from src.topology.util import diff_engine_results
+from src.util.logging import logger
 
 log = logging.getLogger(__name__)
 
@@ -81,102 +77,7 @@ class EngineOrchestrator:
         accept: Optional[str] = None,
     ):
         try:
-            current_architecture: EnvironmentVersion = (
-                await self.ev_dao.get_current_version(architecture_id, env_id)
-            )
-            if current_architecture is None:
-                raise ArchitectureStateDoesNotExistError(
-                    "Architecture with id, {id}, does not exist"
-                )
-            if not body.overwrite:
-                architecture = current_architecture
-                if architecture.version != version:
-                    raise EnvironmentVersionNotLatestError(
-                        f"Architecture state is not the latest. Expected {architecture.version}, got {version}"
-                    )
-            else:
-                architecture = await self.ev_dao.get_environment_version(
-                    architecture_id, env_id, version
-                )
-                if architecture is None:
-                    raise ArchitectureStateDoesNotExistError(
-                        "Architecture with id, {id}, and state, {state} does not exist"
-                    )
-
-            ## validate constraints to ensure theres only resource constraints if the environment only allows topological changes
-            env: Environment = await self.env_dao.get_environment(
-                architecture_id, env_id
-            )
-            if not env.allows_topological_changes():
-                if len(find_mutating_constraints(body.constraints)) > 0:
-                    raise TopologicalChangesNotAllowed(env_id, body.constraints)
-
-            input_graph = self.architecture_storage.get_state_from_fs(architecture)
-            self.binary_storage.ensure_binary(Binary.ENGINE)
-            request = RunEngineRequest(
-                id=architecture_id,
-                input_graph=(
-                    input_graph.resources_yaml if input_graph is not None else None
-                ),
-                templates=[],
-                engine_version=1.0,
-                constraints=body.constraints,
-            )
-            result = await run_engine(request)
-
-            diff: TopologyDiff = diff_engine_results(result, input_graph)
-            if not env.allows_topological_changes():
-                if diff.contains_differences():
-                    raise TopologicalChangesNotAllowed(
-                        env_id, constraints=body.constraints, diff=diff
-                    )
-
-            latest_architecture: EnvironmentVersion = (
-                await self.ev_dao.get_latest_version(architecture_id, env_id)
-            )
-            current_version = latest_architecture.version + 1
-            new_env_config = EnvironmentResourceConfiguration.from_dict(
-                architecture.env_resource_configuration
-            )
-            new_env_config.config_errors = result.config_errors
-            arch = EnvironmentVersion(
-                architecture_id=architecture.architecture_id,
-                id=architecture.id,
-                version=current_version,
-                version_hash=str(uuid.uuid4()),
-                constraints=body.constraints,
-                created_at=datetime.utcnow(),
-                created_by=architecture.created_by,
-                state_location=None,
-                env_resource_configuration=new_env_config.to_dict(),
-            )
-            if body.overwrite:
-                print(
-                    f"deleting any architecture for id {architecture_id} and envirnomnet {env_id} greater than state {version}"
-                )
-                await self.ev_dao.delete_future_versions(
-                    architecture_id, env_id, version
-                )
-
-            state_location = self.architecture_storage.write_state_to_fs(arch, result)
-            arch.state_location = state_location
-            self.ev_dao.add_environment_version(arch)
-            await self.env_dao.set_current_version(
-                architecture_id, env_id, current_version
-            )
-            payload = EnvironmentVersionResponseObject(
-                architecture_id=arch.architecture_id,
-                id=arch.id,
-                version=arch.version,
-                state=VersionState(
-                    resources_yaml=result.resources_yaml,
-                    topology_yaml=result.topology_yaml,
-                ),
-                env_resource_configuration=new_env_config.to_dict(),
-                config_errors=result.config_errors,
-                diff=diff.__dict__(),
-            )
-
+            payload = await self.do_run(architecture_id, env_id, version, body)
             return Response(
                 headers={
                     "Content-Type": (
@@ -229,7 +130,106 @@ class EngineOrchestrator:
             )
         except Exception:
             log.error("Error running engine", exc_info=True)
-            raise HTTPException(status_code=500, detail="internal server error")
+        raise HTTPException(status_code=500, detail="internal server error")
+
+    async def do_run(
+        self,
+        architecture_id: str,
+        env_id: str,
+        version: int,
+        request: CopilotRunRequest,
+    ) -> EnvironmentVersionResponseObject:
+        current_architecture: EnvironmentVersion = (
+            await self.ev_dao.get_current_version(architecture_id, env_id)
+        )
+        if current_architecture is None:
+            raise ArchitectureStateDoesNotExistError(
+                "Architecture with id, {id}, does not exist"
+            )
+        if not request.overwrite:
+            architecture = current_architecture
+            if architecture.version != version:
+                raise EnvironmentVersionNotLatestError(
+                    f"Architecture state is not the latest. Expected {architecture.version}, got {version}"
+                )
+        else:
+            architecture = await self.ev_dao.get_environment_version(
+                architecture_id, env_id, version
+            )
+            if architecture is None:
+                raise ArchitectureStateDoesNotExistError(
+                    "Architecture with id, {id}, and state, {state} does not exist"
+                )
+
+        ## validate constraints to ensure theres only resource constraints if the environment only allows topological changes
+        env: Environment = await self.env_dao.get_environment(architecture_id, env_id)
+        if not env.allows_topological_changes():
+            if len(find_mutating_constraints(request.constraints)) > 0:
+                raise TopologicalChangesNotAllowed(env_id, request.constraints)
+
+        input_graph = self.architecture_storage.get_state_from_fs(architecture)
+        self.binary_storage.ensure_binary(Binary.ENGINE)
+        request = RunEngineRequest(
+            id=architecture_id,
+            input_graph=(
+                input_graph.resources_yaml if input_graph is not None else None
+            ),
+            templates=[],
+            engine_version=1.0,
+            constraints=request.constraints,
+            overwrite=request.overwrite,
+        )
+        result = await run_engine(request)
+
+        diff: TopologyDiff = diff_engine_results(result, input_graph)
+        if not env.allows_topological_changes():
+            if diff.contains_differences():
+                raise TopologicalChangesNotAllowed(
+                    env_id, constraints=request.constraints, diff=diff
+                )
+
+        latest_architecture: EnvironmentVersion = await self.ev_dao.get_latest_version(
+            architecture_id, env_id
+        )
+        current_version = latest_architecture.version + 1
+        new_env_config = EnvironmentResourceConfiguration.from_dict(
+            architecture.env_resource_configuration
+        )
+        new_env_config.config_errors = result.config_errors
+        arch = EnvironmentVersion(
+            architecture_id=architecture.architecture_id,
+            id=architecture.id,
+            version=current_version,
+            version_hash=str(uuid.uuid4()),
+            constraints=request.constraints,
+            created_at=datetime.utcnow(),
+            created_by=architecture.created_by,
+            state_location=None,
+            env_resource_configuration=new_env_config.to_dict(),
+        )
+        if request.overwrite:
+            print(
+                f"deleting any architecture for id {architecture_id} and envirnomnet {env_id} greater than state {version}"
+            )
+            await self.ev_dao.delete_future_versions(architecture_id, env_id, version)
+
+        state_location = self.architecture_storage.write_state_to_fs(arch, result)
+        arch.state_location = state_location
+        self.ev_dao.add_environment_version(arch)
+        await self.env_dao.set_current_version(architecture_id, env_id, current_version)
+        payload = EnvironmentVersionResponseObject(
+            architecture_id=arch.architecture_id,
+            id=arch.id,
+            version=arch.version,
+            state=VersionState(
+                resources_yaml=result.resources_yaml,
+                topology_yaml=result.topology_yaml,
+            ),
+            env_resource_configuration=new_env_config.to_dict(),
+            config_errors=result.config_errors,
+            diff=diff.__dict__(),
+        )
+        return payload
 
     async def get_resource_types(self, architecture_id: str, env_id: str):
         try:
@@ -243,6 +243,72 @@ class EngineOrchestrator:
             )
         except Exception:
             log.error("Error getting resource types", exc_info=True)
+            raise HTTPException(status_code=500, detail="internal server error")
+
+    async def handle_message(
+        self,
+        architecture_id: str,
+        env_id: str,
+        message: str,
+        version: Optional[int] = None,
+        overwrite: Optional[bool] = False,
+    ):
+        request = CopilotRunRequest(constraints=[], overwrite=False)
+        try:
+            ev = await self.ev_dao.get_current_version(architecture_id, env_id)
+
+            state = None
+            if ev is not None and version > 0:
+                state = self.architecture_storage.get_state_from_fs(ev)
+            conversation = Conversation(environment_version=ev, initial_state=state)
+            parsed_constraints = await conversation.do_query(
+                query_id=str(uuid.uuid4()), query=message, timeout_sec=120
+            )
+            request = CopilotRunRequest(
+                constraints=[
+                    pc.constraint.to_dict()
+                    for pc in parsed_constraints
+                    if pc.constraint is not None
+                ],
+                overwrite=overwrite,
+            )
+
+            result = await self.do_run(
+                architecture_id=ev.architecture_id,
+                env_id=ev.id,
+                version=ev.version,
+                request=request,
+            )
+            result = SendMessageResponse(
+                architecture_id=result.architecture_id,
+                id=result.id,
+                version=result.version,
+                state=result.state,
+                env_resource_configuration=result.env_resource_configuration,
+                config_errors=result.config_errors,
+                diff=result.diff,
+                constraints=[pc.constraint.to_dict() for pc in parsed_constraints],
+            )
+
+            return result, None
+        except EngineException as e:
+            try:
+                error_details = jsons.loads(e.stdout)
+            except:
+                error_details = []
+            title, details = format_error_message(request, e)
+            return None, {
+                "title": title,
+                "details": details,
+                "full_details": error_details,
+            }
+        except ArchitectureStateDoesNotExistError:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No environment {env_id} exists for architecture {architecture_id}",
+            )
+        except Exception:
+            logger.error("Error getting state", exc_info=True)
             raise HTTPException(status_code=500, detail="internal server error")
 
 

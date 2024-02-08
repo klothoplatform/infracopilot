@@ -246,7 +246,7 @@ export default function EditorPane() {
     if (edges.length !== oldEdgeCount || nodes.length !== oldNodeCount) {
       setOldEdgeCount(edges.length);
       setOldNodeCount(nodes.length);
-      fitView({ padding: 0.1, nodes: nodes, maxZoom: 0.5, duration: 250 });
+      fitView({ padding: 0.1, maxZoom: 0.5, duration: 250 });
     }
   }, [fitView, nodes, edges, oldEdgeCount, oldNodeCount]);
 
@@ -273,7 +273,6 @@ export default function EditorPane() {
           edges={edges}
           fitViewOptions={{
             padding: 0.1,
-            nodes: nodes,
             maxZoom: 0.5,
             duration: 250,
           }}

@@ -26,6 +26,8 @@ asyncpg = "*"
 httpx = "*"
 gunicorn = "*"
 black = "*"
+openai = "==0.27.8"
+langchain = "*"
 
 [dev-packages]
 black = "*"

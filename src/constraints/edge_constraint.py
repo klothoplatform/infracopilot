@@ -22,7 +22,7 @@ class EdgeConstraint(Constraint):
         return {
             "scope": self.scope.value,
             "operator": self.operator.value,
-            "target": str(self.target),
+            "target": self.target.to_dict(),
         }
 
     def cancels_out(self, other: "Constraint") -> bool:

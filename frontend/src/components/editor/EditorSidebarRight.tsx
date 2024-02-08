@@ -19,6 +19,8 @@ import { DetailsSidebar } from "./DetailsSidebar";
 import { ChangesSidebar } from "./ChangesSidebar";
 import { ChatSidebar } from "./ChatSidebar";
 import { IoIosChatboxes } from "react-icons/io";
+import { env } from "../../shared/environment";
+import { ChatSignupSidebar } from "./ChatSignupSidebar";
 
 interface SidebarItemState {
   [key: string]: {
@@ -69,13 +71,40 @@ const EditorSidebarRight: FC = () => {
     setItemState(updateActiveIndex(itemState, index, null));
   };
 
+  useEffect(() => {
+    if (changeNotifications.length === 0) {
+      return;
+    }
+    setItemState((previous) => {
+      let state = { ...previous };
+      if (
+        previous[RightSidebarMenu.Changes]?.visible !== null &&
+        !previous[RightSidebarMenu.Chat]?.visible
+      ) {
+        state = updateActiveIndex(previous, RightSidebarMenu.Changes, true);
+      } else {
+        state[RightSidebarMenu.Changes] = {
+          ...previous[RightSidebarMenu.Changes],
+          hasNotification: changeNotifications.length > 0,
+        };
+      }
+      return state;
+    });
+  }, [changeNotifications]);
+
   const shouldShowDetails =
     itemState[RightSidebarMenu.Details]?.visible &&
     !!(selectedResource || selectedEdge);
+
   const shouldShowChanges =
     itemState[RightSidebarMenu.Changes]?.visible &&
     changeNotifications.length > 0 &&
     !isViewMode(viewSettings, ViewMode.View);
+
+  const shouldShowChat =
+    itemState[RightSidebarMenu.Chat]?.visible &&
+    isViewMode(viewSettings, ViewMode.Edit);
+
   const shouldShowMissingConfig =
     itemState[RightSidebarMenu.MissingConfig]?.visible;
 
@@ -101,7 +130,7 @@ const EditorSidebarRight: FC = () => {
     shouldShowDetails ||
     shouldShowChanges ||
     shouldShowMissingConfig ||
-    isChatActive;
+    shouldShowChat;
 
   return (
     <>
@@ -126,7 +155,12 @@ const EditorSidebarRight: FC = () => {
               hidden={!shouldShowMissingConfig}
               setWarnMissingProperties={setWarnMissingProperties}
             />
-            <ChatSidebar hidden={!isChatActive} />
+
+            {env.chatEnabled ? (
+              <ChatSidebar hidden={!shouldShowChat} />
+            ) : (
+              <ChatSignupSidebar hidden={!shouldShowChat} />
+            )}
           </div>
         </ResizableSection>
       )}
@@ -187,17 +221,19 @@ const EditorSidebarRight: FC = () => {
                 showNotification={warnMissingProperties}
               />
             </Sidebar.ItemGroup>
-            <Sidebar.ItemGroup>
-              <SidebarMenuOption
-                key={RightSidebarMenu.Chat}
-                index={RightSidebarMenu.Chat}
-                label={"Chat"}
-                icon={IoIosChatboxes}
-                onActivate={onActivate}
-                onDeactivate={onDeactivate}
-                active={isChatActive}
-              />
-            </Sidebar.ItemGroup>
+            {isViewMode(viewSettings, ViewMode.Edit) && (
+              <Sidebar.ItemGroup>
+                <SidebarMenuOption
+                  key={RightSidebarMenu.Chat}
+                  index={RightSidebarMenu.Chat}
+                  label={"Chat"}
+                  icon={IoIosChatboxes}
+                  onActivate={onActivate}
+                  onDeactivate={onDeactivate}
+                  active={isChatActive}
+                />
+              </Sidebar.ItemGroup>
+            )}
           </div>
         </Sidebar.Items>
       </Sidebar>

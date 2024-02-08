@@ -19,15 +19,15 @@ export class Decision {
     this.resources = res;
   }
 
-  formatTitle(): string {
+  formatTitle(mention?: boolean): string {
     return this.constraints
-      .map((c) => c.toIntent())
-      .join(", ")
+      .map((c) => c.toIntent(mention))
+      .join("\n")
       .replace(/:$/g, "");
   }
 
-  formatInfo(): string {
-    const resourcesMap = this.resources.map((res) => {
+  formatInfo(mention?: boolean): string {
+    const resourceMap = this.resources.map((res) => {
       const id = NodeId.parse(res);
       const resType = id.type
         .split("_")
@@ -36,12 +36,13 @@ export class Decision {
             firstChar.toUpperCase() + rest.join("").toLowerCase(),
         )
         .join(" ");
-      return "• Created " + resType + " " + id.name;
+      const slug = mention ? id.toMention() : `${resType} ${id.name}`;
+      return "• Created " + slug;
     });
 
-    const infostr = resourcesMap.slice(0, 4).join("\n");
-    if (resourcesMap.length > 4) {
-      return infostr + "\n• and " + (resourcesMap.length - 4) + " more";
+    const infostr = resourceMap.slice(0, 4).join("\n");
+    if (resourceMap.length > 4) {
+      return infostr + "\n• and " + (resourceMap.length - 4) + " more";
     }
     return infostr;
   }

@@ -40,3 +40,13 @@ def get_auth0_secret() -> Optional[str]:
     except Exception:
         logger.error("could not read auth0_client_secret.key", exc_info=True)
         return None
+
+
+def get_azure_open_ai_key() -> Optional[str]:
+    try:
+        with open("azure_openai_api_key.key", mode="r") as f:
+            secret = f.read()
+            return secret
+    except Exception:
+        logger.error("could not read azure_openai_api_key.key", exc_info=True)
+        return None

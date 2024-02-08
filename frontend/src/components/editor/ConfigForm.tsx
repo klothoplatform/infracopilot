@@ -72,7 +72,7 @@ export default function ConfigForm({
     sections.forEach((section) => {
       return section.propertyMap.forEach((properties, resourceId): any => {
         const fs = toFormState(
-          environmentVersion.resources.get(resourceId),
+          environmentVersion.resources?.get(resourceId),
           properties,
           resourceId,
         );

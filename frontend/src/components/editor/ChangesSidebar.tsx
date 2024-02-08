@@ -86,7 +86,7 @@ const EventNotification: FC<ChangeNotification> = function ({
   details,
 }) {
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col whitespace-pre-wrap">
       <Alert
         theme={OutlinedAlert}
         color={type}

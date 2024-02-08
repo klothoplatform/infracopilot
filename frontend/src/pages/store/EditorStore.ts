@@ -87,6 +87,9 @@ import exportIaC from "../../api/ExportIaC";
 
 import type { ChangeNotification } from "../../components/editor/ChangesSidebar";
 import { NotificationType } from "../../components/editor/ChangesSidebar";
+import type { SendChatMessageResponse } from "../../api/SendChatMessage";
+import { sendChatMessage } from "../../api/SendChatMessage";
+import type { ChatMessage } from "@azure/communication-react";
 
 interface EditorStoreState {
   architecture: Architecture;
@@ -97,6 +100,7 @@ interface EditorStoreState {
   willOverwriteState: boolean;
   canApplyConstraints: boolean;
   connectionSourceId?: string;
+  chatHistory: ChatMessage[];
   deletingNodes: boolean;
   edges: Edge[];
   edgeTargetState: {
@@ -134,6 +138,7 @@ const initialState: () => EditorStoreState = () => ({
   architecture: {} as Architecture,
   architectureAccess: undefined,
   changeNotifications: [],
+  chatHistory: [],
   nodes: [],
   edges: [],
   configErrors: [],
@@ -240,6 +245,7 @@ interface EditorStoreActions {
     environment: string,
     state?: number,
   ) => Promise<any>;
+  sendChatMessage: (message: string) => Promise<void>;
 }
 
 type EditorStoreBase = EditorStoreState & EditorStoreActions;
@@ -432,6 +438,12 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     console.log("deselected node", nodeId);
   },
   selectResource: (resourceId?: NodeId) => {
+    if (
+      !resourceId ||
+      !get().environmentVersion.resources.has(resourceId?.toString())
+    ) {
+      return;
+    }
     const node = resourceId
       ? get().nodes?.find((n) => n.data?.resourceId?.equals(resourceId))
       : undefined;
@@ -774,6 +786,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       );
 
       console.log("applying constraints", allConstraints);
+      let navigateToChanges = true;
 
       const response = await applyConstraints(
         ev.architecture_id,
@@ -1586,6 +1599,222 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
   ) => {
     const idToken = await get().getIdToken();
     return await exportIaC(architectureId, environment, state ?? null, idToken);
+  },
+  sendChatMessage: async (message: string): Promise<void> => {
+    const idToken = await get().getIdToken();
+    const pattern = /<msft-mention id="[^#]*#([^"]*)">([^<]*)<\/msft-mention>/g;
+    const sanitizedMessage = message.replace(pattern, "$2");
+    const messageId = crypto.randomUUID().toString();
+    const historyEntry = {
+      messageId: messageId,
+      senderId: "user",
+      mine: true,
+      content: message,
+      createdOn: new Date(),
+      contentType: "richtext/html",
+      messageType: "chat",
+      status: "sending",
+    } satisfies ChatMessage;
+
+    set(
+      {
+        chatHistory: get().chatHistory.concat(historyEntry),
+      },
+      false,
+      "editor/sendChatMessage:start",
+    );
+
+    let response: SendChatMessageResponse;
+    try {
+      response = await sendChatMessage({
+        architectureId: get().architecture.id,
+        environmentId: get().environmentVersion.id,
+        message: sanitizedMessage,
+        idToken,
+        version: get().environmentVersion.version,
+      });
+    } catch (e: any) {
+      const notifications: ChangeNotification[] = [];
+      if (e instanceof EngineError) {
+        notifications.push({
+          title: e.title,
+          details: e.details,
+          type: NotificationType.Failure,
+          timestamp: Date.now(),
+        });
+      } else {
+        notifications.push({
+          title: `message failed: "${message}"`,
+          type: NotificationType.Failure,
+          timestamp: Date.now(),
+        });
+      }
+      console.error(notifications);
+      set(
+        {
+          unappliedConstraints: [],
+          canApplyConstraints: true,
+          changeNotifications: get().changeNotifications.concat(
+            ...notifications,
+          ),
+          chatHistory: get()
+            .chatHistory.map((entry) => {
+              if (entry.messageId === messageId) {
+                entry.status = "failed";
+                entry.failureReason = e.title || e.message;
+              }
+              return entry;
+            })
+            .concat({
+              messageId: messageId,
+              senderId: "system",
+              senderDisplayName: "Alfred",
+              mine: false,
+              content: e.title || e.message,
+              createdOn: new Date(),
+              contentType: "richtext/html",
+              messageType: "chat",
+              status: "delivered",
+            }),
+        },
+        false,
+        "editor/sendChatMessage:error",
+      );
+      return;
+    }
+
+    if (response.errorType === ApplyConstraintsErrorType.ConfigValidation) {
+      set({
+        canApplyConstraints: true,
+      });
+      return;
+    }
+
+    console.log("new environment version", response.environmentVersion);
+    const elements = toReactFlowElements(
+      response.environmentVersion!,
+      await get().getResourceTypeKB(
+        response.environmentVersion.architecture_id,
+        response.environmentVersion.id,
+      ),
+      ArchitectureView.DataFlow,
+    );
+    const result = await autoLayout(
+      response.environmentVersion,
+      elements.nodes,
+      elements.edges,
+      get().layoutOptions,
+    );
+    const { selectedNode, selectedEdge, selectedResource } = refreshSelection({
+      environmentVersion: response.environmentVersion,
+      nodes: result.nodes,
+      edges: result.edges,
+      selectedNode: get().selectedNode,
+      selectedEdge: get().selectedEdge,
+      selectedResource: get().selectedResource,
+    });
+
+    if (selectedEdge) {
+      get().selectEdge(selectedEdge);
+    } else if (selectedNode && !selectedResource) {
+      get().selectNode(selectedNode);
+    } else if (selectedResource) {
+      get().selectResource(selectedResource);
+    } else {
+      get().deselectResource();
+      get().deselectNode();
+      get().deselectEdge();
+    }
+
+    const groupByKey = (list: any[], key: string) =>
+      list.reduce(
+        (hash, obj) => ({
+          ...hash,
+          [obj[key]]: (hash[obj[key]] || []).concat(obj),
+        }),
+        {},
+      );
+    const generatedConstraints = response.constraints;
+    const constraintsByScope = groupByKey(generatedConstraints, "scope");
+    const decisions = Object.entries(constraintsByScope)
+      .map(([scope, constraints]) => {
+        constraints = constraints as Constraint[];
+        if (scope === ConstraintScope.Resource) {
+          const uniqueResourceConstraints = [
+            ...new Map(
+              (constraints as ResourceConstraint[]).map((item) => [
+                item.target.toString(),
+                item,
+              ]),
+            ).values(),
+          ];
+          return uniqueResourceConstraints.map((c) => new Decision([c], []));
+        }
+        return [new Decision(constraints as Constraint[], [])];
+      })
+      .flat();
+
+    set(
+      {
+        environmentVersion: response.environmentVersion,
+        nodes: result.nodes,
+        edges: result.edges,
+        chatHistory: get()
+          .chatHistory.map((entry) => {
+            if (entry.messageId === messageId) {
+              entry.status = "delivered";
+            }
+            return entry;
+          })
+          .concat(
+            !decisions.length
+              ? [
+                  {
+                    messageId: `${messageId}-response`,
+                    senderId: "system",
+                    senderDisplayName: "Alfred",
+                    content: "I'm sorry, I didn't understand that. 🥺",
+                    createdOn: new Date(),
+                    contentType: "richtext/html",
+                    messageType: "chat",
+                    status: "delivered",
+                  },
+                ]
+              : decisions.map((d) => ({
+                  messageId: `${messageId}-response`,
+                  senderId: "system",
+                  senderDisplayName: "Alfred",
+                  content: d.formatTitle(true),
+                  createdOn: new Date(),
+                  contentType: "richtext/html",
+                  messageType: "chat",
+                  status: "delivered",
+                })),
+          ),
+        changeNotifications: get()
+          .changeNotifications.filter(
+            (n) => n.type !== NotificationType.Failure,
+          )
+          .concat(
+            ...decisions.map((d) => ({
+              title: d.formatTitle(),
+              details: d.formatInfo(),
+              type: NotificationType.Success,
+              timestamp: Date.now(),
+            })),
+          ),
+        unappliedConstraints: [],
+        canApplyConstraints: true,
+        edgeTargetState: initialState().edgeTargetState,
+        previousState: get().environmentVersion,
+        nextState: undefined,
+        willOverwriteState: false,
+      },
+      false,
+      "editor/sendChatMessage:end",
+    );
+    console.log("new nodes", elements.nodes);
+    get().updateEdgeTargets();
   },
 });
 

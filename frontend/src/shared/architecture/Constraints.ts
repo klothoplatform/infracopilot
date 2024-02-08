@@ -28,8 +28,8 @@ export enum ConstraintScope {
 export interface Constraint {
   scope: ConstraintScope;
   operator: ConstraintOperator;
-  toIntent: () => string;
-  toFailureMessage: () => string;
+  toIntent: (mention?: boolean) => string;
+  toFailureMessage: (mention?: boolean) => string;
 }
 
 export type ApplicationConstraintOperators = Extract<
@@ -64,27 +64,35 @@ export class ApplicationConstraint implements Constraint {
     public replacementNode?: NodeId,
   ) {}
 
-  toIntent(): string {
+  toIntent(mention?: boolean): string {
+    const nodeFormat = mention ? this.node.toMention() : this.node.toString();
+    const replacementNodeFormat = mention
+      ? this.replacementNode?.toMention()
+      : this.replacementNode?.toString();
     switch (this.operator) {
       case ConstraintOperator.Add:
-        return `Added ${this.node.toString()}`;
+        return `Added ${nodeFormat}`;
       case ConstraintOperator.Remove:
-        return `Removed ${this.node.toString()}`;
+        return `Removed ${nodeFormat}`;
       case ConstraintOperator.Replace:
-        return `Replaced ${this.node.toString()} ➔ ${this.replacementNode?.toString()}`;
+        return `Replaced ${nodeFormat} ➔ ${replacementNodeFormat}`;
       case ConstraintOperator.Import:
-        return `Imported ${this.node.toString()}`;
+        return `Imported ${nodeFormat}`;
     }
   }
 
-  toFailureMessage(): string {
+  toFailureMessage(mention?: boolean): string {
+    const nodeFormat = mention ? this.node.toMention() : this.node.toString();
+    const replacementNodeFormat = mention
+      ? this.replacementNode?.toMention()
+      : this.replacementNode?.toString();
     switch (this.operator) {
       case ConstraintOperator.Add:
-        return `Failed to add ${this.node.toString()}`;
+        return `Failed to add ${nodeFormat}`;
       case ConstraintOperator.Remove:
-        return `Failed to remove ${this.node.toString()}`;
+        return `Failed to remove ${nodeFormat}`;
       case ConstraintOperator.Replace:
-        return `Failed to replace ${this.node.toString()} ➔ ${this.replacementNode?.toString()}`;
+        return `Failed to replace ${nodeFormat} ➔ ${replacementNodeFormat}`;
       case ConstraintOperator.Import:
         return `Failed to import ${this.node.toString()}`;
     }
@@ -101,12 +109,18 @@ export class ConstructConstraint implements Constraint {
     public attributes: object,
   ) {}
 
-  toIntent(): string {
-    return `Expanded construct ${this.target.toString()}`;
+  toIntent(mention?: boolean): string {
+    const targetFormat = mention
+      ? this.target.toMention()
+      : this.target.toString();
+    return `Expanded construct ${targetFormat}`;
   }
 
-  toFailureMessage(): string {
-    return `Failed to expand construct ${this.target.toString()}`;
+  toFailureMessage(mention?: boolean): string {
+    const targetFormat = mention
+      ? this.target.toMention()
+      : this.target.toString();
+    return `Failed to expand construct ${targetFormat}`;
   }
 }
 
@@ -120,12 +134,18 @@ export class ResourceConstraint implements Constraint {
     public value: any,
   ) {}
 
-  toIntent(): string {
-    return `Configured ${this.target.toString()}`;
+  toIntent(mention?: boolean): string {
+    const targetFormat = mention
+      ? this.target.toMention()
+      : this.target.toString();
+    return `Configured ${targetFormat}`;
   }
 
-  toFailureMessage(): string {
-    return `Failed to configure ${this.target.toString()}`;
+  toFailureMessage(mention?: boolean): string {
+    const targetFormat = mention
+      ? this.target.toMention()
+      : this.target.toString();
+    return `Failed to configure ${targetFormat}`;
   }
 }
 
@@ -139,37 +159,45 @@ export class EdgeConstraint implements Constraint {
     public attributes?: object,
   ) {}
 
-  toIntent(): string {
+  toIntent(mention?: boolean): string {
+    const sourceFormat = mention
+      ? this.target.sourceId.toMention()
+      : this.target.sourceId.toString();
+    const targetFormat = mention
+      ? this.target.targetId.toMention()
+      : this.target.targetId.toString();
+    const nodeFormat =
+      mention && this.node ? this.node.toMention : this.node?.toString;
     switch (this.operator) {
       case ConstraintOperator.MustExist:
-        return `Connected ${this.target.sourceId.name} ➔ ${this.target.targetId.name}`;
+        return `Connected ${sourceFormat} ➔ ${targetFormat}`;
       case ConstraintOperator.MustNotExist:
-        return `Disconnected ${this.target.sourceId.name} ➔ ${this.target.targetId.name}`;
+        return `Disconnected ${sourceFormat} ➔ ${targetFormat}`;
       case ConstraintOperator.MustContain:
-        return `Added ${this.node?.toString()} to ${
-          this.target.sourceId.name
-        } ➔ ${this.target.targetId.name}`;
+        return `Added ${nodeFormat?.()} to ${sourceFormat} ➔ ${targetFormat}`;
       case ConstraintOperator.MustNotContain:
-        return `Removed ${this.node?.toString()} from ${
-          this.target.sourceId.name
-        } ➔ ${this.target.targetId.name}`;
+        return `Removed ${nodeFormat?.()} from ${sourceFormat} ➔ ${targetFormat}`;
     }
   }
 
-  toFailureMessage(): string {
+  toFailureMessage(mention?: boolean): string {
+    const sourceFormat = mention
+      ? this.target.sourceId.toMention()
+      : this.target.sourceId.toString();
+    const targetFormat = mention
+      ? this.target.targetId.toMention()
+      : this.target.targetId.toString();
+    const nodeFormat =
+      mention && this.node ? this.node.toMention : this.node?.toString;
     switch (this.operator) {
       case ConstraintOperator.MustExist:
-        return `Failed to connect ${this.target.sourceId.name} ➔ ${this.target.targetId.name}`;
+        return `Failed to connect ${sourceFormat} ➔ ${targetFormat}`;
       case ConstraintOperator.MustNotExist:
-        return `Failed to disconnect ${this.target.sourceId.name} ➔ ${this.target.targetId.name}`;
+        return `Failed to disconnect ${sourceFormat} ➔ ${targetFormat}`;
       case ConstraintOperator.MustContain:
-        return `Failed to add ${this.node?.toString()} to ${
-          this.target.sourceId.name
-        } ➔ ${this.target.targetId.name}`;
+        return `Failed to add ${nodeFormat} to ${sourceFormat} ➔ ${targetFormat}`;
       case ConstraintOperator.MustNotContain:
-        return `Failed to remove ${this.node?.toString()} from ${
-          this.target.sourceId.name
-        } ➔ ${this.target.targetId.name}`;
+        return `Failed to remove ${nodeFormat} from ${sourceFormat} ➔ ${targetFormat}`;
     }
   }
 }

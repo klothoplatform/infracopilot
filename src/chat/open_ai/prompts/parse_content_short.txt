@@ -1,0 +1,2 @@
+Parse the following input query:
+{query}
