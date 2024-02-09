@@ -246,7 +246,7 @@ export default function EditorPane() {
     if (edges.length !== oldEdgeCount || nodes.length !== oldNodeCount) {
       setOldEdgeCount(edges.length);
       setOldNodeCount(nodes.length);
-      fitView({ padding: 0.1, nodes: nodes, maxZoom: 1 });
+      fitView({ padding: 0.1, nodes: nodes, maxZoom: 0.5, duration: 250 });
     }
   }, [fitView, nodes, edges, oldEdgeCount, oldNodeCount]);
 
@@ -271,6 +271,12 @@ export default function EditorPane() {
         <ReactFlow
           nodes={nodes}
           edges={edges}
+          fitViewOptions={{
+            padding: 0.1,
+            nodes: nodes,
+            maxZoom: 0.5,
+            duration: 250,
+          }}
           isValidConnection={isValidConnection}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
@@ -307,7 +313,7 @@ export default function EditorPane() {
         >
           <Background variant={BackgroundVariant.Dots} gap={25} size={1} />
           {menu && <ContextMenu {...menu} viewSettings={viewSettings} />}
-          <Controls />
+          <Controls showInteractive={false} />
           {canModifyConfiguration(viewSettings) ? <VersionNavigator /> : null}
         </ReactFlow>
         <WorkingOverlay show={showSpinner} message={"Autocompleting..."} />
