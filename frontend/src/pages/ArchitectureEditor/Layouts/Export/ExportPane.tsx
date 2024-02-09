@@ -5,7 +5,6 @@ import useApplicationStore from "../../../store/ApplicationStore";
 import { UIError } from "../../../../shared/errors";
 import { useForm } from "react-hook-form";
 import { downloadFile } from "../../../../helpers/download-file";
-import { LiaFileExportSolid } from "react-icons/lia";
 import IacExplorer from "../../../../components/environments/IacExplorer";
 import { trackError } from "../../../store/ErrorStore";
 import { FallbackRenderer } from "../../../../components/FallbackRenderer";
@@ -53,15 +52,8 @@ export const ExportPane = () => {
   const environmentIdField = "environmentId";
   const iacProviderField = "iacProvider";
 
-  const defaultValues: ExportFormState = {
-    environmentId: environmentVersion.id,
-    iacProvider: "Pulumi",
-  };
-
   const { setValue, register, reset, unregister, watch, handleSubmit } =
-    useForm<ExportFormState>({
-      defaultValues,
-    });
+    useForm<ExportFormState>();
 
   const watchEnvironmentId = watch(environmentIdField);
   const watchIacProvider = watch(iacProviderField);
@@ -69,6 +61,12 @@ export const ExportPane = () => {
   useEffect(() => {
     register(environmentIdField, { required: true });
     register(iacProviderField, { required: true });
+
+    const defaultValues: ExportFormState = {
+      environmentId: environmentVersion.id,
+      iacProvider: "Pulumi",
+    };
+
     reset(defaultValues);
     return () => {
       unregister(environmentIdField);
@@ -115,7 +113,7 @@ export const ExportPane = () => {
   };
 
   return (
-    <div className="flex w-full flex-col justify-center">
+    <div className="flex w-full flex-col justify-center dark:bg-gray-900">
       <ErrorBoundary
         fallbackRender={FallbackRenderer}
         onError={(error, info) => {
@@ -132,84 +130,76 @@ export const ExportPane = () => {
         }}
         onReset={() => resetUserDataState()}
       >
-        <div className="flex size-full justify-center p-4">
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <div
+        <div className="flex w-full p-4">
+          <div className="flex w-full flex-col gap-4">
+            <div className="mb-2 w-full border-b border-gray-300 pb-1 dark:border-gray-700 dark:text-white">
+              <h2 className="text-2xl">Export infrastructure as code</h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Preview and export the infrastructure as code for your
+                architecture's environments.
+              </p>
+            </div>
+            <form
               className={
-                "mt-[10%] flex h-full flex-col gap-10 overflow-auto text-gray-700 dark:text-gray-200"
+                "text-md flex w-full flex-wrap items-center gap-4 rounded-lg border border-gray-300 bg-gray-100 px-6 py-2 text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 sm:flex-row"
               }
+              onSubmit={handleSubmit(onSubmit)}
             >
-              <div className="mb-6 flex items-center gap-4">
-                <span
-                  className={
-                    "size-fit rounded-full bg-primary-600 p-2 text-white "
-                  }
-                >
-                  <LiaFileExportSolid size={32} />
-                </span>
-                <h2 className={"text-3xl"}>Export infrastructure as code.</h2>
-              </div>
-              <div className="text-md flex flex-col flex-wrap items-center gap-4 sm:flex-row">
-                export
-                <Dropdown
-                  label={
-                    <div>
-                      <span className={"text-gray-500 dark:text-gray-300"}>
-                        environment:{" "}
-                      </span>
-                      {watchEnvironmentId}
-                    </div>
-                  }
-                  color={"light"}
-                  placement={"bottom-start"}
-                >
-                  <Dropdown.Header>
-                    Choose an environment to export
-                  </Dropdown.Header>
-                  {architecture.environments.map((env) => (
-                    <Dropdown.Item
-                      className={"flex justify-between gap-2"}
-                      key={env.id}
-                      onClick={() => onClick(environmentIdField, env.id)}
-                    >
-                      <span className={"mr-2"}>{env.id}</span>
-                      {env.id === architecture.defaultEnvironment && (
-                        <Badge color={"light"}>default</Badge>
-                      )}
-                    </Dropdown.Item>
-                  ))}
-                </Dropdown>
-                as
-                <Dropdown
-                  label={
-                    <div>
-                      <span className={"text-gray-500 dark:text-gray-300"}>
-                        iac provider:{" "}
-                      </span>
-                      {watchIacProvider}
-                    </div>
-                  }
-                  color={"light"}
-                  placement={"bottom-start"}
-                >
-                  <Dropdown.Header>Choose an IaC Provider</Dropdown.Header>
-                  {iacOptions.map((option) => (
-                    <Dropdown.Item
-                      className={
-                        "flex justify-between gap-2 disabled:opacity-50"
-                      }
-                      key={option.value}
-                      onClick={() => onClick(iacProviderField, option.value)}
-                      disabled={option.disabled}
-                    >
-                      {option.label}
-                    </Dropdown.Item>
-                  ))}
-                </Dropdown>
-              </div>
+              export
+              <Dropdown
+                label={
+                  <div>
+                    <span className={"text-gray-500 dark:text-gray-300"}>
+                      environment:{" "}
+                    </span>
+                    {watchEnvironmentId}
+                  </div>
+                }
+                color={"light"}
+                placement={"bottom-start"}
+              >
+                <Dropdown.Header>
+                  Choose an environment to export
+                </Dropdown.Header>
+                {architecture.environments.map((env) => (
+                  <Dropdown.Item
+                    className={"flex justify-between gap-2"}
+                    key={env.id}
+                    onClick={() => onClick(environmentIdField, env.id)}
+                  >
+                    <span className={"mr-2"}>{env.id}</span>
+                    {env.id === architecture.defaultEnvironment && (
+                      <Badge color={"light"}>default</Badge>
+                    )}
+                  </Dropdown.Item>
+                ))}
+              </Dropdown>
+              as
+              <Dropdown
+                label={
+                  <div>
+                    <span className={"text-gray-500 dark:text-gray-300"}>
+                      iac provider:{" "}
+                    </span>
+                    {watchIacProvider}
+                  </div>
+                }
+                color={"light"}
+                placement={"bottom-start"}
+              >
+                <Dropdown.Header>Choose an IaC Provider</Dropdown.Header>
+                {iacOptions.map((option) => (
+                  <Dropdown.Item
+                    className={"flex justify-between gap-2 disabled:opacity-50"}
+                    key={option.value}
+                    onClick={() => onClick(iacProviderField, option.value)}
+                    disabled={option.disabled}
+                  >
+                    {option.label}
+                  </Dropdown.Item>
+                ))}
+              </Dropdown>
               <Button
-                className="mx-auto w-full max-w-[50%]"
-                size={"xl"}
                 type="submit"
                 color="purple"
                 disabled={
@@ -222,11 +212,23 @@ export const ExportPane = () => {
               >
                 {isSubmitting ? "Downloading" : "Download"}
               </Button>
-            </div>
-          </form>
+            </form>
+          </div>
         </div>
-        <div className="flex size-full justify-center p-4">
-          <IacExplorer />
+        <div className="mb-12 flex size-full flex-col gap-2 px-8 py-4">
+          <div className={"flex gap-2"}>
+            <h3 className="text-md dark:text-white">Preview</h3>
+            <Badge size={"xs"} color={"purple"}>
+              <span className={"font-normal"}>environment: </span>
+              {watchEnvironmentId}
+            </Badge>
+          </div>
+          <div className="flex size-full justify-center">
+            <IacExplorer
+              architectureId={architecture.id}
+              environmentId={watchEnvironmentId}
+            />
+          </div>
         </div>
       </ErrorBoundary>
     </div>

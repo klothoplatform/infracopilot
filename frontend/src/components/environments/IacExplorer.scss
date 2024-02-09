@@ -1,0 +1,101 @@
+// hide the file properties
+div[class*="listFileEntryProperty-"] {
+  display: none;
+}
+
+.chonky-chonkyRoot {
+  border-radius: 0 !important;
+  border-top: 0 !important;
+  border-left: 0 !important;
+  border-bottom: 0 !important;
+  background-color: theme("colors.gray.50") !important;
+}
+
+.dark .chonky-chonkyRoot {
+  background-color: theme("colors.gray.800") !important;
+}
+
+.chonky-fileListWrapper {
+  overflow-x: auto !important;
+  overflow-y: auto !important;
+
+  > span {
+    font-size: smaller;
+  }
+}
+
+div[class*="listContainer-"] {
+  height: fit-content !important;
+  overflow-y: visible !important;
+  padding-bottom: 2px !important;
+  overflow-x: unset !important;
+  min-width: fit-content !important;
+
+  > div {
+    display: flex !important;
+    flex-direction: column !important;
+    height: fit-content !important;
+    gap: 4px !important;
+
+    div {
+      height: 20px !important;
+    }
+
+    > div {
+      position: relative !important;
+      left: 0 !important;
+      top: 0 !important;
+      padding-top: 2px !important;
+      padding-bottom: 2px;
+    }
+  }
+}
+
+div[class*="listFileEntry-"] {
+  font-size: smaller;
+  align-items: center !important;
+  padding-top: 2px !important;
+  padding-bottom: 2px !important;
+  width: 100% !important;
+  box-shadow: none !important;
+
+  div[class*="listFileEntryName-"] {
+    margin-top: auto !important;
+    height: fit-content !important;
+    width: fit-content !important;
+    overflow: visible !important;
+  }
+  div[class*="selectionIndicator-"] {
+    background: theme("colors.primary.200") !important;
+    opacity: 0.8 !important;
+  }
+
+  div[class*="focusIndicator-"] {
+    box-shadow: 0px 0px 0px 1px theme("colors.primary.500") inset !important;
+  }
+}
+
+.dark div[class*="listFileEntry"] {
+  div[class*="selectionIndicator-"] {
+    background: theme("colors.primary.300") !important;
+    opacity: 0.8 !important;
+  }
+
+  div[class*="focusIndicator-"] {
+    box-shadow: 0px 0px 0px 1px theme("colors.primary.500") inset !important;
+    //width: 100% !important;
+    //overflow: visible !important;
+  }
+}
+
+.chonky-navbarBreadcrumbs {
+  display: none;
+}
+
+.chonky-fileEntryClickableWrapper {
+  width: 100% !important;
+}
+
+.chonky-fileListEmptyContent {
+  font-size: small !important;
+}

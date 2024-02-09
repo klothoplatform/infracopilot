@@ -109,7 +109,7 @@ export const EnvironmentsPane = () => {
                 promoted.
               </p>
             </div>
-            <div className="flex w-full items-center gap-4 rounded-lg border border-gray-300 bg-gray-100 p-2 dark:border-gray-700 dark:bg-gray-800">
+            <div className="flex w-full items-center gap-4 rounded-lg border border-gray-300 bg-gray-100 px-6 py-2 dark:border-gray-700 dark:bg-gray-800">
               <EnvironmentDropdownSelector
                 sourceEnvironment={sourceEnvironment}
                 targetEnvironmentId={targetEnvironmentId}
