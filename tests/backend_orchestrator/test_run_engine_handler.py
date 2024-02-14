@@ -281,6 +281,7 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
                 templates=[],
                 engine_version=1.0,
                 constraints=self.test_constraints,
+                overwrite=True,
             )
         )
         self.mock_ev_dao.get_latest_version.assert_called_once_with(

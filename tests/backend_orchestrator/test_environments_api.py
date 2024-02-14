@@ -404,7 +404,7 @@ class TestPromote(aiounittest.AsyncTestCase):
                 MagicMock(
                     resources_yaml="resources_yaml",
                     topology_yaml="topology_yaml",
-                    config_errors_json=[{"config_errors_json": True}],
+                    config_errors=[{"config_errors": True}],
                 ),
             )
         )
@@ -422,7 +422,7 @@ class TestPromote(aiounittest.AsyncTestCase):
         self.assertEqual(result.status_code, 200)
         self.assertEqual(
             result.body,
-            b'{"architecture_id": "architecture_id", "id": "id", "version": 1, "state": {"resources_yaml": "resources_yaml", "topology_yaml": "topology_yaml"}, "env_resource_configuration": {}, "config_errors": [{"config_errors_json": true}]}',
+            b'{"architecture_id": "architecture_id", "id": "id", "version": 1, "state": {"resources_yaml": "resources_yaml", "topology_yaml": "topology_yaml"}, "env_resource_configuration": {}, "config_errors": [{"config_errors": true}]}',
         )
         get_environment_manager.assert_called_once_with(session)
         manager.promote.assert_called_once_with(
