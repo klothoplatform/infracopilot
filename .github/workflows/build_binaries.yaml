@@ -41,9 +41,7 @@ jobs:
           version: ${{ env.ZIG_VERSION }}
       - name: Build Binaries
         run: |
-          # don't generate, it's only used for old compiler stuff and test mocks
-          # go generate ./...
-          CGO_ENABLED=1 GOOS=linux GOARCH=amd64 CC="zig cc -target x86_64-linux-musl" CXX="zig c++ -target x86_64-linux-musl" go build --tags extended -o engine -ldflags="-s -w" ./cmd/engine
+          GOOS=linux GOARCH=amd64 go build -o engine -ldflags="-s -w" ./cmd/engine
           CGO_ENABLED=1 GOOS=linux GOARCH=amd64 CC="zig cc -target x86_64-linux-musl" CXX="zig c++ -target x86_64-linux-musl" go build --tags extended -o iac -ldflags="-s -w" ./cmd/iac
       - name: Upload Binaries
         id: upload-binaries
