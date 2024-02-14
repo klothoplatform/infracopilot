@@ -7,4 +7,4 @@ aws secretsmanager get-secret-value --secret-id $AUTH0_SECRET --query SecretStri
 aws secretsmanager get-secret-value --secret-id $AZURE_OPENAI_API_KEY --query SecretString --output text | tr -d '\n' > azure_openai_api_key.key
 
 
-exec gunicorn -w 9 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:80 src.main:app 
+exec gunicorn --timeout 0 -w 9 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:80 src.main:app
