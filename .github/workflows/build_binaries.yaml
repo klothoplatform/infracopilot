@@ -36,9 +36,9 @@ jobs:
           go get github.com/golang/mock/mockgen@v1.6.0
           go install github.com/golang/mock/mockgen@v1.6.0
       - name: Setup Zig
-        uses: goto-bus-stop/setup-zig@v1
+        uses: goto-bus-stop/setup-zig@v2
         with:
-          version: 0.9.1
+          version: 0.11.0
       - name: Build Binaries
         run: |
           # don't generate, it's only used for old compiler stuff and test mocks
