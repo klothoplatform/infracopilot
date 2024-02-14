@@ -191,7 +191,7 @@ const infracopilot_db = new aws.rds.Instance(
         {
             instanceClass: "db.t3.micro",
             engine: "postgres",
-            engineVersion: "13.10",
+            engineVersion: "13.13",
             dbName: "main",
             username: kloConfig.requireSecret(`${"infracopilot-db"}-username`),
             password: kloConfig.requireSecret(`${"infracopilot-db"}-password`),
@@ -200,6 +200,7 @@ const infracopilot_db = new aws.rds.Instance(
             vpcSecurityGroupIds: [rds_instance_9_security_group].map((sg) => sg.id),
             skipFinalSnapshot: true,
             allocatedStorage: 20,
+            autoMinorVersionUpgrade: false,
         },
         { protect: protect }
     )
