@@ -1,7 +1,5 @@
-from dataclasses import dataclass
-
 from src.engine_service.binaries.fetcher import Binary, BinaryStorage
-from src.engine_service.engine_commands.util import run_engine_command, EngineException
+from src.engine_service.engine_commands.util import run_engine_command
 
 
 async def get_resource_types(store: BinaryStorage) -> str:

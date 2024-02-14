@@ -1,10 +1,10 @@
-from io import BytesIO
-from pathlib import Path
+import logging
 import os
 from enum import Enum
+from io import BytesIO
+from pathlib import Path
+
 from botocore.exceptions import ClientError
-import logging
-import asyncio
 
 from src.util.aws.s3 import get_object
 

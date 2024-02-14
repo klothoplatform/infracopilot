@@ -1,5 +1,7 @@
 from typing import List
 
+from src.topology.resource import ResourceID
+from src.util.logging import logger
 from .open_ai.models import (
     IntentList,
     Action,
@@ -7,8 +9,6 @@ from .open_ai.models import (
     NodeAction,
     ModifyAction,
 )
-from src.util.logging import logger
-from src.topology.resource import ResourceID
 
 log = logger.getChild("intent_parser")
 

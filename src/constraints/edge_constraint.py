@@ -1,6 +1,6 @@
-from typing import Optional, List
+from typing import List
+
 from src.constraints.constraint import Constraint, ConstraintOperator, ConstraintScope
-from src.topology.resource import ResourceID
 from src.topology.edge import Edge
 
 

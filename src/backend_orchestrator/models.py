@@ -5,7 +5,6 @@ import jsons
 from pydantic import BaseModel, validator, model_serializer
 
 from src.auth_service.sharing_manager import Role
-from src.constraints.constraint import Constraint
 
 
 class EnvironmentVersionNotLatestError(Exception):

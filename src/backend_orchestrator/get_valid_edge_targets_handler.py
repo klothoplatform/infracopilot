@@ -12,11 +12,9 @@ from src.engine_service.engine_commands.get_valid_edge_targets import (
     get_valid_edge_targets,
 )
 from src.environment_management.environment import EnvironmentDoesNotExistError
-
 from src.environment_management.environment_version import (
     EnvironmentVersionDAO,
 )
-
 from src.state_manager.architecture_storage import (
     ArchitectureStorage,
     ArchitectureStateDoesNotExistError,

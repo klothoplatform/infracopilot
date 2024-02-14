@@ -1,8 +1,10 @@
-import yaml
-from typing import List, Dict
 from enum import Enum
-from src.topology.resource import Resource, ResourceID
+from typing import List, Dict
+
+import yaml
+
 from src.topology.edge import Edge
+from src.topology.resource import Resource, ResourceID
 
 
 class DiffStatus(Enum):

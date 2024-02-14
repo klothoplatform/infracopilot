@@ -1,10 +1,12 @@
+from typing import List
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Mapped, mapped_column
+
 from src.auth_service.entity import Team, Organization
-from typing import List
 from src.environment_management.models import ModelsBase
 from src.util.logging import logger
-from sqlalchemy.orm import Mapped, mapped_column
 
 
 class ArchitectureDoesNotExistError(Exception):

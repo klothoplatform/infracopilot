@@ -5,9 +5,6 @@ from pydantic import BaseModel
 from src.auth_service.entity import User
 from src.auth_service.main import AuthzService
 from src.auth_service.token import AuthError, get_user_id
-from src.backend_orchestrator.architecture_handler import (
-    VersionState,
-)
 from src.backend_orchestrator.models import (
     EnvironmentVersionResponseObject,
     VersionState,

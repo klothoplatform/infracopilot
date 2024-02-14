@@ -1,20 +1,21 @@
-from io import BytesIO
 from typing import Optional
-import boto3
-from pathlib import Path
 import logging
 from botocore.exceptions import ClientError
 from src.engine_service.engine_commands.run import RunEngineResult
 import jsons
 from src.environment_management.environment_version import EnvironmentVersion
+import logging
+from typing import Optional
 
+import jsons
+from botocore.exceptions import ClientError
 
-from src.util.aws.s3 import put_object, get_object, delete_object, delete_objects
-
+from src.engine_service.engine_commands.run import RunEngineResult
+from src.environment_management.environment_version import EnvironmentVersion
 
 logger = logging.getLogger(__name__)
 
-from src.util.aws.s3 import put_object, get_object, delete_object, delete_objects
+from src.util.aws.s3 import put_object, get_object, delete_objects
 
 logger = logging.getLogger(__name__)
 

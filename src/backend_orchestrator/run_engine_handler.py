@@ -23,7 +23,6 @@ from src.engine_service.engine_commands.run import (
     EngineException,
     run_engine,
     RunEngineRequest,
-    RunEngineResult,
 )
 from src.environment_management.environment import (
     EnvironmentDAO,

@@ -3,9 +3,7 @@ from pathlib import Path
 
 import aiofiles
 
-from src.chat.models import ResourcesAndEdges
 from src.util.logging import logger
-
 
 log = logger.getChild("prompts")
 

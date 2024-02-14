@@ -1,16 +1,14 @@
-from fastapi import Depends, Request, Response
+from fastapi import APIRouter
+from fastapi import Request
 from pydantic import BaseModel
+
 from src.auth_service.entity import Team, User
-from src.auth_service.teams_manager import TeamsManager
 from src.auth_service.token import PUBLIC_USER, AuthError, get_user_id
 from src.dependency_injection.injection import (
     SessionLocal,
     deps,
-    get_db,
     get_teams_manager,
 )
-from fastapi import APIRouter
-from sqlalchemy.ext.asyncio import AsyncSession
 from src.util.logging import logger
 
 router = APIRouter()

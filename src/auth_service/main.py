@@ -1,14 +1,11 @@
-import os
-import openfga_sdk
 from enum import Enum
+from enum import Enum
+
+from openfga_sdk.client import ClientCheckRequest
 from openfga_sdk.client.models.tuple import ClientTuple
-from openfga_sdk.client import OpenFgaClient, ClientCheckRequest, ClientConfiguration
-from openfga_sdk.credentials import Credentials, CredentialConfiguration
-from openfga_sdk.client.models.write_request import ClientWriteRequest
-import os
+
+from src.auth_service.entity import Entity
 from src.auth_service.fga_manager import FGAManager
-from src.auth_service.entity import Entity, User
-from openfga_sdk.client.models.list_relations_request import ClientListRelationsRequest
 
 
 class ArchitecturePermissions(Enum):
