@@ -2,6 +2,7 @@
   "name": "infracopilot-frontend",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "dependencies": {
     "@auth0/auth0-react": "^2.2.1",
     "@azure/communication-react": "^1.13.0-beta.1",

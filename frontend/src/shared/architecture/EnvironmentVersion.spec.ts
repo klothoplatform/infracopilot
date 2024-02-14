@@ -1,6 +1,9 @@
 import { PrimitiveTypes, type Property } from "../resources/ResourceTypes";
 import { filterPromotedProperties } from "./EnvironmentVersion";
 
+/**
+ * @vitest-environment jsdom
+ */
 describe("filterPromotedProperties", () => {
   it("top level important doesn't filter", () => {
     const input: Property = {
