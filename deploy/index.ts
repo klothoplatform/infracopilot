@@ -270,10 +270,10 @@ const ifcp_fga_secret = new aws.secretsmanager.Secret(
         },
         { protect: protect }
     )
-const ifcp_azure_openai_api_key = new aws.secretsmanager.Secret(
-        "ifcp_azure_openai_api_key",
+const ifcp_azure_openai_api_key  = new aws.secretsmanager.Secret(
+        "ifcp-azure-openai-api-key",
         {
-            name: "ifcp_azure_openai_api_key",
+            name: "ifcp-azure-openai-api-key",
             recoveryWindowInDays: 0,
         },
         { protect: protect }
