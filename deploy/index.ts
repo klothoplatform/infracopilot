@@ -270,6 +270,14 @@ const ifcp_fga_secret = new aws.secretsmanager.Secret(
         },
         { protect: protect }
     )
+const ifcp_azure_openai_api_key = new aws.secretsmanager.Secret(
+        "ifcp_azure_openai_api_key",
+        {
+            name: "ifcp_azure_openai_api_key",
+            recoveryWindowInDays: 0,
+        },
+        { protect: protect }
+    )
 const rest_api_6_integration_0 = new aws.apigateway.Integration(
         "rest_api_6_integration_0",
         {
@@ -370,6 +378,10 @@ const ecs_service_0_execution_role = new aws.iam.Role("ecs_service_0-execution-r
         name: "ifcp-auth0-secret-policy",
         policy: pulumi.jsonStringify({Statement: [{Action: ["secretsmanager:DescribeSecret", "secretsmanager:GetSecretValue"], Effect: "Allow", Resource: [ifcp_auth0_secret.arn]}], Version: "2012-10-17"})
     },
+     {
+            name: "ifcp-azure-openai-api-key-policy",
+            policy: pulumi.jsonStringify({Statement: [{Action: ["secretsmanager:DescribeSecret", "secretsmanager:GetSecretValue"], Effect: "Allow", Resource: [ifcp_azure_openai_api_key.arn]}], Version: "2012-10-17"})
+        },
     {
         name: "exec-command-policy",
         policy: pulumi.jsonStringify({Statement: [{Action: ["ssmmessages:CreateControlChannel", "ssmmessages:CreateDataChannel", "ssmmessages:OpenControlChannel", "ssmmessages:OpenDataChannel"], Effect: "Allow", Resource: "*"}], Version: "2012-10-17"})
@@ -455,6 +467,7 @@ const ecs_service_0 = new aws.ecs.TaskDefinition("ecs_service_0", {
     { name: "FGA_API_HOST", value: "api.us1.fga.dev" },
     { name: "FGA_CLIENT_ID", value: "ifcp-fga-client-id" },
     { name: "FGA_SECRET", value: "ifcp-fga-secret" },
+    { name: "AZURE_OPENAI_API_KEY", value: "ifcp-azure-openai-api-key" },
     { name: "FGA_STORE_ID", value: process.env.FGA_STORE_ID },
     { name: "AUTH0_DOMAIN", value: process.env.AUTH0_DOMAIN },
     { name: "AUTH0_AUDIENCE", value: process.env.AUTH0_AUDIENCE },
