@@ -79,6 +79,7 @@ curl "http://127.0.0.1:3000/architecture/$ARCHITECTURE_ID/iac?state=$LATEST_STAT
 #### Environment Variables
 - `KEEP_TMP` - if set to `true` will keep the tmp directory after a run
 - `CAPTURE_ENGINE_FAILURES` - if set to `true` will capture engine and IaC failures in the `failures` directory
+- `APP_LOG_FILE` - if set to a path, will log to the file specified
 
 ## Deploying a dev stack
 Architecture:
