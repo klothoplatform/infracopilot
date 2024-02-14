@@ -160,7 +160,7 @@ async def promote(
                     topology_yaml=result.topology_yaml,
                 ),
                 env_resource_configuration=env.env_resource_configuration,
-                config_errors=result.config_errors_json,
+                config_errors=result.config_errors,
             )
         return Response(
             headers={
