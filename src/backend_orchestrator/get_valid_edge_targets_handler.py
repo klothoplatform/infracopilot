@@ -5,20 +5,16 @@ import jsons
 from fastapi import HTTPException, Response
 from pydantic import BaseModel
 
-from src.backend_orchestrator.architecture_handler import (
-    EnvironmentVersionNotLatestError,
-)
+from src.backend_orchestrator.models import EnvironmentVersionNotLatestError
 from src.engine_service.binaries.fetcher import BinaryStorage, Binary
 from src.engine_service.engine_commands.get_valid_edge_targets import (
     GetValidEdgeTargetsRequest,
     get_valid_edge_targets,
 )
 from src.environment_management.environment import EnvironmentDoesNotExistError
-
 from src.environment_management.environment_version import (
     EnvironmentVersionDAO,
 )
-
 from src.state_manager.architecture_storage import (
     ArchitectureStorage,
     ArchitectureStateDoesNotExistError,

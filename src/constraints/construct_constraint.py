@@ -1,4 +1,5 @@
 from typing import List
+
 from src.constraints.constraint import ConstraintOperator, ConstraintScope, Constraint
 from src.topology.resource import ResourceID
 

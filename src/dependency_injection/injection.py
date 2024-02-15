@@ -1,4 +1,3 @@
-from contextlib import asynccontextmanager
 import logging
 import os
 
@@ -20,6 +19,7 @@ from src.backend_orchestrator.run_engine_handler import EngineOrchestrator
 from src.engine_service.binaries.fetcher import BinaryStorage
 from src.environment_management.architecture import ArchitectureDAO
 from src.environment_management.environment import EnvironmentDAO
+from src.environment_management.environment_manager import EnvironmentManager
 from src.environment_management.environment_version import EnvironmentVersionDAO
 from src.environment_management.models import ModelsBase
 from src.state_manager.architecture_storage import ArchitectureStorage
@@ -29,7 +29,6 @@ from src.util.secrets import (
     get_auth0_client,
     get_auth0_secret,
 )
-from src.environment_management.environment_manager import EnvironmentManager
 
 log = logging.getLogger(__name__)
 

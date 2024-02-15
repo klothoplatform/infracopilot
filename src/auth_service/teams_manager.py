@@ -1,27 +1,19 @@
-import os
 import uuid
-import openfga_sdk
-from typing import List
 from enum import Enum
-from openfga_sdk.client.models.tuple import ClientTuple
-from openfga_sdk.client import OpenFgaClient, ClientCheckRequest, ClientConfiguration
-from openfga_sdk.credentials import Credentials, CredentialConfiguration
-from openfga_sdk.client.models.write_request import ClientWriteRequest
-import os
-from src.auth_service.fga_manager import FGAManager
-from src.auth_service.entity import User, Organization, Team
-from openfga_sdk.client.models.list_objects_request import ClientListObjectsRequest
+from typing import List
+
 from openfga_sdk.client.models.expand_request import ClientExpandRequest
+from openfga_sdk.client.models.list_objects_request import ClientListObjectsRequest
+from openfga_sdk.client.models.tuple import ClientTuple
+from openfga_sdk.models.computed import Computed
 from openfga_sdk.models.leaf import Leaf
-from openfga_sdk.models.userset_tree import UsersetTree
 from openfga_sdk.models.node import Node
 from openfga_sdk.models.nodes import Nodes
 from openfga_sdk.models.users import Users
-from openfga_sdk.models.computed import Computed
-from openfga_sdk.models.userset import Userset
+from openfga_sdk.models.userset_tree import UsersetTree
 
-from sqlalchemy.ext.asyncio import AsyncSession
-
+from src.auth_service.entity import User, Organization, Team
+from src.auth_service.fga_manager import FGAManager
 from src.auth_service.teams_dao import ArchitectureDoesNotExistError, TeamsDAO
 from src.util.logging import logger
 

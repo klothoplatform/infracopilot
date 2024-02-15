@@ -1,38 +1,39 @@
 import asyncio
-from contextlib import asynccontextmanager
 import os
 import uuid
+from contextlib import asynccontextmanager
 from typing import Annotated, Optional, Callable
 
-from fastapi import FastAPI, Response, Header
+import jsons
+from fastapi import FastAPI, Response, Header, HTTPException
 from fastapi import Request
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.params import Depends
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from pyinstrument import Profiler
 from pyinstrument.renderers import HTMLRenderer, SpeedscopeRenderer
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.auth_service.sharing_manager import SharingManager
 from src.auth_service.auth0_manager import Auth0Manager
 from src.auth_service.entity import User
 from src.auth_service.main import (
     AuthzService,
 )
 from src.auth_service.token import PUBLIC_USER, AuthError, get_user_id
-from src.backend_orchestrator.architecture_handler import (
-    CloneArchitectureRequest,
-    ModifyArchitectureRequest,
-    CreateArchitectureRequest,
-    ShareArchitectureRequest,
-)
+from src.backend_orchestrator.environments_api import router as environments_router
 from src.backend_orchestrator.get_valid_edge_targets_handler import (
     CopilotGetValidEdgeTargetsRequest,
 )
-from src.backend_orchestrator.run_engine_handler import CopilotRunRequest
+from src.backend_orchestrator.models import (
+    EnvironmentVersionNotLatestError,
+    CreateArchitectureRequest,
+    ModifyArchitectureRequest,
+    CloneArchitectureRequest,
+    ShareArchitectureRequest,
+)
+from src.backend_orchestrator.run_engine_handler import (
+    CopilotRunRequest,
+)
 from src.backend_orchestrator.teams_api import router as teams_router
-from src.backend_orchestrator.environments_api import router as environments_router
 from src.dependency_injection.injection import (
     SessionLocal,
     get_architecture_handler,
@@ -47,6 +48,11 @@ from src.dependency_injection.injection import (
     get_teams_manager,
     deps,
 )
+from src.environment_management.environment_version import (
+    EnvironmentVersionDoesNotExistError,
+)
+from src.state_manager.architecture_storage import ArchitectureStateDoesNotExistError
+from src.topology.topology import TopologicalChangesNotAllowed
 from src.util.logging import logger
 
 
@@ -523,3 +529,91 @@ async def chat_signup(request: Request):
     auth0: Auth0Manager = deps.auth0_manager
     user_id = await get_user_id(request)
     auth0.update_user(user_id, {"app_metadata": {"chat_signup": True}})
+
+
+class ChatRequest(BaseModel):
+    version: int
+    message: str
+
+
+@app.post("/api/architecture/{id}/environment/{env_id}/message")
+async def message_conversation(
+    body: ChatRequest,
+    request: Request,
+    id: str,
+    env_id: str,
+):
+    authz: AuthzService = deps.authz_service
+    user_id = await get_user_id(request)
+    authorized = await authz.can_read_architecture(User(id=user_id), id)
+    if not authorized:
+        raise AuthError(
+            detail=f"User {user_id} is not authorized to read architecture {id}",
+            error={
+                "code": "unauthorized",
+                "description": f"User is not authorized to write to architecture {id}",
+            },
+        )
+    accept = request.headers.get("accept")
+    logger.info(
+        f"Got request for POST /api/architecture/{id}/environment/{env_id}/message"
+    )
+    # If the request doesnt have a body.id, it is a new thread so generate a random uuid for the body.id
+    # if body.id is None or body.id == "":
+    #     body.id = str(uuid.uuid4())
+    # if body.message_id is None or body.message_id == "":
+    #     body.message_id = str(uuid.uuid4())
+
+    async with SessionLocal.begin() as db:
+        try:
+            engine = get_engine_orchestrator(db)
+            payload, engine_failure = await engine.handle_message(
+                architecture_id=id,
+                env_id=env_id,
+                message=body.message,
+                version=body.version,
+            )
+
+            if engine_failure:
+                return Response(
+                    status_code=400,
+                    content=jsons.dumps(engine_failure),
+                )
+
+            return Response(
+                headers={
+                    "Content-Type": (
+                        "application/octet-stream"
+                        if accept == "application/octet-stream"
+                        else "application/json"
+                    )
+                },
+                content=payload.model_dump(mode="json"),
+            )
+        except EnvironmentVersionNotLatestError:
+            raise HTTPException(
+                status_code=400, detail="Environment version is not the latest"
+            )
+        except TopologicalChangesNotAllowed as e:
+            content = {
+                "error_type": e.error_type,
+                "environment": e.env_id,
+            }
+            if e.constraints is not None:
+                content["constraints"] = e.constraints
+            if e.diff is not None:
+                content["diff"] = e.diff.__dict__()
+            return Response(status_code=400, content=jsons.dumps(content))
+        except ArchitectureStateDoesNotExistError:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No architecture exists for id {id}",
+            )
+        except EnvironmentVersionDoesNotExistError:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No environment version exists for id {id} environment {env_id} and version {body.version}",
+            )
+        except Exception:
+            logger.error("Error running engine", exc_info=True)
+            raise HTTPException(status_code=500, detail="internal server error")

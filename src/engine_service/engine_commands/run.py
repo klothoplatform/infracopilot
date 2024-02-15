@@ -1,17 +1,17 @@
+import contextlib
 import json
+import logging
 import os
 import tempfile
 from pathlib import Path
-from typing import List, NamedTuple, Dict
-import logging
+from typing import List, NamedTuple, Dict, Optional
+
 import yaml
-import contextlib
 
 from src.engine_service.engine_commands.util import (
     run_engine_command,
     EngineException,
 )
-
 
 log = logging.getLogger(__name__)
 
@@ -24,6 +24,7 @@ class RunEngineRequest(NamedTuple):
     input_graph: str
     constraints: List[dict]
     engine_version: float
+    overwrite: Optional[bool] = False
 
 
 class RunEngineResult(NamedTuple):

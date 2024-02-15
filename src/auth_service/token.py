@@ -1,13 +1,9 @@
-from functools import wraps
-import jwt
-import os
-import requests
-import pem
-from cryptography import x509
-from fastapi import HTTPException, Request
-import json
-from jwt import PyJWKClient
 import logging
+import os
+
+import jwt
+from fastapi import HTTPException, Request
+from jwt import PyJWKClient
 
 domain = os.getenv("AUTH0_DOMAIN", "klotho.us.auth0.com")
 key_url = os.getenv("AUTH0_PEM_URL", f"https://{domain}/.well-known/jwks.json")

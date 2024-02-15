@@ -4,9 +4,7 @@ from typing import Optional
 from fastapi import HTTPException, Response
 from fastapi.responses import StreamingResponse
 
-from src.backend_orchestrator.architecture_handler import (
-    EnvironmentVersionNotLatestError,
-)
+from src.backend_orchestrator.models import EnvironmentVersionNotLatestError
 from src.engine_service.binaries.fetcher import BinaryStorage, Binary
 from src.engine_service.engine_commands.export_iac import export_iac, ExportIacRequest
 from src.engine_service.engine_commands.run import RunEngineResult

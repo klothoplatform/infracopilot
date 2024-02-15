@@ -1,7 +1,9 @@
-from sqlalchemy import select
 from typing import List
+
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.environment_management.models import Environment, EnvironmentVersion
+
+from src.environment_management.models import Environment
 
 
 class EnvironmentAlreadyExistsError(Exception):

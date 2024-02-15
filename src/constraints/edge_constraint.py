@@ -1,6 +1,6 @@
-from typing import Optional, List
+from typing import List
+
 from src.constraints.constraint import Constraint, ConstraintOperator, ConstraintScope
-from src.topology.resource import ResourceID
 from src.topology.edge import Edge
 
 
@@ -22,7 +22,7 @@ class EdgeConstraint(Constraint):
         return {
             "scope": self.scope.value,
             "operator": self.operator.value,
-            "target": str(self.target),
+            "target": self.target.to_dict(),
         }
 
     def cancels_out(self, other: "Constraint") -> bool:

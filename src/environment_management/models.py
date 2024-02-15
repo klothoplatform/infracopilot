@@ -1,11 +1,10 @@
-from typing import List
-from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase, relationship
-from sqlalchemy import JSON, ForeignKey, ForeignKeyConstraint
 import datetime
-from sqlalchemy.sql import func
-from sqlalchemy import DateTime
+from typing import List
 
-from src.constraints.constraint import Constraint
+from sqlalchemy import DateTime
+from sqlalchemy import JSON, ForeignKey, ForeignKeyConstraint
+from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase, relationship
+from sqlalchemy.sql import func
 
 
 class EnvironmentTracker:

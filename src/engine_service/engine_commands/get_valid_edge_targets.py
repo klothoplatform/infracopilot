@@ -9,7 +9,6 @@ import yaml
 
 from src.engine_service.engine_commands.util import run_engine_command, EngineException
 
-
 log = logging.getLogger(__name__)
 
 KEEP_TMP = os.environ.get("KEEP_TMP", False)

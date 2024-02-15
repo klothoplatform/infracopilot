@@ -27,6 +27,17 @@ class Edge:
     def __str__(self):
         return f"{self.source}->{self.target}"
 
+    def to_dict(self):
+        """
+        Convert the Edge to a dictionary.
+
+        :return: A dictionary representation of the Edge.
+        """
+        return {
+            "source": str(self.source),
+            "target": str(self.target),
+        }
+
     @staticmethod
     def from_string(id_string) -> "Edge":
         """

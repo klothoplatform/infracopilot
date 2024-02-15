@@ -1,11 +1,12 @@
 from typing import Any, Dict, List
-from src.topology.resource import ResourceID
-from src.topology.edge import Edge
+
 from src.constraints.application_constraint import ApplicationConstraint
-from src.constraints.resource_constraint import ResourceConstraint
+from src.constraints.constraint import Constraint, ConstraintOperator, ConstraintScope
 from src.constraints.construct_constraint import ConstructConstraint
 from src.constraints.edge_constraint import EdgeConstraint
-from src.constraints.constraint import Constraint, ConstraintOperator, ConstraintScope
+from src.constraints.resource_constraint import ResourceConstraint
+from src.topology.edge import Edge
+from src.topology.resource import ResourceID
 
 
 def find_mutating_constraints(constraints: List[dict]) -> List[Constraint]:

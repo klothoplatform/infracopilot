@@ -1,9 +1,9 @@
 import asyncio
-from asyncio.subprocess import Process
 import json
 import logging
 import os
 import shutil
+from asyncio.subprocess import Process
 from pathlib import Path
 
 from src.engine_service.binaries.fetcher import Binary

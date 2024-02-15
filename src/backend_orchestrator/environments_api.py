@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from src.auth_service.entity import User
 from src.auth_service.main import AuthzService
 from src.auth_service.token import AuthError, get_user_id
-from src.backend_orchestrator.architecture_handler import (
+from src.backend_orchestrator.models import (
     EnvironmentVersionResponseObject,
     VersionState,
 )
@@ -157,7 +157,7 @@ async def promote(
                     topology_yaml=result.topology_yaml,
                 ),
                 env_resource_configuration=env.env_resource_configuration,
-                config_errors=result.config_errors_json,
+                config_errors=result.config_errors,
             )
         return Response(
             headers={

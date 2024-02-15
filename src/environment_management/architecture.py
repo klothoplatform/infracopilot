@@ -1,10 +1,11 @@
-from sqlalchemy import select
-from src.environment_management.environment import Environment
-from src.environment_management.environment_version import EnvironmentVersion
-from src.auth_service.entity import Entity
 from typing import List
+
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.auth_service.entity import Entity
+from src.environment_management.environment import Environment
+from src.environment_management.environment_version import EnvironmentVersion
 from src.environment_management.models import Architecture
 
 

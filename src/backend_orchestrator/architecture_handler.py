@@ -1,12 +1,10 @@
-import logging
 import uuid
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import List, Optional
 
-import jsons
 from fastapi import HTTPException, Response
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, validator, model_serializer
+from pydantic import BaseModel
 
 from src.auth_service.auth0_manager import Auth0Manager
 from src.auth_service.entity import (
@@ -18,6 +16,15 @@ from src.auth_service.main import AuthzService
 from src.auth_service.sharing_manager import Role, SharingManager, GeneralAccess
 from src.auth_service.teams_manager import TeamsManager
 from src.auth_service.token import PUBLIC_USER
+from src.backend_orchestrator.models import (
+    EnvironmentVersionResponseObject,
+    CreateArchitectureRequest,
+    VersionState,
+    EnvironmentSummaryObject,
+    ArchitectureResponseObject,
+    GetArchitectureResponseObject,
+    ArchitectureListResponse,
+)
 from src.engine_service.engine_commands.run import RunEngineResult
 from src.environment_management.architecture import (
     Architecture,
@@ -29,6 +36,7 @@ from src.environment_management.environment import (
     EnvironmentDAO,
     EnvironmentDoesNotExistError,
 )
+from src.environment_management.environment_manager import BASE_ENV_ID, PROD_ENV_ID
 from src.environment_management.environment_version import (
     EnvironmentVersionDAO,
     EnvironmentVersion,
@@ -38,113 +46,11 @@ from src.environment_management.models import (
     EnvironmentResourceConfiguration,
     EnvironmentTracker,
 )
-
 from src.state_manager.architecture_storage import (
     ArchitectureStorage,
     ArchitectureStateDoesNotExistError,
 )
-from src.environment_management.environment_manager import BASE_ENV_ID, PROD_ENV_ID
-
 from src.util.logging import logger
-
-
-class EnvironmentVersionNotLatestError(Exception):
-    pass
-
-
-class CreateArchitectureRequest(BaseModel):
-    name: str
-    engine_version: float
-    owner: str = None
-
-
-class ModifyArchitectureRequest(BaseModel):
-    name: str
-
-
-class VersionState(BaseModel):
-    resources_yaml: str
-    topology_yaml: str
-
-
-class EnvironmentVersionResponseObject(BaseModel):
-    architecture_id: str
-    id: str
-    version: int
-    state: VersionState = VersionState(resources_yaml="", topology_yaml="")
-    env_resource_configuration: Dict = {}
-    config_errors: List[Dict] = []
-    diff: Optional[Dict] = None
-
-    @validator("state", pre=True, always=True)
-    def set_state(cls, state):
-        return state or VersionState(resources_yaml="", topology_yaml="")
-
-    @validator("env_resource_configuration", pre=True, always=True)
-    def set_env_resource_configuration(cls, env_resource_configuration):
-        return env_resource_configuration or {}
-
-    @validator("config_errors", pre=True, always=True)
-    def set_config_errors(cls, config_errors):
-        return config_errors or []
-
-    @model_serializer
-    def ser_model(self) -> str:
-        if self.diff is not None:
-            return jsons.dumps(
-                {
-                    "architecture_id": self.architecture_id,
-                    "id": self.id,
-                    "version": self.version,
-                    "state": self.state.model_dump(mode="json"),
-                    "env_resource_configuration": self.env_resource_configuration,
-                    "config_errors": self.config_errors,
-                    "diff": self.diff,
-                }
-            )
-        return jsons.dumps(
-            {
-                "architecture_id": self.architecture_id,
-                "id": self.id,
-                "version": self.version,
-                "state": self.state.model_dump(mode="json"),
-                "env_resource_configuration": self.env_resource_configuration,
-                "config_errors": self.config_errors,
-            }
-        )
-
-
-class EnvironmentSummaryObject(BaseModel):
-    id: str
-    default: bool
-
-
-class ArchitectureResponseObject(BaseModel):
-    id: str
-    name: str
-    owner: str
-    created_at: float
-
-
-class GetArchitectureResponseObject(BaseModel):
-    id: str
-    name: str
-    owner: str
-    created_at: float
-    environments: List[EnvironmentSummaryObject] = []
-
-
-class ArchitectureListResponse(BaseModel):
-    architectures: List[ArchitectureResponseObject]
-
-
-class ResourceTypeResponse(BaseModel):
-    resources: List[str]
-
-
-class CloneArchitectureRequest(BaseModel):
-    name: str
-    owner: str = None
 
 
 class ShareArchitectureRequest(BaseModel):

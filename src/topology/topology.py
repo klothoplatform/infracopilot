@@ -1,8 +1,10 @@
-import yaml
-from typing import List, Dict
 from enum import Enum
-from src.topology.resource import Resource, ResourceID
+from typing import List, Dict
+
+import yaml
+
 from src.topology.edge import Edge
+from src.topology.resource import Resource, ResourceID
 
 
 class DiffStatus(Enum):
@@ -116,7 +118,7 @@ class Topology:
     @staticmethod
     def from_string(yaml_string) -> "Topology":
         """
-        Static method to create a Topology object from a YAML string.
+        Static method to create a Topology object from a resources YAML string.
 
         :param yaml_string: The YAML string representation of the topology.
         :return: A Topology object.
@@ -179,3 +181,57 @@ class Topology:
                 edge_diffs[edge.source] = Diff(DiffStatus.REMOVED, target=edge.target)
 
         return TopologyDiff(resource_diffs, edge_diffs)
+
+    @staticmethod
+    def from_topology_yaml(yaml_string):
+        """
+        Static method to create a Topology object from a toplogy YAML string.
+
+        example yaml_string:
+
+        resources:
+          resource1:
+          edge_source -> edge_target:
+
+        :param yaml_string: The topology YAML string representation of the topology.
+        :return: A Topology object.
+        """
+        data = yaml.safe_load(yaml_string)
+
+        if (
+            data is None
+            or not isinstance(data, dict)
+            or "resources" not in data
+            or data["resources"] is None
+        ):
+            return Topology([], [])
+
+        provider = data.get("provider")
+        resources = []
+        edges = []
+
+        for key, value in data.get("resources", {}).items():
+            if "->" in key:
+                source, target = key.split("->")
+
+                if ":" not in source:
+                    source = f"{provider}:{source.strip()}"
+                if ":" not in target:
+                    target = f"{provider}:{target.strip()}"
+
+                source = source.replace("/", ":", 1)
+                target = target.replace("/", ":", 1)
+
+                edges.append(
+                    Edge(
+                        ResourceID.from_string(source),
+                        ResourceID.from_string(target),
+                    )
+                )
+            else:
+                if ":" not in key:
+                    key = f"{provider}:{key.strip()}"
+                key = key.replace("/", ":", 1)
+                resources.append(Resource(ResourceID.from_string(key), value))
+
+        return Topology(resources, edges)

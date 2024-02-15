@@ -1,11 +1,8 @@
-from datetime import datetime
-import logging
-from typing import List, Tuple
 import uuid
+from datetime import datetime
+from typing import List, Tuple
 
-import jsons
 from src.auth_service.entity import Entity
-from src.topology.topology import TopologicalChangesNotAllowed
 from src.constraints.application_constraint import ApplicationConstraint
 from src.constraints.constraint import Constraint, ConstraintOperator, ConstraintScope
 from src.constraints.util import parse_constraints, substitute_name_changes
@@ -25,9 +22,9 @@ from src.environment_management.models import (
 from src.state_manager.architecture_storage import (
     ArchitectureStorage,
 )
-from src.topology.topology import Topology, TopologyDiff
+from src.topology.topology import TopologicalChangesNotAllowed
+from src.topology.topology import TopologyDiff
 from src.topology.util import diff_engine_results
-
 from src.util.logging import logger
 
 BASE_ENV_ID = "default"

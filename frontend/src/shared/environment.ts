@@ -36,6 +36,7 @@ export const env: Environment = {
     callbackUrl: process.env.REACT_APP_AUTH0_CALLBACK_URL,
     logoutUrl: process.env.REACT_APP_AUTH0_LOGOUT_URL,
   },
+  chatEnabled: process.env.REACT_APP_CHAT_ENABLED?.toLowerCase() === "true",
   commandBarEnabled:
     process.env.REACT_APP_COMMAND_BAR_ENABLED === undefined
       ? true
@@ -70,6 +71,7 @@ export interface Environment {
     writeKey: string;
     trackErrors: boolean;
   };
+  chatEnabled: boolean;
   environment: string;
   hiddenResources: string[];
 }
