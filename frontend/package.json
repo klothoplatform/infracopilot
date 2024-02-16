@@ -8,6 +8,7 @@
     "@azure/communication-react": "==1.13.0-beta.1",
     "@hookform/error-message": "^2.0.1",
     "@segment/analytics-next": "^1.59.0",
+    "@uiw/react-md-editor": "^4.0.3",
     "ace-builds": "^1.32.5",
     "autoprefixer": "^10.4.17",
     "axios": "^1.5.0",

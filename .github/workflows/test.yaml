@@ -23,7 +23,6 @@ jobs:
           pip install pipenv
           pipenv install --dev
       - name: Run Backend Tests
-        continue-on-error: true
         run: make test-coverage
       - uses: actions/setup-node@v4
         with:

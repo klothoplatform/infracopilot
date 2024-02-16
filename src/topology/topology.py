@@ -161,7 +161,13 @@ class Topology:
             [r.id for r in other.resources]
         ):
             if id not in [r.id for r in self.resources]:
-                resource_diffs[id] = Diff(DiffStatus.ADDED, target=id)
+                resource_diffs[id] = Diff(
+                    DiffStatus.ADDED,
+                    target=id,
+                    properties=next(
+                        r for r in other.resources if r.id == id
+                    ).properties,
+                )
             elif id not in [r.id for r in other.resources]:
                 resource_diffs[id] = Diff(DiffStatus.REMOVED, target=id)
             elif include_properties_diff:

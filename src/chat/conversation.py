@@ -219,49 +219,6 @@ Existing connections:{bullet}{bullet.join(self.initial_state.edges)}"""
 
         return parsed_actions
 
-        # start = perf_counter()
-        # try:
-        #     result = await run_engine(
-        #         RunEngineRequest(
-        #             id=self.environment.architecture_id,
-        #             input_graph=(
-        #                 self.environment.env_resource_configuration.resources_yaml
-        #             ),
-        #             templates=[],
-        #             engine_version=1.0,
-        #             # constraints from each intent action
-        #             constraints=[c for a in intent_result.intents.actions for c in a],
-        #         )
-        #     )
-        #     klotho_timing = perf_counter() - start
-        # except Exception as err:
-        #     raise MessageExecutionException(
-        #         error_message="could not run engine",
-        #         message_id=query_id,
-        #         user_message=query,
-        #         ai_response=intent_result.ai_response,
-        #         intent=intent_result.intents,
-        #         intent_timing=intent_result.response_time,
-        #         input_graph=self.environment.env_resource_configuration.resources_yaml,
-        #         reasoning=[m.reasoning for m in parsed_actions],
-        #         klotho_timing=perf_counter() - start,
-        #     ) from err
-        #
-        # self.messages[query_id] = query
-        # self.messages[f"ai:{query_id}"] = intent_result.ai_response
-        #
-        # return MessageExecutionResult(
-        #     message_id=query_id,
-        #     user_message=query,
-        #     ai_response=intent_result.ai_response,
-        #     intent=intent_result.intents,
-        #     intent_timing=intent_result.response_time,
-        #     input_graph=self.environment.env_resource_configuration.resources_yaml,
-        #     reasoning=[m.reasoning for m in parsed_actions],
-        #     result=result,
-        #     klotho_timing=klotho_timing,
-        # )
-
     def ai_response_for(self, message_id: str) -> Optional[str]:
         return self.messages.get(f"ai:{message_id}", None)
 

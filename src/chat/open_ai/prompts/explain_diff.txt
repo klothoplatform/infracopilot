@@ -1,0 +1,23 @@
+Given the recent updates to our AWS architecture, could you briefly describe the changes? Please mention the new resources and connections, and why they're important. Try to keep it short and simple, like you're explaining it to a colleague over coffee. Here's a format you could use:
+
+- 'I added [resource_name]. It's there to [purpose].'
+- 'I also connected [source] to [target]. This helps [purpose].'
+
+Remember, the goal is to keep it concise and understandable."
+The purpose should focus on important aspects like security and networking.
+
+Only talk about resources in terms of their resource id (ex. aws:log_group:lambda_03-log_group).
+Also be sure to leave out any resource pertaining to the type SERVICE_API (The SERVICE_API is used as a notion of an aws service having a public endpoint for networking purposes)
+
+
+Example
+
+Input:
+
+"{\"resources\":{\"aws:lambda_function:lambda_04\":{\"status\":\"ADDED\",\"properties\":{},\"target\":{\"type\":\"lambda_function\",\"namespace\":\"lambda_04\",\"name\":\"\",\"provider\":\"aws\"}},\"aws:iam_role:lambda_04-ExecutionRole\":{\"status\":\"ADDED\",\"properties\":{},\"target\":{\"type\":\"iam_role\",\"namespace\":\"lambda_04-ExecutionRole\",\"name\":\"\",\"provider\":\"aws\"}},\"aws:ecr_repo:lambda_04-image-ecr_repo\":{\"status\":\"ADDED\",\"properties\":{},\"target\":{\"type\":\"ecr_repo\",\"namespace\":\"lambda_04-image-ecr_repo\",\"name\":\"\",\"provider\":\"aws\"}},\"aws:log_group:lambda_04-log-group\":{\"status\":\"ADDED\",\"properties\":{},\"target\":{\"type\":\"log_group\",\"namespace\":\"lambda_04-log-group\",\"name\":\"\",\"provider\":\"aws\"}},\"aws:ecr_image:lambda_04-image\":{\"status\":\"ADDED\",\"properties\":{},\"target\":{\"type\":\"ecr_image\",\"namespace\":\"lambda_04-image\",\"name\":\"\",\"provider\":\"aws\"}}},\"edges\":{\"aws:iam_role:lambda_04-ExecutionRole\":{\"status\":\"ADDED\",\"properties\":{},\"target\":{\"type\":\"log_group\",\"namespace\":\"lambda_04-log-group\",\"name\":\"\",\"provider\":\"aws\"}},\"aws:lambda_function:lambda_04\":{\"status\":\"ADDED\",\"properties\":{},\"target\":{\"type\":\"iam_role\",\"namespace\":\"lambda_04-ExecutionRole\",\"name\":\"\",\"provider\":\"aws\"}},\"aws:ecr_image:lambda_04-image\":{\"status\":\"ADDED\",\"properties\":{},\"target\":{\"type\":\"ecr_repo\",\"namespace\":\"lambda_04-image-ecr_repo\",\"name\":\"\",\"provider\":\"aws\"}},\"aws:SERVICE_API:lambda_01-lambda_01-log-group\":{\"status\":\"ADDED\",\"properties\":{},\"target\":{\"type\":\"log_group\",\"namespace\":\"lambda_04-log-group\",\"name\":\"\",\"provider\":\"aws\"}}}}"
+
+Response:
+
+I added aws:log_group:lambda_04-log-group. It's there to store the logs from aws:lambda_function:lambda_04.
+I also added aws:ecr_repo:lambda_04-image-ecr_repo, an ECR repository. It's there to store Docker images for aws:lambda_function:lambda_04.
+I connected aws:iam_role:lambda_04-ExecutionRole to aws:log_group:lambda_04-log-group. This grants aws:lambda_function:lambda_04 permissions to write logs to aws:log_group:lambda_04-log-group.

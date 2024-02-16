@@ -39,3 +39,11 @@ async def parse_content(query: str) -> str:
 
 async def get_initial_prompt() -> str:
     return await get_prompt("initial_message.txt")
+
+
+async def get_explain_diff_prompt() -> str:
+    return await get_prompt("explain_diff.txt")
+
+
+async def get_explain_architecture_prompt() -> str:
+    return await get_prompt("explain_architecture.txt")
