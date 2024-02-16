@@ -91,10 +91,15 @@ const flowbiteTheme: CustomFlowbiteTheme = {
     root: {
       base: "flex relative top-0 z-20 flex-col flex-shrink-0 h-full duration-75 border-r border-gray-200 lg:flex transition-width dark:border-gray-700",
       inner:
-        "h-full overflow-y-auto overflow-x-hidden rounded bg-gray-50 py-4 px-3 dark:bg-gray-800",
+        "h-full overflow-y-auto overflow-x-hidden rounded bg-gray-50 p-4 dark:bg-gray-800",
     },
     item: {
-      base: "flex items-center justify-center rounded-lg p-2 text-base font-medium text-gray-900 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700 cursor`-pointer",
+      base: "flex items-center justify-center rounded-lg p-2 text-base font-medium text-gray-900 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700 cursor-pointer",
+      content: {
+        base: "flex-1 px-3 whitespace-nowrap",
+      },
+      active:
+        "bg-gray-100 dark:bg-gray-700 pr-2 pl-0 before:relative before:-left-2 before:mr-1 before:h-6 before:content-[' '] before:inline-block before:bg-primary-600 dark:before:bg-primary-500 before:w-1 before:rounded-lg",
     },
     collapse: {
       button:

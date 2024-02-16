@@ -48,6 +48,7 @@ export const ChatSidebar: FC<{
       id: `resource#${node.data.resourceId.toString()}`,
       icon: (
         <NodeIcon
+          key={Math.random().toString()}
           provider={node.data.resourceId.provider}
           type={node.data.resourceId.type}
           variant={mode}
@@ -234,7 +235,7 @@ export const ChatSidebar: FC<{
 
                       return (
                         <div
-                          key={suggestion.id}
+                          key={Math.random().toString()}
                           role="button"
                           tabIndex={0}
                           className="w-full cursor-default px-2 outline-primary-600 hover:bg-primary-200 focus:bg-primary-200 focus:ring-0 active:bg-primary-200 dark:hover:bg-primary-300 dark:focus:bg-primary-300 dark:active:bg-primary-300"

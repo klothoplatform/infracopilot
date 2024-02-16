@@ -21,6 +21,7 @@ import { ChatSidebar } from "./ChatSidebar";
 import { IoIosChatboxes } from "react-icons/io";
 import { env } from "../../shared/environment";
 import { ChatSignupSidebar } from "./ChatSignupSidebar";
+import { useHotkeys } from "react-hotkeys-hook";
 
 interface SidebarItemState {
   [key: string]: {
@@ -31,6 +32,14 @@ interface SidebarItemState {
 
 const EditorSidebarRight: FC = () => {
   const menusRef = useRef<HTMLDivElement>(null);
+
+  const isMac =
+    (navigator.platform &&
+      navigator.platform.toUpperCase().indexOf("MAC") >= 0) ||
+    ((navigator as any).userAgentData &&
+      (navigator as any).userAgentData.platform?.toUpperCase().indexOf("MAC") >=
+        0);
+
   const {
     selectedResource,
     selectedEdge,
@@ -45,6 +54,24 @@ const EditorSidebarRight: FC = () => {
 
   const [warnMissingProperties, setWarnMissingProperties] =
     useState<boolean>(false);
+
+  useHotkeys(
+    "alt+c",
+    (e) => {
+      e.preventDefault();
+      setItemState((previous) =>
+        updateActiveIndex(
+          previous,
+          RightSidebarMenu.Chat,
+          !previous[RightSidebarMenu.Chat]?.visible,
+          true,
+        ),
+      );
+    },
+    {
+      enableOnFormTags: true,
+    },
+  );
 
   useEffect(() => {
     if (!rightSidebarSelector[0]) {
@@ -177,6 +204,10 @@ const EditorSidebarRight: FC = () => {
               on: "w-12",
             },
           },
+          item: {
+            base: "flex items-center justify-center rounded-lg ml-1 p-1 text-base font-normal text-gray-900 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700",
+            active: "bg-gray-100 dark:bg-gray-700",
+          },
         }}
       >
         <Sidebar.Items className="h-full">
@@ -286,7 +317,7 @@ const SidebarMenuOption: FC<{
   onDeactivate?: (index: string) => void;
   disabled?: boolean;
   hidden?: boolean;
-  label?: string;
+  label?: string | React.JSX.Element;
   icon?: IconType;
   active?: boolean;
   showNotification?: boolean;
@@ -311,29 +342,42 @@ const SidebarMenuOption: FC<{
   };
 
   return (
-    <Sidebar.Item
-      key={index}
-      as={"button"}
-      className={classNames(
-        "w-fit cursor-default disabled:hover:bg-gray-50 disabled:text-gray-300 [&_svg]:disabled:fill-gray-300 [&_svg]:dark:disabled:fill-gray-600 dark:disabled:hover:bg-gray-800 disabled:cursor-not-allowed dark:disabled:text-gray-600",
-        {
-          "dark:hover:bg-primary-600 hover:bg-primary-600 bg-primary-600 [&_svg]:fill-white text-white":
-            active,
-        },
-      )}
-      icon={({ ...rest }) => (
-        <SidebarIcon
-          {...rest}
-          disabled={disabled}
-          baseIcon={Icon}
-          showCircle={showNotification}
-        />
-      )}
-      onClick={handleClick}
-      disabled={disabled}
-    >
-      {label}
-    </Sidebar.Item>
+    <div className="flex h-fit gap-1 px-1">
+      <Sidebar.Item
+        key={index}
+        as={"button"}
+        className={classNames(
+          "cursor-default disabled:hover:bg-gray-50 hover:bg-gray-300 disabled:text-gray-300 [&_svg]:disabled:fill-gray-300 [&_svg]:dark:disabled:fill-gray-600 dark:disabled:hover:bg-gray-800 disabled:cursor-not-allowed dark:disabled:text-gray-600",
+          {
+            "dark:hover:bg-gray-600 hover:bg-gray-300 bg-gray-200 dark:bg-gray-700":
+              active,
+          },
+        )}
+        icon={({ ...rest }) => (
+          <SidebarIcon
+            {...rest}
+            disabled={disabled}
+            baseIcon={Icon}
+            showCircle={showNotification}
+          />
+        )}
+        onClick={handleClick}
+        disabled={disabled}
+      >
+        {label}
+      </Sidebar.Item>
+      <div
+        className={classNames(
+          "rounded-tl-full my-auto rounded-bl-full h-full w-1",
+          {
+            "bg-primary-600 dark:bg-primary-500": active,
+            "bg-transparent": !active,
+          },
+        )}
+      >
+        &nbsp;
+      </div>
+    </div>
   );
 };
 
