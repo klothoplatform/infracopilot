@@ -105,4 +105,15 @@ export class NodeId {
     }
     return this.name.localeCompare(other.name);
   }
+
+  public static mentionAll(text: string): string {
+    return text.replaceAll(
+      /(?:^|\b)((?:[\w-]*:){2,3}[\w-]+)(?!:)/g,
+      replaceFunction,
+    );
+  }
 }
+
+const replaceFunction = (match: string) => {
+  return `<msft-mention id="resource#${match}">${NodeId.parse(match).name}</msft-mention>`;
+};

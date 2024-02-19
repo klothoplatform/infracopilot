@@ -1,6 +1,11 @@
 import type { Constraint } from "./Constraints";
 import { NodeId } from "./TopologyNode";
 
+export interface FormatOptions {
+  mentionResources?: boolean;
+  forceBullet?: boolean;
+}
+
 export class Decision {
   constraints: Constraint[];
   resources: string[];
@@ -19,11 +24,14 @@ export class Decision {
     this.resources = res;
   }
 
-  formatTitle(mention?: boolean): string {
-    return this.constraints
-      .map((c) => c.toIntent(mention))
-      .join("\n")
-      .replace(/:$/g, "");
+  formatTitle(options?: FormatOptions): string {
+    return (
+      (options?.forceBullet || this.constraints.length > 1 ? "• " : "") +
+      this.constraints
+        .map((c) => c.toIntent(options?.mentionResources))
+        .join("\n• ")
+        .replace(/:$/g, "")
+    );
   }
 
   formatInfo(mention?: boolean): string {

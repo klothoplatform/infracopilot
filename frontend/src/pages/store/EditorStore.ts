@@ -246,6 +246,11 @@ interface EditorStoreActions {
     state?: number,
   ) => Promise<any>;
   sendChatMessage: (message: string) => Promise<void>;
+  replyInChat: (
+    response: Partial<ChatMessage>[],
+    originalMessageId?: string,
+    updates?: Partial<ChatMessage>,
+  ) => void;
 }
 
 type EditorStoreBase = EditorStoreState & EditorStoreActions;
@@ -458,7 +463,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       ...resourceId,
     });
     get().selectNode(node?.id);
-    if (node?.id) {
+    if (!node?.id) {
       return;
     }
     get().navigateRightSidebar([
@@ -1614,6 +1619,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       contentType: "richtext/html",
       messageType: "chat",
       status: "sending",
+      attached: false,
     } satisfies ChatMessage;
 
     set(
@@ -1650,6 +1656,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
         });
       }
       console.error(notifications);
+
       set(
         {
           unappliedConstraints: [],
@@ -1657,28 +1664,20 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
           changeNotifications: get().changeNotifications.concat(
             ...notifications,
           ),
-          chatHistory: get()
-            .chatHistory.map((entry) => {
-              if (entry.messageId === messageId) {
-                entry.status = "failed";
-                entry.failureReason = e.title || e.message;
-              }
-              return entry;
-            })
-            .concat({
-              messageId: messageId,
-              senderId: "system",
-              senderDisplayName: "Alfred",
-              mine: false,
-              content: e.title || e.message,
-              createdOn: new Date(),
-              contentType: "richtext/html",
-              messageType: "chat",
-              status: "delivered",
-            }),
         },
         false,
         "editor/sendChatMessage:error",
+      );
+      get().replyInChat(
+        [
+          {
+            content: NodeId.mentionAll(e.title || e.message),
+          },
+        ],
+        messageId,
+        {
+          status: "failed",
+        },
       );
       return;
     }
@@ -1759,38 +1758,6 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
         environmentVersion: response.environmentVersion,
         nodes: result.nodes,
         edges: result.edges,
-        chatHistory: get()
-          .chatHistory.map((entry) => {
-            if (entry.messageId === messageId) {
-              entry.status = "delivered";
-            }
-            return entry;
-          })
-          .concat(
-            !decisions.length
-              ? [
-                  {
-                    messageId: `${messageId}-response`,
-                    senderId: "system",
-                    senderDisplayName: "Alfred",
-                    content: "I'm sorry, I didn't understand that. 🥺",
-                    createdOn: new Date(),
-                    contentType: "richtext/html",
-                    messageType: "chat",
-                    status: "delivered",
-                  },
-                ]
-              : decisions.map((d) => ({
-                  messageId: `${messageId}-response`,
-                  senderId: "system",
-                  senderDisplayName: "Alfred",
-                  content: d.formatTitle(true),
-                  createdOn: new Date(),
-                  contentType: "richtext/html",
-                  messageType: "chat",
-                  status: "delivered",
-                })),
-          ),
         changeNotifications: get()
           .changeNotifications.filter(
             (n) => n.type !== NotificationType.Failure,
@@ -1813,8 +1780,84 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       false,
       "editor/sendChatMessage:end",
     );
+    get().replyInChat(
+      !decisions.length
+        ? [
+            {
+              content: "I'm sorry, I didn't understand that. 🥺",
+            },
+          ]
+        : [
+            {
+              content: "Okay, here's what I've done:",
+              attached: "top",
+            },
+            {
+              content: decisions
+                .map((d) =>
+                  d.formatTitle({
+                    mentionResources: true,
+                    forceBullet: true,
+                  }),
+                )
+                .join("\n"),
+              attached: true,
+            },
+          ],
+      messageId,
+      {
+        status: "delivered",
+      },
+    );
     console.log("new nodes", elements.nodes);
     get().updateEdgeTargets();
+  },
+  replyInChat: (
+    response: Partial<ChatMessage>[],
+    originalMessageId?: string,
+    updates?: Partial<ChatMessage>,
+  ) => {
+    response?.forEach((r) => {
+      r.messageType = "chat";
+      r.senderDisplayName = r.senderDisplayName || "Alfred";
+      r.senderId = r.senderId || "system";
+      r.createdOn = r.createdOn || new Date();
+      r.messageId = r.messageId || crypto.randomUUID().toString();
+      r.contentType = r.contentType || "richtext/html";
+      r.status = r.status || "delivered";
+      r.attached = r.attached || false;
+      r.clientMessageId = r.clientMessageId || crypto.randomUUID().toString();
+    });
+
+    const chatHistory = [...get().chatHistory];
+
+    // handle updates
+    if (updates) {
+      for (let i = 0; i < chatHistory.length; i++) {
+        if (chatHistory[i].messageId === originalMessageId) {
+          chatHistory[i] = { ...chatHistory[i], ...updates };
+          break;
+        }
+      }
+    }
+    for (let i = 0; i < response.length; i++) {
+      const existingIndex = chatHistory.findIndex(
+        (m) => m.messageId === response[i].messageId,
+      );
+      if (existingIndex > -1) {
+        // replace existing message
+        chatHistory[existingIndex] = response[i] as ChatMessage;
+      } else {
+        chatHistory.push(response[i] as ChatMessage);
+      }
+    }
+    set(
+      {
+        chatHistory,
+      },
+      false,
+      "editor/replyInChat",
+    );
   },
 });
 

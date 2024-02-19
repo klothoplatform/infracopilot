@@ -56,7 +56,7 @@ export const EnvironmentSection: FC<EnvironmentSectionProps> = ({
   return (
     <div className="flex size-fit items-center gap-2 rounded-t-lg border-x border-t border-gray-300 bg-gray-100 p-2 dark:border-gray-700 dark:bg-gray-900">
       <EnvironmentDropdown
-        environments={environments.map((env) => env.id)}
+        environments={environments?.map((env) => env.id)}
         defaultEnvironment={defaultEnvironment}
         selectedEnvironment={currentEnvironmentId}
         onChange={changeEnvironment}

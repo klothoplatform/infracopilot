@@ -341,35 +341,37 @@ def format_error_message(body: CopilotRunRequest, e: EngineException):
 
     match (action["scope"], action["operator"]):
         case ("application", "add"):
-            title = f"Could not add {action['node']}"
+            title = f"I was unable to add {action['node']}."
         case ("application", "remove"):
-            title = f"Could not remove {action['node']}"
+            title = f"I was unable to remove {action['node']}."
         case ("application", "replace"):
             original = ResourceID.from_string(action["node"])
             replacement = ResourceID.from_string(action["replacement_node"])
             if original.name == replacement.name:
-                title = f"Could not change type of {original.name} from {original.provider}:{original.type} to {replacement.provider}:{replacement.type}"
+                title = f"I was unable to change the type of {original.name} from {original.provider}:{original.type} to {replacement.provider}:{replacement.type}."
             elif (original.provider, original.type, original.namespace) == (
                 replacement.provider,
                 replacement.type,
                 replacement.namespace,
             ):
-                title = f"Could not rename {action['node']} to {replacement.name}"
+                title = (
+                    f"I was unable to rename {action['node']} to {replacement.name}."
+                )
             else:
-                title = f"Could not replace {action['node']} with {action['replacement_node']}"
+                title = f"I was unable to replace {action['node']} with {action['replacement_node']}."
         case ("resource", _):
-            title = f"Could not configure {action['target']}"
+            title = f"I was unable to configure {action['target']}."
         case ("edge", "must_exist"):
-            title = f"Could not connect {action['target']['source']} ➔ {action['target']['target']}"
+            title = f"I was unable to connect {action['target']['source']} ➔ {action['target']['target']}."
         case ("edge", "must_not_exist"):
-            title = f"Could not disconnect {action['target']['source']} ➔ {action['target']['target']}"
+            title = f"I was unable to disconnect {action['target']['source']} ➔ {action['target']['target']}."
         case _:
-            title = f"Could not apply constraint {action}"
+            title = f"I was unable to apply the following constraint: {action}"
 
     if len(reason) == 0:
         return title, ""
     if len(reason) == 1:
         return title, reason[0]
     else:
-        reason_str = "\n• " + "\n• ".join(reason)
+        reason_str = ("• " if len(reason) > 1 else "") + "\n• ".join(reason)
         return title, reason_str

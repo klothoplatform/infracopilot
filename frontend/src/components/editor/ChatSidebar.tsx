@@ -19,10 +19,8 @@ import defaultConfig from "tailwindcss/defaultConfig";
 import { chatThemeDark, chatThemeLight } from "../../fluentui-themes";
 import "./ChatSidebar.scss";
 import { NodeId } from "../../shared/architecture/TopologyNode";
-import {
-  RightSidebarDetailsTab,
-  RightSidebarMenu,
-} from "../../shared/sidebar-nav";
+
+import { Persona, PersonaSize } from "@fluentui/react";
 
 const config = resolveConfig(defaultConfig);
 const colors = { ...config.theme.colors, primary: config.theme.colors.violet };
@@ -37,7 +35,7 @@ export const ChatSidebar: FC<{
     nodes,
     selectResource,
     chatHistory,
-    navigateRightSidebar,
+    replyInChat,
   } = useApplicationStore();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -75,6 +73,19 @@ export const ChatSidebar: FC<{
     };
   }, []);
 
+  useEffect(() => {
+    if (chatHistory.length < 1) {
+      replyInChat([
+        {
+          messageId: "intro", // fixed id ensures this message is not duplicated on re-render (mostly for strict mode)
+          content:
+            "Hi there! I'm Alfred, your AI assistant, and I can help you update your architecture's topology.\n\nHow can I help you today?",
+          attached: false,
+        },
+      ]);
+    }
+  }, [chatHistory, replyInChat]);
+
   const messageThreadStyles = {
     chatMessageContainer: {
       whiteSpace: "pre-wrap",
@@ -82,6 +93,7 @@ export const ChatSidebar: FC<{
       backgroundColor: mode === "dark" ? colors.gray[900] : colors.primary[100],
       borderColor: mode === "dark" ? colors.primary[800] : colors.primary[300],
       borderRadius: "0.5rem",
+      maxWidth: "unset",
     },
     myChatMessageContainer: {
       backgroundColor: mode === "dark" ? colors.gray[900] : colors.blue[100],
@@ -135,11 +147,28 @@ export const ChatSidebar: FC<{
             <div className="flex size-full flex-col pb-4">
               <MessageThread
                 userId={"user"}
-                showMessageDate={true}
-                showMessageStatus={true}
                 styles={messageThreadStyles}
                 strings={{
                   failToSendTag: "Failed",
+                }}
+                showMessageStatus={true}
+                onRenderAvatar={(userId, options, defaultOnRenderAvatar) => {
+                  if (userId === "system") {
+                    return (
+                      <Persona
+                        size={PersonaSize.size32}
+                        hidePersonaDetails
+                        text={"Alfred"}
+                        imageUrl={`/images/alfred-avatar-${mode}.png`}
+                        showOverflowTooltip={false}
+                      />
+                    );
+                  }
+                  return defaultOnRenderAvatar && options ? (
+                    defaultOnRenderAvatar(options)
+                  ) : (
+                    <></>
+                  );
                 }}
                 mentionOptions={{
                   displayOptions: {
@@ -147,18 +176,15 @@ export const ChatSidebar: FC<{
                       const id = NodeId.parse(mention.id.split("#")[1] ?? ""); // strip type prefix (e.g. "resource#")
                       const onClick = () => {
                         selectResource(id);
-                        navigateRightSidebar([
-                          RightSidebarMenu.Details,
-                          RightSidebarDetailsTab.Config,
-                        ]);
                       };
 
                       return (
                         <button
+                          title={mention.id.split("#")[1] ?? mention.id}
                           key={Math.random().toString()}
                           onClick={onClick}
                         >
-                          <div className="flex h-full items-baseline gap-1 rounded-md px-1 hover:bg-primary-200">
+                          <div className="flex h-full flex-nowrap items-baseline gap-1 rounded-md px-1 hover:bg-primary-200">
                             <NodeIcon
                               provider={id.provider}
                               type={id.type}
@@ -169,7 +195,7 @@ export const ChatSidebar: FC<{
                             />
                             <span
                               className={
-                                "font-semibold text-primary-900 dark:text-primary-500"
+                                "whitespace-nowrap font-semibold text-primary-900 dark:text-primary-500"
                               }
                             >
                               {mention.displayText}
@@ -194,9 +220,12 @@ export const ChatSidebar: FC<{
                 disableEditing={true}
                 messages={chatHistory}
               />
-              {isSubmitting && <IsThinkingIndicator />}
+              <IsThinkingIndicator visible={isSubmitting} />
               <div ref={sendBoxRef} className={"justify-self-end px-2"}>
                 <SendBox
+                  strings={{
+                    placeholderText: "Talk to Alfred",
+                  }}
                   disabled={isSubmitting}
                   supportNewline
                   onSendMessage={async (message) => {
@@ -281,18 +310,23 @@ export const ChatSidebar: FC<{
   );
 };
 
-const IsThinkingIndicator: FC = () => {
+const IsThinkingIndicator: FC<{ visible?: boolean }> = ({ visible }) => {
   return (
     <div className="flex items-baseline gap-1 px-4 py-1">
-      <span className="font-semibold text-primary-900 dark:text-primary-500">
-        Alfred
-      </span>
-      <span className="text-gray-500 dark:text-gray-400">is thinking</span>
-      <div className="flex items-center justify-center gap-0.5">
-        <div className="size-1 animate-pulse rounded-full bg-gray-500 [animation-delay:-0.3s] dark:bg-gray-400"></div>
-        <div className="size-1 animate-pulse rounded-full bg-gray-500 [animation-delay:-0.15s] dark:bg-gray-400"></div>
-        <div className="size-1 animate-pulse rounded-full bg-gray-500 dark:bg-gray-400"></div>
-      </div>
+      {visible && (
+        <>
+          <span className="font-semibold text-primary-900 dark:text-primary-500">
+            Alfred
+          </span>
+          <span className="text-gray-500 dark:text-gray-400">is thinking</span>
+          <div className="flex items-center justify-center gap-0.5">
+            <div className="size-1 animate-pulse rounded-full bg-gray-500 [animation-delay:-0.3s] dark:bg-gray-400"></div>
+            <div className="size-1 animate-pulse rounded-full bg-gray-500 [animation-delay:-0.15s] dark:bg-gray-400"></div>
+            <div className="size-1 animate-pulse rounded-full bg-gray-500 dark:bg-gray-400"></div>
+          </div>
+        </>
+      )}
+      {!visible && <span>&nbsp;</span>}
     </div>
   );
 };
