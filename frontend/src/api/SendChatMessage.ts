@@ -7,6 +7,7 @@ import { EngineError } from "../shared/errors";
 import { trackError } from "../pages/store/ErrorStore";
 import type { Constraint } from "../shared/architecture/Constraints";
 import { parseConstraints } from "../shared/architecture/Constraints";
+import { analytics } from "../App";
 
 export interface SendChatMessageRequest {
   architectureId: string;
@@ -68,13 +69,19 @@ export async function sendChatMessage(
         "Something went wrong. 🥺",
     );
 
-    console.log((window as any).CommandBar);
     (async () => {
       (window as any).CommandBar?.trackEvent("send_chat_message_500", {});
       trackError(error);
     })();
     throw error;
   }
+
+  analytics.track("SendChatMessage", {
+    status: response.status,
+    content: message,
+    response: response.data,
+  });
+
   return {
     environmentVersion: parseEnvironmentVersion(response.data),
     constraints: parseConstraints(response.data.constraints),
