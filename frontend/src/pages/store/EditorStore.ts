@@ -1784,7 +1784,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       !decisions.length
         ? [
             {
-              content: "I'm sorry, I didn't understand that. 🥺",
+              content: "I'm sorry, I don't understand your prompt. 🥺",
             },
           ]
         : [

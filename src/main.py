@@ -614,6 +614,8 @@ async def message_conversation(
                 status_code=404,
                 detail=f"No environment version exists for id {id} environment {env_id} and version {body.version}",
             )
+        except HTTPException:
+            raise
         except Exception:
             logger.error("Error running engine", exc_info=True)
             raise HTTPException(status_code=500, detail="internal server error")

@@ -89,7 +89,7 @@ export class EngineError extends ApplicationError {
     errorId?: string,
   ) {
     super({
-      message: `${title}: ${details}`,
+      message: `${title ? title + ": " : ""}${details}`,
       errorId,
       data: { details },
     });

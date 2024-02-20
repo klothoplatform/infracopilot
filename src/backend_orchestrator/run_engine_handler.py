@@ -14,6 +14,7 @@ from src.backend_orchestrator.models import (
     SendMessageResponse,
 )
 from src.chat.conversation import Conversation
+from src.chat.message_execution import MessageExecutionException
 from src.constraints.util import find_mutating_constraints
 from src.engine_service.binaries.fetcher import BinaryStorage, Binary
 from src.engine_service.engine_commands.get_resource_types import (
@@ -305,6 +306,11 @@ class EngineOrchestrator:
             raise HTTPException(
                 status_code=404,
                 detail=f"No environment {env_id} exists for architecture {architecture_id}",
+            )
+        except MessageExecutionException:
+            raise HTTPException(
+                status_code=500,
+                detail="I'm sorry, I don't understand what you mean by that.",
             )
         except Exception:
             logger.error("Error getting state", exc_info=True)

@@ -63,7 +63,9 @@ export async function sendChatMessage(
     console.log("error from apply constraints", e);
     const error = new EngineError(
       e.response.data?.title,
-      e.response.data?.details ?? "Your request failed.",
+      e.response.data?.details ??
+        e.response.data.detail ??
+        "Something went wrong. 🥺",
     );
 
     console.log((window as any).CommandBar);
