@@ -175,7 +175,7 @@ export const ChatSidebar: FC<{
                     onRenderMention: (mention, defaultOnMentionRender) => {
                       const id = NodeId.parse(mention.id.split("#")[1] ?? ""); // strip type prefix (e.g. "resource#")
                       const onClick = () => {
-                        selectResource(id);
+                        selectResource(id, true);
                       };
 
                       return (

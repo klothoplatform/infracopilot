@@ -214,7 +214,7 @@ interface EditorStoreActions {
   onConnect: OnConnect;
   onConnectStart: OnConnectStart;
   selectNode: (nodeId?: string) => void;
-  selectResource: (resourceId?: NodeId) => void;
+  selectResource: (resourceId?: NodeId, forceNavigation?: boolean) => void;
   refreshLayout: () => Promise<void>;
   refreshArchitecture: (
     architectureId?: string,
@@ -442,7 +442,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     get().navigateRightSidebar([undefined, get().rightSidebarSelector[1]]);
     console.log("deselected node", nodeId);
   },
-  selectResource: (resourceId?: NodeId) => {
+  selectResource: (resourceId?: NodeId, forceNavigation?: boolean) => {
     if (
       !resourceId ||
       !get().environmentVersion.resources.has(resourceId?.toString())
@@ -463,7 +463,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       ...resourceId,
     });
     get().selectNode(node?.id);
-    if (!node?.id) {
+    if (node?.id && !forceNavigation) {
       return;
     }
     get().navigateRightSidebar([
