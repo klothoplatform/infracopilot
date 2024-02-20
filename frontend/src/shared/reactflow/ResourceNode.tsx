@@ -72,6 +72,10 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
     ]);
   };
 
+  useEffect(() => {
+    updateNodeInternals(id);
+  }, [id, updateNodeInternals, viewSettings]);
+
   const handles = useMemo(() => {
     updateNodeInternals(id);
 
@@ -163,7 +167,7 @@ const ResourceNode = memo(({ id, data, isConnectable }: ResourceNodeProps) => {
             "p-1 border-2 w-[100px] h-[100px] mx-auto rounded-md bg-transparent pointer-events-auto",
             {
               "border-primary-600/100 dark:border-primary-500/100 shadow-md shadow-primary-100 dark:shadow-primary-900":
-                isSelected && !isConnecting,
+                isSelected && (!isConnecting || connectionNodeId === id),
               "border-primary-600/[0]": !isSelected && !isValidConnectionTarget,
               "bg-blue-500/10 border-blue-700 dark:border-blue-200 shadow-md shadow-blue-100 dark:shadow-blue-900":
                 mouseOverNode && isValidConnectionTarget,

@@ -292,11 +292,11 @@ export function SmartElkEdge<EdgeDataType = unknown, NodeDataType = unknown>({
   const uid = (data as any)?.edgeSection?.id ?? Math.random().toString();
   let resolvedMarkerStart = markerStart;
   let resolvedMarkerEnd = markerEnd;
-  if (markerStart === "url(#arrow-closed)") {
-    resolvedMarkerStart = `url(#arrow-closed-${uid})`;
+  if (markerStart === "url('#arrow-closed')") {
+    resolvedMarkerStart = `url('#arrow-closed-${uid}')`;
   }
-  if (markerEnd === "url(#arrow-closed)") {
-    resolvedMarkerEnd = `url(#arrow-closed-${uid})`;
+  if (markerEnd === "url('#arrow-closed')") {
+    resolvedMarkerEnd = `url('#arrow-closed-${uid}')`;
   }
 
   return (
@@ -304,7 +304,7 @@ export function SmartElkEdge<EdgeDataType = unknown, NodeDataType = unknown>({
       <Markers
         types={
           [markerStart, markerEnd]
-            .map((m) => m?.replaceAll(/(url\(#|\))/g, ""))
+            .map((m) => m?.replace(/url\('#([^']*)'\)/, "$1"))
             .filter((m) => m) as string[]
         }
         uid={uid}

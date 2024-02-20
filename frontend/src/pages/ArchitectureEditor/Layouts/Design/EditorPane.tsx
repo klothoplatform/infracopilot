@@ -22,7 +22,7 @@ import { ErrorBoundary } from "react-error-boundary";
 import { FallbackRenderer } from "../../../../components/FallbackRenderer";
 import { UIError } from "../../../../shared/errors";
 import { trackError } from "../../../store/ErrorStore";
-import ConnectionLine from "../../../../shared/reactflow/ConnectionLine";
+import { ConnectionLine } from "../../../../shared/reactflow/ConnectionLine";
 import { shallow } from "zustand/shallow";
 import classNames from "classnames";
 import { VersionNavigator } from "./VersionNavigation";
@@ -315,7 +315,9 @@ export default function EditorPane() {
           <Controls showInteractive={false} />
           {canModifyConfiguration(viewSettings) ? <VersionNavigator /> : null}
         </ReactFlow>
-        <WorkingOverlay show={showSpinner} message={"Autocompleting..."} />
+        {showSpinner && (
+          <WorkingOverlay show={true} message={"Autocompleting..."} />
+        )}
       </div>
     </ErrorBoundary>
   );

@@ -10,7 +10,7 @@ import type { FC } from "react";
 import React from "react";
 import { Direction, getLineDirection } from "./util";
 
-const ConnectionLine: FC<ConnectionLineComponentProps> = ({
+export const ConnectionLine: FC<ConnectionLineComponentProps> = ({
   fromX,
   fromY,
   fromPosition,
@@ -108,11 +108,9 @@ const ConnectionLine: FC<ConnectionLineComponentProps> = ({
         d={dAttr}
         fill="none"
         className="react-flow__connection-path"
-        markerEnd="url(#connection-arrow-closed)"
+        markerEnd="url('#connection-arrow-closed')"
         style={connectionLineStyle}
       />
     </g>
   );
 };
-
-export default ConnectionLine;

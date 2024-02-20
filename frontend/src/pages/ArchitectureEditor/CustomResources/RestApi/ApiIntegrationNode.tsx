@@ -1,4 +1,4 @@
-import React, { memo, useMemo, useState } from "react";
+import React, { memo, useEffect, useMemo, useState } from "react";
 import { Handle, Position, useStore, useUpdateNodeInternals } from "reactflow";
 import useApplicationStore from "../../../store/ApplicationStore";
 
@@ -79,6 +79,10 @@ const ApiIntegrationNode = memo(
         );
       });
     }, [updateNodeInternals, id, data, isConnectable]);
+
+    useEffect(() => {
+      updateNodeInternals(id);
+    }, [id, updateNodeInternals, viewSettings]);
 
     return (
       // eslint-disable-next-line jsx-a11y/no-static-element-interactions
