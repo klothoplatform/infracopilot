@@ -12,7 +12,6 @@ const hiddenResources = [
   "aws:ec2_instance",
   "aws:sqs_queue",
   "aws:rds_proxy",
-  "aws:elasticache_cluster",
   "aws:ses_email_identity",
   "kubernetes:deployment",
 ];
