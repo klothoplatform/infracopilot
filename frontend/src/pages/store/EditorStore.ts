@@ -90,6 +90,8 @@ import { NotificationType } from "../../components/editor/ChangesSidebar";
 import type { SendChatMessageResponse } from "../../api/SendChatMessage";
 import { sendChatMessage } from "../../api/SendChatMessage";
 import type { ChatMessage } from "@azure/communication-react";
+import type { ExtendedChatMessage } from "../../components/editor/ChatSidebar";
+import { mention, MentionType } from "../../components/editor/ChatSidebar";
 import { explainDiff } from "../../api/ExplainDiff";
 import { type TopologyDiff } from "../../shared/architecture/TopologyDiff";
 
@@ -249,9 +251,9 @@ interface EditorStoreActions {
   ) => Promise<any>;
   sendChatMessage: (message: string) => Promise<void>;
   replyInChat: (
-    response: Partial<ChatMessage>[],
+    response: Partial<ExtendedChatMessage>[],
     originalMessageId?: string,
-    updates?: Partial<ChatMessage>,
+    updates?: Partial<ExtendedChatMessage>,
   ) => void;
   explainDiff: (diff: any) => Promise<void>;
 }
@@ -1613,17 +1615,28 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     const pattern = /<msft-mention id="[^#]*#([^"]*)">([^<]*)<\/msft-mention>/g;
     const sanitizedMessage = message.replace(pattern, "$2");
     const messageId = crypto.randomUUID().toString();
+    const user = get().user;
     const historyEntry = {
       messageId: messageId,
       senderId: "user",
-      mine: true,
+      senderDisplayName:
+        user?.displayName ||
+        user?.name ||
+        user?.nickname ||
+        user?.preferred_username ||
+        user?.given_name ||
+        "User",
       content: message,
       createdOn: new Date(),
       contentType: "richtext/html",
       messageType: "chat",
       status: "sending",
       attached: false,
-    } satisfies ChatMessage;
+      environment: {
+        id: get().environmentVersion.id,
+        version: get().environmentVersion.version,
+      },
+    } satisfies ExtendedChatMessage;
 
     set(
       {
@@ -1783,6 +1796,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       false,
       "editor/sendChatMessage:end",
     );
+    const responseId = crypto.randomUUID().toString();
     get().replyInChat(
       !decisions.length
         ? [
@@ -1792,19 +1806,19 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
           ]
         : [
             {
-              content: "Okay, here's what I've done:",
+              messageId: responseId,
+              content:
+                "Okay, here's what I've done:\n" +
+                decisions
+                  .map((d) =>
+                    d.formatTitle({
+                      mentionResources: true,
+                      forceBullet: true,
+                    }),
+                  )
+                  .join("\n") +
+                `\n${mention(MentionType.Explain, responseId, "Yes")}`,
               attached: "top",
-            },
-            {
-              content: decisions
-                .map((d) =>
-                  d.formatTitle({
-                    mentionResources: true,
-                    forceBullet: true,
-                  }),
-                )
-                .join("\n"),
-              attached: true,
             },
           ],
       messageId,
@@ -1813,16 +1827,15 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       },
     );
     console.log("new nodes", elements.nodes);
-    if (response.environmentVersion.diff) {
-      get().explainDiff(response.environmentVersion.diff);
-    }
     get().updateEdgeTargets();
   },
   replyInChat: (
-    response: Partial<ChatMessage>[],
+    response: Partial<ExtendedChatMessage>[],
     originalMessageId?: string,
-    updates?: Partial<ChatMessage>,
+    updates?: Partial<ExtendedChatMessage>,
   ) => {
+    const environmentVersion = get().environmentVersion;
+
     response?.forEach((r) => {
       r.messageType = "chat";
       r.senderDisplayName = r.senderDisplayName || "Alfred";
@@ -1833,6 +1846,10 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       r.status = r.status || "delivered";
       r.attached = r.attached || false;
       r.clientMessageId = r.clientMessageId || crypto.randomUUID().toString();
+      r.environment = r.environment || {
+        id: environmentVersion.id,
+        version: environmentVersion.version,
+      };
     });
 
     const chatHistory = [...get().chatHistory];
@@ -1866,20 +1883,28 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     );
   },
   explainDiff: async (diff: TopologyDiff) => {
-    const explanation = await explainDiff({
-      architectureId: get().architecture.id,
-      environmentId: get().environmentVersion.id,
-      diff: diff,
-      version: get().environmentVersion.version,
-      idToken: get().currentIdToken.idToken,
-    });
-    const messageId = crypto.randomUUID().toString();
-    get().replyInChat([
-      {
-        content: NodeId.mentionAll(explanation),
-        attached: true,
-      },
-    ]);
+    try {
+      const explanation = await explainDiff({
+        architectureId: get().architecture.id,
+        environmentId: get().environmentVersion.id,
+        diff: diff,
+        version: get().environmentVersion.version,
+        idToken: get().currentIdToken.idToken,
+      });
+      get().replyInChat([
+        {
+          content: NodeId.mentionAll(explanation),
+          attached: true,
+        },
+      ]);
+    } catch (e) {
+      console.error("error explaining diff", e);
+      get().replyInChat([
+        {
+          content: "I'm sorry, I'm having trouble with that right now. 🥺",
+        },
+      ]);
+    }
   },
 });
 

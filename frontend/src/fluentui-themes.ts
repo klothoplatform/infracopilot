@@ -2,7 +2,25 @@
 
 import { createTheme } from "@fluentui/react";
 
+export const fontFamily = [
+  "Inter",
+  "ui-sans-serif",
+  "system-ui",
+  "-apple-system",
+  "system-ui",
+  "Segoe UI",
+  "Roboto",
+  "Helvetica Neue",
+  "Arial",
+  "Noto Sans",
+  "sans-serif",
+  "Apple Color Emoji",
+  "Segoe UI Emoji",
+  "Segoe UI Symbol",
+  "Noto Color Emoji",
+].join(", ");
 export const chatThemeDark = createTheme({
+  defaultFontStyle: { fontFamily },
   palette: {
     themePrimary: "#7c3aed",
     themeLighterAlt: "#f9f7fe",
@@ -35,6 +53,7 @@ export const chatThemeDark = createTheme({
 });
 
 export const chatThemeLight = createTheme({
+  defaultFontStyle: { fontFamily },
   palette: {
     themePrimary: "#7c3aed",
     themeLighterAlt: "#050209",

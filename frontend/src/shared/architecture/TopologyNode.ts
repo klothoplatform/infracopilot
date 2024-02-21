@@ -78,7 +78,7 @@ export class NodeId {
   }
 
   toMention(): string {
-    return `<msft-mention id="<resource#${this.toString()}">${this.name}</msft-mention>`;
+    return `<msft-mention id="resource#${this.toString()}">${this.name}</msft-mention>`;
   }
 
   equals(other?: NodeId): boolean {

@@ -59,13 +59,16 @@ export const authStore: StateCreator<AuthStore, [], [], AuthStoreBase> = (
       console.log("refreshing token");
       const auth0 = get().auth0;
       if (!auth0) {
+        console.log("no auth0");
         return { idToken: "", expiresAt: 0 };
       }
       await auth0.getAccessTokenSilently();
       const claims = await auth0.getIdTokenClaims();
       if (!claims) {
+        console.log("unauthenticated user");
         return { idToken: "", expiresAt: 0 };
       }
+      console.log("refreshed token");
       return {
         idToken: claims.__raw,
         expiresAt: claims.exp ?? 0,
