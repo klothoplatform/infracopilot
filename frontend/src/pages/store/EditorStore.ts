@@ -90,6 +90,8 @@ import { NotificationType } from "../../components/editor/ChangesSidebar";
 import type { SendChatMessageResponse } from "../../api/SendChatMessage";
 import { sendChatMessage } from "../../api/SendChatMessage";
 import type { ChatMessage } from "@azure/communication-react";
+import { explainDiff } from "../../api/ExplainDiff";
+import { type TopologyDiff } from "../../shared/architecture/TopologyDiff";
 
 interface EditorStoreState {
   architecture: Architecture;
@@ -251,6 +253,7 @@ interface EditorStoreActions {
     originalMessageId?: string,
     updates?: Partial<ChatMessage>,
   ) => void;
+  explainDiff: (diff: any) => Promise<void>;
 }
 
 type EditorStoreBase = EditorStoreState & EditorStoreActions;
@@ -1810,6 +1813,9 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       },
     );
     console.log("new nodes", elements.nodes);
+    if (response.environmentVersion.diff) {
+      get().explainDiff(response.environmentVersion.diff);
+    }
     get().updateEdgeTargets();
   },
   replyInChat: (
@@ -1858,6 +1864,22 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       false,
       "editor/replyInChat",
     );
+  },
+  explainDiff: async (diff: TopologyDiff) => {
+    const explanation = await explainDiff({
+      architectureId: get().architecture.id,
+      environmentId: get().environmentVersion.id,
+      diff: diff,
+      version: get().environmentVersion.version,
+      idToken: get().currentIdToken.idToken,
+    });
+    const messageId = crypto.randomUUID().toString();
+    get().replyInChat([
+      {
+        content: NodeId.mentionAll(explanation),
+        attached: true,
+      },
+    ]);
   },
 });
 

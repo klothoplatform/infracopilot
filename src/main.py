@@ -34,9 +34,12 @@ from src.backend_orchestrator.run_engine_handler import (
     CopilotRunRequest,
 )
 from src.backend_orchestrator.teams_api import router as teams_router
+from src.chat.explain_architecture import ExplainArchitecture
+from src.chat.explain_diff import ExplainDiff
 from src.dependency_injection.injection import (
     SessionLocal,
     get_architecture_handler,
+    get_architecture_storage,
     get_db,
     get_edge_target_handler,
     get_fga_manager,
@@ -49,6 +52,7 @@ from src.dependency_injection.injection import (
     deps,
 )
 from src.environment_management.environment_version import (
+    EnvironmentVersionDAO,
     EnvironmentVersionDoesNotExistError,
 )
 from src.state_manager.architecture_storage import ArchitectureStateDoesNotExistError
@@ -616,6 +620,107 @@ async def message_conversation(
             )
         except HTTPException:
             raise
+        except Exception:
+            logger.error("Error running engine", exc_info=True)
+            raise HTTPException(status_code=500, detail="internal server error")
+
+
+@app.post("/api/architecture/{id}/environment/{env_id}/explain")
+async def explain_diff(
+    request: Request,
+    id: str,
+    env_id: str,
+    body: ChatRequest,
+):
+    authz: AuthzService = deps.authz_service
+    user_id = await get_user_id(request)
+    authorized = await authz.can_read_architecture(User(id=user_id), id)
+    if not authorized:
+        raise AuthError(
+            detail=f"User {user_id} is not authorized to read architecture {id}",
+            error={
+                "code": "unauthorized",
+                "description": f"User is not authorized to write to architecture {id}",
+            },
+        )
+    accept = request.headers.get("accept")
+    logger.info(
+        f"Got request for POST /api/architecture/{id}/environment/{env_id}/explain"
+    )
+    async with SessionLocal.begin() as db:
+        try:
+            explainer = ExplainDiff()
+            result = await explainer.do_query(
+                query_id=str(uuid.uuid4()), query=body.message, timeout_sec=120
+            )
+
+            return Response(
+                content=result.ai_response,
+            )
+        except ArchitectureStateDoesNotExistError:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No architecture exists for id {id}",
+            )
+        except EnvironmentVersionDoesNotExistError:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No environment version exists for id {id} environment {env_id} and version {body.version}",
+            )
+        except Exception:
+            logger.error("Error running engine", exc_info=True)
+            raise HTTPException(status_code=500, detail="internal server error")
+
+
+@app.get("/api/architecture/{id}/environment/{env_id}/explain")
+async def explain_architecture(
+    request: Request,
+    id: str,
+    env_id: str,
+):
+    authz: AuthzService = deps.authz_service
+    user_id = await get_user_id(request)
+    authorized = await authz.can_read_architecture(User(id=user_id), id)
+    if not authorized:
+        raise AuthError(
+            detail=f"User {user_id} is not authorized to read architecture {id}",
+            error={
+                "code": "unauthorized",
+                "description": f"User is not authorized to write to architecture {id}",
+            },
+        )
+    accept = request.headers.get("accept")
+    logger.info(
+        f"Got request for POST /api/architecture/{id}/environment/{env_id}/explain_architecture"
+    )
+    async with SessionLocal.begin() as db:
+        try:
+            ev_dao = EnvironmentVersionDAO(db)
+            env_version = await ev_dao.get_current_version(id, env_id)
+            store = get_architecture_storage()
+            state = store.get_state_from_fs(env_version)
+            if state is None:
+                raise ArchitectureStateDoesNotExistError(
+                    f"State for architecture {id} and environment {env_id} does not exist"
+                )
+            explainer = ExplainArchitecture()
+            result = await explainer.do_query(
+                query_id=str(uuid.uuid4()), query=state.resources_yaml, timeout_sec=120
+            )
+
+            return Response(
+                content=result.ai_response,
+            )
+        except ArchitectureStateDoesNotExistError:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No architecture exists for id {id}",
+            )
+        except EnvironmentVersionDoesNotExistError:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No environment version exists for id {id} environment {env_id} and version {body.version}",
+            )
         except Exception:
             logger.error("Error running engine", exc_info=True)
             raise HTTPException(status_code=500, detail="internal server error")

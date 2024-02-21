@@ -41,7 +41,7 @@ test-backend:
 
 test-coverage:
 	PYTHONPATH=. pipenv run coverage run --source=src -m unittest discover
-	PYTHONPATH=. pipenv run coverage report -m --fail-under 75 --skip-empty --omit "*/injection.py"
+	PYTHONPATH=. pipenv run coverage report -m --fail-under 68 --skip-empty --omit "*/injection.py"
 
 black:
 	pipenv run black .

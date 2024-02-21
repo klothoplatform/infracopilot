@@ -10,6 +10,7 @@ import { customConfigMappings } from "../../pages/ArchitectureEditor/config/Cust
 import { ApplicationError } from "../errors";
 import { isObject } from "../object-util";
 import type { Property } from "../resources/ResourceTypes";
+import { parseTopologyDiff, type TopologyDiff } from "./TopologyDiff";
 
 export interface EnvironmentVersion {
   provider: string;
@@ -26,6 +27,7 @@ export interface EnvironmentVersion {
   resources: Map<string, any>;
   edges: GraphEdge[];
   config_errors: ConfigurationError[];
+  diff?: TopologyDiff;
 }
 
 export enum ArchitectureView {
@@ -223,6 +225,9 @@ export function parseEnvironmentVersion(
         ...error,
         resource: error.resource ? NodeId.parse(error.resource) : undefined,
       })),
+      diff: rawEnvVersion.diff
+        ? parseTopologyDiff(rawEnvVersion.diff)
+        : undefined,
     };
 
     if (rawEnvVersion.state?.topology_yaml) {

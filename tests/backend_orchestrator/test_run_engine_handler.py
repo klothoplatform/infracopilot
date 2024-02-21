@@ -385,9 +385,10 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
             True,
         )
         self.assertEqual(result.status_code, 400)
+        print(result.body)
         self.assertEqual(
             result.body,
-            b'{"title": "Could not add aws:lambda_function:a", "details": "The Klotho engine ran into an unexpected issue, the team was notified and is investigating, please try again. If this keeps occurring please join us on discord", "full_details": [{"error_code": "internal"}]}',
+            b'{"title": "I was unable to add aws:lambda_function:a.", "details": "The Klotho engine ran into an unexpected issue, the team was notified and is investigating, please try again. If this keeps occurring please join us on discord", "full_details": [{"error_code": "internal"}]}',
         )
 
     @mock.patch(
@@ -663,7 +664,7 @@ class TestArchitectureRun(aiounittest.AsyncTestCase):
         )
         self.assertEqual(
             result.body,
-            b'{"title": "Could not add aws:lambda_function:a", "details": "", "full_details": []}',
+            b'{"title": "I was unable to add aws:lambda_function:a.", "details": "", "full_details": []}',
         )
         self.assertEqual(result.status_code, 400)
         self.mock_binary_store.ensure_binary.assert_called_once_with(Binary.ENGINE)

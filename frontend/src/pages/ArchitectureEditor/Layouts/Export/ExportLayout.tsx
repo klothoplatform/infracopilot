@@ -4,15 +4,18 @@ import { useState } from "react";
 import { EnvironmentsPane } from "./EnvironmentsPane";
 import { ExportPane } from "./ExportPane";
 import { env } from "../../../../shared/environment";
+import { DocumentationPane } from "./DocumentationPane";
 
 enum SubLayout {
   Environments = "Environments",
   Export = "Export",
+  Documentation = "Documentation",
 }
 
 const subLayoutComponentMap: Record<SubLayout, FC> = {
   [SubLayout.Environments]: EnvironmentsPane,
   [SubLayout.Export]: ExportPane,
+  [SubLayout.Documentation]: DocumentationPane,
 };
 
 export const ExportLayout: FC = () => {
@@ -30,8 +33,8 @@ export const ExportLayout: FC = () => {
             {Object.values(SubLayout)
               .filter(
                 (subLayout) =>
-                  env.debug.has("environments-pane") ||
-                  subLayout !== SubLayout.Environments,
+                  env.documentationEnabled ||
+                  subLayout !== SubLayout.Documentation,
               )
               .map((subLayout) => {
                 return (

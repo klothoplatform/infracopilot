@@ -196,6 +196,7 @@ class EngineOrchestrator:
             architecture.env_resource_configuration
         )
         new_env_config.config_errors = result.config_errors
+        # new_env_config.diff = diff.__dict__()
         arch = EnvironmentVersion(
             architecture_id=architecture.architecture_id,
             id=architecture.id,
