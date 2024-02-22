@@ -24,18 +24,18 @@ export const ExportLayout: FC = () => {
   );
 
   const SubLayoutComponent = subLayoutComponentMap[selectedSubLayout];
-
   return (
     <div className="flex h-full">
       <Sidebar aria-label="export sidebar">
         <Sidebar.Items>
           <Sidebar.ItemGroup>
             {Object.values(SubLayout)
-              .filter(
-                (subLayout) =>
+              .filter((subLayout) => {
+                return (
                   env.documentationEnabled ||
-                  subLayout !== SubLayout.Documentation,
-              )
+                  subLayout !== SubLayout.Documentation
+                );
+              })
               .map((subLayout) => {
                 return (
                   <Sidebar.Item
