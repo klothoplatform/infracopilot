@@ -16,6 +16,7 @@ import { EditorHeader } from "./EditorHeader";
 import { EditorLayout } from "../../shared/EditorViewSettings";
 import { DesignLayout } from "./Layouts/Design/DesignLayout";
 import { ExportLayout } from "./Layouts/Export/ExportLayout";
+import { DeploymentLayout } from "../deployment/DeploymentLayout";
 
 function ArchitectureEditor() {
   const {
@@ -90,6 +91,9 @@ function ArchitectureEditor() {
       break;
     case EditorLayout.Export:
       currentLayout = <ExportLayout />;
+      break;
+    case EditorLayout.Deploy:
+      currentLayout = <DeploymentLayout />;
       break;
     default:
       currentLayout = <></>;

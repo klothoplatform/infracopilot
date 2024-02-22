@@ -10,6 +10,7 @@ import type { ErrorStore } from "./ErrorStore";
 import { errorStore } from "./ErrorStore";
 import type { UserDataStore } from "./UserDataStore";
 import { userDataStore } from "./UserDataStore";
+import { type DeploymentStore, deploymentStore } from "./DeploymentStore";
 
 type WithSelectors<S> = S extends {
   getState: () => infer T;
@@ -31,7 +32,11 @@ const createSelectors = <S extends UseBoundStore<StoreApi<object>>>(
   return store;
 };
 
-type ApplicationStore = EditorStore & UserDataStore & ErrorStore & AuthStore;
+type ApplicationStore = EditorStore &
+  UserDataStore &
+  ErrorStore &
+  AuthStore &
+  DeploymentStore;
 
 const useApplicationStoreBase = createWithEqualityFn<ApplicationStore>()(
   devtools(
@@ -41,6 +46,7 @@ const useApplicationStoreBase = createWithEqualityFn<ApplicationStore>()(
         ...errorStore(...all),
         ...userDataStore(...all),
         ...authStore(...all),
+        ...deploymentStore(...all),
       }),
       {
         name: "application-store", // name of the item in the storage (must be unique)

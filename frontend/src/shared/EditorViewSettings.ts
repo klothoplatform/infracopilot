@@ -9,6 +9,7 @@ export enum ViewMode {
 export enum EditorLayout {
   Design = "Design",
   Export = "Export",
+  Deploy = "Deploy",
 }
 
 export function isDesignLayout(

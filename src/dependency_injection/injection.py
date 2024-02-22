@@ -16,6 +16,9 @@ from src.backend_orchestrator.architecture_handler import ArchitectureHandler
 from src.backend_orchestrator.get_valid_edge_targets_handler import EdgeTargetHandler
 from src.backend_orchestrator.iac_handler import IaCOrchestrator
 from src.backend_orchestrator.run_engine_handler import EngineOrchestrator
+from src.deployer.data.deployment_dao import DeploymentDAO
+from src.deployer.data.stack_dao import StackDAO
+from src.deployer.stack_manager import StackManager
 from src.engine_service.binaries.fetcher import BinaryStorage
 from src.environment_management.architecture import ArchitectureDAO
 from src.environment_management.environment import EnvironmentDAO
@@ -178,6 +181,12 @@ async def get_architecture_manager() -> SharingManager:
     )
 
 
+def get_stack_state_bucket():
+    bucket_name = os.getenv("ARCHITECTURE_BUCKET_NAME", "ifcp-architecture-storage")
+    s3_resource = create_s3_resource()
+    return s3_resource.Bucket(bucket_name)
+
+
 def get_architecture_storage():
     bucket_name = os.getenv("ARCHITECTURE_BUCKET_NAME", "ifcp-architecture-storage")
     s3_resource = create_s3_resource()
@@ -259,4 +268,11 @@ def get_environment_manager(session: AsyncSession):
         env_dao=get_environment_dao(session),
         ev_dao=get_environment_version_dao(session),
         binary_storage=get_binary_storage(),
+    )
+
+
+def get_stack_manager(session: AsyncSession):
+    return StackManager(
+        stack_dao=StackDAO(session=session),
+        deployment_dao=DeploymentDAO(session=session),
     )

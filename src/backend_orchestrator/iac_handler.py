@@ -1,5 +1,5 @@
 import logging
-from typing import Optional
+from typing import Optional, Tuple
 
 from fastapi import HTTPException, Response
 from fastapi.responses import StreamingResponse
@@ -40,42 +40,12 @@ class IaCOrchestrator:
         accept: Optional[str] = None,
     ):
         try:
-            env_version: EnvironmentVersion = await self.ev_dao.get_current_version(
-                architecture_id, env_id
+            env_version, arch = await self.get_enviroment_version_and_architecture(
+                architecture_id, env_id, version
             )
-            arch: Architecture = await self.arch_dao.get_architecture(architecture_id)
-            if env_version is None or arch is None:
-                raise ArchitectureStateDoesNotExistError(
-                    "Architecture with id, {request.architecture_id}, does not exist"
-                )
-            elif version is not None and env_version.version != version:
-                raise EnvironmentVersionNotLatestError(
-                    f"Architecture state is not current. Expected {env_version.version}, got {version}"
-                )
-
-            iac = self.architecture_storage.get_iac_from_fs(env_version)
+            iac = await self.get_iac_output(env_version, arch)
             if iac is None:
-                arch_state: RunEngineResult = (
-                    self.architecture_storage.get_state_from_fs(env_version)
-                )
-                if arch_state is None:
-                    raise ArchitectureStateDoesNotExistError(
-                        f"No architecture exists for id {architecture_id}"
-                    )
-                self.binary_storage.ensure_binary(Binary.IAC)
-                request = ExportIacRequest(
-                    input_graph=arch_state.resources_yaml,
-                    name=arch.name if arch.name is not None else arch.id,
-                )
-                result = await export_iac(request)
-                iac = result.iac_bytes
-                if iac is None:
-                    return Response(content="I failed to generate IaC", status_code=500)
-                iac_location = self.architecture_storage.write_iac_to_fs(
-                    env_version, iac
-                )
-                env_version.iac_location = iac_location
-                await self.ev_dao.update_environment_version(env_version)
+                return Response(content="I failed to generate IaC", status_code=500)
             return StreamingResponse(
                 iter([iac]),
                 media_type="application/x-zip-compressed",
@@ -100,3 +70,52 @@ class IaCOrchestrator:
         except Exception:
             log.error("Error getting iac", exc_info=True)
             raise HTTPException(status_code=500, detail="internal server error")
+
+    async def get_enviroment_version_and_architecture(
+        self,
+        architecture_id: str,
+        env_id: str,
+        version: int = None,
+    ) -> (EnvironmentVersion, Architecture):
+        env_version: EnvironmentVersion = await self.ev_dao.get_current_version(
+            architecture_id, env_id
+        )
+        if version is None and env_version is not None:
+            version = env_version.version
+        arch: Architecture = await self.arch_dao.get_architecture(architecture_id)
+        if env_version is None or arch is None:
+            raise ArchitectureStateDoesNotExistError(
+                "Architecture with id, {request.architecture_id}, does not exist"
+            )
+        elif env_version.version != version:
+            raise EnvironmentVersionNotLatestError(
+                f"Architecture state is not current. Expected {env_version.version}, got {version}"
+            )
+        return (env_version, arch)
+
+    async def get_iac_output(
+        self,
+        env_version: EnvironmentVersion,
+        arch: Architecture,
+    ) -> bytes:
+
+        iac = self.architecture_storage.get_iac_from_fs(env_version)
+        if iac is None:
+            arch_state: RunEngineResult = self.architecture_storage.get_state_from_fs(
+                env_version
+            )
+            if arch_state is None:
+                raise ArchitectureStateDoesNotExistError(
+                    f"No architecture exists for id {arch.id}"
+                )
+            self.binary_storage.ensure_binary(Binary.IAC)
+            request = ExportIacRequest(
+                input_graph=arch_state.resources_yaml,
+                name=arch.name if arch.name is not None else arch.id,
+            )
+            result = await export_iac(request)
+            iac = result.iac_bytes
+            iac_location = self.architecture_storage.write_iac_to_fs(env_version, iac)
+            env_version.iac_location = iac_location
+            await self.ev_dao.update_environment_version(env_version)
+        return iac

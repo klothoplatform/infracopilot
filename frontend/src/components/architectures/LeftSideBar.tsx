@@ -5,7 +5,11 @@ import { ErrorBoundary } from "react-error-boundary";
 import { UIError } from "../../shared/errors";
 import { trackError } from "../../pages/store/ErrorStore";
 
-const LeftSideBar: FC = () => {
+interface LeftSideBarProps {
+  children?: React.ReactNode;
+}
+
+const LeftSideBar: FC<LeftSideBarProps> = ({ children }) => {
   return (
     <Sidebar aria-label="sidebar   ">
       <ErrorBoundary
@@ -20,7 +24,9 @@ const LeftSideBar: FC = () => {
             }),
           );
         }}
-      ></ErrorBoundary>
+      >
+        {children}
+      </ErrorBoundary>
     </Sidebar>
   );
 };

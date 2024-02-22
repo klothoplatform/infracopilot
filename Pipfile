@@ -28,6 +28,8 @@ gunicorn = "*"
 black = "*"
 openai = "==0.27.8"
 langchain = "*"
+pulumi = "*"
+sse-starlette = "*"
 
 [dev-packages]
 black = "*"

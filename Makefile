@@ -36,6 +36,21 @@ run:
 	pipenv run gunicorn -k uvicorn.workers.UvicornWorker -b 0.0.0.0:3000 --log-level debug src.main:app 
 
 
+run-deployer:
+	@echo "ENGINE_PATH: $(ENGINE_PATH)"
+	@echo "IAC_PATH: $(IAC_PATH)"
+	PYTHONPATH=. \
+	KEEP_TMP="True" \
+	AUTH0_DOMAIN="klotho-dev.us.auth0.com" \
+	AUTH0_AUDIENCE="A0sIE3wvh8LpG8mtJEjWPnBqZgBs5cNM" \
+	FGA_API_HOST="localhost:8080" \
+	FGA_API_SCHEME="http" \
+	FGA_STORE_NAME="test-store" \
+	AWS_ENDPOINT="http://localhost:9000" \
+	AWS_ACCESS_KEY_ID="minio" \
+    AWS_SECRET_ACCESS_KEY="minio123" \
+	pipenv run gunicorn -k uvicorn.workers.UvicornWorker -b 0.0.0.0:3030 --log-level debug src.deployer.main:app 
+
 test-backend:
 	PYTHONPATH=. pipenv run python -m unittest discover -s tests
 

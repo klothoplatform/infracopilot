@@ -38,6 +38,8 @@ export const env: Environment = {
   chatEnabled: process.env.REACT_APP_CHAT_ENABLED?.toLowerCase() === "true",
   documentationEnabled:
     process.env.REACT_APP_DOCUMENTATION_ENABLED?.toLowerCase() === "true",
+  deploymentsEnabled:
+    process.env.REACT_APP_DEPLOYMENTS_ENABLED?.toLowerCase() === "true",
   commandBarEnabled:
     process.env.REACT_APP_COMMAND_BAR_ENABLED === undefined
       ? true
@@ -74,6 +76,7 @@ export interface Environment {
   };
   chatEnabled: boolean;
   documentationEnabled: boolean;
+  deploymentsEnabled: boolean;
   environment: string;
   hiddenResources: string[];
 }

@@ -3,6 +3,7 @@ import type { FC } from "react";
 import React from "react";
 import { EditorLayout } from "../../shared/EditorViewSettings";
 import useApplicationStore from "../store/ApplicationStore";
+import { env } from "../../shared/environment";
 
 export const LayoutSelector: FC = () => {
   const tabItems = Object.values(EditorLayout);
@@ -42,15 +43,20 @@ export const LayoutSelector: FC = () => {
           onActiveTabChange(tabItems[activeTab]);
         }}
       >
-        {tabItems.map((option, index) => {
-          return (
-            <Tabs.Item
-              key={index}
-              active={option === viewSettings?.layout}
-              title={option}
-            />
-          );
-        })}
+        {tabItems
+          .filter(
+            (option) =>
+              option !== EditorLayout.Deploy || env.deploymentsEnabled,
+          )
+          .map((option, index) => {
+            return (
+              <Tabs.Item
+                key={index}
+                active={option === viewSettings?.layout}
+                title={option}
+              />
+            );
+          })}
       </Tabs>
     </div>
   );
