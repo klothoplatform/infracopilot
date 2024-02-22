@@ -47,6 +47,8 @@ async def run_command(
 
     cmd = [
         f"{b.path}",
+        # since we're using the engine in the service and not as a CLI, we want to log in JSON format
+        "--json-log",
         *args,
     ]
     if ENGINE_PROFILING and cwd is not None:
