@@ -52,7 +52,7 @@ export type EdgeConstraintOperators = Extract<
 >;
 export type ResourceConstraintOperators = Extract<
   ConstraintOperator,
-  ConstraintOperator.Equals | ConstraintOperator.Add
+  ConstraintOperator.Equals | ConstraintOperator.Add | ConstraintOperator.Remove
 >;
 
 export class ApplicationConstraint implements Constraint {
@@ -364,7 +364,10 @@ export function generateConstraintMetadataFromFormState(
               field.type === CollectionTypes.List ||
               field.type === CollectionTypes.Set
             ) {
-              const val = getDataFromPath(path.join("."), resourceMetadata);
+              const val = getDataFromPath(
+                [...path, name].join("."),
+                resourceMetadata,
+              );
               if (val) {
                 path.push(prop);
                 return;
@@ -402,13 +405,31 @@ export function generateConstraintMetadataFromFormState(
           }
           case CollectionTypes.Set:
           case CollectionTypes.List: {
-            const val = getDataFromPath(path.join("."), resourceMetadata);
-            if (!val) {
-              constraintMetadata[path.join(".")] = [value];
-            } else {
-              val.push(value);
-              constraintMetadata[path.join(".")] = val;
+            const nonIndexPath = path
+              .join(".")
+              .split("[")
+              .slice(0, -1)
+              .join("[");
+            const val = getDataFromPath(nonIndexPath, resourceMetadata);
+            const listVal = value as {
+              value: any;
+            };
+            let currVal = constraintMetadata[nonIndexPath];
+
+            if (currVal === undefined) {
+              currVal = val ? val : [];
             }
+            const sections = prop.split("[");
+            const index = parseInt(
+              prop.split("[")[sections.length - 1].split("]")[0],
+            );
+            if (listVal.value === undefined) {
+              currVal.splice(index, 1);
+            } else {
+              currVal[index] = listVal.value;
+            }
+            constraintMetadata[nonIndexPath] = currVal;
+
             break;
           }
           default:
