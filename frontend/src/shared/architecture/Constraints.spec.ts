@@ -1,4 +1,5 @@
-import type { ResourceType } from "../resources/ResourceTypes";
+import type { ListProperty, ResourceType } from "../resources/ResourceTypes";
+import { PrimitiveTypes } from "../resources/ResourceTypes";
 import { CollectionTypes } from "../resources/ResourceTypes";
 import {
   generateConstraintMetadataFromFormState,
@@ -136,6 +137,87 @@ describe("generateConstraintMetadataFromFormState", () => {
       testProperty: {
         testKey: "testValue",
       },
+    });
+  });
+
+  it("should set the entire list value for root primitive lists", () => {
+    const mockResourceType: ResourceType = {
+      provider: "testProvider",
+      type: "testType",
+      displayName: "testDisplayName",
+      views: new Map(),
+      properties: [
+        {
+          name: "testProperty",
+          qualifiedName: "testProperty",
+          type: CollectionTypes.List,
+          itemType: PrimitiveTypes.String,
+        } as ListProperty,
+      ],
+    };
+
+    const mockState = {
+      "testKey#testProperty[0]": { value: "testValue1" },
+      "testKey#testProperty[1]": { value: "testValue2" },
+    };
+
+    const mockResourceMetadata = {
+      testProperty: ["testOldValue1", "testOldValue2"],
+    };
+
+    const result = generateConstraintMetadataFromFormState(
+      mockResourceMetadata,
+      mockState,
+      mockResourceType,
+    );
+
+    expect(result).toEqual({
+      testProperty: ["testValue1", "testValue2"],
+    });
+  });
+
+  it("should set the entire list value for nested primitive lists", () => {
+    const mockResourceType: ResourceType = {
+      provider: "testProvider",
+      type: "testType",
+      displayName: "testDisplayName",
+      views: new Map(),
+      properties: [
+        {
+          name: "testProperty",
+          qualifiedName: "testProperty",
+          type: CollectionTypes.Map,
+          properties: [
+            {
+              name: "nestedProperty",
+              qualifiedName: "nestedProperty",
+              type: CollectionTypes.List,
+              itemType: PrimitiveTypes.String,
+            } as ListProperty,
+          ],
+        },
+      ],
+    };
+
+    const mockState = {
+      "testKey#testProperty.nestedProperty[0]": { value: "testValue1" },
+      "testKey#testProperty.nestedProperty[1]": { value: "testValue2" },
+    };
+
+    const mockResourceMetadata = {
+      testProperty: {
+        nestedProperty: ["testOldValue1", "testOldValue2"],
+      },
+    };
+
+    const result = generateConstraintMetadataFromFormState(
+      mockResourceMetadata,
+      mockState,
+      mockResourceType,
+    );
+
+    expect(result).toEqual({
+      "testProperty.nestedProperty": ["testValue1", "testValue2"],
     });
   });
 });
