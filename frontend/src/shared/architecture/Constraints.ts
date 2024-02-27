@@ -511,12 +511,10 @@ export function generateConstraintMetadataFromFormState(
 }
 
 const getDataFromPath = (path: string, resourceMetadata: any) => {
-  console.log(path);
   const properties: string[] = path.split(".");
   // deep copy so that resource metadata doesnt get modified in parent functions
   let currentData = JSON.parse(JSON.stringify(resourceMetadata));
   properties.forEach((prop) => {
-    console.log(currentData, prop);
     const splitProp = prop.split("[");
     currentData = currentData[splitProp[0]];
     if (currentData === undefined) {
