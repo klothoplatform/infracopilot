@@ -250,10 +250,12 @@ export const typeMappings = new Map<
           },
           groupIcon: ElasticLoadBalancing,
           discriminator: (n: any) => n?.resource?.Type?.toLowerCase(),
+          groupEnableDragTarget: true,
           variants: new Map<String, IconMapping>([
             [
               "application",
               {
+                groupEnableDragTarget: true,
                 nodeIcon: ElasticLoadBalancingNetworkLoadBalancer,
                 groupStyle: {
                   borderColor: AWS_NETWORKING_PRIMARY_COLOR,

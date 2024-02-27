@@ -220,6 +220,54 @@ describe("generateConstraintMetadataFromFormState", () => {
       "testProperty.nestedProperty": ["testValue1", "testValue2"],
     });
   });
+
+  it("should ignore synthetic properties", () => {
+    const mockResourceType: ResourceType = {
+      provider: "testProvider",
+      type: "testType",
+      displayName: "testDisplayName",
+      views: new Map(),
+      properties: [
+        {
+          name: "testProperty",
+          qualifiedName: "testProperty",
+          type: CollectionTypes.Map,
+          synthetic: true,
+          properties: [
+            {
+              name: "nestedProperty",
+              qualifiedName: "nestedProperty",
+              synthetic: true,
+              type: CollectionTypes.List,
+              itemType: CollectionTypes.Map,
+              properties: [
+                {
+                  name: "Key",
+                  qualifiedName: "Key",
+                  type: PrimitiveTypes.String,
+                },
+              ],
+            } as ListProperty,
+          ],
+        },
+      ],
+    };
+
+    const mockState = {
+      "testKey#testProperty.nestedProperty[0].Key": "testValue1",
+      "testKey#testProperty.nestedProperty[1].Key": "testValue2",
+    };
+
+    const mockResourceMetadata = {};
+
+    const result = generateConstraintMetadataFromFormState(
+      mockResourceMetadata,
+      mockState,
+      mockResourceType,
+    );
+
+    expect(result).toEqual({});
+  });
 });
 
 describe("setNestedValue", () => {

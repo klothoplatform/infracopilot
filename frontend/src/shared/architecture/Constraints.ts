@@ -332,7 +332,7 @@ export function generateConstraintMetadataFromFormState(
     let path: string[] = [];
 
     let stopPathExecution = false;
-    propertyPath.forEach((prop) => {
+    propertyPath.forEach((prop, index) => {
       const name = prop.split("[")[0];
       if (stopPathExecution) {
         return;
@@ -347,10 +347,12 @@ export function generateConstraintMetadataFromFormState(
               field.type === CollectionTypes.List ||
               field.type === CollectionTypes.Set
             ) {
-              const val = resourceMetadata[name];
-              if (val) {
-                path.push(prop);
-                return;
+              if (!currentProperty.synthetic) {
+                const val = resourceMetadata[name];
+                if (val) {
+                  path.push(prop);
+                  return;
+                }
               }
             }
             path.push(prop.split("[")[0]);
@@ -364,13 +366,15 @@ export function generateConstraintMetadataFromFormState(
               field.type === CollectionTypes.List ||
               field.type === CollectionTypes.Set
             ) {
-              const val = getDataFromPath(
-                [...path, name].join("."),
-                resourceMetadata,
-              );
-              if (val) {
-                path.push(prop);
-                return;
+              if (!currentProperty.synthetic) {
+                const val = getDataFromPath(
+                  [...path, name].join("."),
+                  resourceMetadata,
+                );
+                if (val) {
+                  path.push(prop);
+                  return;
+                }
               }
             }
             path.push(prop.split("[")[0]);
@@ -381,7 +385,7 @@ export function generateConstraintMetadataFromFormState(
       // if there is a synthetic property found we just set the constraint metadata to the value
       // this is for the case of customized configuration
       if (currentProperty.synthetic) {
-        constraintMetadata[path.join(".")] = value;
+        stopPathExecution = true;
         return;
       }
 
@@ -483,7 +487,6 @@ export function generateConstraintMetadataFromFormState(
           ? parseInt(path.slice(path.lastIndexOf("[") + 1, -1))
           : -1;
 
-        console.log(parentKey, valueKey, arrayKey, arrayIndex, isArrayIndex);
         let parentValue;
         // if it is an array we are going to splice the value out of the array
         if (isArrayIndex) {
