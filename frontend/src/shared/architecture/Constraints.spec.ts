@@ -221,6 +221,74 @@ describe("generateConstraintMetadataFromFormState", () => {
     });
   });
 
+  it("should set the last list value for nested lists", () => {
+    const mockResourceType: ResourceType = {
+      provider: "testProvider",
+      type: "testType",
+      displayName: "testDisplayName",
+      views: new Map(),
+      properties: [
+        {
+          name: "testProperty",
+          qualifiedName: "testProperty",
+          type: CollectionTypes.Map,
+          properties: [
+            {
+              name: "nestedProperty",
+              qualifiedName: "nestedProperty",
+              type: CollectionTypes.List,
+              itemType: CollectionTypes.List,
+              properties: [
+                {
+                  name: "nestedList",
+                  qualifiedName: "nestedList",
+                  type: CollectionTypes.List,
+                  itemType: PrimitiveTypes.String,
+                } as ListProperty,
+              ],
+            } as ListProperty,
+          ],
+        },
+      ],
+    };
+
+    const mockState = {
+      "testKey#testProperty.nestedProperty[0].nestedList[0]": {
+        value: "testValue1",
+      },
+      "testKey#testProperty.nestedProperty[1].nestedList[1]": {
+        value: "testValue2",
+      },
+    };
+
+    const mockResourceMetadata = {
+      testProperty: {
+        nestedProperty: [
+          {
+            nestedList: [],
+          },
+          {
+            nestedList: ["testOldValue1", "testOldValue2"],
+          },
+        ],
+      },
+    };
+
+    const result = generateConstraintMetadataFromFormState(
+      mockResourceMetadata,
+      mockState,
+      mockResourceType,
+    );
+
+    expect(result).toEqual({
+      "testProperty.nestedProperty[0].nestedList": ["testValue1"],
+      "testProperty.nestedProperty[1].nestedList": [
+        "testOldValue1",
+        "testValue2",
+      ],
+    });
+  });
+
   it("should ignore synthetic properties", () => {
     const mockResourceType: ResourceType = {
       provider: "testProvider",

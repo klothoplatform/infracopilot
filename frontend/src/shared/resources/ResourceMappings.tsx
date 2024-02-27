@@ -250,7 +250,6 @@ export const typeMappings = new Map<
           },
           groupIcon: ElasticLoadBalancing,
           discriminator: (n: any) => n?.resource?.Type?.toLowerCase(),
-          groupEnableDragTarget: true,
           variants: new Map<String, IconMapping>([
             [
               "application",

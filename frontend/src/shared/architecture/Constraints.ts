@@ -348,7 +348,7 @@ export function generateConstraintMetadataFromFormState(
               field.type === CollectionTypes.Set
             ) {
               if (!currentProperty.synthetic) {
-                const val = resourceMetadata[name];
+                const val = getDataFromPath(prop, resourceMetadata);
                 if (val) {
                   path.push(prop);
                   return;
@@ -450,7 +450,11 @@ export function generateConstraintMetadataFromFormState(
           case CollectionTypes.Set:
           case CollectionTypes.List: {
             if (!val) {
-              const nonIndexPath = path.join(".").split("[")[0];
+              const nonIndexPath = path
+                .join(".")
+                .split("[")
+                .slice(0, -1)
+                .join("[");
               const currVal = getDataFromPath(nonIndexPath, resourceMetadata);
               if (currVal && constraintMetadata[nonIndexPath] === undefined) {
                 constraintMetadata[nonIndexPath] = currVal;

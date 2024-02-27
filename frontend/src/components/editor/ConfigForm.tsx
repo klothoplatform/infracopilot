@@ -205,7 +205,6 @@ export default function ConfigForm({
           const resourceMetadata =
             environmentVersion.resources.get(resourceIdStr);
 
-          console.log(non_empty_values, "non_empty_values");
           const constraintMetadata = generateConstraintMetadataFromFormState(
             resourceMetadata,
             non_empty_values,
