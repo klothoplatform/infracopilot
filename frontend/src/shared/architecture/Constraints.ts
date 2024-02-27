@@ -400,6 +400,9 @@ export function generateConstraintMetadataFromFormState(
               ...currVal,
               [mapVal.key]: mapVal.value,
             };
+            if (mapVal.value === undefined) {
+              delete newVal[mapVal.key];
+            }
             constraintMetadata[path.join(".")] = newVal;
             break;
           }
@@ -460,14 +463,60 @@ export function generateConstraintMetadataFromFormState(
       }
     });
   });
+
+  //post process constraint metadata to see if there are removal of any complex objects
+  // if there are we know we need to set their parent object to the new value
+  Object.entries(constraintMetadata).forEach(([key, value]) => {
+    if (value === undefined) {
+      const resourceId = key.split("#")[0];
+      const pathstr = key.split("#")[1];
+      const splitKey = pathstr.split(".");
+      if (splitKey.length > 1) {
+        const path = splitKey.slice(0, -1).join(".");
+        const valueKey = splitKey[splitKey.length - 1];
+        const parentKey = splitKey.slice(0, -1).join(".");
+        const isArrayIndex = parentKey.endsWith("]");
+        const arrayKey = isArrayIndex
+          ? path.slice(0, path.lastIndexOf("["))
+          : path;
+        const arrayIndex = isArrayIndex
+          ? parseInt(path.slice(path.lastIndexOf("[") + 1, -1))
+          : -1;
+
+        console.log(parentKey, valueKey, arrayKey, arrayIndex, isArrayIndex);
+        let parentValue;
+        // if it is an array we are going to splice the value out of the array
+        if (isArrayIndex) {
+          parentValue = constraintMetadata[arrayKey];
+          if (parentValue === undefined) {
+            parentValue = getDataFromPath(arrayKey, resourceMetadata);
+          }
+          parentValue.splice(arrayIndex, 1);
+          constraintMetadata[arrayKey] = parentValue;
+        } else {
+          // if it is a nested key of a map we can remove the key from the parent map
+          parentValue = constraintMetadata[parentKey];
+          if (parentValue === undefined) {
+            parentValue = getDataFromPath(parentKey, resourceMetadata);
+          }
+          delete parentValue[valueKey];
+          constraintMetadata[parentKey] = parentValue;
+        }
+        delete constraintMetadata[key];
+      }
+    }
+  });
+
   return constraintMetadata;
 }
 
 const getDataFromPath = (path: string, resourceMetadata: any) => {
+  console.log(path);
   const properties: string[] = path.split(".");
   // deep copy so that resource metadata doesnt get modified in parent functions
   let currentData = JSON.parse(JSON.stringify(resourceMetadata));
   properties.forEach((prop) => {
+    console.log(currentData, prop);
     const splitProp = prop.split("[");
     currentData = currentData[splitProp[0]];
     if (currentData === undefined) {
