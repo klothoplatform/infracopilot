@@ -254,6 +254,7 @@ export const typeMappings = new Map<
             [
               "application",
               {
+                groupEnableDragTarget: true,
                 nodeIcon: ElasticLoadBalancingNetworkLoadBalancer,
                 groupStyle: {
                   borderColor: AWS_NETWORKING_PRIMARY_COLOR,

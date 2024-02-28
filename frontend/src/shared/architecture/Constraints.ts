@@ -52,7 +52,7 @@ export type EdgeConstraintOperators = Extract<
 >;
 export type ResourceConstraintOperators = Extract<
   ConstraintOperator,
-  ConstraintOperator.Equals | ConstraintOperator.Add
+  ConstraintOperator.Equals | ConstraintOperator.Add | ConstraintOperator.Remove
 >;
 
 export class ApplicationConstraint implements Constraint {
@@ -332,7 +332,7 @@ export function generateConstraintMetadataFromFormState(
     let path: string[] = [];
 
     let stopPathExecution = false;
-    propertyPath.forEach((prop) => {
+    propertyPath.forEach((prop, index) => {
       const name = prop.split("[")[0];
       if (stopPathExecution) {
         return;
@@ -347,10 +347,12 @@ export function generateConstraintMetadataFromFormState(
               field.type === CollectionTypes.List ||
               field.type === CollectionTypes.Set
             ) {
-              const val = resourceMetadata[name];
-              if (val) {
-                path.push(prop);
-                return;
+              if (!currentProperty.synthetic) {
+                const val = getDataFromPath(prop, resourceMetadata);
+                if (val) {
+                  path.push(prop);
+                  return;
+                }
               }
             }
             path.push(prop.split("[")[0]);
@@ -364,10 +366,15 @@ export function generateConstraintMetadataFromFormState(
               field.type === CollectionTypes.List ||
               field.type === CollectionTypes.Set
             ) {
-              const val = getDataFromPath(path.join("."), resourceMetadata);
-              if (val) {
-                path.push(prop);
-                return;
+              if (!currentProperty.synthetic) {
+                const val = getDataFromPath(
+                  [...path, name].join("."),
+                  resourceMetadata,
+                );
+                if (val) {
+                  path.push(prop);
+                  return;
+                }
               }
             }
             path.push(prop.split("[")[0]);
@@ -378,7 +385,7 @@ export function generateConstraintMetadataFromFormState(
       // if there is a synthetic property found we just set the constraint metadata to the value
       // this is for the case of customized configuration
       if (currentProperty.synthetic) {
-        constraintMetadata[path.join(".")] = value;
+        stopPathExecution = true;
         return;
       }
 
@@ -397,18 +404,39 @@ export function generateConstraintMetadataFromFormState(
               ...currVal,
               [mapVal.key]: mapVal.value,
             };
+            if (mapVal.value === undefined) {
+              delete newVal[mapVal.key];
+            }
             constraintMetadata[path.join(".")] = newVal;
             break;
           }
           case CollectionTypes.Set:
           case CollectionTypes.List: {
-            const val = getDataFromPath(path.join("."), resourceMetadata);
-            if (!val) {
-              constraintMetadata[path.join(".")] = [value];
-            } else {
-              val.push(value);
-              constraintMetadata[path.join(".")] = val;
+            const nonIndexPath = path
+              .join(".")
+              .split("[")
+              .slice(0, -1)
+              .join("[");
+            const val = getDataFromPath(nonIndexPath, resourceMetadata);
+            const listVal = value as {
+              value: any;
+            };
+            let currVal = constraintMetadata[nonIndexPath];
+
+            if (currVal === undefined) {
+              currVal = val ? val : [];
             }
+            const sections = prop.split("[");
+            const index = parseInt(
+              prop.split("[")[sections.length - 1].split("]")[0],
+            );
+            if (listVal.value === undefined) {
+              currVal.splice(index, 1);
+            } else {
+              currVal[index] = listVal.value;
+            }
+            constraintMetadata[nonIndexPath] = currVal;
+
             break;
           }
           default:
@@ -422,7 +450,11 @@ export function generateConstraintMetadataFromFormState(
           case CollectionTypes.Set:
           case CollectionTypes.List: {
             if (!val) {
-              const nonIndexPath = path.join(".").split("[")[0];
+              const nonIndexPath = path
+                .join(".")
+                .split("[")
+                .slice(0, -1)
+                .join("[");
               const currVal = getDataFromPath(nonIndexPath, resourceMetadata);
               if (currVal && constraintMetadata[nonIndexPath] === undefined) {
                 constraintMetadata[nonIndexPath] = currVal;
@@ -439,6 +471,49 @@ export function generateConstraintMetadataFromFormState(
       }
     });
   });
+
+  //post process constraint metadata to see if there are removal of any complex objects
+  // if there are we know we need to set their parent object to the new value
+  Object.entries(constraintMetadata).forEach(([key, value]) => {
+    if (value === undefined) {
+      const resourceId = key.split("#")[0];
+      const pathstr = key.split("#")[1];
+      const splitKey = pathstr.split(".");
+      if (splitKey.length > 1) {
+        const path = splitKey.slice(0, -1).join(".");
+        const valueKey = splitKey[splitKey.length - 1];
+        const parentKey = splitKey.slice(0, -1).join(".");
+        const isArrayIndex = parentKey.endsWith("]");
+        const arrayKey = isArrayIndex
+          ? path.slice(0, path.lastIndexOf("["))
+          : path;
+        const arrayIndex = isArrayIndex
+          ? parseInt(path.slice(path.lastIndexOf("[") + 1, -1))
+          : -1;
+
+        let parentValue;
+        // if it is an array we are going to splice the value out of the array
+        if (isArrayIndex) {
+          parentValue = constraintMetadata[arrayKey];
+          if (parentValue === undefined) {
+            parentValue = getDataFromPath(arrayKey, resourceMetadata);
+          }
+          parentValue.splice(arrayIndex, 1);
+          constraintMetadata[arrayKey] = parentValue;
+        } else {
+          // if it is a nested key of a map we can remove the key from the parent map
+          parentValue = constraintMetadata[parentKey];
+          if (parentValue === undefined) {
+            parentValue = getDataFromPath(parentKey, resourceMetadata);
+          }
+          delete parentValue[valueKey];
+          constraintMetadata[parentKey] = parentValue;
+        }
+        delete constraintMetadata[key];
+      }
+    }
+  });
+
   return constraintMetadata;
 }
 
