@@ -116,7 +116,7 @@ export default function ConfigForm({
         })
         .flat();
 
-      // we need to set errors ascending depth order to avoid overwriting child errors with parent errors (e.g. set Prop1 before Prop1.Prop2)
+      // we need to sort errors ascending depth order to avoid overwriting child errors with parent errors (e.g. set Prop1 before Prop1.Prop2)
       configErrors
         .sort((e1, e2) =>
           propertyDepth(e1.property) > propertyDepth(e2.property) ? 1 : -1,
