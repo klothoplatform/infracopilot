@@ -1,4 +1,5 @@
 import {
+  propertyDepth,
   getEnumKeyByEnumValue,
   isObject,
   qualifiedProperties,
@@ -87,5 +88,29 @@ describe("qualifiedProperties", () => {
   });
   it("should return an array of properties for a nested array", () => {
     expect(qualifiedProperties([[1, 2]])).toEqual(["[0]", "[0][0]", "[0][1]"]);
+  });
+});
+
+describe("calculatePropertyDepth", () => {
+  it("should return 0 for a property with no periods or brackets", () => {
+    expect(propertyDepth("a")).toBe(0);
+  });
+
+  it("should return 1 for a property with one period", () => {
+    expect(propertyDepth("a.b")).toBe(1);
+  });
+
+  it("should return 1 for a property with one opening bracket", () => {
+    expect(propertyDepth("a[0]")).toBe(1);
+  });
+
+  it("should return 2 for a property with a period and an opening bracket", () => {
+    expect(propertyDepth("a.b[0]")).toBe(2);
+    expect(propertyDepth("a[0].b")).toBe(2);
+  });
+
+  it("should return 3 for a property with two periods and an opening bracket", () => {
+    expect(propertyDepth("a.b.c[0]")).toBe(3);
+    expect(propertyDepth("a[0].b.c")).toBe(3);
   });
 });

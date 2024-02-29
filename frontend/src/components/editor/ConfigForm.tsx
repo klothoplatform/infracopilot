@@ -1,4 +1,3 @@
-"use client";
 import { trackError } from "../../pages/store/ErrorStore";
 
 import type {
@@ -22,11 +21,9 @@ import {
 } from "../../pages/ArchitectureEditor/config/CustomConfigMappings";
 import {
   type Constraint,
-  removeEmptyKeys,
-  generateConstraintMetadataFromFormState,
-} from "../../shared/architecture/Constraints";
-import {
   ConstraintOperator,
+  generateConstraintMetadataFromFormState,
+  removeEmptyKeys,
   ResourceConstraint,
 } from "../../shared/architecture/Constraints";
 import { ConfigGroup } from "../config/ConfigGroup";
@@ -36,8 +33,11 @@ import { ErrorBoundary } from "react-error-boundary";
 import { FallbackRenderer } from "../FallbackRenderer";
 import { ApplicationError, UIError } from "../../shared/errors";
 import { ConfigSection } from "../config/ConfigSection";
-import { type EnvironmentVersion } from "../../shared/architecture/EnvironmentVersion";
-import { type ConfigurationError } from "../../shared/architecture/Architecture";
+import type {
+  ConfigurationError,
+  EnvironmentVersion,
+} from "../../shared/architecture/EnvironmentVersion";
+import { propertyDepth } from "../../shared/object-util";
 
 export interface ConfigFormSection {
   title: string;
@@ -64,25 +64,28 @@ export default function ConfigForm({
     deselectResource,
   } = useApplicationStore();
 
-  const getSectionsState = (sections?: ConfigFormSection[]) => {
-    if (!sections) {
-      return {};
-    }
-    let stateMap: { [key: string]: {} } = {};
-    sections.forEach((section) => {
-      return section.propertyMap.forEach((properties, resourceId): any => {
-        const fs = toFormState(
-          environmentVersion.resources?.get(resourceId),
-          properties,
-          resourceId,
-        );
-        Object.keys(fs).forEach((key) => {
-          stateMap[key] = fs[key];
+  const getSectionsState = useCallback(
+    (sections?: ConfigFormSection[]) => {
+      if (!sections) {
+        return {};
+      }
+      let stateMap: { [key: string]: {} } = {};
+      sections.forEach((section) => {
+        return section.propertyMap.forEach((properties, resourceId): any => {
+          const fs = toFormState(
+            environmentVersion.resources?.get(resourceId),
+            properties,
+            resourceId,
+          );
+          Object.keys(fs).forEach((key) => {
+            stateMap[key] = fs[key];
+          });
         });
       });
-    });
-    return stateMap;
-  };
+      return stateMap;
+    },
+    [environmentVersion.resources],
+  );
 
   const methods = useForm({
     shouldFocusError: true,
@@ -103,33 +106,35 @@ export default function ConfigForm({
     isSubmitted,
     isSubmitSuccessful,
     isDirty,
-    errors,
   } = formState;
-  const [configErrors, setConfigErrors] = React.useState<ConfigurationError[]>(
-    [],
-  );
 
-  // add errors to the fields which failed server side validation
-  const { selectedNode } = useApplicationStore();
+  const updateConfigErrors = useCallback(
+    (configErrors: ConfigurationError[]) => {
+      const allSectionResources = sections
+        ?.map((section) => {
+          return [...section.propertyMap.keys()];
+        })
+        .flat();
 
-  useEffect(() => {
-    const allSectionResources = sections
-      ?.map((section) => {
-        return [...section.propertyMap.keys()];
-      })
-      .flat();
-    configErrors?.forEach((e) => {
-      if (
-        e.resource.toString() === selectedNode ||
-        allSectionResources?.includes(e.resource.toString())
-      ) {
-        methods.setError(`${e.resource}#${e.property}`, {
-          message: e.error,
-          type: "manual",
+      // we need to set errors ascending depth order to avoid overwriting child errors with parent errors (e.g. set Prop1 before Prop1.Prop2)
+      configErrors
+        .sort((e1, e2) =>
+          propertyDepth(e1.property) > propertyDepth(e2.property) ? 1 : -1,
+        )
+        .forEach((e) => {
+          if (
+            e.resource.equals(selectedResource) ||
+            allSectionResources?.includes(e.resource.toString())
+          ) {
+            methods.setError(`${e.resource}#${e.property}`, {
+              message: e.validation_error,
+              type: "manual",
+            });
+          }
         });
-      }
-    });
-  }, [configErrors, errors, methods, sections, selectedNode, selectedResource]);
+    },
+    [methods, sections, selectedResource],
+  );
 
   useEffect(() => {
     if (isSubmitted && !isSubmitSuccessful) {
@@ -149,23 +154,16 @@ export default function ConfigForm({
         ...getCustomConfigState(selectedResource, environmentVersion),
       });
     }
-    const allSectionResources = sections
-      ?.map((section) => {
-        return [...section.propertyMap.keys()];
-      })
-      .flat();
-    configErrors?.forEach((e) => {
-      if (
-        e.resource.toString() === selectedNode ||
-        allSectionResources?.includes(e.resource.toString())
-      ) {
-        methods.setError(`${e.resource}#${e.property}`, {
-          message: e.error,
-          type: "manual",
-        });
-      }
-    });
-  }, [environmentVersion, isSubmitSuccessful, isSubmitted, methods, sections]);
+  }, [
+    environmentVersion,
+    getSectionsState,
+    isSubmitSuccessful,
+    isSubmitted,
+    methods,
+    updateConfigErrors,
+    sections,
+    selectedResource,
+  ]);
 
   const submitConfigChanges: SubmitHandler<any> = useCallback(
     async (submittedValues: any) => {
@@ -259,7 +257,7 @@ export default function ConfigForm({
       }
       try {
         const currConfigErrs = await applyConstraints(constraints);
-        setConfigErrors(currConfigErrs);
+        updateConfigErrors(currConfigErrs);
       } catch (e: any) {
         if (e instanceof ApplicationError) {
           addError(e);
@@ -277,9 +275,10 @@ export default function ConfigForm({
     [
       addError,
       applyConstraints,
-      environmentVersion,
       defaultValues,
       dirtyFields,
+      environmentVersion,
+      updateConfigErrors,
       resourceTypeKB,
       selectedResource,
     ],
@@ -306,7 +305,7 @@ export default function ConfigForm({
         >
           <div className="mb-2 max-h-full min-h-0 w-full overflow-y-auto overflow-x-hidden pb-2 [&>*:not(:last-child)]:mb-2">
             {sections?.map((section, index) => {
-              if (index > 0 && section.propertyMap.size == 0) {
+              if (index > 0 && !section.propertyMap.size) {
                 return null;
               }
               return (
@@ -319,7 +318,7 @@ export default function ConfigForm({
                 >
                   {selectedResource &&
                     showCustomConfig &&
-                    index == 0 &&
+                    index === 0 &&
                     Object.entries(
                       getCustomConfigSections(
                         selectedResource.provider,

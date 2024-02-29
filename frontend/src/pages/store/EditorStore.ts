@@ -14,7 +14,6 @@ import type {
 import { addEdge, applyEdgeChanges, applyNodeChanges } from "reactflow";
 import type {
   Architecture,
-  ConfigurationError,
   ReactFlowElements,
 } from "../../shared/architecture/Architecture";
 import { ArchitectureView } from "../../shared/architecture/Architecture";
@@ -65,6 +64,7 @@ import { getPrevState } from "../../api/GetPreviousState";
 import { setCurrentState } from "../../api/SetCurrentState";
 import modifyArchitecture from "../../api/ModifyArchitecture";
 import { refreshSelection } from "../../shared/editor-util";
+import type { ConfigurationError } from "../../shared/architecture/EnvironmentVersion";
 import {
   type EnvironmentVersion,
   toReactFlowElements,
@@ -796,7 +796,6 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       );
 
       console.log("applying constraints", allConstraints);
-      let navigateToChanges = true;
 
       const response = await applyConstraints(
         ev.architecture_id,
