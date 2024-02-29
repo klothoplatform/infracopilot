@@ -50,7 +50,11 @@ export interface ConfigurationError {
   resource: NodeId;
   property: string;
   value?: any;
-  error: string;
+  error: {
+    chain: string[];
+  };
+  error_code: string;
+  validation_error: string;
 }
 
 export function getDownstreamResources(

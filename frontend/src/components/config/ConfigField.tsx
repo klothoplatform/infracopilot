@@ -626,7 +626,7 @@ export const ErrorHelper: FC<PropsWithChildren<{ error?: any }>> = ({
       })}
     >
       {children}
-      <div className="mt-2 block max-w-full overflow-auto text-sm text-red-600 dark:text-red-500">
+      <div className="mt-2 block max-h-20 max-w-full overflow-auto text-sm text-red-600 dark:text-red-500">
         {error.root && <p>{error.root.message?.toString()}</p>}
         <p>{error.message?.toString()}</p>
       </div>

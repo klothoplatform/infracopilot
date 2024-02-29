@@ -49,57 +49,6 @@ export function qualifiedProperties(obj: any): string[] {
   return properties;
 }
 
-export function getModifiedFields(
-  original: any,
-  submitted: any,
-  dirty: any,
-): string[] {
-  const properties: string[] = [];
-  if (!isObject(original) && !Array.isArray(original)) {
-    return properties;
-  }
-  if (Array.isArray(original)) {
-    for (const [index, value] of original.entries()) {
-      const childProperties = getModifiedFields(
-        value,
-        submitted[index],
-        dirty[index],
-      );
-      if (dirty[index]) {
-        properties.push(`[${index}]`);
-        properties.push(
-          ...childProperties.map(
-            (childProperty) =>
-              `[${index}]${
-                childProperty.startsWith("[") ? "" : "."
-              }${childProperty}`,
-          ),
-        );
-      }
-    }
-  } else {
-    for (const property of Object.keys(original)) {
-      const child = original[property];
-      if (isObject(child) || Array.isArray(child)) {
-        const childProperties = getModifiedFields(
-          child,
-          submitted[property],
-          dirty[property],
-        );
-        if (dirty[property]) {
-          properties.push(
-            ...childProperties.map(
-              (childProperty) =>
-                `${property}${
-                  childProperty.startsWith("[") ? "" : "."
-                }${childProperty}`,
-            ),
-          );
-        }
-      } else if (dirty[property]) {
-        properties.push(property);
-      }
-    }
-  }
-  return properties;
+export function propertyDepth(property: string): number {
+  return property.split(/[.[]/).length - 1;
 }
