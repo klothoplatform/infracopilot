@@ -74,6 +74,7 @@ import {
 import {
   AmazonElastiCache,
   AmazonRds,
+  AmazonMemoryDbForRedis,
 } from "../../components/icons/AwsArchitectureService/Database";
 import {
   AwsCertificateManager,
@@ -270,6 +271,10 @@ export const typeMappings = new Map<
       ["load_balancer_listener", ElasticLoadBalancing],
       ["load_balancer_listener_rule", ElasticLoadBalancing],
       ["log_group", AmazonCloudWatchLogs],
+      ["memorydb_acl", AmazonMemoryDbForRedis],
+      ["memorydb_cluster", AmazonMemoryDbForRedis],
+      ["memorydb_subnetgroup", AmazonMemoryDbForRedis],
+      ["memorydb_user", AmazonMemoryDbForRedis],
       ["nat_gateway", AmazonVpcNatGateway],
       ["private_dns_namespace", AmazonElasticContainerService],
       ["rds", AmazonRds],
