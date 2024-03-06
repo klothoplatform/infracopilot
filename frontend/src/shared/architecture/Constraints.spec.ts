@@ -221,6 +221,48 @@ describe("generateConstraintMetadataFromFormState", () => {
     });
   });
 
+  it("should set the entire list value for unset nested primitive lists", () => {
+    const mockResourceType: ResourceType = {
+      provider: "testProvider",
+      type: "testType",
+      displayName: "testDisplayName",
+      views: new Map(),
+      properties: [
+        {
+          name: "testProperty",
+          qualifiedName: "testProperty",
+          type: CollectionTypes.Map,
+          properties: [
+            {
+              name: "nestedProperty",
+              qualifiedName: "nestedProperty",
+              type: CollectionTypes.List,
+              itemType: PrimitiveTypes.String,
+            } as ListProperty,
+          ],
+        },
+      ],
+    };
+
+    const mockState = {
+      "testKey#testProperty.nestedProperty[0]": { value: "testValue1" },
+    };
+
+    const mockResourceMetadata = {
+      testProperty: {},
+    };
+
+    const result = generateConstraintMetadataFromFormState(
+      mockResourceMetadata,
+      mockState,
+      mockResourceType,
+    );
+
+    expect(result).toEqual({
+      "testProperty.nestedProperty": ["testValue1"],
+    });
+  });
+
   it("should set the last list value for nested lists", () => {
     const mockResourceType: ResourceType = {
       provider: "testProvider",
