@@ -343,41 +343,14 @@ export function generateConstraintMetadataFromFormState(
         resourceType!.properties?.forEach((field) => {
           if (field.name === name) {
             currentProperty = field;
-            if (
-              field.type === CollectionTypes.List ||
-              field.type === CollectionTypes.Set
-            ) {
-              if (!currentProperty.synthetic) {
-                const val = getDataFromPath(prop, resourceMetadata);
-                if (val) {
-                  path.push(prop);
-                  return;
-                }
-              }
-            }
-            path.push(prop.split("[")[0]);
+            path.push(prop);
           }
         });
       } else {
         currentProperty.properties?.forEach((field) => {
           if (field.name === name) {
             currentProperty = field;
-            if (
-              field.type === CollectionTypes.List ||
-              field.type === CollectionTypes.Set
-            ) {
-              if (!currentProperty.synthetic) {
-                const val = getDataFromPath(
-                  [...path, name].join("."),
-                  resourceMetadata,
-                );
-                if (val) {
-                  path.push(prop);
-                  return;
-                }
-              }
-            }
-            path.push(prop.split("[")[0]);
+            path.push(prop);
           }
         });
       }
@@ -412,11 +385,10 @@ export function generateConstraintMetadataFromFormState(
           }
           case CollectionTypes.Set:
           case CollectionTypes.List: {
-            const nonIndexPath = path
-              .join(".")
-              .split("[")
-              .slice(0, -1)
-              .join("[");
+            const isArrayIndex = path[path.length - 1].endsWith("]");
+            const nonIndexPath = isArrayIndex
+              ? path.join(".").split("[").slice(0, -1).join("[")
+              : path.join(".");
             const val = getDataFromPath(nonIndexPath, resourceMetadata);
             const listVal = value as {
               value: any;
@@ -430,6 +402,12 @@ export function generateConstraintMetadataFromFormState(
             const index = parseInt(
               prop.split("[")[sections.length - 1].split("]")[0],
             );
+            // if a parent object has been deleted there will be no value and we want to ensure we dont keep progressing
+            if (value === undefined) {
+              constraintMetadata[key] = undefined;
+              stopPathExecution = true;
+              break;
+            }
             if (listVal.value === undefined) {
               currVal.splice(index, 1);
             } else {
@@ -459,6 +437,11 @@ export function generateConstraintMetadataFromFormState(
               if (currVal && constraintMetadata[nonIndexPath] === undefined) {
                 constraintMetadata[nonIndexPath] = currVal;
               }
+              if (constraintMetadata[nonIndexPath] === undefined) {
+                const isArrayIndex = path[path.length - 1].endsWith("]");
+                constraintMetadata[nonIndexPath] = isArrayIndex ? [] : {};
+              }
+
               setNestedValue(
                 constraintMetadata[nonIndexPath],
                 pathstr.substring(nonIndexPath.length),
@@ -550,7 +533,13 @@ export function setNestedValue(obj: any, path: string, value: any) {
     if (i === keys.length - 1) {
       // If this is the last key, set the value
       if (isArrayIndex) {
-        current[arrayKey][arrayIndex] = value;
+        if (!Array.isArray(current[arrayKey])) {
+          current[arrayKey] = [];
+        }
+        const listVal = value as {
+          value: any;
+        };
+        current[arrayKey][arrayIndex] = listVal.value;
       } else {
         current[key] = value;
       }
