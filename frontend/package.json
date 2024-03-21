@@ -6,7 +6,7 @@
     "@auth0/auth0-react": "^2.2.1",
     "@azure/communication-react": "==1.13.0-beta.1",
     "@hookform/error-message": "^2.0.1",
-    "@segment/analytics-next": "^1.59.0",
+    "@rudderstack/analytics-js": "^3.0.0-beta.24",
     "@uiw/react-md-editor": "^4.0.3",
     "ace-builds": "^1.32.5",
     "autoprefixer": "^10.4.17",

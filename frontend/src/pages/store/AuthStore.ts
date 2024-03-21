@@ -137,8 +137,9 @@ export const authStore: StateCreator<AuthStore, [], [], AuthStoreBase> = (
         }
 
         analytics.identify(user?.sub, {
-          label: user?.name,
+          name: user?.name,
           email: user?.email,
+          environment: env.environment,
         });
       })();
     }

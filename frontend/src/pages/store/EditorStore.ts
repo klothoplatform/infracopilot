@@ -314,15 +314,15 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     await get().applyConstraints();
     if (nodeConstraints.length > 0) {
       analytics.track("deleteNodes", {
-        nodes: nodeConstraints.map((c) => c.node),
+        nodes: nodeConstraints.map((c) => c.node.toString()),
       });
     }
     if (edgeConstraints.length > 0) {
       analytics.track("deleteEdges", {
         edges: edgeConstraints.map((c) => {
           return {
-            source: c.target.sourceId,
-            target: c.target.targetId,
+            source: c.target.sourceId.toString(),
+            target: c.target.targetId.toString(),
           };
         }),
       });
@@ -359,8 +359,8 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     await get().applyConstraints();
     await get().refreshLayout();
     analytics.track("onConnect", {
-      source: edge.sourceId,
-      target: edge.targetId,
+      source: edge.sourceId.toString(),
+      target: edge.targetId.toString(),
     });
     console.log("connected", connection);
   },
@@ -748,7 +748,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       analytics.track("addNodes", {
         nodes: nodeConstraints
           .filter((c) => c instanceof ApplicationConstraint)
-          .map((c) => (c as ApplicationConstraint).node),
+          .map((c) => (c as ApplicationConstraint).node.toString()),
       });
     }
     const newEdges = [
@@ -761,7 +761,12 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     });
     if (newEdges.length > 0) {
       analytics.track("addEdges", {
-        edges: newEdges,
+        edges: newEdges.map((e) => {
+          return {
+            source: e.source.toString(),
+            target: e.target.toString(),
+          };
+        }),
       });
     }
     await get().applyConstraints();
@@ -1002,8 +1007,8 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     });
     const edge = get().edges.find((e) => e.data.isSelected)?.data?.edgeSection;
     analytics.track("selectEdge", {
-      source: NodeId.parse(edge?.incomingShape),
-      target: NodeId.parse(edge?.outgoingShape),
+      source: edge?.incomingShape,
+      target: edge?.outgoingShape,
     });
   },
   replaceResource: async (oldId: NodeId, newId: NodeId) => {
@@ -1025,8 +1030,8 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       "editor/replaceResource",
     );
     analytics.track("replaceResource", {
-      old: oldId,
-      new: newId,
+      old: oldId.toString(),
+      new: newId.toString(),
     });
     await get().applyConstraints();
     const failure = get().changeNotifications.find(

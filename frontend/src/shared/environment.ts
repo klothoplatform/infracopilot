@@ -43,7 +43,8 @@ export const env: Environment = {
       ? true
       : process.env.REACT_APP_COMMAND_BAR_ENABLED?.toLowerCase() === "true",
   analytics: {
-    writeKey: "GKCsKtwCdTQO75tRzBPKAw82xVPYPqEz",
+    writeKey: "2dypaS03m88w9VrLanctkDlxjry",
+    dataplaneUrl: "https://kloashibotqvww.dataplane.rudderstack.com",
     trackErrors:
       process.env.REACT_APP_ANALYTICS_TRACK_ERRORS?.toLowerCase() !== "false",
   },
@@ -69,8 +70,9 @@ export interface Environment {
   };
   commandBarEnabled: boolean;
   analytics: {
-    writeKey: string;
+    dataplaneUrl: string;
     trackErrors: boolean;
+    writeKey: string;
   };
   chatEnabled: boolean;
   documentationEnabled: boolean;

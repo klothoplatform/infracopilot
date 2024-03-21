@@ -589,15 +589,20 @@ const BottomBar: FC<{
       chatHistory.at(-1)?.messageId === message.messageId);
 
   const onFeedback = (helpful: boolean) => {
+    const originalMessage = chatHistory.find(
+      (m) => m.messageId === message.replyToMessageId,
+    );
+
     analytics.track("ChatFeedback", {
       architectureId: environmentVersion?.architecture_id,
       environmentId: environmentVersion?.id,
       environmentVersion: environmentVersion?.version,
       messageId: message.messageId,
       messageContent: message.content,
-      replyToMessageId: chatHistory.find(
-        (m) => m.messageId === message.replyToMessageId,
-      ),
+      replyToMessageId: {
+        messageId: originalMessage?.messageId,
+        content: originalMessage?.content,
+      },
       helpful: helpful.toString(),
     });
     replyInChat([], message.messageId, {

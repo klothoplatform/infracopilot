@@ -61,7 +61,7 @@ export function trackError(error: Partial<ApplicationError>) {
   };
   // messageComponent is not meant to be sent to analytics
   delete payload.messageComponent;
-  analytics?.track(error.name ?? ErrorType.UNKNOWN, payload);
+  analytics?.track(error.name ?? ErrorType.UNKNOWN, payload as any);
 }
 
 function fillError(error: Partial<ApplicationError>): void {

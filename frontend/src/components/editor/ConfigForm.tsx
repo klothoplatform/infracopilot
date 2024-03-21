@@ -248,7 +248,7 @@ export default function ConfigForm({
 
       analytics.track("configureResource", {
         configure: {
-          constraints: constraints,
+          constraints: constraints as any,
         },
       });
 
