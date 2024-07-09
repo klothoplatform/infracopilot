@@ -1,10 +1,14 @@
+import json
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Optional, NamedTuple
+from typing import List, Optional, NamedTuple, Dict
+
+from caseconverter import pascalcase
 
 from src.constraints.application_constraint import ApplicationConstraint
 from src.constraints.constraint import Constraint, ConstraintOperator
 from src.constraints.edge_constraint import EdgeConstraint
+from src.constraints.resource_constraint import ResourceConstraint
 from src.topology.edge import Edge
 from src.topology.resource import ResourceID
 
@@ -15,6 +19,7 @@ class Action(Enum):
     DISCONNECT = "disconnect"
     DELETE = "delete"
     MODIFY = "modify"
+    CONFIGURE = "configure"
 
     def __str__(self) -> str:
         return self.value
@@ -30,6 +35,7 @@ action_order = [
     Action.CREATE,
     Action.MODIFY,
     Action.DELETE,
+    Action.CONFIGURE,
     Action.CONNECT,
     Action.DISCONNECT,
 ]
@@ -151,7 +157,7 @@ class NodeAction:
 
 
 @dataclass
-class ModifyAction:
+class RenameAction:
     old: ResourceID
     new: ResourceID
     action = Action.MODIFY
@@ -175,8 +181,53 @@ class ModifyAction:
         )
 
 
+@dataclass
+class ConfigureAction:
+    action = Action.CONFIGURE
+    node: ResourceID
+    property: str
+    operator: ConstraintOperator
+    value: str
+
+    def __init__(self, node: ResourceID, operator, property, value) -> None:
+        self.node = node
+        self.operator = operator
+        self.property = property
+        self.value = value
+
+    def execute(self) -> ParsedConstraint:
+        return ParsedConstraint(
+            constraint=ResourceConstraint(
+                operator=self.operator,
+                target=self.node,
+                property=fix_case(self.property),
+                value=json.loads(self.value),
+            ),
+            reasoning=ActionMessage(
+                action=self,
+                success=True,
+                message=(
+                    f"Set {self.node}.{self.property} to {self.value}"
+                    if self.operator != ConstraintOperator.Add
+                    else f"Added {self.value} to {self.node}.{self.property}"
+                ),
+            ),
+        )
+
+
+def fix_case(s: str) -> str:
+    if s.isupper():
+        return s
+    else:
+        return pascalcase(s)
+
+
+def pascal_case_object_hook(d: dict):
+    return {fix_case(k): v for k, v in d.items()}
+
+
 class IntentList:
-    actions: List[NodeAction | EdgeAction | ModifyAction]
+    actions: List[NodeAction | EdgeAction | RenameAction | ConfigureAction]
 
     def __init__(self, actions=None) -> None:
         self.actions = actions or []

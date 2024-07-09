@@ -3,12 +3,10 @@ from dataclasses import dataclass
 from time import perf_counter
 from typing import Optional, List
 
-import openai
-
 from src.chat.intent_parser import parse_intent, ParseException
 from src.chat.message_execution import MessageExecutionException
 from src.chat.models import ResourcesAndEdges
-from src.chat.open_ai import prompts
+from src.chat.open_ai import prompts, client
 from src.chat.open_ai.models import IntentList, ActionMessage, ParsedConstraint
 from src.engine_service.engine_commands.run import (
     RunEngineResult,
@@ -16,13 +14,6 @@ from src.engine_service.engine_commands.run import (
 from src.environment_management.models import EnvironmentVersion
 from src.topology.topology import Topology
 from src.util.logging import logger
-from src.util.secrets import get_azure_open_ai_key
-
-openai.api_version = "2023-05-15"
-openai.api_base = "https://gpt16.openai.azure.com/"
-openai.api_type = "azure"
-openai.api_key = get_azure_open_ai_key()
-
 
 log = logger.getChild("conversation")
 
@@ -118,15 +109,14 @@ Existing connections:{bullet}{bullet.join(self.initial_state.edges)}"""
 
         start = perf_counter()
         try:
-            completion = await openai.ChatCompletion.acreate(
-                model="gpt-35-turbo-16k",
-                deployment_id="gpt-35-turbo-16k",
+            completion = await client.chat.completions.create(
+                model="klo4o",
                 temperature=0,
                 timeout=10 * timeout_sec,
-                request_timeout=timeout_sec,
                 messages=messages,
             )
         except Exception as err:
+            log.error("Failed to get completion", exc_info=True)
             raise InterpretMessageException(
                 response_time=perf_counter() - start,
                 ai_response=None,
