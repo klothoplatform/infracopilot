@@ -138,14 +138,14 @@ export class ResourceConstraint implements Constraint {
     const targetFormat = mention
       ? this.target.toMention()
       : this.target.toString();
-    return `Configured ${targetFormat}`;
+    return `Configured ${targetFormat}.${this.property}`;
   }
 
   toFailureMessage(mention?: boolean): string {
     const targetFormat = mention
       ? this.target.toMention()
       : this.target.toString();
-    return `Failed to configure ${targetFormat}`;
+    return `Failed to configure ${targetFormat}.${this.property}`;
   }
 }
 

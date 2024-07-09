@@ -18,10 +18,17 @@ Examples:
 The following formats represents actions you can take:
 - create,reference_name,resource_provider,resource_type,resource_name
 - delete,resource_id
-- modify,old_resource_id,new_resource_id
+- rename,old_resource_id,new_resource_id
 - connect,souce_resource_id,target_resource_id
+- configure,add|equals,resource_id,attribute_path,attribute_value
 
 Each action must contain all the fields in the format, separated by commas to be valid.
+
+Configure actions are used to set attributes on resources. The attribute path is a string that represents the path to the attribute you want to set. The attribute value is the value you want to set the attribute to.
+The value is the JSON representation of the attribute value.
+If you're not sure what the attribute path should be based on examples, you can use the provider's documentation to find the correct path.
+
+When a user asks to "Add" a resource, it means to create a new resource, so consider that when reviewing the examples below (e.g., "Create a lambda" means the same thing as "Add a lambda").
 
 Examples:
 query: "create a lambda hello_lambda and a second lambda"
@@ -138,11 +145,42 @@ create,the lambda,aws,lambda_function,lambda_function_01
 create,a secret,aws,secret,secret_01
 connect,aws:lambda_function:lambda_function_01,aws:secret:secret_01
 ------------------
-query: "Create an API Gateway called api_gateway_01 and connect it to an AWS Lambda function called lambda_function_01"
-create,an API Gateway,aws,rest_api,api_gateway_01
-create,an AWS Lambda function,aws,lambda_function,lambda_function_01
-connect,aws:rest_api:api_gateway_01,aws:lambda_function:lambda_function_01
-----
+query: "Create an API Gateway"
+create,an API Gateway,aws,rest_api,rest_api_01
+------------------
+query: "Add a new API Gateway"
+create,a new API Gateway,aws,rest_api,rest_api_01
+------------------
+query: "Create an API called api_01"
+create,an API,aws,rest_api,api_01
+------------------
+query: "Set the lambda's MemorySize to 512 and set the "MY_VAR" environment variable to "my_value"
+configure,equals,aws:lambda_function:lambda_function_01,MemorySize,512
+configure,add,aws:lambda_function:lambda_function_01,EnvironmentVariables,{"MY_VAR": "my_value"}
+------------------
+query: "Rename lambda_01 to lambda_02"
+rename,aws:lambda_function:lambda_01,aws:lambda_function:lambda_02
+------------------
+query: "Connect api_01 to lambda_01"
+create,,aws,api_method,api_01_integration_0_method
+create,,aws,api_integration,api_01_integration_0
+configure,equals,aws:api_method:api_01_integration_0_method,HttpMethod,"ANY"
+connect,aws:rest_api:api_01,aws:api_integration:api_01_integration_0
+connect,aws:api_method:api_01_integration_0_method,aws:api_integration:api_01_integration_0
+configure,equals,aws:api_integration:api_01_integration_0,Method,"aws:api_method:api_01:api_01_integration_0_method"
+configure,equals,aws:api_integration:api_01_integration_0,Route,"/lambda_01/{proxy+}"
+connect,aws:api_integration:api_01_integration_0,aws:lambda_function:lambda_01
+------------------
+query: "Connect api_01 to ecs_service_01"
+create,,aws,api_method,api_01_integration_1_method
+create,,aws,api_integration,api_01_integration_1
+configure,equals,aws:api_method:api_01_integration_1_method,HttpMethod,"ANY"
+connect,aws:rest_api:api_01,aws:api_integration:api_01_integration_1
+connect,aws:api_method:api_01_integration_1_method,aws:api_integration:api_01_integration_1
+configure,equals,aws:api_integration:api_01_integration_1,Method,"aws:api_method:api_01:api_01_integration_1_method"
+configure,equals,aws:api_integration:api_01_integration_1,Route,"/ecs_service_01/{proxy+}"
+connect,aws:api_integration:api_01_integration_1,aws:ecs_service:ecs_service_01
+------------------
 
 Resource names must be unique within a provider and resource type.
 For example, you cannot have two resources with the id "aws:ec2_instance:ec2_instance_01" as they would not be unique.
@@ -156,3 +194,9 @@ When the user asks for a connection between resources, both resources must exist
 As such, you will need to create any missing resources before creating the connection.
 
 If the user specifies a generic class of resource, such as "blob storage" or "queue", you can use any resource type that makes sense in the context.
+
+Sometimes the user may refer to a resource type in shorthand. For example, "lambda" could refer to an "aws:lambda_function".
+You must use the full resource type when creating the resource.
+
+Sometimes a user may ask for a resource or connection that will require create and or connecting multiple resources.
+Make sure to create all necessary resources and connections to fulfill the user's request based on the provided examples or your own knowledge of the provider's services when necessary.

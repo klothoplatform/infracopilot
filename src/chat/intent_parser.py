@@ -1,5 +1,7 @@
 from typing import List
 
+from caseconverter import pascalcase
+
 from src.topology.resource import ResourceID
 from src.util.logging import logger
 from .open_ai.models import (
@@ -7,8 +9,10 @@ from .open_ai.models import (
     Action,
     EdgeAction,
     NodeAction,
-    ModifyAction,
+    RenameAction,
+    ConfigureAction,
 )
+from ..constraints.constraint import ConstraintOperator
 
 log = logger.getChild("intent_parser")
 
@@ -56,7 +60,7 @@ async def parse_intent(response: str) -> IntentList:
 
 def parse_action(
     action: str, args: List[str]
-) -> NodeAction | EdgeAction | ModifyAction:
+) -> NodeAction | EdgeAction | RenameAction | ConfigureAction:
     match action:
         case "create":
             # args[0] is for debugging the AI response, it's not used
@@ -73,9 +77,15 @@ def parse_action(
                 source=ResourceID.from_string(args[0]),
                 target=ResourceID.from_string(args[1]),
             )
-        case "modify":
+        case "rename":
             old = ResourceID.from_string(args[0])
             new = ResourceID.from_string(args[1])
-            return ModifyAction(old=old, new=new)
+            return RenameAction(old=old, new=new)
+        case "configure":
+            node = ResourceID.from_string(args[1])
+            operator = ConstraintOperator[pascalcase(args[0])]
+            return ConfigureAction(
+                node=node, operator=operator, property=args[2], value=args[3]
+            )
 
     raise Exception(f"Unknown action '{action}'")

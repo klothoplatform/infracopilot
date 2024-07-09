@@ -49,4 +49,4 @@ def get_azure_open_ai_key() -> Optional[str]:
             return secret
     except Exception:
         logger.error("could not read azure_openai_api_key.key", exc_info=True)
-        return None
+        return ""
