@@ -94,6 +94,7 @@ import type { ExtendedChatMessage } from "../../components/editor/ChatSidebar";
 import { mention, MentionType } from "../../components/editor/ChatSidebar";
 import { explainDiff } from "../../api/ExplainDiff";
 import { type TopologyDiff } from "../../shared/architecture/TopologyDiff";
+import { resolveMentions } from "../../shared/chat-util";
 
 interface EditorStoreState {
   architecture: Architecture;
@@ -250,6 +251,7 @@ interface EditorStoreActions {
     state?: number,
   ) => Promise<any>;
   sendChatMessage: (message: string) => Promise<void>;
+  clearChatHistory: () => void;
   replyInChat: (
     response: Partial<ExtendedChatMessage>[],
     originalMessageId?: string,
@@ -1651,10 +1653,26 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     );
 
     let response: SendChatMessageResponse;
+
+    console.log(get().chatHistory);
     try {
       response = await sendChatMessage({
         architectureId: get().architecture.id,
         environmentId: get().environmentVersion.id,
+        previousMessages: get()
+          .chatHistory.filter(
+            (m) => m.senderId && m.content && m.messageId !== "intro",
+          )
+          .slice(Math.max(get().chatHistory.length - 10, 0))
+          .map((m) => {
+            return {
+              role: m.senderId!,
+              content:
+                m.contentType === "text"
+                  ? m.content ?? ""
+                  : resolveMentions(m.content ?? ""),
+            };
+          }),
         message: sanitizedMessage,
         idToken,
         version: get().environmentVersion.version,
@@ -1833,6 +1851,15 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     console.log("new nodes", elements.nodes);
     get().updateEdgeTargets();
   },
+  clearChatHistory: () => {
+    set(
+      {
+        chatHistory: [],
+      },
+      false,
+      "editor/clearChatHistory",
+    );
+  },
   replyInChat: (
     response: Partial<ExtendedChatMessage>[],
     originalMessageId?: string,
@@ -1843,7 +1870,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
     response?.forEach((r) => {
       r.messageType = "chat";
       r.senderDisplayName = r.senderDisplayName || "Alfred";
-      r.senderId = r.senderId || "system";
+      r.senderId = r.senderId || "assistant";
       r.createdOn = r.createdOn || new Date();
       r.messageId = r.messageId || crypto.randomUUID().toString();
       r.contentType = r.contentType || "richtext/html";

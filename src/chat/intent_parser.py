@@ -40,13 +40,18 @@ async def parse_intent(response: str) -> IntentList:
     for i, line in enumerate(lines):
         if len(line.strip()) == 0:
             continue  # skip empty lines
-        row = [col.strip() for col in line.split(",")]
+        row = [col.strip() for col in line.split(",", maxsplit=1)]
         if len(row) <= 1:
             raise ParseException(
                 i, line, f"Not enough CSV columns, need > 1, got {len(row)}"
             )
         action = row[0]
-        args = row[1:]
+        args = (
+            row[1].split(",")
+            if action != "configure"
+            else row[1].split(",", 3)  # configure's final argument is a json string
+        )
+
         try:
             action = parse_action(action, args)
             intents.actions.append(action)

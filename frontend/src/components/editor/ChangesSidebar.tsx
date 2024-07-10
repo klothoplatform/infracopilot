@@ -96,7 +96,7 @@ const EventNotification: FC<ChangeNotification> = function ({
         <div className="text-ellipsis">{title}</div>
       </Alert>
 
-      {details && (
+      {typeof details === "string" && details.length > 0 && (
         <div className="mx-2 break-all border-[1px] border-t-0 border-gray-300 bg-white py-2 pl-4 pr-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white">
           {details.split(/\n/).map((line, index) => (
             <React.Fragment key={index}>

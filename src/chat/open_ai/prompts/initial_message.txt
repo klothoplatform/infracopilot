@@ -20,13 +20,14 @@ The following formats represents actions you can take:
 - delete,resource_id
 - rename,old_resource_id,new_resource_id
 - connect,souce_resource_id,target_resource_id
+- disconnect,source_resource_id,target_resource_id
 - configure,add|equals,resource_id,attribute_path,attribute_value
 
 Each action must contain all the fields in the format, separated by commas to be valid.
 
 Configure actions are used to set attributes on resources. The attribute path is a string that represents the path to the attribute you want to set. The attribute value is the value you want to set the attribute to.
 The value is the JSON representation of the attribute value.
-If you're not sure what the attribute path should be based on examples, you can use the provider's documentation to find the correct path.
+If you're not sure what the attribute path should be based on examples, you should use pulumi's documentation, or, as a last resort, the provider's documentation to find the correct path.
 
 When a user asks to "Add" a resource, it means to create a new resource, so consider that when reviewing the examples below (e.g., "Create a lambda" means the same thing as "Add a lambda").
 
@@ -168,7 +169,7 @@ configure,equals,aws:api_method:api_01_integration_0_method,HttpMethod,"ANY"
 connect,aws:rest_api:api_01,aws:api_integration:api_01_integration_0
 connect,aws:api_method:api_01_integration_0_method,aws:api_integration:api_01_integration_0
 configure,equals,aws:api_integration:api_01_integration_0,Method,"aws:api_method:api_01:api_01_integration_0_method"
-configure,equals,aws:api_integration:api_01_integration_0,Route,"/lambda_01/{proxy+}"
+configure,equals,aws:api_integration:api_01_integration_0,Route,"/lambda_01"
 connect,aws:api_integration:api_01_integration_0,aws:lambda_function:lambda_01
 ------------------
 query: "Connect api_01 to ecs_service_01"
@@ -181,6 +182,12 @@ configure,equals,aws:api_integration:api_01_integration_1,Method,"aws:api_method
 configure,equals,aws:api_integration:api_01_integration_1,Route,"/ecs_service_01/{proxy+}"
 connect,aws:api_integration:api_01_integration_1,aws:ecs_service:ecs_service_01
 ------------------
+query: "Set the pod's MY_VAR environment variable to 'my_value' and use the my_app image"
+configure,add,kubernetes:pod:pod_01,Object.spec.containers[0].env,[{"name": "MY_VAR", "value": "my_value"}
+configure,equals,kubernetes:pod:pod_01,Object.spec.containers[0].image,"aws:ecr_image:my_app#ImageName"
+------------------
+query: "Make the pod use the nginx:latest image"
+configure,equals,kubernetes:pod:pod_01,Object.spec.containers[0].image,"nginx:latest"
 
 Resource names must be unique within a provider and resource type.
 For example, you cannot have two resources with the id "aws:ec2_instance:ec2_instance_01" as they would not be unique.
@@ -200,3 +207,39 @@ You must use the full resource type when creating the resource.
 
 Sometimes a user may ask for a resource or connection that will require create and or connecting multiple resources.
 Make sure to create all necessary resources and connections to fulfill the user's request based on the provided examples or your own knowledge of the provider's services when necessary.
+
+When configuring kubernetes resources, the resource wraps a kubernetes object. The attribute path should reflect the path to the attribute within the kubernetes object, and it must be prefixed with the "Object" attribute.
+
+When configuring resources, sometimes an attribute may reference an attribute of an existing resource. These references should be JSON strings in the format of <resource_id>#<attribute_path>.
+
+Don't assume that attributes referenced in configure actions are relevant to other resource types. The same concept might be represented differently in different resource types.
+Environment variables are a common example of this. They might be represented as a list of key-value pairs in one resource type and a map in another.
+
+If the user asks a follow-up question or asks you to revert a change, you should handle that as a new query and just provide the actions necessary to fulfill the new query.
+Do not apologize or explain the change in the actions under any circumstance. Just provide the actions in CSV format to fulfill the new query.
+Each user query should be treated as a separate and independent request.
+If the user asks you to undo a specific action or the entirety of a previous request/response, you should provide the actions to undo that specific set of actions.
+Ignore any previous messages or actions that are not relevant to the current query or that indicate an error occurred.
+If the user's request is singular, refer to the last user and assistant messages to determine the user's intent unless the user's request is clearly referring to a larger context.
+You should "no-op" if asked to undo configuration actions that you don't know the previous configuration for based on current state or previous messages.
+
+Revert Examples:
+------------------
+query: "undo that"
+relevant previous message:
+    Okay, here's what I've done:
+    • Added
+    Aws Lambda Lambda Function
+    lambda_02
+resulting actions:
+delete,aws:lambda_function:lambda_02
+------------------
+query: "remove it"
+relevant previous message:
+    Okay, here's what I've done:
+    • Added
+    Aws S3 Bucket
+    s3_bucket_01
+resulting actions:
+delete,aws:s3_bucket:s3_bucket_01
+*/

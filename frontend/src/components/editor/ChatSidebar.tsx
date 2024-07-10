@@ -6,7 +6,7 @@ import { trackError } from "../../pages/store/ErrorStore";
 import { UIError } from "../../shared/errors";
 import { FallbackRenderer } from "../FallbackRenderer";
 import useApplicationStore from "../../pages/store/ApplicationStore";
-import { Toast } from "flowbite-react";
+import { Toast, Tooltip } from "flowbite-react";
 import { Button, useThemeMode } from "flowbite-react";
 import type {
   ChatMessage,
@@ -35,6 +35,7 @@ import { NodeId } from "../../shared/architecture/TopologyNode";
 import { Persona, PersonaSize } from "@fluentui/react";
 import {
   FaCheck,
+  FaPlus,
   FaRegClipboard,
   FaRegThumbsDown,
   FaRegThumbsUp,
@@ -44,6 +45,7 @@ import {
   MessageThreadContext,
   MessageThreadProvider,
 } from "./MessageThreadProvider";
+import { resolveMentions } from "../../shared/chat-util";
 
 export enum MentionType {
   Resource = "resource",
@@ -63,6 +65,7 @@ export const ChatSidebar: FC<{
     nodes,
     chatHistory,
     replyInChat,
+    clearChatHistory,
   } = useApplicationStore();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -176,6 +179,11 @@ export const ChatSidebar: FC<{
     >
       <div className="flex h-10 w-full items-baseline justify-between border-b-[1px] p-2 dark:border-gray-700 ">
         <h2 className={"text-md font-medium dark:text-white"}>Chat</h2>
+        <Tooltip content={"New Conversation"} placement="bottom">
+          <Button size={"xs"} color={mode} onClick={() => clearChatHistory()}>
+            <FaPlus />
+          </Button>
+        </Tooltip>
       </div>
       <ErrorBoundary
         onError={(error, info) =>
@@ -426,7 +434,12 @@ const ExplanationMention: FC<{
     }
   };
 
-  if (hidden || !isLastMessage || !message || message.senderId !== "system") {
+  if (
+    hidden ||
+    !isLastMessage ||
+    !message ||
+    message.senderId !== "assistant"
+  ) {
     return <></>;
   }
 
@@ -530,7 +543,7 @@ const Avatar: React.FC<AvatarProps> = ({
 }) => {
   const { user } = useApplicationStore();
   const { mode } = useThemeMode();
-  if (userId === "system") {
+  if (userId === "assistant") {
     return (
       <Persona
         size={PersonaSize.size32}
@@ -568,13 +581,6 @@ const Avatar: React.FC<AvatarProps> = ({
   );
 };
 
-function resolveMentions(text: string) {
-  return text
-    .replace(/<msft-mention id="resource#.*?">(.*?)<\/msft-mention>/g, "$1")
-    .replace(/<msft-mention id="explain#.*?">(.*?)<\/msft-mention>/g, "")
-    .trim();
-}
-
 const BottomBar: FC<{
   message: ExtendedChatMessage;
 }> = ({ message }) => {
@@ -584,7 +590,7 @@ const BottomBar: FC<{
     React.useContext(MessageThreadContext);
   const visible =
     message.status !== "sending" &&
-    message.senderId === "system" &&
+    message.senderId === "assistant" &&
     (hoveredMessageId === message.messageId ||
       chatHistory.at(-1)?.messageId === message.messageId);
 
@@ -635,7 +641,7 @@ const BottomBar: FC<{
       <div className="absolute -bottom-2.5 right-0 z-10 flex h-[10px] w-fit items-center justify-start gap-1 rounded-lg pb-2 pt-1">
         {visible && (
           <>
-            {message.senderId === "system" &&
+            {message.senderId === "assistant" &&
               (message?.feedbackSubmitted ?? ActionState.Initial) ===
                 ActionState.Initial && (
                 <>
