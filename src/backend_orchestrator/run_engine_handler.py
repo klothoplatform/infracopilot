@@ -13,7 +13,7 @@ from src.backend_orchestrator.models import (
     VersionState,
     SendMessageResponse,
 )
-from src.chat.conversation import Conversation
+from src.chat.conversation import Conversation, Message
 from src.chat.message_execution import MessageExecutionException
 from src.constraints.util import find_mutating_constraints
 from src.engine_service.binaries.fetcher import BinaryStorage, Binary
@@ -250,6 +250,7 @@ class EngineOrchestrator:
         self,
         architecture_id: str,
         env_id: str,
+        previous_messages: list[Message],
         message: str,
         version: Optional[int] = None,
         overwrite: Optional[bool] = False,
@@ -261,7 +262,9 @@ class EngineOrchestrator:
             state = None
             if ev is not None and version > 0:
                 state = self.architecture_storage.get_state_from_fs(ev)
-            conversation = Conversation(environment_version=ev, initial_state=state)
+            conversation = Conversation(
+                environment_version=ev, initial_state=state, messages=previous_messages
+            )
             parsed_constraints = await conversation.do_query(
                 query_id=str(uuid.uuid4()), query=message, timeout_sec=120
             )

@@ -34,6 +34,7 @@ from src.backend_orchestrator.run_engine_handler import (
     CopilotRunRequest,
 )
 from src.backend_orchestrator.teams_api import router as teams_router
+from src.chat.conversation import Message
 from src.chat.explain_architecture import ExplainArchitecture
 from src.chat.explain_diff import ExplainDiff
 from src.dependency_injection.injection import (
@@ -538,6 +539,7 @@ async def chat_signup(request: Request):
 class ChatRequest(BaseModel):
     version: int
     message: str
+    previous: Optional[list[Message]] = None
 
 
 @app.post("/api/architecture/{id}/environment/{env_id}/message")
@@ -574,6 +576,7 @@ async def message_conversation(
             payload, engine_failure = await engine.handle_message(
                 architecture_id=id,
                 env_id=env_id,
+                previous_messages=body.previous,
                 message=body.message,
                 version=body.version,
             )

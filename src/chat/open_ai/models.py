@@ -189,7 +189,9 @@ class ConfigureAction:
     operator: ConstraintOperator
     value: str
 
-    def __init__(self, node: ResourceID, operator, property, value) -> None:
+    def __init__(
+        self, node: ResourceID, operator: ConstraintOperator, property: str, value: str
+    ) -> None:
         self.node = node
         self.operator = operator
         self.property = property
@@ -200,7 +202,7 @@ class ConfigureAction:
             constraint=ResourceConstraint(
                 operator=self.operator,
                 target=self.node,
-                property=fix_case(self.property),
+                property=fix_case(self.node, self.property),
                 value=json.loads(self.value),
             ),
             reasoning=ActionMessage(
@@ -215,15 +217,11 @@ class ConfigureAction:
         )
 
 
-def fix_case(s: str) -> str:
-    if s.isupper():
+def fix_case(resource_id: ResourceID, s: str) -> str:
+    if s.isupper() or resource_id.provider == "kubernetes" and s.startswith("Object."):
         return s
     else:
         return pascalcase(s)
-
-
-def pascal_case_object_hook(d: dict):
-    return {fix_case(k): v for k, v in d.items()}
 
 
 class IntentList:

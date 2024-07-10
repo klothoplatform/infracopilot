@@ -1,7 +1,7 @@
-from collections import OrderedDict
 from dataclasses import dataclass
 from time import perf_counter
 from typing import Optional, List
+from typing_extensions import TypedDict
 
 from src.chat.intent_parser import parse_intent, ParseException
 from src.chat.message_execution import MessageExecutionException
@@ -31,26 +31,29 @@ class InterpretMessageException(BaseException):
     ai_response: Optional[str]
 
 
+class Message(TypedDict):
+    role: str
+    content: str
+
+
 class Conversation:
     environment: EnvironmentVersion
-    messages: OrderedDict[str, str]
+    messages: list[Message]
     initial_state: ResourcesAndEdges
 
     def __init__(
         self,
         environment_version: EnvironmentVersion,
         initial_state: Optional[RunEngineResult] = None,
+        messages: Optional[list[Message]] = None,
     ):
         self.environment = environment_version
         self.initial_state = ResourcesAndEdges()
-        self.messages = OrderedDict()
+        self.messages = messages if messages is not None else []
         if initial_state:
             topology = Topology.from_topology_yaml(initial_state.topology_yaml)
             self.initial_state.resources = [str(r.id) for r in topology.resources]
             self.initial_state.edges = [str(e) for e in topology.edges]
-
-    def human_messages(self):
-        return [m for m in self.messages.values() if not m.startswith("ai:")]
 
     async def construct_messages(self, query: str):
         messages = [
@@ -58,24 +61,8 @@ class Conversation:
                 "role": "user",
                 "content": await prompts.get_initial_prompt(),
             },
+            *self.messages,
         ]
-
-        # TODO might not be able to fit full history, but it's unlikely to be that long
-        for msg_id, msg in self.messages.items():
-            if msg_id.startswith("ai:"):
-                messages.append(
-                    {
-                        "role": "assistant",
-                        "content": msg,
-                    }
-                )
-            else:
-                messages.append(
-                    {
-                        "role": "user",
-                        "content": await prompts.parse_content_short(query=msg),
-                    }
-                )
 
         content_prompt = ""
         if not self.initial_state.empty():
@@ -88,11 +75,11 @@ Existing resources:{bullet}{bullet.join(self.initial_state.resources)}
 Note: Existing connections are composed of two resources identifiers, a source and a target, separated by an arrow (->). Each resource referenced in a connection must exist in the resources list.
 Existing connections:{bullet}{bullet.join(self.initial_state.edges)}"""
             )
-        content_prompt += await prompts.parse_content(query=query.lower())
+        content_prompt += await prompts.parse_content(query=query)
 
         messages.append(
             {
-                "role": "user",
+                "role": "system",
                 "content": content_prompt,
             }
         )
@@ -208,9 +195,6 @@ Existing connections:{bullet}{bullet.join(self.initial_state.edges)}"""
             ) from err
 
         return parsed_actions
-
-    def ai_response_for(self, message_id: str) -> Optional[str]:
-        return self.messages.get(f"ai:{message_id}", None)
 
 
 def messages_to_reason(reasoning: List[ActionMessage]):

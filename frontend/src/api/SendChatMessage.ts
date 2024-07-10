@@ -12,6 +12,7 @@ import { analytics } from "../App";
 export interface SendChatMessageRequest {
   architectureId: string;
   environmentId: string;
+  previousMessages?: ChatMessage[];
   message: string;
   version?: number;
   idToken?: string;
@@ -21,12 +22,18 @@ export interface SendChatMessageResponse extends ApplyConstraintsResponse {
   constraints: Constraint[];
 }
 
+export interface ChatMessage {
+  role: string;
+  content: string;
+}
+
 export async function sendChatMessage(
   request: SendChatMessageRequest,
 ): Promise<SendChatMessageResponse> {
   const {
     architectureId: id,
     environmentId: env_id,
+    previousMessages,
     message,
     idToken,
     version,
@@ -37,6 +44,7 @@ export async function sendChatMessage(
     response = await axios.post(
       `/api/architecture/${id}/environment/${env_id}/message`,
       {
+        previous: previousMessages,
         message,
         version,
       },
