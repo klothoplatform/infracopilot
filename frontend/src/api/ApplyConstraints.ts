@@ -13,7 +13,7 @@ export enum ApplyConstraintsErrorType {
 }
 
 export interface ApplyConstraintsResponse {
-  environmentVersion: EnvironmentVersion;
+  environmentVersion?: EnvironmentVersion;
   errorType?: ApplyConstraintsErrorType;
 }
 

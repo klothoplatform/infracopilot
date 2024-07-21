@@ -20,6 +20,7 @@ export interface SendChatMessageRequest {
 
 export interface SendChatMessageResponse extends ApplyConstraintsResponse {
   constraints: Constraint[];
+  response?: string;
 }
 
 export interface ChatMessage {
@@ -90,8 +91,14 @@ export async function sendChatMessage(
     response: response.data,
   });
 
+  const constraints = parseConstraints(response.data.constraints);
+  const environmentVersion = response.data.constraints
+    ? parseEnvironmentVersion(response.data)
+    : undefined;
+
   return {
-    environmentVersion: parseEnvironmentVersion(response.data),
-    constraints: parseConstraints(response.data.constraints),
+    environmentVersion: environmentVersion,
+    constraints: constraints,
+    response: response.data.response,
   };
 }

@@ -6,16 +6,8 @@ import { trackError } from "../../pages/store/ErrorStore";
 import { UIError } from "../../shared/errors";
 import { FallbackRenderer } from "../FallbackRenderer";
 import useApplicationStore from "../../pages/store/ApplicationStore";
-import { Toast, Tooltip } from "flowbite-react";
-import { Button, useThemeMode } from "flowbite-react";
-import type {
-  ChatMessage,
-  CustomAvatarOptions,
-  Mention,
-  MessageProps,
-  MessageRenderer,
-  MessageThreadStyles,
-} from "@azure/communication-react";
+import { Button, Toast, Tooltip, useThemeMode } from "flowbite-react";
+import type { Mention, MessageThreadStyles } from "@azure/communication-react";
 import {
   FluentThemeProvider,
   MessageThread,
@@ -30,27 +22,12 @@ import {
   fontFamily,
 } from "../../fluentui-themes";
 import "./ChatSidebar.scss";
-import { NodeId } from "../../shared/architecture/TopologyNode";
-
-import { Persona, PersonaSize } from "@fluentui/react";
-import {
-  FaCheck,
-  FaPlus,
-  FaRegClipboard,
-  FaRegThumbsDown,
-  FaRegThumbsUp,
-} from "react-icons/fa6";
-import { analytics } from "../../App";
-import {
-  MessageThreadContext,
-  MessageThreadProvider,
-} from "./MessageThreadProvider";
-import { resolveMentions } from "../../shared/chat-util";
-
-export enum MentionType {
-  Resource = "resource",
-  Explain = "explain",
-}
+import { FaPlus } from "react-icons/fa6";
+import { MessageThreadProvider } from "./MessageThreadProvider";
+import { ChatMessageComposite, onRenderMention } from "../chat/ChatMessage.tsx";
+import { Avatar } from "../chat/Avatar.tsx";
+import { IsThinkingIndicator } from "../chat/IsThinkingIndicator.tsx";
+import { SuggestionItem } from "./SuggestionItem.tsx";
 
 const config = resolveConfig(defaultConfig);
 const colors = { ...config.theme.colors, primary: config.theme.colors.violet };
@@ -177,7 +154,7 @@ export const ChatSidebar: FC<{
         hidden: hidden,
       })}
     >
-      <div className="flex h-10 w-full items-baseline justify-between border-b-[1px] p-2 dark:border-gray-700 ">
+      <div className="flex h-10 w-full items-baseline justify-between border-b p-2 dark:border-gray-700 ">
         <h2 className={"text-md font-medium dark:text-white"}>Chat</h2>
         <Tooltip content={"New Conversation"} placement="bottom">
           <Button size={"xs"} color={mode} onClick={() => clearChatHistory()}>
@@ -241,22 +218,7 @@ export const ChatSidebar: FC<{
                   }}
                   mentionOptions={{
                     displayOptions: {
-                      onRenderMention: (mention, defaultOnMentionRender) => {
-                        let [type, id]: [MentionType, string] =
-                          mention.id.split("#") as any;
-
-                        const MentionComponent = mentionMappings[type];
-                        if (MentionComponent) {
-                          return (
-                            <MentionComponent
-                              key={Math.random().toString()}
-                              mention={mention}
-                              id={id}
-                            />
-                          );
-                        }
-                        return defaultOnMentionRender(mention);
-                      },
+                      onRenderMention,
                     },
                     lookupOptions: {
                       trigger,
@@ -346,360 +308,6 @@ export const ChatSidebar: FC<{
           </div>
         )}
       </ErrorBoundary>
-    </div>
-  );
-};
-
-const IsThinkingIndicator: FC<{ visible?: boolean }> = ({ visible }) => {
-  return (
-    <div className="flex items-baseline gap-1 px-4 py-1">
-      {visible && (
-        <>
-          <span className="font-semibold text-primary-900 dark:text-primary-500">
-            Alfred
-          </span>
-          <span className="text-gray-500 dark:text-gray-400">is thinking</span>
-          <div className="flex items-center justify-center gap-0.5">
-            <div className="size-1 animate-pulse rounded-full bg-gray-500 [animation-delay:-0.3s] dark:bg-gray-400"></div>
-            <div className="size-1 animate-pulse rounded-full bg-gray-500 [animation-delay:-0.15s] dark:bg-gray-400"></div>
-            <div className="size-1 animate-pulse rounded-full bg-gray-500 dark:bg-gray-400"></div>
-          </div>
-        </>
-      )}
-      {!visible && <span>&nbsp;</span>}
-    </div>
-  );
-};
-
-const ResourceMention: FC<{
-  mention: Mention;
-  id: string;
-}> = ({ mention, id }) => {
-  const { mode } = useThemeMode();
-  const resourceId = NodeId.parse(id);
-  const { selectResource } = useApplicationStore();
-
-  const onClick = () => {
-    selectResource(resourceId, true);
-  };
-
-  return (
-    <button title={mention.id.split("#")[1] ?? mention.id} onClick={onClick}>
-      <div className="flex h-full flex-nowrap items-baseline gap-1 rounded-md px-1 hover:bg-primary-200 dark:hover:bg-primary-950">
-        <NodeIcon
-          provider={resourceId.provider}
-          type={resourceId.type}
-          width={14}
-          height={14}
-          className="my-auto p-0"
-          variant={mode}
-        />
-        <span
-          className={
-            "whitespace-nowrap font-semibold text-primary-900 dark:text-primary-500"
-          }
-        >
-          {mention.displayText}
-        </span>
-      </div>
-    </button>
-  );
-};
-
-const ExplanationMention: FC<{
-  mention: Mention;
-}> = ({ mention }) => {
-  const messageId = mention.id.split("#")[1];
-  const { setSubmitInProgress, submitInProgress } =
-    React.useContext(MessageThreadContext);
-  const { mode } = useThemeMode();
-  const { environmentVersion, explainDiff, chatHistory } =
-    useApplicationStore();
-  const [hidden, setHidden] = useState(false);
-
-  const message = chatHistory.find((m) => m.messageId === messageId);
-  const isLastMessage = chatHistory.at(-1)?.messageId === messageId;
-
-  const onClickNo = () => {
-    setHidden(true);
-  };
-
-  const onClickYes = async () => {
-    try {
-      setSubmitInProgress(true);
-      setHidden(true);
-      await explainDiff(environmentVersion.diff);
-    } finally {
-      setSubmitInProgress(false);
-    }
-  };
-
-  if (
-    hidden ||
-    !isLastMessage ||
-    !message ||
-    message.senderId !== "assistant"
-  ) {
-    return <></>;
-  }
-
-  return (
-    <div className="flex flex-wrap items-center gap-2 py-2">
-      <span
-        className={"text-xs font-semibold text-gray-900 dark:text-gray-500"}
-      >
-        Should I explain in detail?
-      </span>
-      <div className="flex items-center gap-2">
-        <Button
-          size={"xs"}
-          color={mode}
-          onClick={onClickYes}
-          className={"size-fit whitespace-nowrap text-xs"}
-          disabled={submitInProgress}
-        >
-          Yes
-        </Button>
-        <Button
-          size={"xs"}
-          color={mode}
-          onClick={onClickNo}
-          className={"size-fit whitespace-nowrap text-xs"}
-        >
-          No
-        </Button>
-      </div>
-    </div>
-  );
-};
-
-const SuggestionItem: FC<{
-  onSuggestionSelected: (suggestion: Mention) => void;
-  suggestion: Mention;
-}> = ({ onSuggestionSelected, suggestion }) => {
-  const onClick = () => onSuggestionSelected(suggestion);
-  const onKeyDown = (event: any) => {
-    event.preventDefault();
-    if (event.key === "Enter" || event.key === " ") {
-      onClick();
-    }
-  };
-
-  return (
-    <div
-      role="button"
-      tabIndex={0}
-      className="w-full cursor-default px-2 outline-primary-600 hover:bg-primary-200 focus:bg-primary-200 focus:ring-0 active:bg-primary-200 dark:hover:bg-primary-300 dark:focus:bg-primary-300 dark:active:bg-primary-300"
-      onClick={() => onSuggestionSelected(suggestion)}
-      onKeyDown={onKeyDown}
-    >
-      <div
-        data-ui-id="mention-suggestion-item"
-        data-is-focusable="true"
-        className="flex w-full items-center justify-start gap-4"
-      >
-        {suggestion.icon}
-        <span>{suggestion.displayText}</span>
-      </div>
-    </div>
-  );
-};
-
-export function mention(type: MentionType, id: string, displayText: string) {
-  return `<msft-mention id="${type}#${id}">${displayText}</msft-mention>`;
-}
-
-export enum ActionState {
-  Initial,
-  InProgress,
-  Success,
-  Failure,
-}
-export interface ExtendedChatMessage extends ChatMessage {
-  feedbackSubmitted?: ActionState;
-  explainRequested?: ActionState;
-  replyToMessageId?: string;
-  environment?: {
-    id: string;
-    version: number;
-  };
-}
-
-export const mentionMappings: Record<MentionType, React.FC<any>> = {
-  [MentionType.Resource]: ResourceMention,
-  [MentionType.Explain]: ExplanationMention,
-};
-
-interface AvatarProps {
-  userId?: string;
-  renderOptions?: CustomAvatarOptions;
-  defaultOnRenderAvatar?: (options: CustomAvatarOptions) => React.JSX.Element;
-}
-
-const Avatar: React.FC<AvatarProps> = ({
-  userId,
-  renderOptions,
-  defaultOnRenderAvatar,
-}) => {
-  const { user } = useApplicationStore();
-  const { mode } = useThemeMode();
-  if (userId === "assistant") {
-    return (
-      <Persona
-        size={PersonaSize.size32}
-        hidePersonaDetails
-        text={"Alfred"}
-        imageUrl={`/images/alfred-avatar-${mode}.png`}
-        showOverflowTooltip={false}
-      />
-    );
-  }
-
-  if (userId === "user") {
-    return (
-      <Persona
-        size={PersonaSize.size32}
-        hidePersonaDetails
-        text={
-          user?.displayName ||
-          user?.name ||
-          user?.nickname ||
-          user?.preferred_username ||
-          user?.given_name ||
-          "User"
-        }
-        imageUrl={user?.picture}
-        showOverflowTooltip={false}
-      />
-    );
-  }
-
-  return defaultOnRenderAvatar && renderOptions ? (
-    defaultOnRenderAvatar(renderOptions)
-  ) : (
-    <></>
-  );
-};
-
-const BottomBar: FC<{
-  message: ExtendedChatMessage;
-}> = ({ message }) => {
-  const { chatHistory, replyInChat, environmentVersion } =
-    useApplicationStore();
-  const { setToastText, hoveredMessageId } =
-    React.useContext(MessageThreadContext);
-  const visible =
-    message.status !== "sending" &&
-    message.senderId === "assistant" &&
-    (hoveredMessageId === message.messageId ||
-      chatHistory.at(-1)?.messageId === message.messageId);
-
-  const onFeedback = (helpful: boolean) => {
-    const originalMessage = chatHistory.find(
-      (m) => m.messageId === message.replyToMessageId,
-    );
-
-    analytics.track("ChatFeedback", {
-      architectureId: environmentVersion?.architecture_id,
-      environmentId: environmentVersion?.id,
-      environmentVersion: environmentVersion?.version,
-      messageId: message.messageId,
-      messageContent: message.content,
-      replyToMessageId: {
-        messageId: originalMessage?.messageId,
-        content: originalMessage?.content,
-      },
-      helpful: helpful.toString(),
-    });
-    replyInChat([], message.messageId, {
-      feedbackSubmitted: ActionState.Success,
-    });
-
-    setToastText("Thank you for your feedback!");
-    setTimeout(() => setToastText(null), 3000);
-  };
-
-  const [copied, setCopied] = useState(false);
-
-  const onClickCopyButton = async (e: any) => {
-    e.target.blur();
-    await navigator.clipboard.writeText(
-      message.contentType === "text"
-        ? message.content ?? ""
-        : resolveMentions(message.content ?? ""),
-    );
-    setCopied(true);
-    e.target.disabled = true;
-    setTimeout(() => {
-      e.target.disabled = false;
-      setCopied(false);
-    }, 750);
-  };
-
-  return (
-    <>
-      <div className="absolute -bottom-2.5 right-0 z-10 flex h-[10px] w-fit items-center justify-start gap-1 rounded-lg pb-2 pt-1">
-        {visible && (
-          <>
-            {message.senderId === "assistant" &&
-              (message?.feedbackSubmitted ?? ActionState.Initial) ===
-                ActionState.Initial && (
-                <>
-                  <button
-                    className="w-full rounded-full p-1 text-gray-500 hover:bg-gray-200 hover:text-gray-700 dark:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-gray-400"
-                    onClick={() => onFeedback(true)}
-                  >
-                    <FaRegThumbsUp size={10} />
-                  </button>
-                  <button
-                    className="w-full rounded-full p-1 text-gray-500 hover:bg-gray-200 hover:text-gray-700 dark:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-gray-400"
-                    onClick={() => onFeedback(false)}
-                  >
-                    <FaRegThumbsDown size={10} />
-                  </button>
-                </>
-              )}
-            <button
-              className="rounded-full p-1 text-gray-500 hover:bg-gray-200 hover:text-gray-700 dark:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-gray-400"
-              color={"purple"}
-              onClick={onClickCopyButton}
-            >
-              {!copied && <FaRegClipboard size={10} />}
-              {copied && (
-                <FaCheck
-                  size={10}
-                  className="text-green-500 dark:text-green-400"
-                />
-              )}
-            </button>
-          </>
-        )}
-      </div>
-    </>
-  );
-};
-
-const ChatMessageComposite: FC<{
-  options: MessageProps;
-  defaultOnRenderMessage?: MessageRenderer;
-}> = ({ options, defaultOnRenderMessage }) => {
-  const message = options.message as ExtendedChatMessage;
-  const { hoveredMessageId, setHoveredMessageId } =
-    React.useContext(MessageThreadContext);
-  return (
-    <div
-      className="chat-message-composite flex w-full flex-col"
-      onMouseEnter={() => setHoveredMessageId(message.messageId)}
-      onMouseLeave={() => {
-        if (hoveredMessageId === options.message.messageId) {
-          setHoveredMessageId(null);
-        }
-      }}
-    >
-      {defaultOnRenderMessage && options
-        ? defaultOnRenderMessage(options)
-        : null}
-      <BottomBar message={options.message as ExtendedChatMessage} />
     </div>
   );
 };

@@ -47,3 +47,7 @@ async def get_explain_diff_prompt() -> str:
 
 async def get_explain_architecture_prompt() -> str:
     return await get_prompt("explain_architecture.txt")
+
+
+async def get_categorization_prompt() -> str:
+    return await get_prompt("categorize_query.txt")

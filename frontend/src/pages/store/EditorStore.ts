@@ -90,11 +90,11 @@ import { NotificationType } from "../../components/editor/ChangesSidebar";
 import type { SendChatMessageResponse } from "../../api/SendChatMessage";
 import { sendChatMessage } from "../../api/SendChatMessage";
 import type { ChatMessage } from "@azure/communication-react";
-import type { ExtendedChatMessage } from "../../components/editor/ChatSidebar";
-import { mention, MentionType } from "../../components/editor/ChatSidebar";
 import { explainDiff } from "../../api/ExplainDiff";
 import { type TopologyDiff } from "../../shared/architecture/TopologyDiff";
 import { resolveMentions } from "../../shared/chat-util";
+import type { ExtendedChatMessage } from "../../components/chat/ChatMessage.tsx";
+import { mention, MentionType } from "../../components/chat/ChatMessage.tsx";
 
 interface EditorStoreState {
   architecture: Architecture;
@@ -818,7 +818,11 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
         set({
           canApplyConstraints: true,
         });
-        return response.environmentVersion.config_errors ?? [];
+        return response.environmentVersion?.config_errors ?? [];
+      }
+
+      if (!response.environmentVersion) {
+        return [];
       }
 
       console.log("new environment version", response.environmentVersion);
@@ -1669,7 +1673,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
               role: m.senderId!,
               content:
                 m.contentType === "text"
-                  ? m.content ?? ""
+                  ? (m.content ?? "")
                   : resolveMentions(m.content ?? ""),
             };
           }),
@@ -1727,128 +1731,144 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
       return;
     }
 
-    console.log("new environment version", response.environmentVersion);
-    const elements = toReactFlowElements(
-      response.environmentVersion!,
-      await get().getResourceTypeKB(
-        response.environmentVersion.architecture_id,
-        response.environmentVersion.id,
-      ),
-      ArchitectureView.DataFlow,
-    );
-    const result = await autoLayout(
-      response.environmentVersion,
-      elements.nodes,
-      elements.edges,
-      get().layoutOptions,
-    );
-    const { selectedNode, selectedEdge, selectedResource } = refreshSelection({
-      environmentVersion: response.environmentVersion,
-      nodes: result.nodes,
-      edges: result.edges,
-      selectedNode: get().selectedNode,
-      selectedEdge: get().selectedEdge,
-      selectedResource: get().selectedResource,
-    });
-
-    if (selectedEdge) {
-      get().selectEdge(selectedEdge);
-    } else if (selectedNode && !selectedResource) {
-      get().selectNode(selectedNode);
-    } else if (selectedResource) {
-      get().selectResource(selectedResource);
-    } else {
-      get().deselectResource();
-      get().deselectNode();
-      get().deselectEdge();
-    }
-
-    const groupByKey = (list: any[], key: string) =>
-      list.reduce(
-        (hash, obj) => ({
-          ...hash,
-          [obj[key]]: (hash[obj[key]] || []).concat(obj),
-        }),
-        {},
+    let decisions: Decision[] = [];
+    if (response.environmentVersion) {
+      console.log("new environment version", response.environmentVersion);
+      const elements = toReactFlowElements(
+        response.environmentVersion!,
+        await get().getResourceTypeKB(
+          response.environmentVersion.architecture_id,
+          response.environmentVersion.id,
+        ),
+        ArchitectureView.DataFlow,
       );
-    const generatedConstraints = response.constraints;
-    const constraintsByScope = groupByKey(generatedConstraints, "scope");
-    const decisions = Object.entries(constraintsByScope)
-      .map(([scope, constraints]) => {
-        constraints = constraints as Constraint[];
-        if (scope === ConstraintScope.Resource) {
-          const uniqueResourceConstraints = [
-            ...new Map(
-              (constraints as ResourceConstraint[]).map((item) => [
-                item.target.toString(),
-                item,
-              ]),
-            ).values(),
-          ];
-          return uniqueResourceConstraints.map((c) => new Decision([c], []));
-        }
-        return [new Decision(constraints as Constraint[], [])];
-      })
-      .flat();
+      const result = await autoLayout(
+        response.environmentVersion,
+        elements.nodes,
+        elements.edges,
+        get().layoutOptions,
+      );
+      const { selectedNode, selectedEdge, selectedResource } = refreshSelection(
+        {
+          environmentVersion: response.environmentVersion,
+          nodes: result.nodes,
+          edges: result.edges,
+          selectedNode: get().selectedNode,
+          selectedEdge: get().selectedEdge,
+          selectedResource: get().selectedResource,
+        },
+      );
 
-    set(
-      {
-        environmentVersion: response.environmentVersion,
-        nodes: result.nodes,
-        edges: result.edges,
-        changeNotifications: get()
-          .changeNotifications.filter(
-            (n) => n.type !== NotificationType.Failure,
-          )
-          .concat(
-            ...decisions.map((d) => ({
-              title: d.formatTitle(),
-              details: d.formatInfo(),
-              type: NotificationType.Success,
-              timestamp: Date.now(),
-            })),
-          ),
-        unappliedConstraints: [],
-        canApplyConstraints: true,
-        edgeTargetState: initialState().edgeTargetState,
-        previousState: get().environmentVersion,
-        nextState: undefined,
-        willOverwriteState: false,
-      },
-      false,
-      "editor/sendChatMessage:end",
-    );
+      if (selectedEdge) {
+        get().selectEdge(selectedEdge);
+      } else if (selectedNode && !selectedResource) {
+        get().selectNode(selectedNode);
+      } else if (selectedResource) {
+        get().selectResource(selectedResource);
+      } else {
+        get().deselectResource();
+        get().deselectNode();
+        get().deselectEdge();
+      }
+
+      const groupByKey = (list: any[], key: string) =>
+        list.reduce(
+          (hash, obj) => ({
+            ...hash,
+            [obj[key]]: (hash[obj[key]] || []).concat(obj),
+          }),
+          {},
+        );
+      const generatedConstraints = response.constraints;
+      const constraintsByScope = groupByKey(generatedConstraints, "scope");
+      decisions = Object.entries(constraintsByScope)
+        .map(([scope, constraints]) => {
+          constraints = constraints as Constraint[];
+          if (scope === ConstraintScope.Resource) {
+            const uniqueResourceConstraints = [
+              ...new Map(
+                (constraints as ResourceConstraint[]).map((item) => [
+                  item.target.toString(),
+                  item,
+                ]),
+              ).values(),
+            ];
+            return uniqueResourceConstraints.map((c) => new Decision([c], []));
+          }
+          return [new Decision(constraints as Constraint[], [])];
+        })
+        .flat();
+
+      set(
+        {
+          environmentVersion: response.environmentVersion,
+          nodes: result.nodes,
+          edges: result.edges,
+          changeNotifications: get()
+            .changeNotifications.filter(
+              (n) => n.type !== NotificationType.Failure,
+            )
+            .concat(
+              ...decisions.map((d) => ({
+                title: d.formatTitle(),
+                details: d.formatInfo(),
+                type: NotificationType.Success,
+                timestamp: Date.now(),
+              })),
+            ),
+          unappliedConstraints: [],
+          canApplyConstraints: true,
+          edgeTargetState: initialState().edgeTargetState,
+          previousState: get().environmentVersion,
+          nextState: undefined,
+          willOverwriteState: false,
+        },
+        false,
+        "editor/sendChatMessage:end",
+      );
+      console.log("new nodes", elements.nodes);
+    }
     const responseId = crypto.randomUUID().toString();
-    get().replyInChat(
-      !decisions.length
-        ? [
-            {
-              content: "I'm sorry, I don't understand your prompt. 🥺",
-            },
-          ]
-        : [
-            {
-              messageId: responseId,
-              content:
-                "Okay, here's what I've done:\n" +
-                decisions
-                  .map((d) =>
-                    d.formatTitle({
-                      mentionResources: true,
-                      forceBullet: true,
-                    }),
-                  )
-                  .join("\n") +
-                `\n${mention(MentionType.Explain, responseId, "Yes")}`,
-              attached: "top",
-            },
-          ],
-      messageId,
-      {
-        status: "delivered",
-      },
-    );
-    console.log("new nodes", elements.nodes);
+
+    if (response.response) {
+      get().replyInChat([
+        {
+          messageId: `${responseId}-helper`,
+          content: response.response,
+        },
+      ]);
+    }
+    if (decisions.length) {
+      get().replyInChat(
+        // !decisions.length
+        //   ? [
+        //       {
+        //         content: "I'm sorry, I don't understand your prompt. 🥺",
+        //       },
+        //     ]
+        [
+          {
+            messageId: responseId,
+            content:
+              "Okay, here's what I've done:\n" +
+              decisions
+                .map((d) =>
+                  d.formatTitle({
+                    mentionResources: true,
+                    forceBullet: true,
+                  }),
+                )
+                .join("\n") +
+              `\n${mention(MentionType.Explain, responseId, "Yes")}`,
+            attached: "top",
+          },
+        ],
+        messageId,
+        {
+          status: "delivered",
+        },
+      );
+    }
     get().updateEdgeTargets();
   },
   clearChatHistory: () => {
