@@ -78,7 +78,7 @@ export const ConfigSection: FC<PropsWithChildren<ConfigSectionProps>> = ({
 };
 
 function getKeys(obj: any, parent?: string): string[] {
-  const keys = [];
+  const keys: string[] = [];
   for (const key in obj) {
     if (Array.isArray(obj)) {
       keys.push(

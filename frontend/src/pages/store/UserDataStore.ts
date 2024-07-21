@@ -1,4 +1,4 @@
-import type { StateCreator } from "zustand/esm";
+import type { StateCreator } from "zustand";
 import { type Architecture } from "../../shared/architecture/Architecture";
 import type { ErrorStore } from "./ErrorStore";
 import { listArchitectures } from "../../api/ListArchitectures";

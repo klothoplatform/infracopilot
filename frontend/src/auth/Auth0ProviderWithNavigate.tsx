@@ -62,7 +62,7 @@ export const Auth0ProviderWithNavigate = ({
   }, [isLoggingIn, isAuthenticated, appState, handleAuthCallback, navigate]);
 
   if (!(domain && clientId && redirectUri)) {
-    return null;
+    return <div>This service is currently unavailable.</div>;
   }
 
   return (

@@ -1,4 +1,4 @@
-import type { StateCreator } from "zustand/esm";
+import type { StateCreator } from "zustand";
 import type { Auth0ContextInterface, User } from "@auth0/auth0-react";
 import type { ErrorStore } from "./ErrorStore";
 import { analytics } from "../../App";

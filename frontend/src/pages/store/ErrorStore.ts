@@ -1,4 +1,4 @@
-import type { StateCreator } from "zustand/esm";
+import type { StateCreator } from "zustand";
 import { v4 as uuidv4 } from "uuid";
 import { analytics } from "../../App";
 import type { ApplicationError } from "../../shared/errors";
@@ -19,7 +19,7 @@ export const errorStore: StateCreator<ErrorStore, [], [], ErrorStore> = (
 ) => ({
   errors: [],
   addError: (error: Error) => {
-    const errs = [];
+    const errs: Error[] = [];
     for (let c = error; c; c = c.cause as Error) {
       errs.push(c);
     }
