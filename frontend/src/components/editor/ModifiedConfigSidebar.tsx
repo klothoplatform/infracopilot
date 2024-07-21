@@ -31,7 +31,7 @@ export const ModifiedConfigSidebar: FC<DetailsSidebarProps> = ({
         hidden: hidden,
       })}
     >
-      <div className="flex h-10 w-full shrink-0 grow-0 items-baseline justify-between border-b-[1px] p-2 dark:border-gray-700">
+      <div className="flex h-10 w-full shrink-0 grow-0 items-baseline justify-between border-b p-2 dark:border-gray-700">
         <h2 className={"text-md font-medium dark:text-white"}>
           Modified Properties
         </h2>
@@ -178,7 +178,7 @@ const Details: FC<DetailsProps> = function ({ setWarnMissingProperties }) {
     }
   }, [environmentVersion.config_errors, resourceTypeKB, unappliedConstraints]);
 
-  const sections = [];
+  const sections: any[] = [];
   if (missingProperties.size > 0) {
     sections.push({
       title: "Missing Properties",

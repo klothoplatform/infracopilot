@@ -84,7 +84,7 @@ export const DetailsSidebar: FC<DetailsSidebarProps> = ({
         hidden: hidden,
       })}
     >
-      <div className="flex h-10 w-full shrink-0 grow-0 items-baseline justify-between border-b-[1px] p-2 dark:border-gray-700">
+      <div className="flex h-10 w-full shrink-0 grow-0 items-baseline justify-between border-b p-2 dark:border-gray-700">
         <h2 className={"text-md font-medium dark:text-white"}>Details</h2>
         <div className="flex gap-1">
           <Tooltip
@@ -226,7 +226,7 @@ const Details: FC = function () {
       if (remainingProperties?.length === 0) {
         remainingProperties = undefined;
       }
-      const newSections = [];
+      const newSections: any[] = [];
 
       if (promotedProperties) {
         newSections.push({

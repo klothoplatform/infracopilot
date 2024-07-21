@@ -357,7 +357,7 @@ export const AccessModal: FC<{
         return;
       }
       setIsSaving(true);
-      let request = undefined;
+      let request: UpdateArchitectureAccessRequest | undefined = undefined;
       try {
         request = toAccessRequest(
           architecture.id,

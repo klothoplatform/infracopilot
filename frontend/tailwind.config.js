@@ -1,8 +1,8 @@
-const colors = require("tailwindcss/colors");
+import colors from "tailwindcss/colors";
+import flowbitePlugin from "flowbite/plugin";
+import flowbiteTypography from "flowbite-typography";
 
-/* eslint-disable no-undef */
-/** @type {import('tailwindcss').Config} */
-module.exports = {
+const tailwindConfig = {
   content: [
     "./index.html",
     "./node_modules/flowbite-react/lib/**/*.{js,ts}",
@@ -60,5 +60,7 @@ module.exports = {
     },
     extend: {},
   },
-  plugins: [require("flowbite/plugin"), require("flowbite-typography")],
+  plugins: [flowbitePlugin, flowbiteTypography],
 };
+
+export default tailwindConfig;

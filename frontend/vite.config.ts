@@ -1,9 +1,16 @@
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react-swc";
+// import eslint from "vite-plugin-eslint";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  base: "/",
+  plugins: [
+    react(),
+    // eslint({
+    //   fix: process.env.ESLINT_FIX?.toLowerCase() === "true",
+    // }),
+  ],
   test: {
     environment: "jsdom",
     environmentMatchGlobs: [
@@ -17,5 +24,13 @@ export default defineConfig({
   },
   define: {
     "import.meta.vitest": true,
+  },
+  server: {
+    proxy: {
+      "/api": {
+        target: "http://localhost:3000",
+        changeOrigin: true,
+      },
+    },
   },
 });

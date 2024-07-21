@@ -8,7 +8,7 @@ import openai
 from src.chat.intent_parser import parse_intent, ParseException
 from src.chat.message_execution import MessageExecutionException
 from src.chat.models import ResourcesAndEdges
-from src.chat.open_ai import prompts
+from src.chat.open_ai import prompts, client
 from src.chat.open_ai.models import IntentList, ActionMessage, ParsedConstraint
 from src.engine_service.engine_commands.run import (
     RunEngineResult,
@@ -74,12 +74,10 @@ class ExplainArchitecture:
 
         start = perf_counter()
         try:
-            completion = await openai.ChatCompletion.acreate(
-                model="gpt-35-turbo-16k",
-                deployment_id="gpt-35-turbo-16k",
+            completion = await client.chat.completions.create(
+                model="klo4o",
                 temperature=0,
                 timeout=10 * timeout_sec,
-                request_timeout=timeout_sec,
                 messages=messages,
             )
         except Exception as err:

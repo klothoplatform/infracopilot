@@ -37,7 +37,7 @@ export const LayoutSelector: FC = () => {
         }}
         aria-label="Editor layout selection menu"
         // eslint-disable-next-line react/style-prop-object
-        style={"underline"}
+        style="underline"
         onActiveTabChange={(activeTab) => {
           onActiveTabChange(tabItems[activeTab]);
         }}

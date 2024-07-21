@@ -200,6 +200,9 @@ const IacExplorer: FC<{
   }, [mode, selectedFile]);
 
   const content = selectedFile ? fileContent[selectedFile?.id] : "";
+
+  const FB = FileBrowser as any;
+
   return (
     <div className={"size-full overflow-hidden"}>
       <div
@@ -209,7 +212,7 @@ const IacExplorer: FC<{
       >
         {allFiles.length > 0 && (
           <div className="h-full min-w-[180px] basis-2/12 overflow-hidden">
-            <FileBrowser
+            <FB
               files={currentDirFiles}
               folderChain={folderChain}
               ref={fileBrowserRef}
@@ -222,7 +225,7 @@ const IacExplorer: FC<{
             >
               <FileNavbar />
               <FileList />
-            </FileBrowser>
+            </FB>
           </div>
         )}
         <div className={"min-w-100 size-full"}>

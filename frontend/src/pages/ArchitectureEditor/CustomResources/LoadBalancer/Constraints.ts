@@ -208,7 +208,7 @@ export function updateListenerRules(
           return [];
         }
 
-        const ruleConstraints = [];
+        const ruleConstraints: Constraint[] = [];
 
         let ruleId = submittedRule.id;
         const existingRule = ruleId
@@ -313,9 +313,9 @@ export function updateListenerRules(
         const priority = (
           (i === 0
             ? 0
-            : environmentVersion.resources.get(
+            : (environmentVersion.resources.get(
                 submittedRules[i - 1].id?.toString(),
-              )?.Priority ?? i) + 1
+              )?.Priority ?? i)) + 1
         ).toString();
         if (!existingRule?.Priority || priority !== existingRule.Priority) {
           ruleConstraints.push(

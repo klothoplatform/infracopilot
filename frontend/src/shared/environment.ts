@@ -16,42 +16,46 @@ const hiddenResources = [
   "kubernetes:deployment",
 ];
 
+type typedMetaEnv = {
+  [key: string]: string;
+} & Pick<ImportMetaEnv, "BASE_URL" | "MODE" | "DEV" | "PROD" | "SSR">;
+
+const viteEnv: typedMetaEnv = import.meta.env as typedMetaEnv;
+
 export const env: Environment = {
-  environment: process.env.REACT_APP_ENVIRONMENT ?? process.env.NODE_ENV,
+  environment: viteEnv.VITE_ENVIRONMENT || "production",
   debug: new Set(
-    (process.env.REACT_APP_DEBUG ?? "")
+    (viteEnv.VITE_DEBUG ?? "")
       .split(",")
       .map((s) => s.trim())
       .filter((s) => s.length > 0),
   ),
   sessionRewind: {
-    enabled:
-      process.env.REACT_APP_SESSIONREWIND_ENABLED?.toLowerCase() === "true",
+    enabled: viteEnv.VITE_SESSIONREWIND_ENABLED?.toLowerCase() === "true",
     apiKey: "66s8iL8YHi3iOXBqda2YSA4zLJeNyCZ8TazdUBR9",
   },
   auth0: {
-    domain: process.env.REACT_APP_AUTH0_DOMAIN,
-    clientId: process.env.REACT_APP_AUTH0_CLIENT_ID,
-    callbackUrl: process.env.REACT_APP_AUTH0_CALLBACK_URL,
-    logoutUrl: process.env.REACT_APP_AUTH0_LOGOUT_URL,
+    domain: viteEnv.VITE_AUTH0_DOMAIN,
+    clientId: viteEnv.VITE_AUTH0_CLIENT_ID,
+    callbackUrl: viteEnv.VITE_AUTH0_CALLBACK_URL,
+    logoutUrl: viteEnv.VITE_AUTH0_LOGOUT_URL,
   },
-  chatEnabled: process.env.REACT_APP_CHAT_ENABLED?.toLowerCase() === "true",
+  chatEnabled: viteEnv.VITE_CHAT_ENABLED?.toLowerCase() === "true",
   documentationEnabled:
-    process.env.REACT_APP_DOCUMENTATION_ENABLED?.toLowerCase() === "true",
+    viteEnv.VITE_DOCUMENTATION_ENABLED?.toLowerCase() === "true",
   commandBarEnabled:
-    process.env.REACT_APP_COMMAND_BAR_ENABLED === undefined
+    viteEnv.VITE_COMMAND_BAR_ENABLED === undefined
       ? true
-      : process.env.REACT_APP_COMMAND_BAR_ENABLED?.toLowerCase() === "true",
+      : viteEnv.VITE_COMMAND_BAR_ENABLED?.toLowerCase() === "true",
   analytics: {
     writeKey: "2dypaS03m88w9VrLanctkDlxjry",
     dataplaneUrl: "https://kloashibotqvww.dataplane.rudderstack.com",
-    trackErrors:
-      process.env.REACT_APP_ANALYTICS_TRACK_ERRORS?.toLowerCase() !== "false",
+    trackErrors: viteEnv.VITE_ANALYTICS_TRACK_ERRORS?.toLowerCase() !== "false",
   },
   hiddenResources:
-    process.env.REACT_APP_HIDDEN_RESOURCES === undefined
+    viteEnv.VITE_HIDDEN_RESOURCES === undefined
       ? hiddenResources
-      : process.env.REACT_APP_HIDDEN_RESOURCES.split(",")
+      : viteEnv.VITE_HIDDEN_RESOURCES.split(",")
           .map((r) => r.trim())
           .filter((r) => r.length > 0),
 };
