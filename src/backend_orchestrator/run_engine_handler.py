@@ -255,6 +255,7 @@ class EngineOrchestrator:
         version: Optional[int] = None,
         overwrite: Optional[bool] = False,
     ):
+
         request = CopilotRunRequest(constraints=[], overwrite=False)
         try:
             ev = await self.ev_dao.get_current_version(architecture_id, env_id)
@@ -265,7 +266,7 @@ class EngineOrchestrator:
             conversation = Conversation(
                 environment_version=ev, initial_state=state, messages=previous_messages
             )
-            parsed_constraints = await conversation.do_query(
+            parsed_constraints, response = await conversation.handle_query(
                 query_id=str(uuid.uuid4()), query=message, timeout_sec=120
             )
             request = CopilotRunRequest(
@@ -292,6 +293,7 @@ class EngineOrchestrator:
                 config_errors=result.config_errors,
                 diff=result.diff,
                 constraints=[pc.constraint.to_dict() for pc in parsed_constraints],
+                response=response,
             )
 
             return result, None
@@ -305,6 +307,7 @@ class EngineOrchestrator:
                 "title": title,
                 "details": details,
                 "full_details": error_details,
+                "response": "Sorry, I couldn't understand that. Please try again.",
             }
         except ArchitectureStateDoesNotExistError:
             raise HTTPException(

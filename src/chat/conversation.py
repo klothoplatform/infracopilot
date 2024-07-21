@@ -1,7 +1,9 @@
+import re
 from dataclasses import dataclass
 from time import perf_counter
-from typing import Optional, List
+from typing import Optional, List, Tuple
 from typing_extensions import TypedDict
+import json
 
 from src.chat.intent_parser import parse_intent, ParseException
 from src.chat.message_execution import MessageExecutionException
@@ -86,6 +88,100 @@ Existing connections:{bullet}{bullet.join(self.initial_state.edges)}"""
 
         return messages
 
+    async def categorize_query(self, query: str) -> dict:
+        categorization_prompt = await prompts.get_categorization_prompt()
+
+        messages = [
+            {"role": "system", "content": categorization_prompt},
+            *self.messages,
+            {"role": "user", "content": query},
+        ]
+
+        try:
+            completion = await client.chat.completions.create(
+                model="klo4o",
+                temperature=1,
+                timeout=5,
+                messages=messages,
+            )
+            response = completion.choices[0].message.content
+            # get first line of response
+            lines = response.split("\n")
+            if len(lines) < 2:
+                raise Exception("Failed to categorize query")
+            category = lines[0].upper()
+            if not re.match(r"^[A-Z_]+$", category):
+                raise Exception("Failed to categorize query")
+            message = "\n".join(lines[1:])
+            return {"category": category, "message": message}
+
+        except Exception as err:
+            log.error("Failed to categorize query", exc_info=True)
+            return {
+                "category": "UNSUPPORTED_ACTION",
+                "message": "I'm sorry, I couldn't process your request. How else can I assist you with your architecture?",
+            }
+
+    async def handle_query(
+        self, query_id: str, query: str, timeout_sec=15
+    ) -> Tuple[List[ParsedConstraint], str]:
+        categorization = await self.categorize_query(query)
+        categorization_message = categorization["message"]
+
+        if categorization["category"] == "ARCHITECTURE_MODIFICATION":
+            return (
+                await self.do_query(query_id, query, timeout_sec),
+                categorization_message,
+            )
+        else:
+            return [], categorization_message
+
+    async def do_query(
+        self, query_id: str, query: str, timeout_sec=15
+    ) -> List[ParsedConstraint]:
+        try:
+            intent_result = await self.interpret_query(query, timeout_sec=timeout_sec)
+            log.debug(
+                "Got actions:\n%s",
+                "\n".join(str(a) for a in intent_result.intents.actions),
+            )
+        except InterpretMessageException as err:
+            cause = err.__cause__
+
+            if isinstance(cause, ParseException):
+                raise MessageExecutionException(
+                    error_message="I didn't understand your prompt",
+                    message_id=query_id,
+                    user_message=query,
+                    ai_response=err.ai_response,
+                ) from err
+
+            else:
+                raise MessageExecutionException(
+                    error_message="Something went wrong",
+                    message_id=query_id,
+                    user_message=query,
+                    ai_response=err.ai_response,
+                ) from err
+
+        try:
+            parsed_actions = intent_result.intents.execute_all()
+            log.debug(
+                "Action responses:\n%s",
+                "\n".join(r.reasoning.message for r in parsed_actions),
+            )
+        except Exception as err:
+            raise MessageExecutionException(
+                error_message="Something went wrong",
+                message_id=query_id,
+                user_message=query,
+                ai_response=intent_result.ai_response,
+                intent=intent_result.intents,
+                intent_timing=intent_result.response_time,
+            ) from err
+
+        return parsed_actions
+
     async def interpret_query(
         self, message: str, timeout_sec=15
     ) -> InterpretMessageResults:
@@ -149,52 +245,6 @@ Existing connections:{bullet}{bullet.join(self.initial_state.edges)}"""
         )
 
         return result
-
-    async def do_query(
-        self, query_id: str, query: str, timeout_sec=15
-    ) -> List[ParsedConstraint]:
-        try:
-            intent_result = await self.interpret_query(query, timeout_sec=timeout_sec)
-            log.debug(
-                "Got actions:\n%s",
-                "\n".join(str(a) for a in intent_result.intents.actions),
-            )
-        except InterpretMessageException as err:
-            cause = err.__cause__
-
-            if isinstance(cause, ParseException):
-                raise MessageExecutionException(
-                    error_message="I didn't understand your prompt",
-                    message_id=query_id,
-                    user_message=query,
-                    ai_response=err.ai_response,
-                ) from err
-
-            else:
-                raise MessageExecutionException(
-                    error_message="Something went wrong",
-                    message_id=query_id,
-                    user_message=query,
-                    ai_response=err.ai_response,
-                ) from err
-
-        try:
-            parsed_actions = intent_result.intents.execute_all()
-            log.debug(
-                "Action responses:\n%s",
-                "\n".join(r.reasoning.message for r in parsed_actions),
-            )
-        except Exception as err:
-            raise MessageExecutionException(
-                error_message="Something went wrong",
-                message_id=query_id,
-                user_message=query,
-                ai_response=intent_result.ai_response,
-                intent=intent_result.intents,
-                intent_timing=intent_result.response_time,
-            ) from err
-
-        return parsed_actions
 
 
 def messages_to_reason(reasoning: List[ActionMessage]):

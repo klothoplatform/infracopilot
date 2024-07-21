@@ -75,6 +75,7 @@ class EnvironmentVersionResponseObject(BaseModel):
 
 class SendMessageResponse(EnvironmentVersionResponseObject):
     constraints: List[Dict] = field(default_factory=list)
+    response: str = ""
 
     @model_serializer
     def ser_model(self) -> str:
@@ -86,6 +87,7 @@ class SendMessageResponse(EnvironmentVersionResponseObject):
             "env_resource_configuration": self.env_resource_configuration,
             "config_errors": self.config_errors,
             "constraints": self.constraints,
+            "response": self.response,
         }
         if self.diff is not None:
             output["diff"] = self.diff
