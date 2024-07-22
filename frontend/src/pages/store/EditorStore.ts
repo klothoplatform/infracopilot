@@ -86,7 +86,6 @@ import { promoteToEnvironment } from "../../api/PromoteToEnvironment";
 import exportIaC from "../../api/ExportIaC";
 
 import type { ChangeNotification } from "../../components/editor/ChangesSidebar";
-import { NotificationType } from "../../components/editor/ChangesSidebar";
 import type { SendChatMessageResponse } from "../../api/SendChatMessage";
 import { sendChatMessage } from "../../api/SendChatMessage";
 import type { ChatMessage } from "@azure/communication-react";
@@ -94,7 +93,8 @@ import { explainDiff } from "../../api/ExplainDiff";
 import { type TopologyDiff } from "../../shared/architecture/TopologyDiff";
 import { resolveMentions } from "../../shared/chat-util";
 import type { ExtendedChatMessage } from "../../components/chat/ChatMessage.tsx";
-import { mention, MentionType } from "../../components/chat/ChatMessage.tsx";
+import { NotificationType } from "../../components/editor/NotificationType.ts";
+import { mention, MentionType } from "../../components/chat/MentionType.ts";
 
 interface EditorStoreState {
   architecture: Architecture;

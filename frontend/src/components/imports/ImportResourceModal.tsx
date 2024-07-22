@@ -31,14 +31,8 @@ export default function ImportResourceModal({
   onClose,
 }: NewArchitectureModalProps) {
   const methods = useForm();
-  const {
-    getIdToken,
-    user,
-    resetEditorState,
-    addError,
-    applyConstraints,
-    resourceTypeKB,
-  } = useApplicationStore();
+  const { resetEditorState, addError, applyConstraints, resourceTypeKB } =
+    useApplicationStore();
 
   const [fields, setFields] = useState<Property[]>([]);
   const resourceType: ResourceType = methods.watch("ResourceType");
@@ -71,11 +65,11 @@ export default function ImportResourceModal({
       const resourceConstraints: ResourceConstraint[] = [];
       Object.keys(state).forEach((key) => {
         const val = key.split("#", 2);
-        if (val.length != 2) {
+        if (val.length !== 2) {
           return;
         }
         const propertyKey = val[1];
-        if (key != "name" && key != "ResourceType") {
+        if (key !== "name" && key !== "ResourceType") {
           resourceConstraints.push(
             new ResourceConstraint(
               ConstraintOperator.Equals,
@@ -92,7 +86,7 @@ export default function ImportResourceModal({
         }
       });
       try {
-        const errors = applyConstraints([
+        applyConstraints([
           new ApplicationConstraint(
             ConstraintOperator.Import,
             new NodeId(
@@ -209,7 +203,7 @@ export default function ImportResourceModal({
                     {...methods.register("name", {
                       required: "Name is required",
                       pattern: {
-                        value: /^[a-zA-Z0-9_./\-:\[\]]*$/,
+                        value: /^[a-zA-Z0-9_./\-:[\]]*$/,
                         message:
                           "Name must only contain alphanumeric characters, dashes, underscores, dots, and slashes",
                       },
@@ -228,7 +222,7 @@ export default function ImportResourceModal({
                   configResource={
                     new NodeId(resourceType.type, "", "", resourceType.provider)
                   }
-                  filter={(field: Property, resourceID?: NodeId) => false}
+                  filter={() => false}
                 />
               </div>
             )}

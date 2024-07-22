@@ -253,7 +253,7 @@ const AdditionalActionsDropdown: FC<{
   }, [onClose]);
 
   return (
-    <div ref={ref} className="absolute left-[-4rem] top-0 z-50">
+    <div ref={ref} className="absolute -left-16 top-0 z-50">
       <ListGroup>
         {actions?.map((action) => {
           return (

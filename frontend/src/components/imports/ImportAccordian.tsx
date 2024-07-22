@@ -17,7 +17,7 @@ export default function ImportAccordion({
   setShowImportModal,
 }: ImportAccordianProps) {
   const [isOpen, setIsOpen] = React.useState(open);
-  const onTitleClick: MouseEventHandler = (event) => {
+  const onTitleClick: MouseEventHandler = () => {
     setIsOpen(!isOpen);
   };
 

@@ -476,7 +476,7 @@ function applyCustomizers(
   }
 
   const constraints: Constraint[] = [];
-  Object.entries(submittedValues).forEach(([key, value]) => {
+  Object.entries(submittedValues).forEach(([key]) => {
     if (!key.startsWith(`${resourceId}#`)) {
       return;
     }

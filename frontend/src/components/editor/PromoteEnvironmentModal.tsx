@@ -29,7 +29,7 @@ export default function PromoteEnvironmentModal({
   const defaultTargetEnvironment =
     architecture.defaultEnvironment !== environmentVersion.id
       ? architecture.defaultEnvironment
-      : architecture.environments.find((a) => !a.default)?.id ?? "";
+      : (architecture.environments.find((a) => !a.default)?.id ?? "");
 
   const targetFieldId = "targetEnvironmentId";
 

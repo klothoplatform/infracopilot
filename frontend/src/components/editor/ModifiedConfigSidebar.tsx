@@ -83,8 +83,8 @@ const Details: FC<DetailsProps> = function ({ setWarnMissingProperties }) {
   useEffect(() => {
     if (
       !isLoadingConstraints &&
-      architecture.id != undefined &&
-      environmentVersion.id != undefined
+      architecture.id !== undefined &&
+      environmentVersion.id !== undefined
     ) {
       setIsLoadingConstraints(true);
 
@@ -137,7 +137,14 @@ const Details: FC<DetailsProps> = function ({ setWarnMissingProperties }) {
         }
       })();
     }
-  }, [architecture, environmentVersion, unappliedConstraints]);
+  }, [
+    architecture,
+    currentIdToken.idToken,
+    environmentVersion,
+    isLoadingConstraints,
+    resourceTypeKB,
+    unappliedConstraints,
+  ]);
 
   useEffect(() => {
     if (environmentVersion.config_errors?.length > 0) {
@@ -176,7 +183,13 @@ const Details: FC<DetailsProps> = function ({ setWarnMissingProperties }) {
       setMissingProperties(new Map<string, Property[]>());
       setWarnMissingProperties(false);
     }
-  }, [environmentVersion.config_errors, resourceTypeKB, unappliedConstraints]);
+  }, [
+    environmentVersion,
+    environmentVersion.config_errors,
+    resourceTypeKB,
+    setWarnMissingProperties,
+    unappliedConstraints,
+  ]);
 
   const sections: any[] = [];
   if (missingProperties.size > 0) {

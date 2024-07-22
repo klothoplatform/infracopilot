@@ -141,7 +141,7 @@ export const ExportPane = () => {
             </div>
             <form
               className={
-                "text-md flex w-full flex-wrap items-center gap-4 rounded-lg border border-gray-300 bg-gray-100 px-6 py-2 text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 sm:flex-row"
+                "text-md flex w-full flex-wrap items-center gap-4 rounded-lg border border-gray-300 bg-gray-100 px-6 py-2 text-gray-700 sm:flex-row dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
               }
               onSubmit={handleSubmit(onSubmit)}
             >

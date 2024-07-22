@@ -147,7 +147,7 @@ export default function EditorPane() {
     ],
   );
 
-  const onNodeClick = (event: ReactMouseEvent, node: Node) => {
+  const onNodeClick = () => {
     menu && setMenu(null);
   };
 

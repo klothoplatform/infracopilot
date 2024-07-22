@@ -2,6 +2,7 @@ import colors from "tailwindcss/colors";
 import flowbitePlugin from "flowbite/plugin";
 import flowbiteTypography from "flowbite-typography";
 
+/** @type {import('tailwindcss').Config} */
 const tailwindConfig = {
   content: [
     "./index.html",

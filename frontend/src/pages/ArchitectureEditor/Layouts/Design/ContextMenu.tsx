@@ -64,13 +64,13 @@ export default function ContextMenu({
   return (
     <div
       style={{ top, left, right, bottom }}
-      className=" absolute z-[10] max-w-[250px] divide-y divide-gray-300 overflow-hidden rounded-md border-solid bg-white text-xs drop-shadow-lg dark:divide-gray-700 dark:bg-gray-800"
+      className=" absolute z-10 max-w-[250px] divide-y divide-gray-300 overflow-hidden rounded-md border-solid bg-white text-xs drop-shadow-lg dark:divide-gray-700 dark:bg-gray-800"
       {...props}
       onBlur={onAction}
       ref={ref}
     >
       <div
-        className="w-full truncate bg-primary-600 px-2 py-3 text-white dark:bg-primary-700"
+        className="bg-primary-600 dark:bg-primary-700 w-full truncate px-2 py-3 text-white"
         title={node?.id ?? edge?.id}
       >
         <small>{node?.id ?? edge?.id}</small>

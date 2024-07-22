@@ -21,12 +21,12 @@ const NewArchitectureBigButton: FC<NewArchitectureButtonProps> = (
   props: NewArchitectureButtonProps,
 ) => {
   return (
-    <div className="h-[8rem] w-[6rem]">
+    <div className="h-32 w-24">
       <Button
         aria-label="Create a New Architecture"
         theme={buttonTheme}
         className={
-          "[&>span]:text-primary-600 [&>span]:hover:text-white [&>span]:dark:text-primary-600 [&>span]:dark:hover:text-white"
+          "[&>span]:text-primary-600 [&>span]:dark:text-primary-600 [&>span]:hover:text-white [&>span]:dark:hover:text-white"
         }
         color={"purple"}
         onClick={props.onClick}
@@ -34,7 +34,7 @@ const NewArchitectureBigButton: FC<NewArchitectureButtonProps> = (
         outline
         fullSized
       >
-        <BiPlus className="size-[3rem]" />
+        <BiPlus className="size-12" />
       </Button>
     </div>
   );

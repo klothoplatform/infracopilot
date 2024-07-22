@@ -2,10 +2,10 @@ import type { FC } from "react";
 import { Fragment } from "react";
 import React from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
-import { findChildProperty } from "./ConfigField";
 import classNames from "classnames";
 import { Button, TextInput } from "flowbite-react";
 import { HiMinusCircle, HiPlusCircle } from "react-icons/hi";
+import { findChildProperty } from "./FindChildProperty.ts";
 
 type PrimitiveMapProps = {
   id: string;

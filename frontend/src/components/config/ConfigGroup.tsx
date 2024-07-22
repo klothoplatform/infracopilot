@@ -100,10 +100,10 @@ export const ConfigGroup: FC<ConfigGroupProps> = ({
     ?.map((property) =>
       property.type === CollectionTypes.Map &&
       (property as MapProperty).valueType === CollectionTypes.Map
-        ? property.properties?.map((child) => ({
+        ? (property.properties?.map((child) => ({
             ...child,
             name: `${property.name}.${child.name}`,
-          })) ?? property
+          })) ?? property)
         : property,
     )
     .flat()

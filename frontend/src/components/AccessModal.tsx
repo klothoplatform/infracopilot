@@ -28,6 +28,8 @@ import {
   publicUserId,
 } from "../shared/architecture/Access";
 import { FormFooter } from "./FormFooter";
+import { useEffectOnMount } from "../shared/hooks/useEffectOnMount.ts";
+import { actionMap } from "./ActionMap.ts";
 
 interface Entity extends ArchitectureAccessEntity {
   icon: React.ReactElement;
@@ -276,7 +278,7 @@ export const AccessModal: FC<{
     setEntities(newEntities);
   }
 
-  useEffect(() => {
+  useEffectOnMount(() => {
     if (isLoading) {
       return;
     }
@@ -302,7 +304,7 @@ export const AccessModal: FC<{
         setIsLoading(false);
       }
     })();
-  }, []);
+  });
 
   useEffect(() => {
     if (!access) {
@@ -322,7 +324,7 @@ export const AccessModal: FC<{
               if (entity.picture) {
                 return (
                   <img
-                    alt={"profile image"}
+                    alt={"profile"}
                     src={entity.picture}
                     className={"rounded-full"}
                   />
@@ -334,7 +336,7 @@ export const AccessModal: FC<{
               }
 
               return (
-                <div className="flex size-full items-center justify-center rounded-full bg-primary-400 text-lg font-light text-white dark:bg-primary-500">
+                <div className="bg-primary-400 dark:bg-primary-500 flex size-full items-center justify-center rounded-full text-lg font-light text-white">
                   {`${entity.givenName?.[0] ?? ""}${
                     entity.familyName?.[0] ?? ""
                   }`}
@@ -541,10 +543,6 @@ export const AccessModal: FC<{
     </Modal>
   );
 };
-export const actionMap = {
-  viewer: "view",
-  editor: "edit",
-} as any;
 const GeneralAccessSelector: FC<{
   access: ArchitectureAccess;
   readonly?: boolean;
@@ -646,7 +644,7 @@ const GeneralAccessSelector: FC<{
               )}
             >
               {Object.entries(generalAccessOptions).map(
-                ([name, option]: [string, any]) => (
+                ([_, option]: [string, any]) => (
                   <Dropdown.Item
                     key={option.value}
                     name={option.label}

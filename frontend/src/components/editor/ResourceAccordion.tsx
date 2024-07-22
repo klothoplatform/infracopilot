@@ -57,7 +57,7 @@ export default function ResourceAccordion({
             r.classifications?.length &&
             (userFilter === undefined || userFilter(r.displayName)),
         )
-        .map((resourceType, i) => {
+        .map((resourceType) => {
           return {
             provider: resourceType.provider,
             type: resourceType.type,
@@ -75,7 +75,7 @@ export default function ResourceAccordion({
     event.dataTransfer.effectAllowed = "move";
   };
 
-  const onTitleClick: MouseEventHandler = (event) => {
+  const onTitleClick: MouseEventHandler = () => {
     setIsOpen(!isOpen);
   };
 

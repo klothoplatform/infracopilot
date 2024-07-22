@@ -6,7 +6,7 @@ import type { User } from "@auth0/auth0-react";
 import { FaBuildingLock, FaUserPlus } from "react-icons/fa6";
 import { FaGlobeAmericas } from "react-icons/fa";
 import { MdOutlineLock } from "react-icons/md";
-import { AccessModal, actionMap } from "./AccessModal";
+import { AccessModal } from "./AccessModal";
 import type { ArchitectureAccess } from "../shared/architecture/Access";
 import {
   ArchitectureRole,
@@ -14,6 +14,7 @@ import {
   publicUserId,
 } from "../shared/architecture/Access";
 import { Tooltip } from "./Tooltip";
+import { actionMap } from "./ActionMap.ts";
 
 export const ShareButton: FC<{
   user?: User;
@@ -113,7 +114,7 @@ const GeneralAccessTooltipContent: FC<{
   return (
     <>
       {!!selectedType && (
-        <div className={"max-w-[12rem] text-xs font-normal"}>
+        <div className={"max-w-48 text-xs font-normal"}>
           {!!selectedType.label && (
             <p className="leading-6">{selectedType.label}</p>
           )}

@@ -44,7 +44,7 @@ export const ChatSignupSidebar: FC<{
         hidden: hidden,
       })}
     >
-      <div className="flex h-10 w-full items-baseline justify-between border-b-[1px] p-2 dark:border-gray-700 ">
+      <div className="flex h-10 w-full items-baseline justify-between border-b p-2 dark:border-gray-700 ">
         <h2 className={"text-md font-medium dark:text-white"}>Chat</h2>
       </div>
       <ErrorBoundary

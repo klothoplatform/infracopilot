@@ -51,7 +51,7 @@ export const MarkdownCodeWrapper: React.FC<MarkdownCodeWrapperProps> = ({
 
   const processMultilineCode = (text: string): ReactNode[] => {
     const result: ReactNode[] = [];
-    const multilineCodeRegex = /```(\w*)\s*\n([^`]+)[\s\n]*```/g;
+    const multilineCodeRegex = /```(\w*)[\s*\n]*\n([^`]+)[\s\n]*```/g;
     let lastIndex = 0;
     let multilineMatch;
 
@@ -66,7 +66,7 @@ export const MarkdownCodeWrapper: React.FC<MarkdownCodeWrapperProps> = ({
         <ReactMarkdown
           key={result.length}
           components={{
-            code({ node, className, children, ...props }) {
+            code({ className, children, ...props }) {
               const match = /language-(\w+)/.exec(className || "");
               return match ? (
                 <SyntaxHighlighter

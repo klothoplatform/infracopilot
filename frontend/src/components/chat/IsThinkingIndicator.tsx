@@ -6,7 +6,7 @@ export const IsThinkingIndicator: FC<{ visible?: boolean }> = ({ visible }) => {
     <div className="flex items-baseline gap-1 px-4 py-1">
       {visible && (
         <>
-          <span className="font-semibold text-primary-900 dark:text-primary-500">
+          <span className="text-primary-900 dark:text-primary-500 font-semibold">
             Alfred
           </span>
           <span className="text-gray-500 dark:text-gray-400">is thinking</span>

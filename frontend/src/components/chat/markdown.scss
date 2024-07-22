@@ -1,0 +1,155 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+.markdown-renderer {
+  @apply text-gray-800 dark:text-gray-200;
+
+  // Headings
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold mt-4 mb-2;
+  }
+
+  h1 { @apply text-2xl text-gray-900 dark:text-gray-100; }
+  h2 { @apply text-xl text-gray-800 dark:text-gray-200; }
+  h3 { @apply text-lg text-gray-700 dark:text-gray-300; }
+  h4 { @apply text-base text-gray-600 dark:text-gray-400; }
+  h5 { @apply text-sm text-gray-500 dark:text-gray-500; }
+  h6 { @apply text-xs text-gray-400 dark:text-gray-600; }
+
+  // Paragraphs
+  p {
+    @apply mb-2;
+  }
+
+  // Lists
+  ul, ol {
+    @apply mb-4 pl-6;
+  }
+
+  ul { @apply list-disc; }
+  ol { @apply list-decimal; }
+
+  li {
+    @apply mb-1;
+  }
+
+  // Nested lists
+  li > ul, li > ol {
+    @apply mt-1 mb-1;
+  }
+
+  // Task Lists
+  .contains-task-list {
+    @apply list-none pl-0;
+
+    .task-list-item {
+      @apply flex items-center mb-1;
+
+      input[type="checkbox"] {
+        @apply mr-2 h-4 w-4 rounded border-gray-300 bg-white
+        dark:border-gray-600 dark:bg-gray-700
+        focus:ring-2 focus:ring-offset-2
+        focus:ring-primary-500 dark:focus:ring-primary-600
+        text-primary-600 dark:text-primary-400;
+
+        &:checked {
+          @apply bg-primary-600 dark:bg-primary-400 border-transparent;
+        }
+
+        &:hover {
+          @apply border-primary-500 dark:border-primary-400;
+        }
+      }
+    }
+  }
+
+  // Blockquotes
+  blockquote {
+    @apply pl-4 py-2 mb-4 border-l-4 border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-800 italic;
+  }
+
+  // GitHub Markdown Alerts
+  .markdown-alert {
+    @apply p-4 mb-4 border-l-4 rounded-r-md;
+
+    .markdown-alert-title {
+      @apply font-bold mb-2 flex items-center;
+
+      .octicon {
+        @apply mr-2;
+      }
+    }
+
+    &.markdown-alert-note {
+      @apply bg-blue-50 dark:bg-blue-900/20 border-blue-500 text-blue-700 dark:text-blue-300;
+      .octicon { @apply text-blue-500 dark:text-blue-400 fill-blue-500 dark:fill-blue-400; }
+    }
+
+    &.markdown-alert-tip {
+      @apply bg-green-50 dark:bg-green-900/20 border-green-500 text-green-700 dark:text-green-300;
+      .octicon { @apply text-green-500 dark:text-green-400 fill-green-500 dark:fill-green-400; }
+    }
+
+    &.markdown-alert-important {
+      @apply bg-purple-50 dark:bg-purple-900/20 border-purple-500 text-purple-700 dark:text-purple-300;
+      .octicon { @apply text-purple-500 dark:text-purple-400 fill-purple-500 dark:fill-purple-400; }
+    }
+
+    &.markdown-alert-warning {
+      @apply bg-yellow-50 dark:bg-yellow-900/20 border-yellow-500 text-yellow-700 dark:text-yellow-300;
+      .octicon { @apply text-yellow-500 dark:text-yellow-400 fill-yellow-500 dark:fill-yellow-400; }
+    }
+
+    &.markdown-alert-caution {
+      @apply bg-red-50 dark:bg-red-900/20 border-red-500 text-red-700 dark:text-red-300;
+      .octicon { @apply text-red-500 dark:text-red-400 fill-red-500 dark:fill-red-400; }
+    }
+  }
+
+  // Links
+  a {
+    @apply text-primary-600 dark:text-primary-400 hover:underline;
+  }
+
+  // Horizontal rule
+  hr {
+    @apply my-8 border-t border-gray-300 dark:border-gray-600;
+  }
+
+  // Tables
+  table {
+    @apply w-full mb-4 border-collapse my-4;
+
+    th, td {
+      @apply border border-gray-300 dark:border-gray-600 px-4 py-2;
+    }
+
+    th {
+      @apply border-b-2 bg-gray-100 dark:bg-gray-800 font-bold;
+    }
+
+    tr:nth-child(even) {
+      @apply bg-gray-50 dark:bg-gray-900;
+    }
+  }
+
+  // Images
+  img {
+    @apply max-w-full h-auto mb-4 rounded;
+  }
+}
+
+// Dark mode toggle (optional)
+.dark-mode-toggle {
+  @apply fixed top-4 right-4 bg-gray-200 dark:bg-gray-800 p-2 rounded-full cursor-pointer;
+
+  svg {
+    @apply w-6 h-6 text-gray-800 dark:text-gray-200;
+  }
+}
+
+// Add this class to your body or a wrapper element to enable dark mode
+.dark {
+  @apply bg-gray-900 text-gray-200;
+}

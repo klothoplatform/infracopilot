@@ -46,12 +46,12 @@ export const getSmartEdge = <NodeDataType = unknown,>({
   options = {},
   nodes = [],
   edgeSection,
-  sourceX,
-  sourceY,
-  targetX,
-  targetY,
-  sourcePosition,
-  targetPosition,
+  // sourceX,
+  // sourceY,
+  // targetX,
+  // targetY,
+  // sourcePosition,
+  // targetPosition,
 }: GetSmartEdgeParams<NodeDataType>): GetSmartEdgeReturn | null => {
   try {
     const { drawEdge = svgDrawSmoothLinePath } = options;
@@ -324,7 +324,7 @@ export function SmartElkEdge<EdgeDataType = unknown, NodeDataType = unknown>({
               transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
               ...labelStyle,
             }}
-            className="overflow-hidden text-ellipsis  rounded-lg border-[1px] border-gray-700 bg-gray-100 p-[10px] text-center text-xs dark:border-gray-200 dark:bg-gray-800 dark:text-gray-200"
+            className="overflow-hidden text-ellipsis  rounded-lg border border-gray-700 bg-gray-100 p-[10px] text-center text-xs dark:border-gray-200 dark:bg-gray-800 dark:text-gray-200"
           >
             {label}
           </div>

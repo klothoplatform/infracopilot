@@ -1,3 +1,4 @@
+import html
 import re
 from dataclasses import dataclass
 from time import perf_counter
@@ -113,6 +114,7 @@ Existing connections:{bullet}{bullet.join(self.initial_state.edges)}"""
             if not re.match(r"^[A-Z_]+$", category):
                 raise Exception("Failed to categorize query")
             message = "\n".join(lines[1:])
+            message = html.escape(message)
             return {"category": category, "message": message}
 
         except Exception as err:

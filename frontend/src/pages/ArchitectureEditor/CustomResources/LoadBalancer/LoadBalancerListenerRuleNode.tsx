@@ -100,16 +100,16 @@ const LoadBalancerListenerRuleNode = memo(
               isConnecting && isInvalidConnectionTarget && mouseOverNode,
           },
         )}
-        onMouseOver={(e) => {
+        onMouseOver={() => {
           setMouseOverNode(true);
         }}
-        onMouseLeave={(e) => {
+        onMouseLeave={() => {
           setMouseOverNode(false);
         }}
-        onFocus={(e) => {
+        onFocus={() => {
           setMouseOverNode(true);
         }}
-        onBlur={(e) => {
+        onBlur={() => {
           setMouseOverNode(false);
         }}
         onKeyDown={(e) => {

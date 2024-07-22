@@ -34,6 +34,7 @@ import { BiChevronRight, BiSolidHand, BiSolidPencil } from "react-icons/bi";
 import { env } from "../../shared/environment";
 import { HiMiniArrowUpRight } from "react-icons/hi2";
 import { IoInformationCircleOutline } from "react-icons/io5";
+import { findChildProperty } from "./FindChildProperty.ts";
 
 export interface ConfigFieldProps {
   configResource?: NodeId;
@@ -585,7 +586,7 @@ export const EnumField: FC<EnumProps> = ({
     return () => {
       unregister(id, { keepDefaultValue: true });
     };
-  }, [id, qualifiedFieldName, register, required, unregister]);
+  }, [id, qualifiedFieldName, register, required, silenceRequired, unregister]);
 
   return (
     <ErrorHelper error={error}>
@@ -635,27 +636,6 @@ export const ErrorHelper: FC<PropsWithChildren<{ error?: any }>> = ({
     <>{children}</>
   );
 };
-
-// findChildProperty finds a child property of an object by path.
-// A period indicates a child property, a "[]" indicates an array index.
-export function findChildProperty(obj: any, path: string): any {
-  const parts = path.split(/[[.]/);
-  let current: any = obj;
-  for (const part of parts) {
-    if (current === undefined) {
-      return undefined;
-    }
-    if (part.endsWith("]")) {
-      const index = parseInt(
-        part.substring(part.indexOf("[") + 1, part.length),
-      );
-      current = current[index];
-    } else {
-      current = current[part];
-    }
-  }
-  return current;
-}
 
 export const InputHelperText: FC<{ error?: any }> = ({ error }) => {
   return (
