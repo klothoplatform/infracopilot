@@ -98,7 +98,7 @@ function ArchitectureEditor() {
 
   return (
     <HeaderBodyLayout>
-      <div className="flex size-full flex-col overflow-hidden border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800 sm:flex">
+      <div className="flex size-full flex-col overflow-hidden border-b border-gray-200 bg-white sm:flex dark:border-gray-700 dark:bg-gray-800">
         {!user && isEditorInitialized && isPublicAccess(architectureAccess) && (
           <PublicArchitectureBanner />
         )}
@@ -122,7 +122,7 @@ const HeaderBodyLayout: FC<PropsWithChildren> = function ({ children }) {
 const PublicArchitectureBanner = () => {
   return (
     <Banner className={"w-full"}>
-      <div className="flex w-full justify-between border-b border-primary-600 bg-primary-700 p-4 text-primary-100">
+      <div className="border-primary-600 bg-primary-700 text-primary-100 flex w-full justify-between border-b p-4">
         <div className="m-auto flex items-center">
           <MdAnnouncement className="mr-4 size-6" />
           <div className="flex w-full flex-wrap items-center text-sm font-normal">
@@ -130,7 +130,7 @@ const PublicArchitectureBanner = () => {
             <Badge
               icon={FaClone}
               color={""}
-              className={"flex w-fit shrink-0 gap-2 bg-primary-800 text-white"}
+              className={"bg-primary-800 flex w-fit shrink-0 gap-2 text-white"}
             >
               Make a copy
             </Badge>

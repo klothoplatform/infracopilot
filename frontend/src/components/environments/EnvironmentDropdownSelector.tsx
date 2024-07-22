@@ -14,13 +14,7 @@ interface EnvironmentDropdownSelectorProps {
 
 export const EnvironmentDropdownSelector: FC<
   EnvironmentDropdownSelectorProps
-> = ({
-  setSourceEnvironment,
-  setTargetEnvironmentId,
-  sourceEnvironment,
-  targetEnvironmentId,
-  isSubmitting,
-}) => {
+> = ({ setTargetEnvironmentId, sourceEnvironment, targetEnvironmentId }) => {
   const { architecture } = useApplicationStore();
 
   return (

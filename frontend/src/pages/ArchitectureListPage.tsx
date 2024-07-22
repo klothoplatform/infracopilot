@@ -120,7 +120,9 @@ function ArchitectureListPage() {
                 <div className="size-full overflow-auto p-4">
                   <ArchitecturesTable
                     user={user}
-                    architectures={architectures}
+                    architectures={architectures.sort(
+                      (a, b) => (b.created_at || 0) - (a.created_at || 0),
+                    )}
                   />
                   {retryMessage && (
                     <div className="my-4 flex w-full items-baseline justify-start dark:text-white">

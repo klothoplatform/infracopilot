@@ -33,12 +33,12 @@ interface SidebarItemState {
 const EditorSidebarRight: FC = () => {
   const menusRef = useRef<HTMLDivElement>(null);
 
-  const isMac =
-    (navigator.platform &&
-      navigator.platform.toUpperCase().indexOf("MAC") >= 0) ||
-    ((navigator as any).userAgentData &&
-      (navigator as any).userAgentData.platform?.toUpperCase().indexOf("MAC") >=
-        0);
+  // const isMac =
+  //   (navigator.platform &&
+  //     navigator.platform.toUpperCase().indexOf("MAC") >= 0) ||
+  //   ((navigator as any).userAgentData &&
+  //     (navigator as any).userAgentData.platform?.toUpperCase().indexOf("MAC") >=
+  //       0);
 
   const {
     selectedResource,
@@ -193,7 +193,7 @@ const EditorSidebarRight: FC = () => {
       )}
       <Sidebar
         collapsed
-        className={"border-l-[1px] dark:border-gray-700"}
+        className={"border-l dark:border-gray-700"}
         theme={{
           root: {
             base: "h-full grow-0 shrink-0",
@@ -422,11 +422,10 @@ function NotificationBubble(props: { disabled: boolean | undefined }) {
 const SidebarIcon: FC<
   {
     baseIcon?: IconType;
-    circleSize?: number;
     showCircle?: boolean;
     disabled?: boolean;
   } & IconBaseProps
-> = ({ baseIcon, circleSize, showCircle, disabled, ...rest }) => {
+> = ({ baseIcon, showCircle, disabled, ...rest }) => {
   const Icon = baseIcon ?? (React.Fragment as IconType);
   return (
     <div className={"relative"}>

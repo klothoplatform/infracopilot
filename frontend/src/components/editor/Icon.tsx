@@ -45,7 +45,7 @@ export const UnknownIcon = (props: IconProps | undefined) => {
   );
 };
 
-export const NoIcon = (props: IconProps | undefined) => {
+export const NoIcon = () => {
   return <></>;
 };
 

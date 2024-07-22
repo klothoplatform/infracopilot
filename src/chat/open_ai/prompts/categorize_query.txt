@@ -37,6 +37,10 @@ Yes, The capital of France is Paris.
 
 ---
 
+The message must be markdown-formatted.
+Feel free to use github-flavored markdown for your responses.
+Feel free to use github markdown alerts to highlight important information.
+
 More examples:
 query: "Can you help me understand the architecture of my AWS setup?"
 response:

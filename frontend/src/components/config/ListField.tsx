@@ -21,7 +21,6 @@ import {
   InputHelperText,
   EnumField,
   ErrorHelper,
-  findChildProperty,
   ResourceField,
 } from "./ConfigField";
 import { ConfigSection } from "./ConfigSection";
@@ -29,6 +28,7 @@ import { ConfigGroup } from "./ConfigGroup";
 import classNames from "classnames";
 import { PrimitiveTable } from "./PrimitiveTable";
 import { NodeId } from "../../shared/architecture/TopologyNode";
+import { findChildProperty } from "./FindChildProperty.ts";
 
 const tableViewFieldMappings: {
   [key: string]: {
@@ -304,7 +304,7 @@ const PrimitiveListItem: FC<{
   return (
     <Fragment key={index}>
       <div className="my-[.1rem] flex w-full flex-row gap-1">
-        <div className="w-full overflow-hidden p-[1px]">{item}</div>
+        <div className="w-full overflow-hidden p-px">{item}</div>
         {!disabled && (
           <Button
             className={"h-fit w-6"}
@@ -330,15 +330,7 @@ const CollectionListItem: FC<{
   disabled?: boolean;
   required?: boolean;
   remove: (index: number) => void;
-}> = ({
-  index,
-  qualifiedFieldName,
-  type,
-  properties,
-  disabled,
-  required,
-  remove,
-}) => {
+}> = ({ index, qualifiedFieldName, type, properties, disabled, remove }) => {
   // Trim the resource name from the field name for the title.
   const title = qualifiedFieldName.split("#", 2)[1];
   let item: React.ReactNode;

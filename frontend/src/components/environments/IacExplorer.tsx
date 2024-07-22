@@ -52,7 +52,7 @@ function getChildren(
 // this action ensures that the files are not sorted in the file browser and the initial order is preserved
 const sortNone: FileAction = {
   id: "sortNone",
-  sortKeySelector: (file) => "placeholder",
+  sortKeySelector: () => "placeholder",
 };
 
 const IacExplorer: FC<{

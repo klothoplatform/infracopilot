@@ -24,7 +24,7 @@ export const HeaderNavBar: FC<PropsWithChildren<NavbarProps>> = function ({
               InfraCopilot
             </span>
           </Navbar.Brand>
-          <div className="mr-3 h-5 border-r-[1px] border-gray-300 py-4 shadow-black dark:border-gray-700"></div>
+          <div className="mr-3 h-5 border-r border-gray-300 py-4 shadow-black dark:border-gray-700"></div>
           <div className="w-full items-start">{children}</div>
         </div>
       </div>
@@ -71,7 +71,7 @@ const AccountDropdown: FC = function () {
         <span className="size-9 rounded-full">
           <div className="sr-only">account menu</div>
           {noPicture ? (
-            <div className="flex size-full items-center justify-center rounded-full bg-primary-400 text-lg font-light text-white dark:bg-primary-500">
+            <div className="bg-primary-400 dark:bg-primary-500 flex size-full items-center justify-center rounded-full text-lg font-light text-white">
               {(user.given_name ?? "")[0] ?? ""}
               {(user.family_name ?? "")[0] ?? ""}
             </div>
@@ -89,7 +89,7 @@ const AccountDropdown: FC = function () {
       <Dropdown.Header>
         <div className="flex items-center gap-2">
           {noPicture ? (
-            <div className="flex size-[3.25rem] items-center justify-center rounded-full bg-primary-400 text-lg font-light text-white dark:bg-primary-500">
+            <div className="bg-primary-400 dark:bg-primary-500 flex size-[3.25rem] items-center justify-center rounded-full text-lg font-light text-white">
               {(user.given_name ?? "")[0] ?? ""}
               {(user.family_name ?? "")[0] ?? ""}
             </div>

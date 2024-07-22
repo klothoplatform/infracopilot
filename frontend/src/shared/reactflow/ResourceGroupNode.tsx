@@ -109,16 +109,16 @@ const ResourceGroupNode = memo(
           },
         )}
         onClick={onSelect}
-        onMouseOver={(e) => {
+        onMouseOver={() => {
           setMouseOverNode(true);
         }}
-        onMouseLeave={(e) => {
+        onMouseLeave={() => {
           setMouseOverNode(false);
         }}
-        onFocus={(e) => {
+        onFocus={() => {
           setMouseOverNode(true);
         }}
-        onBlur={(e) => {
+        onBlur={() => {
           setMouseOverNode(false);
         }}
       >

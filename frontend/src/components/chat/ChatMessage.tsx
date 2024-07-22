@@ -19,152 +19,25 @@ import {
   FaRegThumbsDown,
   FaRegThumbsUp,
 } from "react-icons/fa6";
-import { Button, useThemeMode } from "flowbite-react";
-import { NodeId } from "../../shared/architecture/TopologyNode.ts";
-import { NodeIcon } from "../../shared/resources/ResourceMappings.tsx";
+import { useThemeMode } from "flowbite-react";
 import { _formatString } from "@azure/communication-react/dist/dist-esm/acs-ui-common/src";
 import type { HTMLReactParserOptions } from "html-react-parser";
 import parse, { Element as DOMElement } from "html-react-parser";
 import { defaultOnMentionRender } from "@azure/communication-react/dist/dist-esm/react-components/src/components/ChatMessage/MentionRenderer";
-import { MarkdownCodeWrapper } from "./MarkdownCodeWrapper.tsx";
-import { LinkifyMarkdown } from "./LinkifyMarkdown.tsx";
+import { PrismAsyncLight as SyntaxHighlighter } from "react-syntax-highlighter";
+import {
+  vs as lightTheme,
+  vscDarkPlus as darkTheme,
+} from "react-syntax-highlighter/dist/esm/styles/prism";
 import LiveMessage from "@azure/communication-react/dist/dist-esm/react-components/src/components/Announcer/LiveMessage";
+import { ActionState } from "./ActionState.ts";
+import ReactMarkdown from "react-markdown";
+import { twMerge } from "tailwind-merge";
+import { DefaultMentionRenderer } from "./MentionRenderer.tsx";
+import remarkGfm from "remark-gfm";
 
-export enum MentionType {
-  Resource = "resource",
-  Explain = "explain",
-}
-
-export const onRenderMention = (mention, defaultOnMentionRender) => {
-  let [type, id]: [MentionType, string] = mention.id.split("#") as any;
-
-  const MentionComponent = mentionMappings[type];
-  if (MentionComponent) {
-    return (
-      <MentionComponent
-        key={Math.random().toString()}
-        mention={mention}
-        id={id}
-      />
-    );
-  }
-  return defaultOnMentionRender(mention);
-};
-const ResourceMention: FC<{
-  mention: Mention;
-  id: string;
-}> = ({ mention, id }) => {
-  const { mode } = useThemeMode();
-  const resourceId = NodeId.parse(id);
-  const { selectResource } = useApplicationStore();
-
-  const onClick = () => {
-    selectResource(resourceId, true);
-  };
-
-  return (
-    <button
-      className={"inline-block  w-fit"}
-      title={mention.id.split("#")[1] ?? mention.id}
-      onClick={onClick}
-    >
-      <div className="flex h-full flex-nowrap items-baseline gap-1 rounded-md px-1 hover:bg-primary-200 dark:hover:bg-primary-950">
-        <NodeIcon
-          provider={resourceId.provider}
-          type={resourceId.type}
-          width={14}
-          height={14}
-          className="my-auto p-0"
-          variant={mode}
-        />
-        <span
-          className={
-            "whitespace-nowrap font-semibold text-primary-900 dark:text-primary-500"
-          }
-        >
-          {mention.displayText}
-        </span>
-      </div>
-    </button>
-  );
-};
-const ExplanationMention: FC<{
-  mention: Mention;
-}> = ({ mention }) => {
-  const messageId = mention.id.split("#")[1];
-  const { setSubmitInProgress, submitInProgress } =
-    React.useContext(MessageThreadContext);
-  const { mode } = useThemeMode();
-  const { environmentVersion, explainDiff, chatHistory } =
-    useApplicationStore();
-  const [hidden, setHidden] = useState(false);
-
-  const message = chatHistory.find((m) => m.messageId === messageId);
-  const isLastMessage = chatHistory.at(-1)?.messageId === messageId;
-
-  const onClickNo = () => {
-    setHidden(true);
-  };
-
-  const onClickYes = async () => {
-    try {
-      setSubmitInProgress(true);
-      setHidden(true);
-      await explainDiff(environmentVersion.diff);
-    } finally {
-      setSubmitInProgress(false);
-    }
-  };
-
-  if (
-    hidden ||
-    !isLastMessage ||
-    !message ||
-    message.senderId !== "assistant"
-  ) {
-    return <></>;
-  }
-
-  return (
-    <div className="flex flex-wrap items-center gap-2 py-2">
-      <span
-        className={"text-xs font-semibold text-gray-900 dark:text-gray-500"}
-      >
-        Should I explain in detail?
-      </span>
-      <div className="flex items-center gap-2">
-        <Button
-          size={"xs"}
-          color={mode}
-          onClick={onClickYes}
-          className={"size-fit whitespace-nowrap text-xs"}
-          disabled={submitInProgress}
-        >
-          Yes
-        </Button>
-        <Button
-          size={"xs"}
-          color={mode}
-          onClick={onClickNo}
-          className={"size-fit whitespace-nowrap text-xs"}
-        >
-          No
-        </Button>
-      </div>
-    </div>
-  );
-};
-
-export function mention(type: MentionType, id: string, displayText: string) {
-  return `<msft-mention id="${type}#${id}">${displayText}</msft-mention>`;
-}
-
-export enum ActionState {
-  Initial,
-  InProgress,
-  Success,
-  Failure,
-}
+import "./markdown.scss";
+import { remarkAlert } from "remark-github-blockquote-alert";
 
 export interface ExtendedChatMessage extends ChatMessage {
   feedbackSubmitted?: ActionState;
@@ -176,10 +49,6 @@ export interface ExtendedChatMessage extends ChatMessage {
   };
 }
 
-export const mentionMappings: Record<MentionType, React.FC<any>> = {
-  [MentionType.Resource]: ResourceMention,
-  [MentionType.Explain]: ExplanationMention,
-};
 const BottomBar: FC<{
   message: ExtendedChatMessage;
 }> = ({ message }) => {
@@ -220,12 +89,23 @@ const BottomBar: FC<{
 
   const [copied, setCopied] = useState(false);
 
+  function htmlUnescape(str: string) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(str, "text/html");
+    return doc.documentElement.textContent;
+  }
+
   const onClickCopyButton = async (e: any) => {
     e.target.blur();
     await navigator.clipboard.writeText(
-      message.contentType === "text"
-        ? (message.content ?? "")
-        : resolveMentions(message.content ?? ""),
+      // Markdown from the server is escaped avoid interfering with mention rendering (and other potential injections vulnerabilities)
+      // We need to unescape it before copying it to the clipboard to make it human-readable
+      htmlUnescape(
+        message.contentType === "text"
+          ? (message.content ?? "")
+          : // Resolve mentions to their display text
+            resolveMentions(message.content ?? ""),
+      ) || "",
     );
     setCopied(true);
     e.target.disabled = true;
@@ -280,11 +160,12 @@ const BottomBar: FC<{
 export const ChatMessageComposite: FC<{
   options: MessageProps;
   defaultOnRenderMessage?: MessageRenderer;
-}> = ({ options, defaultOnRenderMessage }) => {
-  const DefaultContent = defaultOnRenderMessage || (() => <></>);
+}> = ({ options }) => {
   const message = options.message as ExtendedChatMessage;
   const { hoveredMessageId, setHoveredMessageId } =
     React.useContext(MessageThreadContext);
+  const { mode } = useThemeMode();
+
   return (
     <div
       className="chat-message-composite flex w-full flex-col"
@@ -301,11 +182,16 @@ export const ChatMessageComposite: FC<{
       */}
       <MessageContentWithLiveAria
         message={options.message as ChatMessage}
-        liveMessage={generateLiveMessage({ message, strings: options.strings })}
+        liveMessage={generateLiveMessage({
+          message,
+          strings: options.strings,
+          theme: mode,
+        })}
         content={processHtmlToReact({
           message: options.message as ChatMessage,
           strings: options.strings as MessageThreadStrings,
-          mentionDisplayOptions: { onRenderMention },
+          theme: mode,
+          mentionDisplayOptions: { onRenderMention: DefaultMentionRenderer },
         })}
       />
 
@@ -325,7 +211,7 @@ const MessageContentWithLiveAria = (
   return (
     <div
       data-ui-status={props.message.status}
-      role="text"
+      role="listitem"
       aria-label={props.ariaLabel}
     >
       <LiveMessage message={props.liveMessage} ariaLive="polite" />
@@ -338,10 +224,12 @@ type ChatMessageContentProps = {
   strings: MessageThreadStrings;
   mentionDisplayOptions?: MentionDisplayOptions;
   inlineImageOptions?: InlineImageOptions;
+  theme?: "light" | "dark" | "auto";
 };
 const processHtmlToReact = (
   props: ChatMessageContentProps,
 ): React.JSX.Element => {
+  const { theme } = props;
   const options: HTMLReactParserOptions = {
     transform(reactNode, domNode) {
       if (domNode instanceof DOMElement && domNode.attribs) {
@@ -377,16 +265,52 @@ const processHtmlToReact = (
       }
       // Pass through the original node
       const Node = reactNode as unknown as React.JSX.Element;
-      return <MarkdownCodeWrapper>{Node}</MarkdownCodeWrapper>;
+      return (
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm, remarkAlert]}
+          key={Math.random().toString()}
+          className="markdown-renderer"
+          components={{
+            code({ className, children, ...props }) {
+              const match = /language-(\w+)/.exec(className || "");
+              return match ? (
+                <SyntaxHighlighter
+                  style={theme === "light" ? lightTheme : darkTheme}
+                  language={match[1] || "text"}
+                  PreTag="div"
+                  wrapLines={true}
+                  wrapLongLines={true}
+                  customStyle={{
+                    width: "100%",
+                    borderRadius: "0.5rem",
+                    fontFamily: "monospace",
+                    paddingBottom: "0",
+                    lineHeight: "1",
+                  }}
+                >
+                  {String(children).replace(/\n$/, "")}
+                </SyntaxHighlighter>
+              ) : (
+                <code
+                  {...props}
+                  className={twMerge(
+                    className,
+                    "rounded bg-gray-200 px-1 py-0.5 dark:bg-gray-700 w-fit overflow-x-clip text-wrap font-mono",
+                  )}
+                >
+                  {children}
+                </code>
+              );
+            },
+          }}
+        >
+          {String(Node).replace(/\n$/, "")}
+        </ReactMarkdown>
+      );
     },
   };
-  console.log(props.message.content);
 
-  return (
-    <LinkifyMarkdown>
-      {parse(props.message.content ?? "", options)}
-    </LinkifyMarkdown>
-  );
+  return <>{parse(props.message.content ?? "", options)}</>;
 };
 const generateLiveMessage = (props: ChatMessageContentProps): string => {
   const liveAuthor = _formatString(props.strings.liveAuthorIntro, {

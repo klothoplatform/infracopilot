@@ -7,7 +7,7 @@ import { PiSmileyXEyes } from "react-icons/pi";
 export const FallbackRenderer: FC<{
   error: any;
   resetErrorBoundary: CallableFunction;
-}> = ({ error, resetErrorBoundary }) => {
+}> = ({ resetErrorBoundary }) => {
   return (
     <div
       role="alert"

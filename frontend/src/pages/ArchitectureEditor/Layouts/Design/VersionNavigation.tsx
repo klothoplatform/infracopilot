@@ -25,7 +25,7 @@ export const VersionNavigator: React.FC = () => {
   return (
     <Panel position="top-left">
       <WorkingOverlay
-        show={navigatingMessage != ""}
+        show={navigatingMessage !== ""}
         message={navigatingMessage}
       />
       <div className="flex gap-1">

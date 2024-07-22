@@ -1,6 +1,7 @@
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react-swc";
 // import eslint from "vite-plugin-eslint";
+import checker from "vite-plugin-checker";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -10,6 +11,18 @@ export default defineConfig({
     // eslint({
     //   fix: process.env.ESLINT_FIX?.toLowerCase() === "true",
     // }),
+    !process.env.VITEST
+      ? checker({
+          overlay: {
+            initialIsOpen: false,
+          },
+          typescript: true,
+          eslint: {
+            // for example, lint .ts and .tsx
+            lintCommand: 'eslint "./src/**/*.{ts,tsx}"',
+          },
+        })
+      : undefined,
   ],
   test: {
     environment: "jsdom",

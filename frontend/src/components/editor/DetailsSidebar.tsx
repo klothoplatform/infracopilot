@@ -279,7 +279,7 @@ const Details: FC = function () {
       >
         <div className="flex h-full min-h-0 flex-col">
           <ResourceIdHeader resourceId={formResource} edgeId={selectedEdge} />
-          {selectedResource && formResource == selectedResource && (
+          {selectedResource && formResource?.equals(selectedResource) && (
             <ConfigForm
               key={`config-table-${selectedResource.toString()}`}
               sections={sections}

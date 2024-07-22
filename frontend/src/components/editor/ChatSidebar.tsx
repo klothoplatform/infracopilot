@@ -24,14 +24,18 @@ import {
 import "./ChatSidebar.scss";
 import { FaPlus } from "react-icons/fa6";
 import { MessageThreadProvider } from "./MessageThreadProvider";
-import { ChatMessageComposite, onRenderMention } from "../chat/ChatMessage.tsx";
+import { ChatMessageComposite } from "../chat/ChatMessage.tsx";
 import { Avatar } from "../chat/Avatar.tsx";
 import { IsThinkingIndicator } from "../chat/IsThinkingIndicator.tsx";
 import { SuggestionItem } from "./SuggestionItem.tsx";
+import { DefaultMentionRenderer } from "../chat/MentionRenderer.tsx";
 
 const config = resolveConfig(defaultConfig);
 const colors = { ...config.theme.colors, primary: config.theme.colors.violet };
 const trigger = "@";
+
+const initialMessageContent =
+  "Hi there! I'm Alfred, your AI assistant, and I can help you update your architecture's topology.\n\nHow can I help you today?";
 
 export const ChatSidebar: FC<{
   hidden?: boolean;
@@ -85,8 +89,7 @@ export const ChatSidebar: FC<{
       replyInChat([
         {
           messageId: "intro", // fixed id ensures this message is not duplicated on re-render (mostly for strict mode)
-          content:
-            "Hi there! I'm Alfred, your AI assistant, and I can help you update your architecture's topology.\n\nHow can I help you today?",
+          content: initialMessageContent,
         },
       ]);
     }
@@ -218,7 +221,7 @@ export const ChatSidebar: FC<{
                   }}
                   mentionOptions={{
                     displayOptions: {
-                      onRenderMention,
+                      onRenderMention: DefaultMentionRenderer,
                     },
                     lookupOptions: {
                       trigger,

@@ -2,15 +2,10 @@
   "compilerOptions": {
     "target": "esnext",
     "useDefineForClassFields": true,
-    "lib": [
-      "esnext",
-      "DOM",
-      "DOM.Iterable"
-    ],
+    "lib": ["esnext", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
     "allowJs": true,
-    "noImplicitAny": false,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": true,
@@ -30,13 +25,10 @@
       "vitest/importMeta"
     ]
   },
-  "include": [
-    "src",
-    "node_modules/vitest/*.d.ts"
-  ],
+  "include": ["src", "node_modules/vitest/*.d.ts"],
   "references": [
     {
-      "path": "./tsconfig.node.json"
+      "path": "./tsconfig.vite.json"
     }
   ]
 }

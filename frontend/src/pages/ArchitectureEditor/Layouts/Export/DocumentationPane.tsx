@@ -3,10 +3,11 @@ import { FallbackRenderer } from "../../../../components/FallbackRenderer";
 import { trackError } from "../../../store/ErrorStore";
 import { UIError } from "../../../../shared/errors";
 import useApplicationStore from "../../../store/ApplicationStore";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { WorkingOverlay } from "../../../../components/WorkingOverlay";
 import MDEditor from "@uiw/react-md-editor";
 import { explainArchitecture } from "../../../../api/ExplainArchitecture";
+import { useEffectOnMount } from "../../../../shared/hooks/useEffectOnMount.ts";
 
 export const DocumentationPane = () => {
   const {
@@ -19,7 +20,7 @@ export const DocumentationPane = () => {
   const [value, setValue] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
 
-  useEffect(() => {
+  useEffectOnMount(() => {
     if (!loading && architecture.id && environmentVersion.id) {
       setLoading(true);
       (async () => {
@@ -32,7 +33,7 @@ export const DocumentationPane = () => {
         setLoading(false);
       })();
     }
-  }, [architecture.id, environmentVersion.id]);
+  });
 
   return (
     <div className="flex w-full flex-col overflow-x-auto dark:bg-gray-900">

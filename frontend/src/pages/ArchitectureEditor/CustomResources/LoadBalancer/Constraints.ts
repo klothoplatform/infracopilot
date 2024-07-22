@@ -13,8 +13,8 @@ import {
   getDownstreamListenerRules,
   getDownstreamListeners,
 } from "./Util";
-import { findChildProperty } from "../../../../components/config/ConfigField";
 import { type EnvironmentVersion } from "../../../../shared/architecture/EnvironmentVersion";
+import { findChildProperty } from "../../../../components/config/FindChildProperty.ts";
 
 export function loadBalancerCreationConstraintsModifier(
   node: Node,

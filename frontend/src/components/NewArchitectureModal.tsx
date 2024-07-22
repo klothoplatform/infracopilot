@@ -83,15 +83,7 @@ export default function NewArchitectureModal({
         }
       }
     },
-    [
-      addError,
-      getIdToken,
-      navigate,
-      onClose,
-      reset,
-      resetEditorState,
-      user?.sub,
-    ],
+    [addError, getIdToken, navigate, onClose, resetEditorState, user?.sub],
   );
 
   // required for ref sharing with react-hook-form: https://www.react-hook-form.com/faqs/#Howtosharerefusage

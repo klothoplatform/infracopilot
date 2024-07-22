@@ -18,14 +18,8 @@ import { Button } from "flowbite-react";
 import classNames from "classnames";
 
 export const EnvironmentsPane = () => {
-  const {
-    architecture,
-    user,
-    addError,
-    resetUserDataState,
-    getIdToken,
-    environmentVersion,
-  } = useApplicationStore();
+  const { architecture, resetUserDataState, getIdToken, environmentVersion } =
+    useApplicationStore();
 
   const [sourceEnvironment, setSourceEnvironment] = useState<string>(
     architecture.defaultEnvironment,
@@ -33,7 +27,7 @@ export const EnvironmentsPane = () => {
   const [targetEnvironmentId, setTargetEnvironmentId] = useState<string>(
     architecture.defaultEnvironment !== environmentVersion.id
       ? environmentVersion.id
-      : architecture.environments.find((a) => !a.default)?.id ?? "",
+      : (architecture.environments.find((a) => !a.default)?.id ?? ""),
   );
   const [diff, setDiff] = useState<TopologyDiff | undefined>(undefined);
   const [status, setStatus] = useState<"initial" | "loading" | "loaded">(

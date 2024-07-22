@@ -113,7 +113,7 @@ export const EditableLabel: FC<EditableLabelProps> = ({
         }}
       >
         {!isEditing && (
-          <div className="p-[1px]">
+          <div className="p-px">
             <div
               className={classNames(
                 "overflow-hidden text-ellipsis rounded-lg border-[1px] border-gray-200/[0] px-1 py-0.5 font-medium",

@@ -359,7 +359,7 @@ const EditableLabel: FC<EditableLabelProps> = ({
                   setShouldSelectContent(false);
                 }
               }}
-              className="max-w-[196px] overflow-x-visible rounded-sm border-[1px] bg-gray-50 p-1 text-center focus:border-gray-50 dark:bg-gray-900"
+              className="max-w-[196px] overflow-x-visible rounded-sm border bg-gray-50 p-1 text-center focus:border-gray-50 dark:bg-gray-900"
               style={{ width: `${Math.max(8, state.label.length)}ch` }}
               id="label"
               required

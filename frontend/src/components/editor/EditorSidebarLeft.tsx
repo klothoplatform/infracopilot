@@ -1,6 +1,6 @@
 import { Accordion, Sidebar, TextInput } from "flowbite-react";
 import type { ChangeEvent, ForwardedRef } from "react";
-import React, { forwardRef, useCallback, useState } from "react";
+import React, { forwardRef, useState } from "react";
 import { HiSearch } from "react-icons/hi";
 
 import type { FilterFunction } from "./ResourceAccordion";
@@ -48,7 +48,7 @@ const EditorSidebarLeft = forwardRef(
     const [showImportModal, setShowImportModal] = useState(false);
 
     const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
-      setFilterFunction((prevState: FilterFunction | undefined) => {
+      setFilterFunction(() => {
         const filterValue = event.target.value;
         return filterValue
           ? (type: string) => {
@@ -65,10 +65,7 @@ const EditorSidebarLeft = forwardRef(
       });
     };
 
-    const debouncedHandleInputChange = useCallback(
-      debounce(handleInputChange, 100),
-      [],
-    );
+    const debouncedHandleInputChange = debounce(handleInputChange, 100);
 
     let sections = [
       <ImportAccordion

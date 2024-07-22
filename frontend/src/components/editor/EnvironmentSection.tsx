@@ -124,7 +124,7 @@ const EnvironmentDropdown: FC<{
 const PromoteEnvironmentButton: FC<{
   small?: boolean;
   disabled?: boolean;
-}> = ({ small, disabled }) => {
+}> = ({ disabled }) => {
   const [show, setShow] = useState(false);
 
   return (
