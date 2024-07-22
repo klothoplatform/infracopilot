@@ -38,6 +38,7 @@ import remarkGfm from "remark-gfm";
 
 import "./markdown.scss";
 import { remarkAlert } from "remark-github-blockquote-alert";
+import HoverableLink from "./HoverableLink.tsx";
 
 export interface ExtendedChatMessage extends ChatMessage {
   feedbackSubmitted?: ActionState;
@@ -271,6 +272,33 @@ const processHtmlToReact = (
           key={Math.random().toString()}
           className="markdown-renderer"
           components={{
+            img({ src, alt, ...props }) {
+              return (
+                <HoverableLink href={src}>
+                  <img
+                    src={src}
+                    alt={alt}
+                    {...props}
+                    className="h-auto max-w-full rounded-lg"
+                  />
+                </HoverableLink>
+              );
+            },
+            a({ href, children, ...props }) {
+              return (
+                <HoverableLink href={href}>
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    {...props}
+                    className="text-blue-600 hover:underline dark:text-blue-400"
+                  >
+                    {children}
+                  </a>
+                </HoverableLink>
+              );
+            },
             code({ className, children, ...props }) {
               const match = /language-(\w+)/.exec(className || "");
               return match ? (

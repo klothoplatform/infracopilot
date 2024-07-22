@@ -1,21 +1,38 @@
-@import 'tailwindcss/base';
-@import 'tailwindcss/components';
-@import 'tailwindcss/utilities';
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
 
 .markdown-renderer {
   @apply text-gray-800 dark:text-gray-200;
 
   // Headings
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-bold mt-4 mb-2;
   }
 
-  h1 { @apply text-2xl text-gray-900 dark:text-gray-100; }
-  h2 { @apply text-xl text-gray-800 dark:text-gray-200; }
-  h3 { @apply text-lg text-gray-700 dark:text-gray-300; }
-  h4 { @apply text-base text-gray-600 dark:text-gray-400; }
-  h5 { @apply text-sm text-gray-500 dark:text-gray-500; }
-  h6 { @apply text-xs text-gray-400 dark:text-gray-600; }
+  h1 {
+    @apply text-2xl text-gray-900 dark:text-gray-100;
+  }
+  h2 {
+    @apply text-xl text-gray-800 dark:text-gray-200;
+  }
+  h3 {
+    @apply text-lg text-gray-700 dark:text-gray-300;
+  }
+  h4 {
+    @apply text-base text-gray-600 dark:text-gray-400;
+  }
+  h5 {
+    @apply text-sm text-gray-500 dark:text-gray-500;
+  }
+  h6 {
+    @apply text-xs text-gray-400 dark:text-gray-600;
+  }
 
   // Paragraphs
   p {
@@ -23,19 +40,25 @@
   }
 
   // Lists
-  ul, ol {
+  ul,
+  ol {
     @apply mb-4 pl-6;
   }
 
-  ul { @apply list-disc; }
-  ol { @apply list-decimal; }
+  ul {
+    @apply list-disc;
+  }
+  ol {
+    @apply list-decimal;
+  }
 
   li {
     @apply mb-1;
   }
 
   // Nested lists
-  li > ul, li > ol {
+  li > ul,
+  li > ol {
     @apply mt-1 mb-1;
   }
 
@@ -83,27 +106,37 @@
 
     &.markdown-alert-note {
       @apply bg-blue-50 dark:bg-blue-900/20 border-blue-500 text-blue-700 dark:text-blue-300;
-      .octicon { @apply text-blue-500 dark:text-blue-400 fill-blue-500 dark:fill-blue-400; }
+      .octicon {
+        @apply text-blue-500 dark:text-blue-400 fill-blue-500 dark:fill-blue-400;
+      }
     }
 
     &.markdown-alert-tip {
       @apply bg-green-50 dark:bg-green-900/20 border-green-500 text-green-700 dark:text-green-300;
-      .octicon { @apply text-green-500 dark:text-green-400 fill-green-500 dark:fill-green-400; }
+      .octicon {
+        @apply text-green-500 dark:text-green-400 fill-green-500 dark:fill-green-400;
+      }
     }
 
     &.markdown-alert-important {
       @apply bg-purple-50 dark:bg-purple-900/20 border-purple-500 text-purple-700 dark:text-purple-300;
-      .octicon { @apply text-purple-500 dark:text-purple-400 fill-purple-500 dark:fill-purple-400; }
+      .octicon {
+        @apply text-purple-500 dark:text-purple-400 fill-purple-500 dark:fill-purple-400;
+      }
     }
 
     &.markdown-alert-warning {
       @apply bg-yellow-50 dark:bg-yellow-900/20 border-yellow-500 text-yellow-700 dark:text-yellow-300;
-      .octicon { @apply text-yellow-500 dark:text-yellow-400 fill-yellow-500 dark:fill-yellow-400; }
+      .octicon {
+        @apply text-yellow-500 dark:text-yellow-400 fill-yellow-500 dark:fill-yellow-400;
+      }
     }
 
     &.markdown-alert-caution {
       @apply bg-red-50 dark:bg-red-900/20 border-red-500 text-red-700 dark:text-red-300;
-      .octicon { @apply text-red-500 dark:text-red-400 fill-red-500 dark:fill-red-400; }
+      .octicon {
+        @apply text-red-500 dark:text-red-400 fill-red-500 dark:fill-red-400;
+      }
     }
   }
 
@@ -121,7 +154,8 @@
   table {
     @apply w-full mb-4 border-collapse my-4;
 
-    th, td {
+    th,
+    td {
       @apply border border-gray-300 dark:border-gray-600 px-4 py-2;
     }
 
@@ -136,7 +170,7 @@
 
   // Images
   img {
-    @apply max-w-full h-auto mb-4 rounded;
+    @apply max-w-full h-auto mb-4 rounded max-h-96;
   }
 }
 
