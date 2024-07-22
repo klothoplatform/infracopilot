@@ -80,11 +80,14 @@ const Details: FC<DetailsProps> = function ({ setWarnMissingProperties }) {
   const [isLoadingConstraints, setIsLoadingConstraints] =
     React.useState<boolean>(false);
 
+  const [lastVersion, setLastVersion] = React.useState<number | null>(null);
+
   useEffect(() => {
     if (
       !isLoadingConstraints &&
       architecture.id !== undefined &&
-      environmentVersion.id !== undefined
+      environmentVersion.id !== undefined &&
+      (lastVersion === null || lastVersion !== environmentVersion.version)
     ) {
       setIsLoadingConstraints(true);
 
@@ -134,6 +137,7 @@ const Details: FC<DetailsProps> = function ({ setWarnMissingProperties }) {
           console.error(e);
         } finally {
           setIsLoadingConstraints(false);
+          setLastVersion(environmentVersion.version);
         }
       })();
     }
