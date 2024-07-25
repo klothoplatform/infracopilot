@@ -11,6 +11,10 @@ export type ResizableProps = {
   disabled?: boolean;
 };
 
+type ResizableContextProps = {
+  containerRef: React.RefObject<HTMLDivElement>;
+};
+
 export const ResizableContext = createContext<ResizableContextProps>({
   containerRef: { current: null },
 });
