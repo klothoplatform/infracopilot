@@ -5,6 +5,7 @@ import { Button, useThemeMode } from "flowbite-react";
 import { NodeId } from "../../shared/architecture/TopologyNode.ts";
 import useApplicationStore from "../../pages/store/ApplicationStore.ts";
 import { NodeIcon } from "../../shared/resources/ResourceMappings.tsx";
+
 import { MessageThreadContext } from "../editor/MessageThreadProvider.tsx";
 
 export const ResourceMention: FC<{

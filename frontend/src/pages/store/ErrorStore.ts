@@ -1,10 +1,10 @@
 import type { StateCreator } from "zustand";
 import { v4 as uuidv4 } from "uuid";
-import { analytics } from "../../App";
 import type { ApplicationError } from "../../shared/errors";
 import { ErrorType } from "../../shared/errors";
 import { env } from "../../shared/environment";
 import { isObject } from "../../shared/object-util";
+import analytics from "../../Analytics.ts";
 
 export interface ErrorStore {
   errors: ApplicationError[];

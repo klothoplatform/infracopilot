@@ -1,9 +1,9 @@
 import type { StateCreator } from "zustand";
 import type { Auth0ContextInterface, User } from "@auth0/auth0-react";
 import type { ErrorStore } from "./ErrorStore";
-import { analytics } from "../../App";
 import { env } from "../../shared/environment";
 import { chatSignup } from "../../api/ChatSignup";
+import analytics from "../../Analytics.ts";
 
 const logoutUrl = env.auth0.logoutUrl;
 

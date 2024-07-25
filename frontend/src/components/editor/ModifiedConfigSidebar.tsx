@@ -146,6 +146,7 @@ const Details: FC<DetailsProps> = function ({ setWarnMissingProperties }) {
     currentIdToken.idToken,
     environmentVersion,
     isLoadingConstraints,
+    lastVersion,
     resourceTypeKB,
     unappliedConstraints,
   ]);

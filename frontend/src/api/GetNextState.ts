@@ -1,4 +1,3 @@
-import { analytics } from "../App";
 import type { AxiosResponse } from "axios";
 import axios from "axios";
 import { ApiError } from "../shared/errors";
@@ -7,6 +6,7 @@ import {
   type EnvironmentVersion,
   parseEnvironmentVersion,
 } from "../shared/architecture/EnvironmentVersion";
+import analytics from "../Analytics.ts";
 
 export async function getNextState(
   architectureId: string,

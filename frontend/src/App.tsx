@@ -7,18 +7,6 @@ import { useAuth0 } from "@auth0/auth0-react";
 import { Navigate } from "react-router-dom";
 import { CallbackPage } from "./pages/CallbackPage";
 
-import { env } from "./shared/environment";
-import { RudderAnalytics } from "@rudderstack/analytics-js";
-
-export const analytics = new RudderAnalytics();
-analytics.load(env.analytics.writeKey, env.analytics.dataplaneUrl, {
-  storage: {
-    encryption: {
-      version: "v3",
-    },
-  },
-});
-
 const App: FC = function () {
   const { updateAuthentication } = useApplicationStore();
   const authContext = useAuth0();

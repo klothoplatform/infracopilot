@@ -3,9 +3,9 @@ import {
   type Architecture,
   parseArchitecture,
 } from "../shared/architecture/Architecture";
-import { analytics } from "../App";
 import { ApiError } from "../shared/errors";
 import { trackError } from "../pages/store/ErrorStore";
+import analytics from "../Analytics.ts";
 
 export interface ModifyArchitectureRequest {
   id: string;

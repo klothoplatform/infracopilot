@@ -55,7 +55,6 @@ import type { AuthStoreBase } from "./AuthStore";
 import { ResourceTypeKB } from "../../shared/resources/ResourceTypeKB";
 import { type ErrorStore } from "./ErrorStore";
 
-import { analytics } from "../../App";
 import { customConfigMappings } from "../ArchitectureEditor/config/CustomConfigMappings";
 import { getValidEdgeTargets } from "../../api/GetValidEdgeTargets";
 import { ApplicationError, EngineError } from "../../shared/errors";
@@ -95,6 +94,7 @@ import { resolveMentions } from "../../shared/chat-util";
 import type { ExtendedChatMessage } from "../../components/chat/ChatMessage.tsx";
 import { NotificationType } from "../../components/editor/NotificationType.ts";
 import { mention, MentionType } from "../../components/chat/MentionType.ts";
+import analytics from "../../Analytics.ts";
 
 interface EditorStoreState {
   architecture: Architecture;

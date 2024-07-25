@@ -17,7 +17,7 @@ import { twMerge } from "tailwind-merge";
 import { ModifiedConfigSidebar } from "./ModifiedConfigSidebar";
 import { DetailsSidebar } from "./DetailsSidebar";
 import { ChangesSidebar } from "./ChangesSidebar";
-import { ChatSidebar } from "./ChatSidebar";
+import ChatSidebar from "./ChatSidebar";
 import { IoIosChatboxes } from "react-icons/io";
 import { env } from "../../shared/environment";
 import { ChatSignupSidebar } from "./ChatSignupSidebar";

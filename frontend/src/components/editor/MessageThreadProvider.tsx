@@ -1,5 +1,6 @@
 import type { FC, PropsWithChildren } from "react";
-import React, { createContext, useState } from "react";
+import { createContext } from "react";
+import React, { useState } from "react";
 
 export interface MessageThreadContextProps {
   toastText: string | null;

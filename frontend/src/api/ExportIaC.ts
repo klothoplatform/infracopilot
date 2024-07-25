@@ -1,8 +1,8 @@
 import type { AxiosResponse } from "axios";
 import axios from "axios";
-import { analytics } from "../App";
 import { ApiError } from "../shared/errors";
 import { trackError } from "../pages/store/ErrorStore";
+import analytics from "../Analytics.ts";
 
 export default async function exportIaC(
   architectureId: string,

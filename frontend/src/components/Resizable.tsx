@@ -1,5 +1,6 @@
 import type { FC, PropsWithChildren } from "react";
-import React, { createContext, useCallback, useContext, useRef } from "react";
+import { createContext } from "react";
+import React, { useCallback, useContext, useRef } from "react";
 import classNames from "classnames";
 
 export type ResizableProps = {
@@ -8,10 +9,6 @@ export type ResizableProps = {
   childRef: React.RefObject<HTMLDivElement>;
   onResize?: (newSize: number) => void;
   disabled?: boolean;
-};
-
-type ResizableContextProps = {
-  containerRef: React.RefObject<HTMLDivElement>;
 };
 
 export const ResizableContext = createContext<ResizableContextProps>({

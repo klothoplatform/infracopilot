@@ -1,8 +1,8 @@
-import { analytics } from "../App";
 import type { AxiosResponse } from "axios";
 import axios from "axios";
 import { ApiError } from "../shared/errors";
 import { trackError } from "../pages/store/ErrorStore";
+import analytics from "../Analytics.ts";
 
 export async function setCurrentState(
   architectureId: string,

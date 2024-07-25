@@ -1,7 +1,8 @@
 import axios from "axios";
 import { ApiError } from "../shared/errors";
 import { trackError } from "../pages/store/ErrorStore";
-import { analytics } from "../App";
+
+import analytics from "../Analytics.ts";
 
 export async function chatSignup(idToken: string) {
   let response;
