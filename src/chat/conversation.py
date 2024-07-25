@@ -101,8 +101,8 @@ Existing connections:{bullet}{bullet.join(self.initial_state.edges)}"""
         try:
             completion = await client.chat.completions.create(
                 model="klo4o",
-                temperature=1,
-                timeout=5,
+                temperature=0,
+                timeout=20,
                 messages=messages,
             )
             response = completion.choices[0].message.content

@@ -2,8 +2,8 @@ import type { AxiosResponse } from "axios";
 import axios from "axios";
 import { ApiError } from "../shared/errors";
 import { trackError } from "../pages/store/ErrorStore";
-import { analytics } from "../App";
 import type { ArchitectureRole } from "../shared/architecture/Access";
+import analytics from "../Analytics.ts";
 
 export interface UpdateArchitectureAccessRequest {
   architectureId: string;

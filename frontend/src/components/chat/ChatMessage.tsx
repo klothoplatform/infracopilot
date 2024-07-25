@@ -9,9 +9,7 @@ import type {
   MessageRenderer,
   MessageThreadStrings,
 } from "@azure/communication-react";
-import { MessageThreadContext } from "../editor/MessageThreadProvider.tsx";
 import useApplicationStore from "../../pages/store/ApplicationStore.ts";
-import { analytics } from "../../App.tsx";
 import { resolveMentions } from "../../shared/chat-util.ts";
 import {
   FaCheck,
@@ -39,6 +37,8 @@ import remarkGfm from "remark-gfm";
 import "./markdown.scss";
 import { remarkAlert } from "remark-github-blockquote-alert";
 import HoverableLink from "./HoverableLink.tsx";
+import { MessageThreadContext } from "../editor/MessageThreadProvider.tsx";
+import analytics from "../../Analytics.ts";
 
 export interface ExtendedChatMessage extends ChatMessage {
   feedbackSubmitted?: ActionState;

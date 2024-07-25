@@ -1,8 +1,8 @@
 import axios, { type AxiosResponse } from "axios";
 import { ApiError } from "../shared/errors";
 import { trackError } from "../pages/store/ErrorStore";
-import { analytics } from "../App";
 import { type TopologyDiff } from "../shared/architecture/TopologyDiff";
+import analytics from "../Analytics.ts";
 
 export interface ExplainDiffRequest {
   architectureId: string;

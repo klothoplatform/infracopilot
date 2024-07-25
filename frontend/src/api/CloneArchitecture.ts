@@ -1,9 +1,9 @@
 import type { AxiosResponse } from "axios";
 import axios from "axios";
 import type { Architecture } from "../shared/architecture/Architecture";
-import { analytics } from "../App";
 import { ApiError } from "../shared/errors";
 import { trackError } from "../pages/store/ErrorStore";
+import analytics from "../Analytics.ts";
 
 export interface CloneArchitectureRequest {
   id: string;

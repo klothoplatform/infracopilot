@@ -1,7 +1,6 @@
 import type { CustomAvatarOptions } from "@azure/communication-react";
 import React from "react";
 import useApplicationStore from "../../pages/store/ApplicationStore.ts";
-import { useThemeMode } from "flowbite-react";
 import { Persona, PersonaSize } from "@fluentui/react";
 
 interface AvatarProps {
@@ -16,14 +15,13 @@ export const Avatar: React.FC<AvatarProps> = ({
   defaultOnRenderAvatar,
 }) => {
   const { user } = useApplicationStore();
-  const { mode } = useThemeMode();
   if (userId === "assistant") {
     return (
       <Persona
         size={PersonaSize.size32}
         hidePersonaDetails
         text={"Alfred"}
-        imageUrl={`/images/alfred-avatar-${mode}.png`}
+        imageUrl={`/images/al.svg`}
         showOverflowTooltip={false}
       />
     );

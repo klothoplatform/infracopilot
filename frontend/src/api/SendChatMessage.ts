@@ -7,7 +7,8 @@ import { EngineError } from "../shared/errors";
 import { trackError } from "../pages/store/ErrorStore";
 import type { Constraint } from "../shared/architecture/Constraints";
 import { parseConstraints } from "../shared/architecture/Constraints";
-import { analytics } from "../App";
+
+import analytics from "../Analytics.ts";
 
 export interface SendChatMessageRequest {
   architectureId: string;

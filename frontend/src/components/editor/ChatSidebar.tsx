@@ -1,11 +1,12 @@
 import type { FC } from "react";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import classNames from "classnames";
 import { ErrorBoundary } from "react-error-boundary";
 import { trackError } from "../../pages/store/ErrorStore";
 import { UIError } from "../../shared/errors";
 import { FallbackRenderer } from "../FallbackRenderer";
 import useApplicationStore from "../../pages/store/ApplicationStore";
+import type { ButtonColors } from "flowbite-react";
 import { Button, Toast, Tooltip, useThemeMode } from "flowbite-react";
 import type { Mention, MessageThreadStyles } from "@azure/communication-react";
 import {
@@ -29,15 +30,24 @@ import { Avatar } from "../chat/Avatar.tsx";
 import { IsThinkingIndicator } from "../chat/IsThinkingIndicator.tsx";
 import { SuggestionItem } from "./SuggestionItem.tsx";
 import { DefaultMentionRenderer } from "../chat/MentionRenderer.tsx";
+import { FaArrowCircleUp } from "react-icons/fa";
 
 const config = resolveConfig(defaultConfig);
 const colors = { ...config.theme.colors, primary: config.theme.colors.violet };
 const trigger = "@";
 
-const initialMessageContent =
+const examplePrompts = [
+  "Add a lambda function to my architecture",
+  "Expose my lambda function as an API",
+  "What is the cost of my architecture?",
+  "How can I improve the performance of my architecture?",
+  "Create an architecture for an e-commerce website",
+];
+
+const introductionMessage =
   "Hi there! I'm Alfred, your AI assistant, and I can help you update your architecture's topology.\n\nHow can I help you today?";
 
-export const ChatSidebar: FC<{
+const ChatSidebar: FC<{
   hidden?: boolean;
 }> = ({ hidden }) => {
   const {
@@ -45,7 +55,6 @@ export const ChatSidebar: FC<{
     sendChatMessage,
     nodes,
     chatHistory,
-    replyInChat,
     clearChatHistory,
   } = useApplicationStore();
 
@@ -83,17 +92,6 @@ export const ChatSidebar: FC<{
       timeoutRef.current && clearTimeout(timeoutRef.current);
     };
   }, []);
-
-  useEffect(() => {
-    if (chatHistory.length < 1) {
-      replyInChat([
-        {
-          messageId: "intro", // fixed id ensures this message is not duplicated on re-render (mostly for strict mode)
-          content: initialMessageContent,
-        },
-      ]);
-    }
-  }, [chatHistory, replyInChat]);
 
   const defaultStyles = {
     backgroundColor: "transparent",
@@ -151,6 +149,12 @@ export const ChatSidebar: FC<{
 
   const [toastText, setToastText] = useState<string | null>(null);
 
+  const [showIntro, setShowIntro] = useState(chatHistory.length === 0);
+  useEffect(() => {
+    setShowIntro(chatHistory.length === 0);
+  }, [chatHistory]);
+  const introRef = useRef<HTMLDivElement>(null);
+
   return (
     <div
       className={classNames("flex flex-col h-full w-full", {
@@ -195,60 +199,113 @@ export const ChatSidebar: FC<{
               fluentTheme={mode === "dark" ? chatThemeDark : chatThemeLight}
             >
               <div className="relative flex size-full flex-col pb-4">
-                <MessageThread
-                  userId={"user"}
-                  styles={messageThreadStyles}
-                  strings={{
-                    failToSendTag: "Failed",
-                  }}
-                  onRenderMessage={(options, defaultOnRenderMessage) => {
-                    return (
+                {showIntro ? (
+                  <div
+                    ref={introRef}
+                    className={classNames(
+                      "flex-grow px-4 pb-4 pt-6 overflow-y-auto transition-opacity duration-500 ease-in-out relative flex flex-col justify-around gap-4",
+                      {
+                        "opacity-0": !showIntro,
+                        "opacity-100": showIntro,
+                      },
+                    )}
+                  >
+                    <div className={"flex flex-col gap-6"}>
+                      <img
+                        className="mx-auto mt-4"
+                        src="/images/al.svg"
+                        alt="Alfred"
+                        width="64"
+                        height="64"
+                      />
+                      <p className="my-auto whitespace-pre-wrap text-center text-xl font-medium text-gray-600 dark:text-gray-300">
+                        {introductionMessage}
+                      </p>
+                    </div>
+                    <div
+                      className={classNames(
+                        "flex max-w-full flex-wrap overflow-y-clip p-4 gap-2 justify-center transition-opacity duration-1500 ease-in-out",
+                        {
+                          "opacity-0": !showIntro,
+                          "opacity-100": showIntro,
+                        },
+                      )}
+                    >
+                      {examplePrompts.map((prompt, index) => (
+                        <PromptButton
+                          key={index}
+                          prompt={prompt}
+                          onSend={async (message) => {
+                            setIsSubmitting(true);
+                            try {
+                              await sendChatMessage(message);
+                            } finally {
+                              setIsSubmitting(false);
+                            }
+                          }}
+                          color={mode}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <MessageThread
+                    userId={"user"}
+                    styles={messageThreadStyles}
+                    strings={{
+                      failToSendTag: "Failed",
+                    }}
+                    onRenderMessage={(options, defaultOnRenderMessage) => (
                       <ChatMessageComposite
                         options={options}
                         defaultOnRenderMessage={defaultOnRenderMessage}
                       />
-                    );
-                  }}
-                  showMessageStatus={true}
-                  onRenderAvatar={(userId, options, defaultOnRenderAvatar) => {
-                    return (
+                    )}
+                    showMessageStatus={true}
+                    onRenderAvatar={(
+                      userId,
+                      options,
+                      defaultOnRenderAvatar,
+                    ) => (
                       <Avatar
                         userId={userId}
                         renderOptions={options}
                         defaultOnRenderAvatar={defaultOnRenderAvatar}
                       />
-                    );
-                  }}
-                  mentionOptions={{
-                    displayOptions: {
-                      onRenderMention: DefaultMentionRenderer,
-                    },
-                    lookupOptions: {
-                      trigger,
-                      onQueryUpdated: async (query: string) => {
-                        const filtered = suggestions.filter((suggestion) => {
-                          return suggestion.displayText
-                            .toLocaleLowerCase()
-                            .startsWith(query.toLocaleLowerCase());
-                        });
-                        return Promise.resolve(filtered);
+                    )}
+                    mentionOptions={{
+                      displayOptions: {
+                        onRenderMention: DefaultMentionRenderer,
                       },
-                    },
-                  }}
-                  disableEditing={true}
-                  messages={chatHistory}
-                />
+                      lookupOptions: {
+                        trigger,
+                        onQueryUpdated: async (query: string) => {
+                          const filtered = suggestions.filter((suggestion) =>
+                            suggestion.displayText
+                              .toLocaleLowerCase()
+                              .startsWith(query.toLocaleLowerCase()),
+                          );
+                          return Promise.resolve(filtered);
+                        },
+                      },
+                    }}
+                    disableEditing={true}
+                    messages={chatHistory}
+                  />
+                )}
                 <IsThinkingIndicator visible={isSubmitting} />
                 {!!toastText && (
                   <Toast className="absolute left-1/2 top-1/2 mx-2 min-h-fit w-fit max-w-full -translate-x-1/2 -translate-y-1/2 overflow-hidden text-center dark:bg-gray-600 dark:text-gray-100">
                     {toastText}
                   </Toast>
                 )}
-
                 <div ref={sendBoxRef} className={"justify-self-end px-2"}>
                   <SendBox
+                    onRenderIcon={() => <FaArrowCircleUp size={20} />}
                     strings={{
-                      placeholderText: "Talk to Alfred",
+                      placeholderText: showIntro
+                        ? "Message Alfred"
+                        : "Reply to Alfred",
                     }}
                     disabled={isSubmitting}
                     supportNewline
@@ -277,21 +334,19 @@ export const ChatSidebar: FC<{
                       onRenderSuggestionItem: (
                         suggestion,
                         onSuggestionSelected,
-                      ) => {
-                        return (
-                          <SuggestionItem
-                            key={Math.random().toString()}
-                            onSuggestionSelected={onSuggestionSelected}
-                            suggestion={suggestion}
-                          />
-                        );
-                      },
+                      ) => (
+                        <SuggestionItem
+                          key={Math.random().toString()}
+                          onSuggestionSelected={onSuggestionSelected}
+                          suggestion={suggestion}
+                        />
+                      ),
                       onQueryUpdated: async (query: string) => {
-                        const filtered = suggestions.filter((suggestion) => {
-                          return suggestion.displayText
+                        const filtered = suggestions.filter((suggestion) =>
+                          suggestion.displayText
                             .toLocaleLowerCase()
-                            ?.startsWith(query.toLocaleLowerCase());
-                        });
+                            ?.startsWith(query.toLocaleLowerCase()),
+                        );
                         return Promise.resolve(filtered);
                       },
                     }}
@@ -314,3 +369,32 @@ export const ChatSidebar: FC<{
     </div>
   );
 };
+
+interface PromptButtonProps {
+  prompt: string;
+  onSend: (message: string) => void;
+  color?: keyof ButtonColors;
+}
+
+const PromptButton: React.FC<PromptButtonProps> = ({
+  prompt,
+  onSend,
+  color,
+}) => {
+  const handleClick = () => {
+    onSend(prompt);
+  };
+
+  return (
+    <Button
+      size="sm"
+      color={color}
+      onClick={handleClick}
+      className="m-1 text-left"
+    >
+      {prompt}
+    </Button>
+  );
+};
+
+export default ChatSidebar;

@@ -28,7 +28,6 @@ import {
 } from "../../shared/architecture/Constraints";
 import { ConfigGroup } from "../config/ConfigGroup";
 import { NodeId } from "../../shared/architecture/TopologyNode";
-import { analytics } from "../../App";
 import { ErrorBoundary } from "react-error-boundary";
 import { FallbackRenderer } from "../FallbackRenderer";
 import { ApplicationError, UIError } from "../../shared/errors";
@@ -38,6 +37,7 @@ import type {
   EnvironmentVersion,
 } from "../../shared/architecture/EnvironmentVersion";
 import { propertyDepth } from "../../shared/object-util";
+import analytics from "../../Analytics.ts";
 
 export interface ConfigFormSection {
   title: string;

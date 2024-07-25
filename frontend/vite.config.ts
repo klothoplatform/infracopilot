@@ -39,6 +39,7 @@ export default defineConfig({
     "import.meta.vitest": true,
   },
   server: {
+    // hmr: true,
     proxy: {
       "/api": {
         target: "http://localhost:3000",
