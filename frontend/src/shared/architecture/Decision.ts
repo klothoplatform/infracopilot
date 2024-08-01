@@ -26,7 +26,7 @@ export class Decision {
 
   formatTitle(options?: FormatOptions): string {
     return (
-      (options?.forceBullet || this.constraints.length > 1 ? "• " : "") +
+      (options?.forceBullet || this.constraints.length > 1 ? "- " : "") +
       this.constraints
         .map((c) => c.toIntent(options?.mentionResources))
         .join("\n• ")

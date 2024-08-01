@@ -1850,7 +1850,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
           {
             messageId: responseId,
             content:
-              "Okay, here's what I've done:\n" +
+              "Okay, here's what I've done:\n\n" +
               decisions
                 .map((d) =>
                   d.formatTitle({
