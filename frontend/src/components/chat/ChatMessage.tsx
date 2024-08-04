@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import type {
   ChatMessage,
   InlineImageOptions,
-  Mention,
   MentionDisplayOptions,
   MessageProps,
   MessageRenderer,
@@ -19,9 +18,6 @@ import {
 } from "react-icons/fa6";
 import { useThemeMode } from "flowbite-react";
 import { _formatString } from "@azure/communication-react/dist/dist-esm/acs-ui-common/src";
-import type { HTMLReactParserOptions } from "html-react-parser";
-import parse, { Element as DOMElement } from "html-react-parser";
-import { defaultOnMentionRender } from "@azure/communication-react/dist/dist-esm/react-components/src/components/ChatMessage/MentionRenderer";
 import { PrismAsyncLight as SyntaxHighlighter } from "react-syntax-highlighter";
 import {
   vs as lightTheme,
@@ -39,6 +35,7 @@ import { remarkAlert } from "remark-github-blockquote-alert";
 import HoverableLink from "./HoverableLink.tsx";
 import { MessageThreadContext } from "../editor/MessageThreadProvider.tsx";
 import analytics from "../../Analytics.ts";
+import remarkMention from "../../shared/remark-mention.ts";
 
 export interface ExtendedChatMessage extends ChatMessage {
   feedbackSubmitted?: ActionState;
@@ -192,7 +189,14 @@ export const ChatMessageComposite: FC<{
           message: options.message as ChatMessage,
           strings: options.strings as MessageThreadStrings,
           theme: mode,
-          mentionDisplayOptions: { onRenderMention: DefaultMentionRenderer },
+          mentionDisplayOptions: {
+            onRenderMention: (mention, defaultOnRender) => (
+              <DefaultMentionRenderer
+                mention={mention}
+                defaultOnMentionRender={defaultOnRender}
+              />
+            ),
+          },
         })}
       />
 
@@ -231,114 +235,90 @@ const processHtmlToReact = (
   props: ChatMessageContentProps,
 ): React.JSX.Element => {
   const { theme } = props;
-  const options: HTMLReactParserOptions = {
-    transform(reactNode, domNode) {
-      if (domNode instanceof DOMElement && domNode.attribs) {
-        // Transform custom rendering of mentions
-        if (domNode.name === "msft-mention") {
-          const { id } = domNode.attribs;
-          const mention: Mention = {
-            id: id,
-            displayText:
-              (domNode.children[0] as unknown as Text).nodeValue ?? "",
-          };
-          if (props.mentionDisplayOptions?.onRenderMention) {
-            return props.mentionDisplayOptions.onRenderMention(
-              mention,
-              defaultOnMentionRender,
-            );
+  return (
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm, remarkAlert, remarkMention]}
+      key={Math.random().toString()}
+      className="markdown-renderer"
+      components={{
+        div({ node, children, ...props }) {
+          const { mentionId, mentionType } = props as any;
+          if (!mentionType) {
+            return <span {...props}>{children}</span>;
           }
-          return defaultOnMentionRender(mention);
-        }
-
-        // Transform links to open in new tab
-        if (
-          domNode.name === "a" &&
-          React.isValidElement<React.AnchorHTMLAttributes<HTMLAnchorElement>>(
-            reactNode,
-          )
-        ) {
-          return React.cloneElement(reactNode, {
-            target: "_blank",
-            rel: "noreferrer noopener",
-          });
-        }
-      }
-      // Pass through the original node
-      const Node = reactNode as unknown as React.JSX.Element;
-      return (
-        <ReactMarkdown
-          remarkPlugins={[remarkGfm, remarkAlert]}
-          key={Math.random().toString()}
-          className="markdown-renderer"
-          components={{
-            img({ src, alt, ...props }) {
-              return (
-                <HoverableLink href={src}>
-                  <img
-                    src={src}
-                    alt={alt}
-                    {...props}
-                    className="h-auto max-w-full rounded-lg"
-                  />
-                </HoverableLink>
-              );
-            },
-            a({ href, children, ...props }) {
-              return (
-                <HoverableLink href={href}>
-                  <a
-                    href={href}
-                    target="_blank"
-                    rel="noreferrer noopener"
-                    {...props}
-                    className="text-blue-600 hover:underline dark:text-blue-400"
-                  >
-                    {children}
-                  </a>
-                </HoverableLink>
-              );
-            },
-            code({ className, children, ...props }) {
-              const match = /language-(\w+)/.exec(className || "");
-              return match ? (
-                <SyntaxHighlighter
-                  style={theme === "light" ? lightTheme : darkTheme}
-                  language={match[1] || "text"}
-                  PreTag="div"
-                  wrapLines={true}
-                  wrapLongLines={true}
-                  customStyle={{
-                    width: "100%",
-                    borderRadius: "0.5rem",
-                    fontFamily: "monospace",
-                    paddingBottom: "0",
-                    lineHeight: "1",
-                  }}
-                >
-                  {String(children).replace(/\n$/, "")}
-                </SyntaxHighlighter>
-              ) : (
-                <code
-                  {...props}
-                  className={twMerge(
-                    className,
-                    "rounded bg-gray-200 px-1 py-0.5 dark:bg-gray-700 w-fit overflow-x-clip text-wrap font-mono",
-                  )}
-                >
-                  {children}
-                </code>
-              );
-            },
-          }}
-        >
-          {String(Node).replace(/\n$/, "")}
-        </ReactMarkdown>
-      );
-    },
-  };
-
-  return <>{parse(props.message.content ?? "", options)}</>;
+          return (
+            <DefaultMentionRenderer
+              mention={{
+                id: `${mentionType}#${mentionId}`,
+                displayText: String(children),
+              }}
+              defaultOnMentionRender={() => <div {...props}>{children}</div>}
+            />
+          );
+        },
+        img({ src, alt, ...props }) {
+          return (
+            <HoverableLink href={src}>
+              <img
+                src={src}
+                alt={alt}
+                {...props}
+                className="h-auto max-w-full rounded-lg"
+              />
+            </HoverableLink>
+          );
+        },
+        a({ href, children, ...props }) {
+          return (
+            <HoverableLink href={href}>
+              <a
+                href={href}
+                target="_blank"
+                rel="noreferrer noopener"
+                {...props}
+                className="text-blue-600 hover:underline dark:text-blue-400"
+              >
+                {children}
+              </a>
+            </HoverableLink>
+          );
+        },
+        code({ className, children, ...props }) {
+          const match = /language-(\w+)/.exec(className || "");
+          return match ? (
+            <SyntaxHighlighter
+              style={theme === "light" ? lightTheme : darkTheme}
+              language={match[1] || "text"}
+              PreTag="div"
+              wrapLines={true}
+              wrapLongLines={true}
+              customStyle={{
+                width: "100%",
+                borderRadius: "0.5rem",
+                fontFamily: "monospace",
+                paddingBottom: "0",
+                lineHeight: "1",
+              }}
+            >
+              {String(children).replace(/\n$/, "")}
+            </SyntaxHighlighter>
+          ) : (
+            <code
+              {...props}
+              className={twMerge(
+                className,
+                "rounded bg-gray-200 px-1 py-0.5 dark:bg-gray-700 w-fit overflow-x-clip text-wrap font-mono",
+              )}
+            >
+              {children}
+            </code>
+          );
+        },
+      }}
+    >
+      {(props.message.content || "").replace(/\n$/, "")}
+    </ReactMarkdown>
+  );
 };
 const generateLiveMessage = (props: ChatMessageContentProps): string => {
   const liveAuthor = _formatString(props.strings.liveAuthorIntro, {
