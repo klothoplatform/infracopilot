@@ -1,4 +1,5 @@
 import type { Mention } from "@azure/communication-react";
+import type { FC } from "react";
 import React from "react";
 import { MentionType } from "./MentionType.ts";
 import { ExplanationMention, ResourceMention } from "./Mentions.tsx";
@@ -10,10 +11,15 @@ const mentionMappings: Record<MentionType, React.FC<any>> = {
   [MentionType.Explain]: ExplanationMention,
 };
 
-export const DefaultMentionRenderer = (
-  mention: Mention,
-  defaultOnMentionRender: MentionRenderer,
-) => {
+export interface MentionRendererProps {
+  mention: Mention;
+  defaultOnMentionRender: MentionRenderer;
+}
+
+export const DefaultMentionRenderer: FC<MentionRendererProps> = ({
+  mention,
+  defaultOnMentionRender,
+}) => {
   let [type, id]: [MentionType, string] = mention.id.split("#") as any;
 
   const MentionComponent = mentionMappings[type];

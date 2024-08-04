@@ -22,17 +22,15 @@ export const ResourceMention: FC<{
 
   return (
     <button
-      className={"inline-block  w-fit"}
+      className={"inline-block w-fit"}
       title={mention.id.split("#")[1] ?? mention.id}
       onClick={onClick}
     >
-      <div className="hover:bg-primary-200 dark:hover:bg-primary-950 flex h-full flex-nowrap items-baseline gap-1 rounded-md px-1">
+      <span className="hover:bg-primary-200 dark:hover:bg-primary-950 flex h-full flex-nowrap items-baseline gap-1 rounded-md px-1">
         <NodeIcon
           provider={resourceId.provider}
           type={resourceId.type}
-          width={14}
-          height={14}
-          className="my-auto p-0"
+          className="relative top-0.5 !m-0 size-3.5 p-0"
           variant={mode}
         />
         <span
@@ -42,7 +40,7 @@ export const ResourceMention: FC<{
         >
           {mention.displayText}
         </span>
-      </div>
+      </span>
     </button>
   );
 };
