@@ -275,7 +275,12 @@ const ChatSidebar: FC<{
                     )}
                     mentionOptions={{
                       displayOptions: {
-                        onRenderMention: DefaultMentionRenderer,
+                        onRenderMention: (mention, onMentionSelected) => (
+                          <DefaultMentionRenderer
+                            mention={mention}
+                            defaultOnMentionRender={onMentionSelected}
+                          />
+                        ),
                       },
                       lookupOptions: {
                         trigger,
