@@ -1,10 +1,8 @@
-import html
 import re
 from dataclasses import dataclass
 from time import perf_counter
 from typing import Optional, List, Tuple
 from typing_extensions import TypedDict
-import json
 
 from src.chat.intent_parser import parse_intent, ParseException
 from src.chat.message_execution import MessageExecutionException
@@ -114,7 +112,6 @@ Existing connections:{bullet}{bullet.join(self.initial_state.edges)}"""
             if not re.match(r"^[A-Z_]+$", category):
                 raise Exception("Failed to categorize query")
             message = "\n".join(lines[1:])
-            message = html.escape(message)
             return {"category": category, "message": message}
 
         except Exception as err:
