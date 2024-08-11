@@ -91,7 +91,7 @@ import type { ChatMessage } from "@azure/communication-react";
 import { explainDiff } from "../../api/ExplainDiff";
 import { type TopologyDiff } from "../../shared/architecture/TopologyDiff";
 import { resolveMentions } from "../../shared/chat-util";
-import type { ExtendedChatMessage } from "../../components/chat/ChatMessage.tsx";
+import type { ExtendedChatMessage } from "../../components/chat/ChatMessageComposite.tsx";
 import { NotificationType } from "../../components/editor/NotificationType.ts";
 import { mention, MentionType } from "../../components/chat/MentionType.ts";
 import analytics from "../../Analytics.ts";
@@ -1835,6 +1835,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
         {
           messageId: `${responseId}-helper`,
           content: response.response,
+          attached: "top",
         },
       ]);
     }
@@ -1860,7 +1861,7 @@ export const editorStore: StateCreator<EditorStore, [], [], EditorStoreBase> = (
                 )
                 .join("\n") +
               `\n${mention(MentionType.Explain, responseId, "Yes")}`,
-            attached: "top",
+            attached: response.response ? true : "top",
           },
         ],
         messageId,

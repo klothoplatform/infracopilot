@@ -18,23 +18,27 @@
   h1 {
     @apply text-2xl text-gray-900 dark:text-gray-100;
   }
+
   h2 {
     @apply text-xl text-gray-800 dark:text-gray-200;
   }
+
   h3 {
     @apply text-lg text-gray-700 dark:text-gray-300;
   }
+
   h4 {
     @apply text-base text-gray-600 dark:text-gray-400;
   }
+
   h5 {
     @apply text-sm text-gray-500 dark:text-gray-500;
   }
+
   h6 {
     @apply text-xs text-gray-400 dark:text-gray-600;
   }
 
-  // Paragraphs
   p {
     @apply mb-2;
   }
@@ -48,6 +52,7 @@
   ul {
     @apply list-disc;
   }
+
   ol {
     @apply list-decimal;
   }
@@ -62,7 +67,6 @@
     @apply mt-1 mb-1;
   }
 
-  // Task Lists
   .contains-task-list {
     @apply list-none pl-0;
 
@@ -87,7 +91,6 @@
     }
   }
 
-  // Blockquotes
   blockquote {
     @apply pl-4 py-2 mb-4 border-l-4 border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-800 italic;
   }
@@ -140,17 +143,14 @@
     }
   }
 
-  // Links
   a {
     @apply text-primary-600 dark:text-primary-400 hover:underline;
   }
 
-  // Horizontal rule
   hr {
     @apply my-8 border-t border-gray-300 dark:border-gray-600;
   }
 
-  // Tables
   table {
     @apply w-full mb-4 border-collapse my-4;
 
@@ -168,13 +168,11 @@
     }
   }
 
-  // Images
   img {
     @apply max-w-full h-auto mb-4 rounded max-h-96;
   }
 }
 
-// Dark mode toggle (optional)
 .dark-mode-toggle {
   @apply fixed top-4 right-4 bg-gray-200 dark:bg-gray-800 p-2 rounded-full cursor-pointer;
 
@@ -183,7 +181,14 @@
   }
 }
 
-// Add this class to your body or a wrapper element to enable dark mode
 .dark {
   @apply bg-gray-900 text-gray-200;
+}
+
+[data-remark-code-title] {
+  @apply w-full max-h-10 bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-300 p-2 rounded-t-md font-medium max-w-full truncate block;
+
+  &::before {
+    @apply content-[attr(data-language)] inline-block text-xs font-normal text-gray-600 dark:text-gray-400 mr-2;
+  }
 }

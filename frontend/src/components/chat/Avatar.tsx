@@ -7,18 +7,22 @@ interface AvatarProps {
   userId?: string;
   renderOptions?: CustomAvatarOptions;
   defaultOnRenderAvatar?: (options: CustomAvatarOptions) => React.JSX.Element;
+  renderUserAvatar?: boolean;
+  size?: PersonaSize;
 }
 
 export const Avatar: React.FC<AvatarProps> = ({
   userId,
   renderOptions,
   defaultOnRenderAvatar,
+  renderUserAvatar = true,
 }) => {
   const { user } = useApplicationStore();
+  const size = renderOptions?.size || PersonaSize.size32;
   if (userId === "assistant") {
     return (
       <Persona
-        size={PersonaSize.size32}
+        size={size}
         hidePersonaDetails
         text={"Alfred"}
         imageUrl={`/images/al.svg`}
@@ -27,10 +31,14 @@ export const Avatar: React.FC<AvatarProps> = ({
     );
   }
 
+  if (!renderUserAvatar) {
+    return <></>;
+  }
+
   if (userId === "user") {
     return (
       <Persona
-        size={PersonaSize.size32}
+        size={size}
         hidePersonaDetails
         text={
           user?.displayName ||

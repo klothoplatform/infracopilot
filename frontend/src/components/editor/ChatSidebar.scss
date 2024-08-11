@@ -40,6 +40,10 @@ span[data-ui-id="message-timestamp"] {
   }
 }
 
+.fui-ChatMessage__avatar > div {
+  padding-top: 0;
+}
+
 .chat-message-composite {
   animation: fadeInUp 0.5s ease-out;
   opacity: 0; /* Start from invisible */
