@@ -25,12 +25,13 @@ import {
 import "./ChatSidebar.scss";
 import { FaPlus } from "react-icons/fa6";
 import { MessageThreadProvider } from "./MessageThreadProvider";
-import { ChatMessageComposite } from "../chat/ChatMessage.tsx";
+import { ChatMessageComposite } from "../chat/ChatMessageComposite.tsx";
 import { Avatar } from "../chat/Avatar.tsx";
 import { IsThinkingIndicator } from "../chat/IsThinkingIndicator.tsx";
 import { SuggestionItem } from "./SuggestionItem.tsx";
 import { DefaultMentionRenderer } from "../chat/MentionRenderer.tsx";
 import { FaArrowCircleUp } from "react-icons/fa";
+import { PersonaSize } from "@fluentui/react";
 
 const config = resolveConfig(defaultConfig);
 const colors = { ...config.theme.colors, primary: config.theme.colors.violet };
@@ -102,6 +103,9 @@ const ChatSidebar: FC<{
   };
 
   const messageThreadStyles = {
+    chatItemMessageContainer: {
+      marginTop: "0px",
+    },
     chatContainer: {
       "& *": {
         fontFamily,
@@ -112,10 +116,10 @@ const ChatSidebar: FC<{
         paddingLeft: "0.5rem",
         paddingRight: "0.5rem",
         paddingBottom: "0.75rem",
-        ":hover": {
-          backgroundColor:
-            mode === "dark" ? colors.gray[900] : colors.gray[100],
-        },
+        // ":hover": {
+        //   backgroundColor:
+        //     mode === "dark" ? colors.gray[900] : colors.gray[100],
+        // },
       },
     },
     newMessageButtonContainer: {
@@ -262,6 +266,7 @@ const ChatSidebar: FC<{
                       />
                     )}
                     showMessageStatus={true}
+                    showMessageDate={false}
                     onRenderAvatar={(
                       userId,
                       options,
@@ -269,8 +274,9 @@ const ChatSidebar: FC<{
                     ) => (
                       <Avatar
                         userId={userId}
-                        renderOptions={options}
+                        renderOptions={{ ...options, size: PersonaSize.size24 }}
                         defaultOnRenderAvatar={defaultOnRenderAvatar}
+                        renderUserAvatar={false}
                       />
                     )}
                     mentionOptions={{

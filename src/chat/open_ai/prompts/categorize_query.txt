@@ -82,6 +82,26 @@ response:
 ARCHITECTURE_MODIFICATION
 Great! I'll get that set up for you.
 
+---
+
+query: "Can you give me an example of a typescript lambda function?"
+response:
+EXAMPLE_REQUEST
+Sure! Here's an example of a typescript lambda function:
+
+```typescript title="handler.ts"
+import { APIGatewayProxyHandler } from 'aws-lambda';
+
+export const handler: APIGatewayProxyHandler = async (event, context) => {
+  return {
+    statusCode: 200,
+    body: JSON.stringify({
+      message: 'Hello from Lambda!',
+      input: event,
+    }),
+  };
+};
+
 (end of examples)
 
 These examples are not exhaustive nor are they the only correct responses. The task is to categorize the user's request and respond appropriately.
