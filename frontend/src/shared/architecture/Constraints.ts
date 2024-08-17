@@ -329,7 +329,7 @@ export function generateConstraintMetadataFromFormState(
     const pathstr = key.split("#")[1];
     const propertyPath: string[] = pathstr.split(".");
     let currentProperty: Property;
-    let path: string[] = [];
+    let pathParts: string[] = [];
 
     let stopPathExecution = false;
     propertyPath.forEach((prop, index) => {
@@ -343,26 +343,26 @@ export function generateConstraintMetadataFromFormState(
         resourceType!.properties?.forEach((field) => {
           if (field.name === name) {
             currentProperty = field;
-            path.push(prop);
+            pathParts.push(prop);
           }
         });
       } else {
         currentProperty.properties?.forEach((field) => {
           if (field.name === name) {
             currentProperty = field;
-            path.push(prop);
+            pathParts.push(prop);
           }
         });
       }
 
-      // if there is a synthetic property found we just set the constraint metadata to the value
+      // if there is a synthetic property found, we just set the constraint metadata to the value
       // this is for the case of customized configuration
       if (currentProperty.synthetic) {
         stopPathExecution = true;
         return;
       }
 
-      // if there are no sub properties then we know we have to set the constraint metadata rather than looping deeper into the proeprties
+      // if there are no sub properties then we know we have to set the constraint metadata rather than looping deeper into the properties
       if (currentProperty?.properties === undefined) {
         switch (currentProperty?.type) {
           case CollectionTypes.Map: {
@@ -370,8 +370,13 @@ export function generateConstraintMetadataFromFormState(
               key: any;
               value: any;
             };
-            const val = getDataFromPath(path.join("."), resourceMetadata);
-            const currVal = constraintMetadata[path.join(".")];
+            // individual map entries include an index, so we need to trim that to get the parent map path
+            const indexLocation = pathParts.join(".").lastIndexOf("[");
+            const mapPath = pathParts
+              .join(".")
+              .substring(0, indexLocation === -1 ? undefined : indexLocation);
+            const val = getDataFromPath(mapPath, resourceMetadata);
+            const currVal = constraintMetadata[mapPath];
             const newVal = {
               ...val,
               ...currVal,
@@ -380,15 +385,15 @@ export function generateConstraintMetadataFromFormState(
             if (mapVal.value === undefined) {
               delete newVal[mapVal.key];
             }
-            constraintMetadata[path.join(".")] = newVal;
+            constraintMetadata[mapPath] = newVal;
             break;
           }
           case CollectionTypes.Set:
           case CollectionTypes.List: {
-            const isArrayIndex = path[path.length - 1].endsWith("]");
+            const isArrayIndex = pathParts[pathParts.length - 1].endsWith("]");
             const nonIndexPath = isArrayIndex
-              ? path.join(".").split("[").slice(0, -1).join("[")
-              : path.join(".");
+              ? pathParts.join(".").split("[").slice(0, -1).join("[")
+              : pathParts.join(".");
             const val = getDataFromPath(nonIndexPath, resourceMetadata);
             const listVal = value as {
               value: any;
@@ -423,12 +428,12 @@ export function generateConstraintMetadataFromFormState(
       } else {
         // If there are sub properties we just need to ensure that we are not at an empty list or a non existent list object
         // if we are then we need to ensure we create the nested values and are setting the overall list in the constraint metadata so we can use an equals constraint
-        const val = getDataFromPath(path.join("."), resourceMetadata);
+        const val = getDataFromPath(pathParts.join("."), resourceMetadata);
         switch (currentProperty?.type) {
           case CollectionTypes.Set:
           case CollectionTypes.List: {
             if (!val) {
-              const nonIndexPath = path
+              const nonIndexPath = pathParts
                 .join(".")
                 .split("[")
                 .slice(0, -1)
@@ -438,7 +443,8 @@ export function generateConstraintMetadataFromFormState(
                 constraintMetadata[nonIndexPath] = currVal;
               }
               if (constraintMetadata[nonIndexPath] === undefined) {
-                const isArrayIndex = path[path.length - 1].endsWith("]");
+                const isArrayIndex =
+                  pathParts[pathParts.length - 1].endsWith("]");
                 constraintMetadata[nonIndexPath] = isArrayIndex ? [] : {};
               }
 
