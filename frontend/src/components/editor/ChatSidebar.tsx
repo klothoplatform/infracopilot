@@ -40,9 +40,8 @@ const trigger = "@";
 const examplePrompts = [
   "Add a lambda function to my architecture",
   "Expose my lambda function as an API",
-  "What is the cost of my architecture?",
-  "How can I improve the performance of my architecture?",
-  "Create an architecture for an e-commerce website",
+  "Create a serverless architecture for an e-commerce website",
+  "How can I secure my architecture?",
 ];
 
 const introductionMessage =
@@ -219,10 +218,10 @@ const ChatSidebar: FC<{
                         className="mx-auto mt-4"
                         src="/images/al.svg"
                         alt="Alfred"
-                        width="64"
-                        height="64"
+                        width="48"
+                        height="48"
                       />
-                      <p className="my-auto whitespace-pre-wrap text-center text-xl font-medium text-gray-600 dark:text-gray-300">
+                      <p className="text-md my-auto whitespace-pre-wrap text-center font-medium text-gray-600 dark:text-gray-300">
                         {introductionMessage}
                       </p>
                     </div>
