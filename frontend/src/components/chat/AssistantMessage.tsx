@@ -15,7 +15,8 @@ import { remarkAlert } from "remark-github-blockquote-alert";
 import remarkMention from "../../shared/remark-mention.ts";
 import { DefaultMentionRenderer } from "./MentionRenderer.tsx";
 import HoverableLink from "./HoverableLink.tsx";
-import { PrismAsyncLight as SyntaxHighlighter } from "react-syntax-highlighter";
+//TODO: look into why AsyncPrysmLight renders [object Object] instead of the unstyled code before the highlighter is loaded
+import { PrismLight as SyntaxHighlighter } from "react-syntax-highlighter";
 import {
   vs as lightTheme,
   vscDarkPlus as darkTheme,
