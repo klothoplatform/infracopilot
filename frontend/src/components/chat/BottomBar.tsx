@@ -1,5 +1,4 @@
 import type { FC } from "react";
-import { useEffect } from "react";
 import React, { useState } from "react";
 import useApplicationStore from "../../pages/store/ApplicationStore.ts";
 import { MessageThreadContext } from "../editor/MessageThreadProvider.tsx";
@@ -23,16 +22,7 @@ export const BottomBar: FC<{
   const { setToastText, hoveredMessageId } =
     React.useContext(MessageThreadContext);
 
-  const [isVisible, setIsVisible] = useState(false);
-  const shouldBeVisible =
-    hoveredMessageId === message.messageId ||
-    chatHistory.at(-1)?.messageId === message.messageId;
-
-  useEffect(() => {
-    if (isVisible !== shouldBeVisible) {
-      setIsVisible(shouldBeVisible);
-    }
-  }, [isVisible, shouldBeVisible]);
+  const isVisible = hoveredMessageId === message.messageId;
 
   const onFeedback = (helpful: boolean) => {
     const originalMessage = chatHistory.find(
