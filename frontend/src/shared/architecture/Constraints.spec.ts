@@ -80,7 +80,7 @@ describe("generateConstraintMetadataFromFormState", () => {
   };
 
   const mockResourceMetadata = {
-    testProperty: {
+    "testProperty[0]": {
       testKey: "testOldValue",
     },
   };
